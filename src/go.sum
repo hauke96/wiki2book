@@ -1,0 +1,4 @@
+github.com/hauke96/sigolo v0.0.0-20200831155049-d5b5ab2a608f h1:xG+4rtMXl2W7NemjthCbXW1wKUjgNurhlfK0qXqvPXo=
+github.com/hauke96/sigolo v0.0.0-20200831155049-d5b5ab2a608f/go.mod h1:F5f3UXFxSHe2BUizY8IvIYhjiPMy6FmJQvBMI83aeQs=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
