@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -30,6 +31,7 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 
 	content := escapeSpecialCharacters(wikiPage.Content)
 	content = replaceMathMode(content)
+	content = replaceInternalLinks(content)
 	content = replaceSections(content)
 
 	latexFileContent += content
@@ -78,6 +80,16 @@ func escapeSpecialCharacters(content string) string {
 func replaceSections(content string) string {
 	content = strings.ReplaceAll(content, "\n== ", "\n\\section{")
 	content = strings.ReplaceAll(content, " ==\n", "}\n")
+	return content
+}
+
+func replaceInternalLinks(content string) string {
+	regex := regexp.MustCompile("\\[\\[.*?\\|(.*?)]]")
+	content = regex.ReplaceAllString(content, "$1")
+
+	regex = regexp.MustCompile("\\[\\[(.*?)]]")
+	content = regex.ReplaceAllString(content, "$1")
+
 	return content
 }
 
