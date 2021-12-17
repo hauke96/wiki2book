@@ -2,25 +2,17 @@ package main
 
 import (
 	"github.com/hauke96/sigolo"
+	"github.com/hauke96/wiki2book/src/wiki"
 	"regexp"
 	"strings"
 )
 
-type WikiPage struct {
-	Title   string
-	Content string
-	Images  []WikiImage
-}
-
-type WikiImage struct {
-	Filename string
-	Caption string
-}
-
-func parse(wikiPageDto *WikiPageDto) WikiPage {
+func parse(wikiPageDto *WikiPageDto) wiki.Article {
 	images := getListOfImages(wikiPageDto.Parse.Wikitext.Content)
-	return WikiPage{
+	return wiki.Article{
+		Title: wikiPageDto.Parse.Title,
 		Images: images,
+		Content: wikiPageDto.Parse.Wikitext.Content,
 	}
 }
 
@@ -28,8 +20,8 @@ func parse(wikiPageDto *WikiPageDto) WikiPage {
 
 // TODO expand templates and parse the HTML: \{\{[a-zA-Z0-9äöüÄÖÜ\\|\s,.-_\(\)=\[\]\{\}]*\}\} -> https://www.mediawiki.org/wiki/API:Expandtemplates#GET_request
 
-func getListOfImages(content string) []WikiImage {
-	var result []WikiImage
+func getListOfImages(content string) []wiki.Image {
+	var result []wiki.Image
 
 	regex := regexp.MustCompile("\\[\\[((Datei|File):.*)\\]\\]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
@@ -39,7 +31,7 @@ func getListOfImages(content string) []WikiImage {
 		filename := splittedMatch[0]
 		caption := splittedMatch[len(splittedMatch)-1]
 
-		result = append(result, WikiImage{
+		result = append(result, wiki.Image{
 			Filename: filename,
 			Caption: caption,
 		})

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hauke96/sigolo"
+	"github.com/hauke96/wiki2book/src/wiki"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -48,7 +49,7 @@ func downloadPage(language string, title string) (*WikiPageDto, error) {
 	return wikiPageDto, nil
 }
 
-func downloadImages(images []WikiImage, outputFolder string) error {
+func downloadImages(images []wiki.Image, outputFolder string) error {
 	for _, image := range images {
 		err := downloadImage(image.Filename, outputFolder)
 		if err != nil {
@@ -71,7 +72,7 @@ func downloadImage(fileDescriptor string, outputFolder string) error {
 
 	// Create the output folder
 	err := os.Mkdir(outputFolder, os.ModePerm)
-	if !os.IsExist(err) {
+	if err != nil && !os.IsExist(err) {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
 	}
 
