@@ -11,9 +11,9 @@ func main() {
 
 	wikiPage := parse(wikiPageDto)
 
-	err = downloadImages(wikiPage.Images, "./images")
+	err = downloadImages(wikiPage.Images, "./"+wikiPage.Title+"/images")
 	sigolo.FatalCheck(err)
 
-	err = generator.Generate(wikiPage, "./" + wikiPage.Title)
+	err = generator.Generate(wikiPage, "./"+wikiPage.Title)
 	sigolo.FatalCheck(err)
 }

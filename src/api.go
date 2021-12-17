@@ -61,8 +61,7 @@ func downloadImages(images []wiki.Image, outputFolder string) error {
 
 // Download the given image (e.g. "File:foo.jpg") to the given folder
 func downloadImage(fileDescriptor string, outputFolder string) error {
-	rawFilename := strings.Split(fileDescriptor, ":")[1]
-	filename := strings.ReplaceAll(rawFilename, " ", "_")
+	filename := strings.Split(fileDescriptor, ":")[1]
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(filename)))
 	sigolo.Debug(filename)
 	sigolo.Debug(md5sum)
@@ -76,8 +75,13 @@ func downloadImage(fileDescriptor string, outputFolder string) error {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
 	}
 
-	// Create the output file
+	// If file exists -> ignore
 	outputFilepath := filepath.Join(outputFolder, "/", filename)
+	if _, err := os.Stat(outputFilepath); err == nil {
+		return nil
+	}
+
+	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", fileDescriptor))
@@ -92,7 +96,7 @@ func downloadImage(fileDescriptor string, outputFolder string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Downloading image %s failed with status code %d", rawFilename, response.StatusCode))
+		return errors.New(fmt.Sprintf("Downloading image %s failed with status code %d", filename, response.StatusCode))
 	}
 
 	// Write the body to file
