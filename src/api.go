@@ -8,21 +8,22 @@ import (
 	"net/http"
 )
 
-type WikiPage struct {
-	Parse WikiParsePage `json:"parse"`
+type WikiPageDto struct {
+	Parse WikiParsePageDto `json:"parse"`
 }
 
-type WikiParsePage struct {
+type WikiParsePageDto struct {
 	Title    string `json:"title"`
-	Wikitext Wikitext
+	Wikitext WikitextDto
 }
 
-type Wikitext struct {
+type WikitextDto struct {
 	Content string `json:"*"`
 }
 
-func downloadPage(title string) (*WikiPage, error) {
-	response, err := http.Get("https://de.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=" + title)
+func downloadPage(language string, title string) (*WikiPageDto, error) {
+	url := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, title)
+	response, err := http.Get(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to download article content of article "+title)
 	}
@@ -35,8 +36,8 @@ func downloadPage(title string) (*WikiPage, error) {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
 
-	wikiPage := &WikiPage{}
-	json.Unmarshal(bodyBytes, wikiPage)
+	wikiPageDto := &WikiPageDto{}
+	json.Unmarshal(bodyBytes, wikiPageDto)
 
-	return wikiPage, nil
+	return wikiPageDto, nil
 }

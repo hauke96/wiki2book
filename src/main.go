@@ -3,8 +3,12 @@ package main
 import "github.com/hauke96/sigolo"
 
 func main() {
-	wikiPage, err := downloadPage("Stern")
+	wikiPageDto, err := downloadPage("de", "Stern")
 	sigolo.FatalCheck(err)
 
-	sigolo.Info("content: %s", wikiPage.Parse.Wikitext)
+	wikiPage := parse(wikiPageDto)
+
+	sigolo.Info("content: %s", wikiPage.Content)
+	sigolo.Info("title: %s", wikiPage.Title)
+	sigolo.Info("images: %s", wikiPage.Images)
 }
