@@ -8,7 +8,6 @@ func main() {
 
 	wikiPage := parse(wikiPageDto)
 
-	sigolo.Info("content: %s", wikiPage.Content)
-	sigolo.Info("title: %s", wikiPage.Title)
-	sigolo.Info("images: %s", wikiPage.Images)
+	err = downloadImage(wikiPage.Images[0].Filename, "./images")
+	sigolo.FatalCheck(err)
 }

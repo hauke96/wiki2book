@@ -1,11 +1,17 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type WikiPageDto struct {
@@ -40,4 +46,50 @@ func downloadPage(language string, title string) (*WikiPageDto, error) {
 	json.Unmarshal(bodyBytes, wikiPageDto)
 
 	return wikiPageDto, nil
+}
+
+// Download the given image (e.g. "File:foo.jpg") to the given folder
+func downloadImage(fileDescriptor string, outputFolder string) error {
+	rawFilename := strings.Split(fileDescriptor, ":")[1]
+	filename := strings.ReplaceAll(rawFilename, " ", "_")
+	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(filename)))
+	sigolo.Debug(filename)
+	sigolo.Debug(md5sum)
+
+	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/commons/%c/%c%c/%s", md5sum[0], md5sum[0], md5sum[1], filename)
+	sigolo.Debug(url)
+
+	// Create the output folder
+	err := os.Mkdir(outputFolder, os.ModePerm)
+	if !os.IsExist(err) {
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
+	}
+
+	// Create the output file
+	outputFilepath := filepath.Join(outputFolder, "/", filename)
+	outputFile, err := os.Create(outputFilepath)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", fileDescriptor))
+	}
+	defer outputFile.Close()
+
+	// Get the data
+	response, err := http.Get(url)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to get image %s", fileDescriptor))
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return errors.New(fmt.Sprintf("Downloading image %s failed with status code %d", rawFilename, response.StatusCode))
+	}
+
+	// Write the body to file
+	_, err = io.Copy(outputFile, response.Body)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
+	}
+
+	sigolo.Info("Saved image to %s", outputFilepath)
+	return nil
 }
