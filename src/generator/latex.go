@@ -114,10 +114,10 @@ func replaceImages(content string) string {
 }
 
 func replaceInternalLinks(content string) string {
-	regex := regexp.MustCompile("\\[\\[.*?\\|(.*?)]]")
+	regex := regexp.MustCompile("\\[\\[[^|]*?]]")
 	content = regex.ReplaceAllString(content, "$1")
 
-	regex = regexp.MustCompile("\\[\\[(.*?)]]")
+	regex = regexp.MustCompile("\\[\\[.*?\\|(.*?)]]")
 	content = regex.ReplaceAllString(content, "$1")
 
 	return content
