@@ -48,6 +48,16 @@ func downloadPage(language string, title string) (*WikiPageDto, error) {
 	return wikiPageDto, nil
 }
 
+func downloadImages(images []WikiImage, outputFolder string) error {
+	for _, image := range images {
+		err := downloadImage(image.Filename, outputFolder)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Download the given image (e.g. "File:foo.jpg") to the given folder
 func downloadImage(fileDescriptor string, outputFolder string) error {
 	rawFilename := strings.Split(fileDescriptor, ":")[1]
