@@ -1,4 +1,4 @@
-package generator
+package html
 
 import (
 	"fmt"
@@ -12,29 +12,21 @@ import (
 )
 
 const HEADER = `
-% !TeX program = xelatex
-
-\documentclass{book}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[ngerman]{babel}
-\usepackage{graphicx}
-
-\begin{document}
-	\tableofcontents
-	\newpage
+<html>
+<body>
 `
 const FOOTER = `
-\end{document}
+</html>
+</body>
 `
 const FILE_PLACEHOLDER = "__FILE__"
 
 func Generate(wikiPage wiki.Article, outputFolder string) error {
 	latexFileContent := HEADER
-	latexFileContent += "\\chapter{" + wikiPage.Title + "}\n"
+	latexFileContent += "\n<h1>" + wikiPage.Title + "</h1>"
 
 	content := escapeSpecialCharacters(wikiPage.Content)
-	content = replaceMathMode(content)
+	//content = replaceMathMode(content)
 	content = prepareImages(content)
 	content = replaceInternalLinks(content)
 	content = replaceImages(content)
@@ -54,7 +46,7 @@ func write(title string, outputFolder string, content string) error {
 	}
 
 	// Create output file
-	outputFilepath := filepath.Join(outputFolder, title+".tex")
+	outputFilepath := filepath.Join(outputFolder, title+".html")
 	sigolo.Info("Write to %s", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
@@ -72,19 +64,28 @@ func write(title string, outputFolder string, content string) error {
 }
 
 func escapeSpecialCharacters(content string) string {
-	content = strings.ReplaceAll(content, "&", "\\&")
-	content = strings.ReplaceAll(content, "_", "\\_")
-	content = strings.ReplaceAll(content, "#", "\\#")
-	content = strings.ReplaceAll(content, "{", "\\{")
-	content = strings.ReplaceAll(content, "}", "\\}")
-	content = strings.ReplaceAll(content, "$", "\\$")
-	content = strings.ReplaceAll(content, "%", "\\%")
+	//content = strings.ReplaceAll(content, "&", "\\&")
+	//content = strings.ReplaceAll(content, "_", "\\_")
+	//content = strings.ReplaceAll(content, "#", "\\#")
+	//content = strings.ReplaceAll(content, "{", "\\{")
+	//content = strings.ReplaceAll(content, "}", "\\}")
+	//content = strings.ReplaceAll(content, "$", "\\$")
+	//content = strings.ReplaceAll(content, "%", "\\%")
+	content = strings.ReplaceAll(content, " < ", " &lt; ")
+	content = strings.ReplaceAll(content, " > ", " &gt; ")
 	return content
 }
 
 func replaceSections(content string) string {
-	content = strings.ReplaceAll(content, "\n== ", "\n\\section{")
-	content = strings.ReplaceAll(content, " ==\n", "}\n")
+	content = strings.ReplaceAll(content, "\n== ", "\n<h2>")
+	content = strings.ReplaceAll(content, " ==\n", "</h2>\n")
+
+	content = strings.ReplaceAll(content, "\n=== ", "\n<h3>")
+	content = strings.ReplaceAll(content, " ===\n", "</h3>\n")
+
+	content = strings.ReplaceAll(content, "\n=== ", "\n<h4>")
+	content = strings.ReplaceAll(content, " ===\n", "</h4>\n")
+
 	return content
 }
 
@@ -97,8 +98,8 @@ func prepareImages(content string) string {
 }
 
 func replaceImages(content string) string {
-	start := "\\begin{center}\\includegraphics[width=\\textwidth]{images/"
-	end := "}\\end{center}"
+	start := "<br><img src=\"./images/"
+	end := "\"><br>"
 
 	regex := regexp.MustCompile(FILE_PLACEHOLDER + "(.*?)\\|(.|\\n|\\r)*?]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
@@ -114,7 +115,7 @@ func replaceImages(content string) string {
 }
 
 func replaceInternalLinks(content string) string {
-	regex := regexp.MustCompile("\\[\\[[^|]*?]]")
+	regex := regexp.MustCompile("\\[\\[([^|]*?)]]")
 	content = regex.ReplaceAllString(content, "$1")
 
 	regex = regexp.MustCompile("\\[\\[.*?\\|(.*?)]]")

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/generator"
+	"github.com/hauke96/wiki2book/src/generator/html"
 )
 
 func main() {
@@ -14,6 +14,6 @@ func main() {
 	err = downloadImages(wikiPage.Images, "./"+wikiPage.Title+"/images")
 	sigolo.FatalCheck(err)
 
-	err = generator.Generate(wikiPage, "./"+wikiPage.Title)
+	err = html.Generate(wikiPage, "./"+wikiPage.Title)
 	sigolo.FatalCheck(err)
 }
