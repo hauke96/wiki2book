@@ -24,7 +24,7 @@ func main() {
 	var articleFiles []string
 
 	for _, article := range project.Articles {
-		err, outputFile := generateHtml(article, project.Domain)
+		err, outputFile := generateHtml(article, project.Domain, project.Style)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
@@ -36,7 +36,7 @@ func main() {
 	sigolo.FatalCheck(err)
 }
 
-func generateHtml(article string, language string) (error, string) {
+func generateHtml(article string, language string, styleFile string) (error, string) {
 	wikiPageDto, err := downloadPage(language, article)
 	sigolo.FatalCheck(err)
 
@@ -45,7 +45,7 @@ func generateHtml(article string, language string) (error, string) {
 	err = downloadImages(wikiPage.Images, "./images")
 	sigolo.FatalCheck(err)
 
-	outputFile, err := html.Generate(wikiPage, "./")
+	outputFile, err := html.Generate(wikiPage, "./", styleFile)
 	sigolo.FatalCheck(err)
 	return err, outputFile
 }

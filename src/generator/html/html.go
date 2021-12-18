@@ -14,7 +14,7 @@ import (
 const HEADER = `
 <html>
 <head>
-<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="{{STYLE}}">
 </head>
 <body>
 `
@@ -23,8 +23,8 @@ const FOOTER = `
 </body>
 `
 
-func Generate(wikiPage wiki.Article, outputFolder string) (string, error) {
-	latexFileContent := HEADER
+func Generate(wikiPage wiki.Article, outputFolder string, styleFile string) (string, error) {
+	latexFileContent := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	latexFileContent += "\n<h1>" + wikiPage.Title + "</h1>"
 
 	//content := wikiPage.Content
@@ -34,7 +34,7 @@ func Generate(wikiPage wiki.Article, outputFolder string) (string, error) {
 	content = replaceSections(content)
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
-	content = replaceUnorderedList(content)
+	content = replaceUnorderedLists(content)
 	content = replaceTables(content)
 	content = removeEmptyLines(content)
 
@@ -73,8 +73,8 @@ func parseTable(content string) string {
 		content = strings.ReplaceAll(content, match, htmlRow)
 	}
 
-	content = regexp.MustCompile(":\\{\\|.*").ReplaceAllString(content, "<table>")
-	content = regexp.MustCompile("\\|\\-\\n\\|}").ReplaceAllString(content, "</table>")
+	content = regexp.MustCompile(":\\{\\|.*").ReplaceAllString(content, "<table><tbody>")
+	content = regexp.MustCompile("\\|\\-\\n\\|}").ReplaceAllString(content, "</table></tbody>")
 
 	return content
 }
@@ -85,6 +85,7 @@ func parseRow(content string, splitChar string, htmlColumnElement string) string
 	content = strings.ReplaceAll(content, "|-", "")
 	content = strings.ReplaceAll(content, splitChar+splitChar, "\n"+splitChar)
 	content = strings.Trim(content, "\n")
+	content = strings.Trim(content, "|")
 
 	result := "<tr>\n"
 
@@ -229,22 +230,64 @@ func replaceImages(content string) string {
 	return content
 }
 
-func replaceUnorderedList(content string) string {
-	ulRegex := regexp.MustCompile("((\\n\\*+ .*)+)")
-	liRegex := regexp.MustCompile("\\n\\* (.*)")
-	nestedLiRegex := regexp.MustCompile("\\n\\*(\\*+ .*)")
-
+func replaceUnorderedLists(content string) string {
 	for {
+		// Match from beginning of list to beginning of a new line which is either a new paragraph or a new text line
+		ulRegex := regexp.MustCompile("\\n(\\* (.|\\n|\\r)*?)\\n([a-zA-Z0-9]|<h|<p)")
 		if !ulRegex.MatchString(content) {
 			break
 		}
 
-		content = ulRegex.ReplaceAllString(content, "\n<ul>$1\n</ul>")
-		content = liRegex.ReplaceAllString(content, "\n<li>$1</li>")
-		content = nestedLiRegex.ReplaceAllString(content, "\n$1") // Remove a * from nested items so that they will be replaced in one of the following iterations
+		submatches := ulRegex.FindAllStringSubmatch(content, -1)
+		for _, list := range submatches {
+			// list = list with possible sub-lists
+
+			result := evaluateUnorderedListString("\\*", list[1])
+			if result == "" {
+				break
+			}
+
+			result += "\n" + list[3]
+
+			content = strings.ReplaceAll(content, list[0], result)
+		}
 	}
 
 	return content
+}
+
+func evaluateUnorderedListString(listPrefix string, listString string) string {
+	result := ""
+	listString = listString
+
+	bulletRegex := regexp.MustCompile("(^|\\n)" + listPrefix + " ")
+	if !bulletRegex.MatchString(listString) {
+		return listString
+	}
+
+	listItems := bulletRegex.Split(listString, -1)
+	if len(listItems) == 0 {
+		return listString
+	}
+
+	for i, listItem := range listItems {
+		if i == 0 {
+			// First item is either empty (for new starting list) or consists of the parent item in case we're in a
+			// sub-list here. I that case, we want to just add the parent items text and then add our new <ul> sub-list.
+			if listItem != "" {
+				result += listItem + "\n"
+			}
+			result += "<ul>\n"
+			continue
+		}
+
+		result += "<li>\n"
+		result += evaluateUnorderedListString(listPrefix+"\\*", listItem)
+		result += "</li>\n"
+	}
+
+	result += "</ul>\n"
+	return result
 }
 
 func removeEmptyLines(content string) string {

@@ -80,6 +80,8 @@ func processImages(content string) (string, []wiki.Image) {
 	var result []wiki.Image
 
 	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?)(]]|\\|)")
+
+	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?)(]]|\\|)")
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		splittedMatch := strings.Split(submatch[1], "|")
