@@ -18,6 +18,8 @@ You need the following tools and fonts:
 
 Open tasks of this project:
 
-* [ ] Add cover to EPUB file
+* [x] Add cover to EPUB file
+* [ ] Tables
+* [ ] Use superscript `<sup>...</sup>` for citations 
 * [ ] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests
