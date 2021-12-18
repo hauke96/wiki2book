@@ -26,7 +26,7 @@ func main() {
 	outputFile, err := html.Generate(wikiPage, "./")
 	sigolo.FatalCheck(err)
 
-	err = epub.Generate(outputFile, wikiPage.Title+".epub", "../../style.css")
+	err = epub.Generate(outputFile, wikiPage.Title+".epub", "../../style.css", "../../wikipedia-astronomie-cover.png", "Astronomie")
 	sigolo.FatalCheck(err)
 }
 

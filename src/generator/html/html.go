@@ -147,7 +147,7 @@ func replaceInternalLinks(content string) string {
 }
 
 func replaceImages(content string) string {
-	template := "<br><div class=\"figure\"><img src=\"./images/{{FILE}}\"><div class=\"caption\">{{CAPTION}}</div></div>"
+	template := "<br><div class=\"figure\"><img alt=\"{{ALT}}\" src=\"./images/{{FILE}}\"><div class=\"caption\">{{CAPTION}}</div></div>"
 
 	regex := regexp.MustCompile("\\[\\[(Datei|File):((.|\\n|\\r)*?)\\|.*?\\|([^\\|]*?)]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
@@ -159,6 +159,7 @@ func replaceImages(content string) string {
 			filename := strings.ReplaceAll(submatch[2], "\\_", "_")
 
 			includeCommand = strings.ReplaceAll(template, "{{FILE}}", filename)
+			includeCommand = strings.ReplaceAll(includeCommand, "{{ALT}}", filename)
 			includeCommand = strings.ReplaceAll(includeCommand, "{{CAPTION}}", submatch[4])
 		}
 

@@ -69,16 +69,17 @@ func downloadImages(images []wiki.Image, outputFolder string) error {
 		// If the file is new, rescale it using ImageMagick.
 		if outputFilepath != "" {
 			const imgSize = 600
-			cmd := exec.Command("convert", outputFilepath, "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), outputFilepath+".tmp")
+			cmd := exec.Command("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
+				"-define", "PNG:compression-level=9", "-define", "PNG:compression-filter=0", outputFilepath)
 			err = cmd.Run()
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))
 			}
 
-			err = os.Rename(outputFilepath+".tmp", outputFilepath)
-			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Unable to rename rescaled temporary image %s.tmp", outputFilepath))
-			}
+			//err = os.Rename(outputFilepath+".tmp", outputFilepath)
+			//if err != nil {
+			//	return errors.Wrap(err, fmt.Sprintf("Unable to rename rescaled temporary image %s.tmp", outputFilepath))
+			//}
 		}
 	}
 	return nil

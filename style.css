@@ -38,21 +38,21 @@ Fonts
 }
 
 @font-face {
-    font-family: "DejaVuSansMono";
+    font-family: DejaVuSansMono;
     font-style: italic;
     font-weight: normal;
     src: url("../fonts/DejaVuSansMono-Oblique.ttf");
 }
 
 @font-face {
-    font-family: "DejaVuSansMono";
+    font-family: DejaVuSansMono;
     font-style: normal;
     font-weight: bold;
     src: url("../fonts/DejaVuSansMono-Bold.ttf");
 }
 
 @font-face {
-    font-family: "DejaVuSansMono";
+    font-family: DejaVuSansMono;
     font-style: italic;
     font-weight: bold;
     src: url("../fonts/DejaVuSansMono-BoldOblique.ttf");
@@ -64,13 +64,13 @@ Standard HTML elements
 
 body {
     margin: 1rem;
-    font-family: "DejaVuSans", serif;
+    font-family: DejaVuSans, sans-serif;
     font-size: .9em;
     line-height: 1.5em;
 }
 
 code {
-    font-family: monospace;
+    font-family: DejaVuSansMono, sans-serif;
     white-space: pre-wrap;
 }
 
@@ -80,12 +80,13 @@ h1, h2, h3, h4, h5, h6 {
 
 /* For title, author, and date on the cover page */
 h1.title {
+    margin-top: 20%;
+    text-align: center;
 }
 
 p.author {
-}
-
-p.date {
+    margin-top: 5rem;
+    text-align: center;
 }
 
 nav#toc ol,
@@ -164,4 +165,10 @@ Custom classes
     page-break-inside: avoid;
     margin: 2em auto;
     text-align: center
+}
+
+.figure img {
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto
 }
