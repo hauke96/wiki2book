@@ -28,7 +28,7 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 	//content := wikiPage.Content
 	content := escapeSpecialCharacters(wikiPage.Content)
 	content = replaceImages(content)
-	//content = replaceInternalLinks(content)
+	content = replaceInternalLinks(content)
 	content = replaceSections(content)
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
@@ -112,10 +112,10 @@ func replaceLinks(content string) string {
 	// Format of Links: [https://... Text]
 	// To not be confused with internal [[Article]] links, the [^\[] parts say that we do NOT want brackets before and
 	// after the potential match
-	regex := regexp.MustCompile("([^\\[])\\[([^\\[]*?) ([^\\]]*?)]([^\\]])")
+	regex := regexp.MustCompile("([^\\[])\\[(http[^\\[]+) ([^\\]]+)]([^\\]])")
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\">$3</a>$4")
 
-	regex = regexp.MustCompile("([^\\[])\\[(http[^\\[]*?)]([^\\]])")
+	regex = regexp.MustCompile("([^\\[])\\[(http[^\\[]+)]([^\\]])")
 	// Also match normal URLs like [https://...]
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\"></a>$3")
 
