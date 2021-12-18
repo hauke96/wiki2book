@@ -1,30 +1,143 @@
-/* This defines styles and classes used in the book */
-body { margin: 5%; text-align: justify; font-size: medium; }
-code { font-family: monospace; }
-h1 { text-align: left; }
-h2 { text-align: left; }
-h3 { text-align: left; }
-h4 { text-align: left; }
-h5 { text-align: left; }
-h6 { text-align: left; }
+/*
+Fonts
+ */
+
+@font-face {
+    font-family: DejaVuSans;
+    font-style: normal;
+    font-weight: normal;
+    src: url("../fonts/DejaVuSans.ttf");
+}
+
+@font-face {
+    font-family: DejaVuSans;
+    font-style: normal;
+    font-weight: bold;
+    src: url("../fonts/DejaVuSans-Bold.ttf");
+}
+
+@font-face {
+    font-family: DejaVuSans;
+    font-style: italic;
+    font-weight: normal;
+    src: url("../fonts/DejaVuSans-Oblique.ttf");
+}
+
+@font-face {
+    font-family: DejaVuSans;
+    font-style: italic;
+    font-weight: bold;
+    src: url("../fonts/DejaVuSans-BoldOblique.ttf");
+}
+
+@font-face {
+    font-family: DejaVuSansMono;
+    font-style: normal;
+    font-weight: normal;
+    src: url("../fonts/DejaVuSansMono.ttf");
+}
+
+@font-face {
+    font-family: "DejaVuSansMono";
+    font-style: italic;
+    font-weight: normal;
+    src: url("../fonts/DejaVuSansMono-Oblique.ttf");
+}
+
+@font-face {
+    font-family: "DejaVuSansMono";
+    font-style: normal;
+    font-weight: bold;
+    src: url("../fonts/DejaVuSansMono-Bold.ttf");
+}
+
+@font-face {
+    font-family: "DejaVuSansMono";
+    font-style: italic;
+    font-weight: bold;
+    src: url("../fonts/DejaVuSansMono-BoldOblique.ttf");
+}
+
+/*
+Standard HTML elements
+ */
+
+body {
+    margin: 1rem;
+    font-family: "DejaVuSerif", serif;
+    font-size: .9em;
+    line-height: 1.5em;
+}
+
+code {
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    text-align: left;
+}
+
 /* For title, author, and date on the cover page */
-h1.title { }
-p.author { }
-p.date { }
+h1.title {
+}
+
+p.author {
+}
+
+p.date {
+}
+
 nav#toc ol,
-nav#landmarks ol { padding: 0; margin-left: 1em; }
+nav#landmarks ol {
+    padding: 0;
+    margin-left: 1em;
+}
+
 nav#toc ol li,
-nav#landmarks ol li { list-style-type: none; margin: 0; padding: 0; }
-a.footnote-ref { vertical-align: super; }
-em, em em em, em em em em em { font-style: italic;}
-em em, em em em em { font-style: normal; }
-code{ white-space: pre-wrap; }
-span.smallcaps{ font-variant: small-caps; }
-span.underline{ text-decoration: underline; }
-q { quotes: "“" "”" "‘" "’"; }
-div.column{ display: inline-block; vertical-align: top; width: 50%; }
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-@media screen { /* Workaround for iBooks issue; see #6242 */
+nav#landmarks ol li {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+a.footnote-ref {
+    vertical-align: super;
+}
+
+em, em em em, em em em em em {
+    font-style: italic;
+}
+
+em em, em em em em {
+    font-style: normal;
+}
+
+span.smallcaps {
+    font-variant: small-caps;
+}
+
+span.underline {
+    text-decoration: underline;
+}
+
+q {
+    quotes: "“" "”" "‘" "’";
+}
+
+div.column {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+}
+
+div.hanging-indent {
+    margin-left: 1.5em;
+    text-indent: -1.5em;
+}
+
+@media screen {
+    /* Workaround for iBooks issue; see #6242 */
     .sourceCode {
         overflow: visible !important;
         white-space: pre-wrap !important;
@@ -36,4 +149,17 @@ img {
     margin-left: auto;
     margin-right: auto;
     max-width: 100%;
+}
+
+/*
+Custom classes
+ */
+
+.caption, .figure {
+    width: 100%;
+    max-width: 500px;
+}
+
+.figure {
+    margin: 1rem auto;
 }

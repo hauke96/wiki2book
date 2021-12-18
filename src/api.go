@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -60,16 +61,32 @@ func downloadPage(language string, title string) (*WikiPageDto, error) {
 
 func downloadImages(images []wiki.Image, outputFolder string) error {
 	for _, image := range images {
-		err := downloadImage(image.Filename, outputFolder)
+		outputFilepath, err := downloadImage(image.Filename, outputFolder)
 		if err != nil {
 			return err
+		}
+
+		// If the file is new, rescale it using ImageMagick.
+		if outputFilepath != "" {
+			cmd := exec.Command("convert", outputFilepath, "-resize", "500x500>", outputFilepath+".tmp")
+			err = cmd.Run()
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))
+			}
+
+			err = os.Rename(outputFilepath+".tmp", outputFilepath)
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Unable to rename rescaled temporary image %s.tmp", outputFilepath))
+			}
 		}
 	}
 	return nil
 }
 
-// Download the given image (e.g. "File:foo.jpg") to the given folder
-func downloadImage(fileDescriptor string, outputFolder string) error {
+// downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder.
+// When the file already exists, nothing is done and "", nil will be returned.
+// When the file has been downloaded "filename", nil will be returned.
+func downloadImage(fileDescriptor string, outputFolder string) (string, error) {
 	filename := strings.Split(fileDescriptor, ":")[1]
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(filename)))
 	sigolo.Debug(filename)
@@ -81,41 +98,42 @@ func downloadImage(fileDescriptor string, outputFolder string) error {
 	// Create the output folder
 	err := os.Mkdir(outputFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
 	}
 
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(outputFolder, "/", filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
-		return nil
+		sigolo.Info("Image file %s does already exist. Skip.", outputFilepath)
+		return "", nil
 	}
 
 	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", fileDescriptor))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", fileDescriptor))
 	}
 	defer outputFile.Close()
 
 	// Get the data
 	response, err := http.Get(url)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to get image %s", fileDescriptor))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to get image %s", fileDescriptor))
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Downloading image %s failed with status code %d", filename, response.StatusCode))
+		return "", errors.New(fmt.Sprintf("Downloading image %s failed with status code %d", filename, response.StatusCode))
 	}
 
 	// Write the body to file
 	_, err = io.Copy(outputFile, response.Body)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
 	}
 
 	sigolo.Info("Saved image to %s", outputFilepath)
-	return nil
+	return outputFilepath, nil
 }
 
 func evaluateTemplate(template string) (string, error) {

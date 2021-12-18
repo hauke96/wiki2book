@@ -13,13 +13,15 @@ import (
 
 const HEADER = `
 <html>
+<head>
+<link rel="stylesheet" href="../../style.css">
+</head>
 <body>
 `
 const FOOTER = `
 </html>
 </body>
 `
-const FILE_PLACEHOLDER = "__FILE__"
 
 func Generate(wikiPage wiki.Article, outputFolder string) error {
 	latexFileContent := HEADER
@@ -145,7 +147,7 @@ func replaceInternalLinks(content string) string {
 }
 
 func replaceImages(content string) string {
-	template := "<br><div class=\"figure\"><img src=\"./images/{{FILE}}\"><div class=\"caption\">{{CAPTION}}</div></div><br>"
+	template := "<br><div class=\"figure\"><img src=\"./images/{{FILE}}\"><div class=\"caption\">{{CAPTION}}</div></div>"
 
 	regex := regexp.MustCompile("\\[\\[(Datei|File):((.|\\n|\\r)*?)\\|.*?\\|([^\\|]*?)]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
