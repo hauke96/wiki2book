@@ -5,6 +5,11 @@
 *.so
 *.dylib
 
+# Rendered eBook files
+*.html
+*.epub
+images
+
 # IDE stuff
 .idea
 .run

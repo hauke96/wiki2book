@@ -89,6 +89,13 @@ p.author {
     text-align: center;
 }
 
+div.rights {
+    position: fixed;
+    bottom: 3rem;
+    width:100%;
+    text-align: center;
+}
+
 nav#toc ol,
 nav#landmarks ol {
     padding: 0;

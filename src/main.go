@@ -5,17 +5,39 @@ import (
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/generator/epub"
 	"github.com/hauke96/wiki2book/src/generator/html"
+	"github.com/hauke96/wiki2book/src/project"
 	"github.com/pkg/errors"
 	"os"
+	"path/filepath"
 )
 
 func main() {
-	title := "Stern"
+	projectFile := os.Args[1]
 
-	err := createAndUseFolder(title)
+	directory, _ := filepath.Split(projectFile)
+	err := os.Chdir(directory)
 	sigolo.FatalCheck(err)
 
-	wikiPageDto, err := downloadPage("de", title)
+	project, err := project.LoadProject(projectFile)
+	sigolo.FatalCheck(err)
+
+	var articleFiles []string
+
+	for _, article := range project.Articles {
+		err, outputFile := generateHtml(article, project.Domain)
+		sigolo.FatalCheck(err)
+
+		articleFiles = append(articleFiles, outputFile)
+
+		sigolo.Info("Succeesfully created HTML for article %s", article)
+	}
+
+	err = epub.Generate(articleFiles, project.Output, project.Style, project.Cover, project.Metadata)
+	sigolo.FatalCheck(err)
+}
+
+func generateHtml(article string, language string) (error, string) {
+	wikiPageDto, err := downloadPage(language, article)
 	sigolo.FatalCheck(err)
 
 	wikiPage := parse(wikiPageDto)
@@ -25,9 +47,7 @@ func main() {
 
 	outputFile, err := html.Generate(wikiPage, "./")
 	sigolo.FatalCheck(err)
-
-	err = epub.Generate(outputFile, wikiPage.Title+".epub", "../../style.css", "../../wikipedia-astronomie-cover.png", "Astronomie")
-	sigolo.FatalCheck(err)
+	return err, outputFile
 }
 
 // createAndUseFolder creates a folder with the given name and goes into that folder.
