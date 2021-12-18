@@ -27,8 +27,8 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 
 	//content := wikiPage.Content
 	content := escapeSpecialCharacters(wikiPage.Content)
-	content = replaceImages(content)
 	content = replaceInternalLinks(content)
+	content = replaceImages(content)
 	content = replaceSections(content)
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
@@ -112,10 +112,10 @@ func replaceLinks(content string) string {
 	// Format of Links: [https://... Text]
 	// To not be confused with internal [[Article]] links, the [^\[] parts say that we do NOT want brackets before and
 	// after the potential match
-	regex := regexp.MustCompile("([^\\[])\\[(http[^\\[]+) ([^\\]]+)]([^\\]])")
+	regex := regexp.MustCompile("([^\\[])\\[(http[^\\[]*?) ([^\\]]*?)]([^\\]])")
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\">$3</a>$4")
 
-	regex = regexp.MustCompile("([^\\[])\\[(http[^\\[]+)]([^\\]])")
+	regex = regexp.MustCompile("([^\\[])\\[(http[^\\[]*?)]([^\\]])")
 	// Also match normal URLs like [https://...]
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\"></a>$3")
 
@@ -123,26 +123,43 @@ func replaceLinks(content string) string {
 }
 
 func replaceInternalLinks(content string) string {
-	regex := regexp.MustCompile("\\[\\[([^|]*?)]]")
-	content = regex.ReplaceAllString(content, "$1")
+	fileRegex := regexp.MustCompile("^\\[\\[(Datei|File):")
 
-	regex = regexp.MustCompile("\\[\\[[^\\[]*?\\|(.*?)]]")
-	content = regex.ReplaceAllString(content, "$1")
+	regex := regexp.MustCompile("\\[\\[([^|]*?)]]")
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		if !fileRegex.MatchString(submatch[0]){
+			content = strings.ReplaceAll(content, submatch[0], submatch[1])
+		}
+	}
+
+	regex = regexp.MustCompile("\\[\\[[^\\[]*?\\|([^|]*?)]]")
+	submatches = regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		if !fileRegex.MatchString(submatch[0]){
+			content = strings.ReplaceAll(content, submatch[0], submatch[1])
+		}
+	}
 
 	return content
 }
 
 func replaceImages(content string) string {
-	start := "<br><img src=\"./images/"
-	end := "\"><br>"
+	template := "<br><div class=\"figure\"><img src=\"./images/{{FILE}}\"><div class=\"caption\">{{CAPTION}}</div></div><br>"
 
 	regex := regexp.MustCompile("\\[\\[(Datei|File):(.*?)\\|(.|\\n|\\r)*?]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
+
 	for _, submatch := range submatches {
-		includeCommand := start + strings.ReplaceAll(submatch[2], "\\_", "_") + end
-		if strings.HasSuffix(submatch[2], ".svg") || strings.HasSuffix(submatch[2], ".gif") {
-			includeCommand = ""
+		includeCommand := ""
+
+		if !strings.HasSuffix(submatch[2], ".svg") && !strings.HasSuffix(submatch[2], ".gif") {
+			filename := strings.ReplaceAll(submatch[2], "\\_", "_")
+
+			includeCommand = strings.ReplaceAll(template, "{{FILE}}", filename)
+			includeCommand = strings.ReplaceAll(includeCommand, "{{CAPTION}}", submatch[3])
 		}
+
 		content = strings.ReplaceAll(content, submatch[0], includeCommand)
 	}
 
