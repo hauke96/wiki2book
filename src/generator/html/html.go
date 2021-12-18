@@ -28,10 +28,11 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 	//content := wikiPage.Content
 	content := escapeSpecialCharacters(wikiPage.Content)
 	content = replaceImages(content)
-	content = replaceInternalLinks(content)
+	//content = replaceInternalLinks(content)
 	content = replaceSections(content)
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
+	content = replaceUnorderedList(content)
 	content = removeEmptyLines(content)
 
 	latexFileContent += content
@@ -98,10 +99,10 @@ func replaceSections(content string) string {
 }
 
 func replaceFormattings(content string) string {
-	regex := regexp.MustCompile("'''(.*?)'''")
+	regex := regexp.MustCompile("'''(.+?)'''")
 	content = regex.ReplaceAllString(content, "<b>$1</b>")
 
-	regex = regexp.MustCompile("''(.*?)''")
+	regex = regexp.MustCompile("''(.+?)''")
 	content = regex.ReplaceAllString(content, "<i>$1</i>")
 
 	return content
@@ -114,7 +115,7 @@ func replaceLinks(content string) string {
 	regex := regexp.MustCompile("([^\\[])\\[([^\\[]*?) ([^\\]]*?)]([^\\]])")
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\">$3</a>$4")
 
-	regex = regexp.MustCompile("([^\\[])\\[([^\\[]*?)]([^\\]])")
+	regex = regexp.MustCompile("([^\\[])\\[(http[^\\[]*?)]([^\\]])")
 	// Also match normal URLs like [https://...]
 	content = regex.ReplaceAllString(content, "$1<a href=\"$2\"></a>$3")
 
@@ -148,9 +149,21 @@ func replaceImages(content string) string {
 	return content
 }
 
-func replaceMathMode(content string) string {
-	content = strings.ReplaceAll(content, "<math>", "$")
-	content = strings.ReplaceAll(content, "</math>", "$")
+func replaceUnorderedList(content string) string {
+	ulRegex := regexp.MustCompile("((\\n\\*+ .*)+)")
+	liRegex := regexp.MustCompile("\\n\\* (.*)")
+	nestedLiRegex := regexp.MustCompile("\\n\\*(\\*+ .*)")
+
+	for {
+		if !ulRegex.MatchString(content) {
+			break
+		}
+
+		content = ulRegex.ReplaceAllString(content, "\n<ul>$1\n</ul>")
+		content = liRegex.ReplaceAllString(content, "\n<li>$1</li>")
+		content = nestedLiRegex.ReplaceAllString(content, "\n$1") // Remove a * from nested items so that they will be replaced in one of the following iterations
+	}
+
 	return content
 }
 
