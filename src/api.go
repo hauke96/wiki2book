@@ -39,8 +39,8 @@ type WikitextDto struct {
 }
 
 func downloadPage(language string, title string) (*WikiPageDto, error) {
-	url := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, title)
-	response, err := http.Get(url)
+	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, title)
+	response, err := http.Get(urlString)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to download article content of article "+title)
 	}

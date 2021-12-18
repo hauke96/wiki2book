@@ -23,7 +23,7 @@ const FOOTER = `
 </body>
 `
 
-func Generate(wikiPage wiki.Article, outputFolder string) error {
+func Generate(wikiPage wiki.Article, outputFolder string) (string, error) {
 	latexFileContent := HEADER
 	latexFileContent += "\n<h1>" + wikiPage.Title + "</h1>"
 
@@ -43,11 +43,11 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 	return write(wikiPage.Title, outputFolder, latexFileContent)
 }
 
-func write(title string, outputFolder string, content string) error {
+func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
 	err := os.Mkdir(outputFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
 	}
 
 	// Create output file
@@ -55,17 +55,17 @@ func write(title string, outputFolder string, content string) error {
 	sigolo.Info("Write to %s", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create LaTeX output file %s", outputFilepath))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create LaTeX output file %s", outputFilepath))
 	}
 	defer outputFile.Close()
 
 	// Write data to file
 	_, err = outputFile.WriteString(content)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable write LaTeX data to file %s", outputFilepath))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable write LaTeX data to file %s", outputFilepath))
 	}
 
-	return nil
+	return outputFilepath, nil
 }
 
 func escapeSpecialCharacters(content string) string {
