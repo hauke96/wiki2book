@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,12 +21,20 @@ type WikiPageDto struct {
 }
 
 type WikiParsePageDto struct {
-	Title    string `json:"title"`
-	Wikitext WikitextDto
+	Title    string              `json:"title"`
+	Wikitext WikiWildcardTextDto `json:"wikitext"`
+}
+
+type WikiWildcardTextDto struct {
+	Content string `json:"*"`
+}
+
+type WikiExpandedTemplateDto struct {
+	ExpandTemplate WikitextDto `json:"expandtemplates"`
 }
 
 type WikitextDto struct {
-	Content string `json:"*"`
+	Content string `json:"wikitext"`
 }
 
 func downloadPage(language string, title string) (*WikiPageDto, error) {
@@ -107,4 +116,31 @@ func downloadImage(fileDescriptor string, outputFolder string) error {
 
 	sigolo.Info("Saved image to %s", outputFilepath)
 	return nil
+}
+
+func evaluateTemplate(template string) (string, error) {
+	sigolo.Info("Evaluate template %s", template)
+
+	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
+	sigolo.Debug("Call %s", urlString)
+
+	response, err := http.Get(urlString)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to call evaluation URL for template %s", template))
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return "", errors.New(fmt.Sprintf("Response returned with status code %d", response.StatusCode))
+	}
+
+	evaluatedTemplateString, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "Reading response body failed")
+	}
+
+	evaluatedTemplate := &WikiExpandedTemplateDto{}
+	json.Unmarshal(evaluatedTemplateString, evaluatedTemplate)
+
+	return evaluatedTemplate.ExpandTemplate.Content, nil
 }

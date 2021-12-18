@@ -25,12 +25,14 @@ func Generate(wikiPage wiki.Article, outputFolder string) error {
 	latexFileContent := HEADER
 	latexFileContent += "\n<h1>" + wikiPage.Title + "</h1>"
 
+	//content := wikiPage.Content
 	content := escapeSpecialCharacters(wikiPage.Content)
-	//content = replaceMathMode(content)
-	content = prepareImages(content)
-	content = replaceInternalLinks(content)
 	content = replaceImages(content)
+	content = replaceInternalLinks(content)
 	content = replaceSections(content)
+	content = replaceFormattings(content)
+	content = replaceLinks(content)
+	content = removeEmptyLines(content)
 
 	latexFileContent += content
 	latexFileContent += FOOTER
@@ -83,33 +85,38 @@ func replaceSections(content string) string {
 	content = strings.ReplaceAll(content, "\n=== ", "\n<h3>")
 	content = strings.ReplaceAll(content, " ===\n", "</h3>\n")
 
-	content = strings.ReplaceAll(content, "\n=== ", "\n<h4>")
-	content = strings.ReplaceAll(content, " ===\n", "</h4>\n")
+	content = strings.ReplaceAll(content, "\n==== ", "\n<h4>")
+	content = strings.ReplaceAll(content, " ====\n", "</h4>\n")
+
+	content = strings.ReplaceAll(content, "\n===== ", "\n<h5>")
+	content = strings.ReplaceAll(content, " =====\n", "</h5>\n")
+
+	content = strings.ReplaceAll(content, "\n====== ", "\n<h6>")
+	content = strings.ReplaceAll(content, " ======\n", "</h6>\n")
 
 	return content
 }
 
-// Protect the [[File:... tags against replacement by replaceInternalLinks.
-func prepareImages(content string) string {
-	regex := regexp.MustCompile("\\[\\[(Datei|File):")
-	content = regex.ReplaceAllString(content, FILE_PLACEHOLDER)
+func replaceFormattings(content string) string {
+	regex := regexp.MustCompile("'''(.*?)'''")
+	content = regex.ReplaceAllString(content, "<b>$1</b>")
+
+	regex = regexp.MustCompile("''(.*?)''")
+	content = regex.ReplaceAllString(content, "<i>$1</i>")
 
 	return content
 }
 
-func replaceImages(content string) string {
-	start := "<br><img src=\"./images/"
-	end := "\"><br>"
+func replaceLinks(content string) string {
+	// Format of Links: [https://... Text]
+	// To not be confused with internal [[Article]] links, the [^\[] parts say that we do NOT want brackets before and
+	// after the potential match
+	regex := regexp.MustCompile("([^\\[])\\[([^\\[]*?) ([^\\]]*?)]([^\\]])")
+	content = regex.ReplaceAllString(content, "$1<a href=\"$2\">$3</a>$4")
 
-	regex := regexp.MustCompile(FILE_PLACEHOLDER + "(.*?)\\|(.|\\n|\\r)*?]]")
-	submatches := regex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		includeCommand := start + strings.ReplaceAll(submatch[1], "\\_", "_") + end
-		if strings.HasSuffix(submatch[1], ".svg") || strings.HasSuffix(submatch[1], ".gif") {
-			includeCommand = ""
-		}
-		content = strings.ReplaceAll(content, submatch[0], includeCommand)
-	}
+	regex = regexp.MustCompile("([^\\[])\\[([^\\[]*?)]([^\\]])")
+	// Also match normal URLs like [https://...]
+	content = regex.ReplaceAllString(content, "$1<a href=\"$2\"></a>$3")
 
 	return content
 }
@@ -118,8 +125,25 @@ func replaceInternalLinks(content string) string {
 	regex := regexp.MustCompile("\\[\\[([^|]*?)]]")
 	content = regex.ReplaceAllString(content, "$1")
 
-	regex = regexp.MustCompile("\\[\\[.*?\\|(.*?)]]")
+	regex = regexp.MustCompile("\\[\\[[^\\[]*?\\|(.*?)]]")
 	content = regex.ReplaceAllString(content, "$1")
+
+	return content
+}
+
+func replaceImages(content string) string {
+	start := "<br><img src=\"./images/"
+	end := "\"><br>"
+
+	regex := regexp.MustCompile("\\[\\[(Datei|File):(.*?)\\|(.|\\n|\\r)*?]]")
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		includeCommand := start + strings.ReplaceAll(submatch[2], "\\_", "_") + end
+		if strings.HasSuffix(submatch[2], ".svg") || strings.HasSuffix(submatch[2], ".gif") {
+			includeCommand = ""
+		}
+		content = strings.ReplaceAll(content, submatch[0], includeCommand)
+	}
 
 	return content
 }
@@ -127,5 +151,17 @@ func replaceInternalLinks(content string) string {
 func replaceMathMode(content string) string {
 	content = strings.ReplaceAll(content, "<math>", "$")
 	content = strings.ReplaceAll(content, "</math>", "$")
+	return content
+}
+
+func removeEmptyLines(content string) string {
+	regex := regexp.MustCompile("\\n\\n\\n")
+	for {
+		if !regex.MatchString(content) {
+			break
+		}
+		content = regex.ReplaceAllString(content, "\n\n")
+	}
+
 	return content
 }
