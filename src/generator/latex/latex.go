@@ -1,3 +1,8 @@
+/*
+	ATTENTION:
+
+	This generator will probably deleted in the future.
+*/
 package latex
 
 import (

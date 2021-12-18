@@ -68,7 +68,8 @@ func downloadImages(images []wiki.Image, outputFolder string) error {
 
 		// If the file is new, rescale it using ImageMagick.
 		if outputFilepath != "" {
-			cmd := exec.Command("convert", outputFilepath, "-resize", "500x500>", outputFilepath+".tmp")
+			const imgSize = 600
+			cmd := exec.Command("convert", outputFilepath, "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), outputFilepath+".tmp")
 			err = cmd.Run()
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))

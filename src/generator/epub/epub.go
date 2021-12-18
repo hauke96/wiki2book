@@ -8,7 +8,7 @@ import (
 func Generate(sourceFile string, outputFile string, styleFile string) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
-	err := util.Execute("pandoc", "-o", outputFile, "--css", styleFile, "--epub-embed-font=/usr/share/fonts/TTF/DejaVuSans*.ttf", sourceFile)
+	err := util.Execute("pandoc", "-o", outputFile, "--css", styleFile, "-t", "epub2", "--epub-embed-font=/usr/share/fonts/TTF/DejaVuSans*.ttf", sourceFile)
 	if err != nil {
 		return errors.Wrap(err, "Error generating EPUB file using pandoc")
 	}
