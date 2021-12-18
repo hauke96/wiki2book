@@ -42,6 +42,12 @@ func removeUnwantedTags(content string) string {
 	regex = regexp.MustCompile("\\{\\{Begriffsklärungshinweis(.|\\n|\\r)*?}}\n?")
 	content = regex.ReplaceAllString(content, "")
 
+	regex = regexp.MustCompile("\\{\\{Weiterleitungshinweis(.|\\n|\\r)*?}}\n?")
+	content = regex.ReplaceAllString(content, "")
+
+	regex = regexp.MustCompile("\\{\\{Dieser Artikel(.|\\n|\\r)*?}}\n?")
+	content = regex.ReplaceAllString(content, "")
+
 	return content
 }
 
@@ -76,25 +82,22 @@ func evaluateTemplates(content string) string {
 }
 
 // processImages returns the list of all images and also escapes the image names in the content
-func processImages(content string) (string, []wiki.Image) {
-	var result []wiki.Image
+func processImages(content string) (string, []string) {
+	var result []string
 
-	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?)(]]|\\|)")
+	// Remove videos and gifs
+	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?\\.(webm|gif|ogv|mp3|mp4)).*(]]|\\|)")
+	content = regex.ReplaceAllString(content, "")
 
-	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?)(]]|\\|)")
+	regex = regexp.MustCompile("\\[\\[((Datei|File):(.*?))(]]|\\|)(.*?)]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		splittedMatch := strings.Split(submatch[1], "|")
+		filename := strings.ReplaceAll(submatch[3], " ", "_")
+		filename = submatch[2] + ":" + strings.ToUpper(string(filename[0])) + filename[1:]
 
-		filename := strings.ReplaceAll(splittedMatch[0], " ", "_")
-		caption := splittedMatch[len(splittedMatch)-1]
+		content = strings.ReplaceAll(content, submatch[1], filename)
 
-		content = strings.ReplaceAll(content, splittedMatch[0], filename)
-
-		result = append(result, wiki.Image{
-			Filename: filename,
-			Caption:  caption,
-		})
+		result = append(result, filename)
 
 		sigolo.Debug("Found image: %s", filename)
 	}

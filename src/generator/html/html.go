@@ -45,7 +45,7 @@ func Generate(wikiPage wiki.Article, outputFolder string, styleFile string) (str
 }
 
 func replaceTables(content string) string {
-	regex := regexp.MustCompile(":\\{\\|.*\\n(.|\\n|\\r)*?\\|\\}")
+	regex := regexp.MustCompile(":?\\{\\|.*\\n(.|\\n|\\r)*?\\|}")
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		rawTableString := submatch[0]
@@ -275,7 +275,7 @@ func evaluateUnorderedListString(listPrefix string, listString string) string {
 			// First item is either empty (for new starting list) or consists of the parent item in case we're in a
 			// sub-list here. I that case, we want to just add the parent items text and then add our new <ul> sub-list.
 			if listItem != "" {
-				result += listItem + "\n"
+				result += "\n" + listItem + "\n"
 			}
 			result += "<ul>\n"
 			continue

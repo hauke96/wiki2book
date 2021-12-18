@@ -19,7 +19,12 @@ You need the following tools and fonts:
 Open tasks of this project:
 
 * [x] Add cover to EPUB file
-* [ ] Tables
-* [ ] Use superscript `<sup>...</sup>` for citations 
+* [x] Tables
+* [ ] Ordered lists
+* [ ] Problematic pages:
+  * Universum (table at the beginning)
+  * Interstellarer_Staub (list with one element at the end)
+* [ ] Use superscript `<sup>...</sup>` for citations
+* [ ] Save rendered templates like images
 * [ ] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests

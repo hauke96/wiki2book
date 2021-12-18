@@ -24,6 +24,8 @@ func main() {
 	var articleFiles []string
 
 	for _, article := range project.Articles {
+		sigolo.Info("Start processing article %s", article)
+
 		err, outputFile := generateHtml(article, project.Domain, project.Style)
 		sigolo.FatalCheck(err)
 
@@ -32,8 +34,10 @@ func main() {
 		sigolo.Info("Succeesfully created HTML for article %s", article)
 	}
 
+	sigolo.Info("Start generating EPUB file")
 	err = epub.Generate(articleFiles, project.Output, project.Style, project.Cover, project.Metadata)
 	sigolo.FatalCheck(err)
+	sigolo.Info("Successfully created EPUB file")
 }
 
 func generateHtml(article string, language string, styleFile string) (error, string) {
