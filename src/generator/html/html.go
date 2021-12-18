@@ -35,12 +35,72 @@ func Generate(wikiPage wiki.Article, outputFolder string) (string, error) {
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
 	content = replaceUnorderedList(content)
+	content = replaceTables(content)
 	content = removeEmptyLines(content)
 
 	latexFileContent += content
 	latexFileContent += FOOTER
 
 	return write(wikiPage.Title, outputFolder, latexFileContent)
+}
+
+func replaceTables(content string) string {
+	regex := regexp.MustCompile(":\\{\\|.*\\n(.|\\n|\\r)*?\\|\\}")
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		rawTableString := submatch[0]
+		htmlTable := parseTable(rawTableString)
+		content = strings.ReplaceAll(content, rawTableString, htmlTable)
+	}
+
+	return content
+}
+
+func parseTable(content string) string {
+	rowRegex := regexp.MustCompile("\\|-(.|\\n|\\r)*?\\|-")
+
+	headerMatch := rowRegex.FindString(content)
+	htmlRow := parseRow(headerMatch, "!", "th")
+	content = strings.ReplaceAll(content, headerMatch, htmlRow)
+
+	for {
+		if !rowRegex.MatchString(content) {
+			break
+		}
+
+		match := rowRegex.FindString(content)
+		htmlRow = parseRow(match, "|", "td")
+		content = strings.ReplaceAll(content, match, htmlRow)
+	}
+
+	content = regexp.MustCompile(":\\{\\|.*").ReplaceAllString(content, "<table>")
+	content = regexp.MustCompile("\\|\\-\\n\\|}").ReplaceAllString(content, "</table>")
+
+	return content
+}
+
+func parseRow(content string, splitChar string, htmlColumnElement string) string {
+	content = strings.ReplaceAll(content, "\n"+splitChar, splitChar+splitChar)
+	content = strings.ReplaceAll(content, "\n", "")
+	content = strings.ReplaceAll(content, "|-", "")
+	content = strings.ReplaceAll(content, splitChar+splitChar, "\n"+splitChar)
+	content = strings.Trim(content, "\n")
+
+	result := "<tr>\n"
+
+	for _, column := range strings.Split(content, "\n") {
+		// There might be styling before the actual data which is separated with |
+		entries := strings.Split(column, splitChar)
+
+		result += "<" + htmlColumnElement + ">"
+		result += entries[len(entries)-1]
+		result += "</" + htmlColumnElement + ">\n"
+	}
+
+	// Append |- for further parsing of following rows
+	result += "</tr>\n|-"
+
+	return result
 }
 
 func write(title string, outputFolder string, content string) (string, error) {
@@ -130,7 +190,7 @@ func replaceInternalLinks(content string) string {
 	regex := regexp.MustCompile("\\[\\[([^|]*?)]]")
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		if !fileRegex.MatchString(submatch[0]){
+		if !fileRegex.MatchString(submatch[0]) {
 			content = strings.ReplaceAll(content, submatch[0], submatch[1])
 		}
 	}
@@ -138,7 +198,7 @@ func replaceInternalLinks(content string) string {
 	regex = regexp.MustCompile("\\[\\[[^\\[]*?\\|([^|]*?)]]")
 	submatches = regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		if !fileRegex.MatchString(submatch[0]){
+		if !fileRegex.MatchString(submatch[0]) {
 			content = strings.ReplaceAll(content, submatch[0], submatch[1])
 		}
 	}
