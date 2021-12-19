@@ -34,14 +34,93 @@ func Generate(wikiPage wiki.Article, outputFolder string, styleFile string) (str
 	content = replaceSections(content)
 	content = replaceFormattings(content)
 	content = replaceLinks(content)
-	content = replaceUnorderedLists(content)
-	content = replaceTables(content)
+	//content = replaceUnorderedLists(content)
+	content = Parse(content)
 	content = removeEmptyLines(content)
 
 	latexFileContent += content
 	latexFileContent += FOOTER
 
 	return write(wikiPage.Title, outputFolder, latexFileContent)
+}
+
+func Parse(content string) string {
+	i := 0
+	lines := strings.Split(content, "\n")
+
+	// TODO replace fixed sized areas (like images, tables, everything with start and end marker)
+
+	for i < len(lines) {
+		line := lines[i]
+
+		regex := regexp.MustCompile("^\\* ")
+		if regex.MatchString(line) {
+			originalString, html, newIndex := parseUnorderedList(lines, i)
+			content = strings.ReplaceAll(content, originalString, html)
+			i = newIndex
+		}
+
+		// Image?
+		//regex := regexp.MustCompile("^\\[\\[(Datei|File):")
+		//if regex.MatchString(line) {
+		//	TODO parse link
+		//continue
+		//}
+
+		i++
+	}
+
+	return content
+}
+
+func parseUnorderedList(lines []string, i int) (completeListString string, html string, newIndex int) {
+	newIndex = i
+	completeListString = ""
+
+	regex := regexp.MustCompile(`^([*:\[|! ].*)?$`)
+	for {
+		if i == len(lines) || !regex.MatchString(lines[i]) {
+			break
+		}
+		completeListString += lines[i] + "\n"
+		i++
+	}
+
+	html = parseUnorderedListString(completeListString)
+	newIndex = i
+
+	return
+}
+
+func parseUnorderedListString(completeListString string) string {
+	listItemRegex := regexp.MustCompile(`(^|\n)\* `)
+	if !listItemRegex.MatchString(completeListString) {
+		return completeListString
+	}
+
+	html := "<ul>\n"
+
+	// Ignore first item as it's always empty
+	listItems := listItemRegex.Split(completeListString, -1)[1:]
+
+	for _, listItem := range listItems {
+		listItemLines := strings.Split(listItem, "\n")
+
+		html += "<li>\n"
+		html += listItemLines[0] + "\n"
+
+		if len(listItemLines) > 1 {
+			// Turn sub-lists starting with "** foo" into "* foo" for recursive parsing
+			listItem = strings.Join(listItemLines[1:], "\n")
+			listItem = strings.ReplaceAll(listItem, "* ", " ")
+			html += parseUnorderedListString(listItem)
+		}
+
+		html += "</li>\n"
+	}
+
+	html += "</ul>\n"
+	return html
 }
 
 func replaceTables(content string) string {

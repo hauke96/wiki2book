@@ -3,41 +3,48 @@ package main
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/generator/epub"
 	"github.com/hauke96/wiki2book/src/generator/html"
-	"github.com/hauke96/wiki2book/src/project"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
-	"path/filepath"
 )
 
 func main() {
-	projectFile := os.Args[1]
-
-	directory, _ := filepath.Split(projectFile)
-	err := os.Chdir(directory)
+	file, err := ioutil.ReadFile("./test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	project, err := project.LoadProject(projectFile)
-	sigolo.FatalCheck(err)
-
-	var articleFiles []string
-
-	for _, article := range project.Articles {
-		sigolo.Info("Start processing article %s", article)
-
-		err, outputFile := generateHtml(article, project.Domain, project.Style)
-		sigolo.FatalCheck(err)
-
-		articleFiles = append(articleFiles, outputFile)
-
-		sigolo.Info("Succeesfully created HTML for article %s", article)
+	tokenMap := map[string]string{}
+	tokenizedContent := tokenize(string(file), tokenMap)
+	fmt.Println(tokenizedContent)
+	for k, v := range tokenMap {
+		fmt.Printf("%s : %s\n", k, v)
 	}
-
-	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, project.Output, project.Style, project.Cover, project.Metadata)
-	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file")
+	//projectFile := os.Args[1]
+	//
+	//directory, _ := filepath.Split(projectFile)
+	//err := os.Chdir(directory)
+	//sigolo.FatalCheck(err)
+	//
+	//project, err := project.LoadProject(projectFile)
+	//sigolo.FatalCheck(err)
+	//
+	//var articleFiles []string
+	//
+	//for _, article := range project.Articles {
+	//	sigolo.Info("Start processing article %s", article)
+	//
+	//	err, outputFile := generateHtml(article, project.Domain, project.Style)
+	//	sigolo.FatalCheck(err)
+	//
+	//	articleFiles = append(articleFiles, outputFile)
+	//
+	//	sigolo.Info("Succeesfully created HTML for article %s", article)
+	//}
+	//
+	//sigolo.Info("Start generating EPUB file")
+	//err = epub.Generate(articleFiles, project.Output, project.Style, project.Cover, project.Metadata)
+	//sigolo.FatalCheck(err)
+	//sigolo.Info("Successfully created EPUB file")
 }
 
 func generateHtml(article string, language string, styleFile string) (error, string) {

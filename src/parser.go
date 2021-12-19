@@ -8,16 +8,114 @@ import (
 	"strings"
 )
 
+const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
+
+// Marker do not appear in the token map
+const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
+const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
+const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
+const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
+
+var tokenCounter = 0
+
+// https://www.mediawiki.org/wiki/Markup_spec
 func parse(wikiPageDto *WikiPageDto) wiki.Article {
 	content := moveCitationsToEnd(wikiPageDto.Parse.Wikitext.Content)
 	content = removeUnwantedTags(content)
 	content = evaluateTemplates(content)
-	content, images := processImages(content)
+
+	//content, images := processImages(content)
 	return wiki.Article{
-		Title:   wikiPageDto.Parse.Title,
-		Images:  images,
+		Title: wikiPageDto.Parse.Title,
+		//Images:  images,
 		Content: content,
 	}
+}
+
+func getToken(tokenType string) string {
+	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, tokenCounter)
+	tokenCounter++
+	return token
+}
+
+func tokenize(content string, tokenMap map[string]string) string {
+	//tokenizationHappened := false
+	for {
+		index := strings.Index(content, "''")
+		if index != -1 {
+			content, _, _, _ = parseBoldAndItalic(content, index, tokenMap, false, false)
+			continue
+		}
+
+		break
+	}
+
+	return content
+}
+
+// tokenizeByRegex applies the regex which must have exactly one group. The tokenized content is returned and a flag
+// saying if something changed (i.e. is a tokenization happened).
+//func tokenizeByRegex(content string, tokenMap map[string]string, regexString string, tokenType string) (string, bool) {
+//	regex := regexp.MustCompile(regexString)
+//	matches := regex.FindStringSubmatch(content)
+//	if len(matches) != 0 {
+//		content = processMatch(content, tokenMap, matches[0], matches[1], tokenType)
+//		return content, true
+//	}
+//	return content, false
+//}
+//
+//func processMatch(content string, tokenMap map[string]string, wholeMatch string, untokenizedMatch string, tokenType string) string {
+//	token := getToken(tokenType)
+//	tokenizedString := tokenize(untokenizedMatch, tokenMap)
+//	tokenMap[token] = tokenizedString
+//	return strings.Replace(content, wholeMatch, token, 1)
+//}
+
+func parseBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
+	for {
+		// iIn case of last opened italic marker
+		sigolo.Info("Check index %d of %d long content: %s", index, len(content), content[index:index+3])
+		if content[index:index+3] == "'''" {
+			if !isBoldOpen {
+				// -3 +3 to replace the ''' as well
+				content = strings.Replace(content, content[index:index+3], MARKER_BOLD_OPEN, 1)
+				index = index + len(MARKER_BOLD_OPEN)
+
+				// Check for further nested italic tags
+				content, index, isBoldOpen, isItalicOpen = parseBoldAndItalic(content, index, tokenMap, true, isItalicOpen)
+			} else {
+				// +3 to replace the '''
+				content = strings.Replace(content, content[index:index+3], MARKER_BOLD_CLOSE, 1)
+
+				// -3 because of the ''' we replaced above
+				return content, index + len(MARKER_BOLD_CLOSE), false, isItalicOpen
+			}
+		} else if content[index:index+2] == "''" {
+			if !isItalicOpen {
+				// +2 to replace the ''
+				content = strings.Replace(content, content[index:index+2], MARKER_ITALIC_OPEN, 1)
+				index = index + len(MARKER_ITALIC_OPEN)
+
+				// Check for further nested italic tags
+				content, index, isBoldOpen, isItalicOpen = parseBoldAndItalic(content, index, tokenMap, isBoldOpen, true)
+			} else {
+				// +2 to replace the ''
+				content = strings.Replace(content, content[index:index+2], MARKER_ITALIC_CLOSE, 1)
+
+				// -2 because of the '' we replaced above
+				return content, index + len(MARKER_ITALIC_CLOSE), isBoldOpen, false
+			}
+		} else {
+			index++
+		}
+
+		if !isBoldOpen && !isItalicOpen {
+			break
+		}
+	}
+
+	return content, index, false, false
 }
 
 func removeUnwantedTags(content string) string {
