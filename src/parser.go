@@ -48,6 +48,9 @@ func removeUnwantedTags(content string) string {
 	regex = regexp.MustCompile("\\{\\{Dieser Artikel(.|\\n|\\r)*?}}\n?")
 	content = regex.ReplaceAllString(content, "")
 
+	regex = regexp.MustCompile("\\{\\{.*(box|Box).*(.|\\n|\\r)*?}}\n?")
+	content = regex.ReplaceAllString(content, "")
+
 	return content
 }
 
