@@ -46,11 +46,17 @@ func expand(content string, tokenMap map[string]string) string {
 
 	for _, submatch := range submatches {
 		sigolo.Info("Found token %s", submatch[1])
+
+		html := submatch[0]
+
 		switch submatch[1] {
 		case parser.TOKEN_EXTERNAL_LINK:
-			htmlLink := expandExternalLink(submatch[0], tokenMap)
-			content = strings.Replace(content, submatch[0], htmlLink, 1)
+			html = expandExternalLink(submatch[0], tokenMap)
+		case parser.TOKEN_INTERNAL_LINK:
+			html = expandInternalLint(submatch[0], tokenMap)
 		}
+
+		content = strings.Replace(content, submatch[0], html, 1)
 	}
 
 	return content
@@ -62,6 +68,13 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
 	return content
+}
+
+func expandInternalLint(tokenString string, tokenMap map[string]string) string {
+	splittedToken := strings.Split(tokenMap[tokenString], " ")
+	text := expand(tokenMap[splittedToken[1]], tokenMap)
+	// Yeah, let's not add an link to the article in an eBook. Maybe make it configurable some day...
+	return text
 }
 
 func expandExternalLink(tokenString string, tokenMap map[string]string) string {

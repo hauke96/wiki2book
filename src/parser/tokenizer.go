@@ -9,7 +9,11 @@ import (
 
 const TOKEN_REGEX = `\$\$TOKEN_([A-Z_]*)_\d*\$\$`
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
+
 const TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
+const TOKEN_INTERNAL_LINK_ARTICLE = "INTERNAL_LINK_ARTICLE"
+const TOKEN_INTERNAL_LINK_TEXT = "INTERNAL_LINK_TEXT"
+
 const TOKEN_EXTERNAL_LINK = "EXTERNAL_LINK"
 const TOKEN_EXTERNAL_LINK_URL = "EXTERNAL_LINK_URL"
 const TOKEN_EXTERNAL_LINK_TEXT = "EXTERNAL_LINK_TEXT"
@@ -31,36 +35,23 @@ func getToken(tokenType string) string {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func tokenize(content string, tokenMap map[string]string) string {
-	tokenizationHappened := false
 	for {
-		content, tokenizationHappened = parseBoldAndItalic(content, tokenMap)
-		if tokenizationHappened {
-			continue
-		}
-
-		content, tokenizationHappened = parseInternalLinks(content, tokenMap)
-		if tokenizationHappened {
-			continue
-		}
-
-		content, tokenizationHappened = parseExternalLinks(content, tokenMap)
-		if tokenizationHappened {
-			continue
-		}
-
+		content = parseBoldAndItalic(content, tokenMap)
+		content = parseInternalLinks(content, tokenMap)
+		content = parseExternalLinks(content, tokenMap)
 		break
 	}
 
 	return content
 }
 
-func parseBoldAndItalic(content string, tokenMap map[string]string) (string, bool) {
+func parseBoldAndItalic(content string, tokenMap map[string]string) string {
 	index := strings.Index(content, "''")
 	if index != -1 {
 		content, _, _, _ = tokenizeBoldAndItalic(content, index, tokenMap, false, false)
-		return content, true
+		return content
 	}
-	return content, false
+	return content
 }
 
 // tokenizeByRegex applies the regex which must have exactly one group. The tokenized content is returned and a flag
@@ -128,22 +119,32 @@ func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string
 	return content, index, false, false
 }
 
-func parseInternalLinks(content string, tokenMap map[string]string) (string, bool) {
-	tokenizationHappened := false
-	regex := regexp.MustCompile(`\[\[(.*?)]]`)
+func parseInternalLinks(content string, tokenMap map[string]string) string {
+	regex := regexp.MustCompile(`\[\[([^|^\]]*)\|?(.*?)]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
+		tokenArticle := getToken(TOKEN_INTERNAL_LINK_ARTICLE)
+		tokenMap[tokenArticle] = submatch[1]
+
+		if submatch[2] == "" {
+			// Use article as text
+			submatch[2] = submatch[1]
+		}
+
+		text := tokenize(submatch[2], tokenMap)
+		tokenText := getToken(TOKEN_INTERNAL_LINK_TEXT)
+		tokenMap[tokenText] = text
+
 		token := getToken(TOKEN_INTERNAL_LINK)
-		tokenMap[token] = submatch[1]
+		tokenMap[token] = tokenArticle + " " + tokenText
+
 		content = strings.Replace(content, submatch[0], token, 1)
-		tokenizationHappened = true
 	}
 
-	return content, tokenizationHappened
+	return content
 }
 
-func parseExternalLinks(content string, tokenMap map[string]string) (string, bool) {
-	tokenizationHappened := false
+func parseExternalLinks(content string, tokenMap map[string]string) string {
 	regex := regexp.MustCompile(`([^\[])\[([^ ]*) ?(.*)\]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
@@ -155,15 +156,16 @@ func parseExternalLinks(content string, tokenMap map[string]string) (string, boo
 			submatch[3] = submatch[2]
 		}
 
+
+		text := tokenize(submatch[3], tokenMap)
 		tokenText := getToken(TOKEN_EXTERNAL_LINK_TEXT)
-		tokenMap[tokenText] = submatch[3]
+		tokenMap[tokenText] = text
 
 		token := getToken(TOKEN_EXTERNAL_LINK)
 		tokenMap[token] = tokenUrl + " " + tokenText
 
 		content = strings.Replace(content, submatch[0], submatch[1]+token, 1)
-		tokenizationHappened = true
 	}
 
-	return content, tokenizationHappened
+	return content
 }
