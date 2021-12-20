@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"crypto/md5"
@@ -164,7 +164,7 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	return outputFilepath, nil
 }
 
-func evaluateTemplate(template string) (string, error) {
+func EvaluateTemplate(template string) (string, error) {
 	sigolo.Info("Evaluate template %s", template)
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)

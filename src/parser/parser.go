@@ -1,9 +1,10 @@
-package main
+package parser
 
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/wiki"
+	"github.com/hauke96/wiki2book/src/api"
 	"regexp"
 	"strings"
 )
@@ -21,7 +22,7 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 var tokenCounter = 0
 
 // https://www.mediawiki.org/wiki/Markup_spec
-func parse(wikiPageDto *WikiPageDto) wiki.Article {
+func parse(wikiPageDto *api.WikiPageDto) wiki.Article {
 	content := moveCitationsToEnd(wikiPageDto.Parse.Wikitext.Content)
 	content = removeUnwantedTags(content)
 	content = evaluateTemplates(content)
@@ -234,7 +235,7 @@ func moveCitationsToEnd(content string) string {
 func evaluateTemplates(content string) string {
 	regex := regexp.MustCompile("\\{\\{(.*?)}}")
 	content = regex.ReplaceAllStringFunc(content, func(match string) string {
-		evaluatedTemplate, err := evaluateTemplate(match)
+		evaluatedTemplate, err := api.EvaluateTemplate(match)
 		if err != nil {
 			sigolo.Stack(err)
 			return ""
