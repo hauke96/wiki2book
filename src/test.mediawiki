@@ -1,0 +1,2 @@
+{{some_tamplate}}
+This is an '''''e''xam''ple''''' file to [[test]] the basic [[mediawiki (language)|media'''text''']] text [https://parsing.com parsing].

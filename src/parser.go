@@ -9,6 +9,8 @@ import (
 )
 
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
+const TOKEN_INTERNAL_LINK = "TOKEN_INTERNAL_LINK"
+const TOKEN_EXTERNAL_LINK = "TOKEN_EXTERNAL_LINK"
 
 // Marker do not appear in the token map
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -39,11 +41,20 @@ func getToken(tokenType string) string {
 }
 
 func tokenize(content string, tokenMap map[string]string) string {
-	//tokenizationHappened := false
+	tokenizationHappened := false
 	for {
-		index := strings.Index(content, "''")
-		if index != -1 {
-			content, _, _, _ = parseBoldAndItalic(content, index, tokenMap, false, false)
+		content, tokenizationHappened = parseBoldAndItalic(content, tokenMap)
+		if tokenizationHappened {
+			continue
+		}
+
+		content, tokenizationHappened = parseInternalLinks(content, tokenMap)
+		if tokenizationHappened {
+			continue
+		}
+
+		content, tokenizationHappened = parseExternalLinks(content, tokenMap)
+		if tokenizationHappened {
 			continue
 		}
 
@@ -51,6 +62,15 @@ func tokenize(content string, tokenMap map[string]string) string {
 	}
 
 	return content
+}
+
+func parseBoldAndItalic(content string, tokenMap map[string]string) (string, bool) {
+	index := strings.Index(content, "''")
+	if index != -1 {
+		content, _, _, _ = tokenizeBoldAndItalic(content, index, tokenMap, false, false)
+		return content, true
+	}
+	return content, false
 }
 
 // tokenizeByRegex applies the regex which must have exactly one group. The tokenized content is returned and a flag
@@ -72,7 +92,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 //	return strings.Replace(content, wholeMatch, token, 1)
 //}
 
-func parseBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
+func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
 	for {
 		// iIn case of last opened italic marker
 		sigolo.Info("Check index %d of %d long content: %s", index, len(content), content[index:index+3])
@@ -83,7 +103,7 @@ func parseBoldAndItalic(content string, index int, tokenMap map[string]string, i
 				index = index + len(MARKER_BOLD_OPEN)
 
 				// Check for further nested italic tags
-				content, index, isBoldOpen, isItalicOpen = parseBoldAndItalic(content, index, tokenMap, true, isItalicOpen)
+				content, index, isBoldOpen, isItalicOpen = tokenizeBoldAndItalic(content, index, tokenMap, true, isItalicOpen)
 			} else {
 				// +3 to replace the '''
 				content = strings.Replace(content, content[index:index+3], MARKER_BOLD_CLOSE, 1)
@@ -98,7 +118,7 @@ func parseBoldAndItalic(content string, index int, tokenMap map[string]string, i
 				index = index + len(MARKER_ITALIC_OPEN)
 
 				// Check for further nested italic tags
-				content, index, isBoldOpen, isItalicOpen = parseBoldAndItalic(content, index, tokenMap, isBoldOpen, true)
+				content, index, isBoldOpen, isItalicOpen = tokenizeBoldAndItalic(content, index, tokenMap, isBoldOpen, true)
 			} else {
 				// +2 to replace the ''
 				content = strings.Replace(content, content[index:index+2], MARKER_ITALIC_CLOSE, 1)
@@ -117,6 +137,48 @@ func parseBoldAndItalic(content string, index int, tokenMap map[string]string, i
 
 	return content, index, false, false
 }
+
+func parseInternalLinks(content string, tokenMap map[string]string) (string,bool) {
+	tokenizationHappened := false
+	regex := regexp.MustCompile(`\[\[(.*?)]]`)
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		token := getToken(TOKEN_INTERNAL_LINK)
+		tokenMap[token] = submatch[1]
+		content = strings.Replace(content, submatch[0], token, 1)
+		tokenizationHappened = true
+	}
+
+	return content, tokenizationHappened
+}
+
+func parseExternalLinks(content string, tokenMap map[string]string) (string,bool) {
+	tokenizationHappened := false
+	regex := regexp.MustCompile(`([^\[])\[([^\[].*?)\]`)
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		token := getToken(TOKEN_EXTERNAL_LINK)
+		tokenMap[token] = submatch[2]
+		content = strings.Replace(content, submatch[0], submatch[1] + token, 1)
+		tokenizationHappened = true
+	}
+
+	return content, tokenizationHappened
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 func removeUnwantedTags(content string) string {
 	regex := regexp.MustCompile("<references.*?\\/>\n?")
