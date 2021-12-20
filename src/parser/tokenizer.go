@@ -16,7 +16,6 @@ const TOKEN_EXTERNAL_LINK_TEXT = "EXTERNAL_LINK_TEXT"
 
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
-const MARKER_REGEX = `\$\$TOKEN_[A-Z_]*_\d*\$\$`
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
 const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"

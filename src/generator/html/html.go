@@ -34,6 +34,8 @@ func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (s
 }
 
 func expand(content string, tokenMap map[string]string) string {
+	content = expandMarker(content)
+
 	regex := regexp.MustCompile(parser.TOKEN_REGEX)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 
@@ -51,6 +53,14 @@ func expand(content string, tokenMap map[string]string) string {
 		}
 	}
 
+	return content
+}
+
+func expandMarker(content string) string {
+	content = strings.ReplaceAll(content, parser.MARKER_BOLD_OPEN, "<b>")
+	content = strings.ReplaceAll(content, parser.MARKER_BOLD_CLOSE, "</b>")
+	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
+	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
 	return content
 }
 
