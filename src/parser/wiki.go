@@ -1,4 +1,4 @@
-package wiki
+package parser
 
 type Article struct {
 	Title   string

@@ -3,22 +3,20 @@ package main
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
+	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/generator/html"
+	"github.com/hauke96/wiki2book/src/parser"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 )
 
 func main() {
-	file, err := ioutil.ReadFile("./test.mediawiki")
+	fileContent, err := ioutil.ReadFile("./test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	tokenMap := map[string]string{}
-	tokenizedContent := tokenize(string(file), tokenMap)
-	fmt.Println(tokenizedContent)
-	for k, v := range tokenMap {
-		fmt.Printf("%s : %s\n", k, v)
-	}
+	parser.Parse(string(fileContent), "test")
+
 	//projectFile := os.Args[1]
 	//
 	//directory, _ := filepath.Split(projectFile)
@@ -48,12 +46,12 @@ func main() {
 }
 
 func generateHtml(article string, language string, styleFile string) (error, string) {
-	wikiPageDto, err := downloadPage(language, article)
+	wikiPageDto, err := api.DownloadPage(language, article)
 	sigolo.FatalCheck(err)
 
-	wikiPage := parse(wikiPageDto)
+	wikiPage := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title)
 
-	err = downloadImages(wikiPage.Images, "./images")
+	err = api.DownloadImages(wikiPage.Images, "./images")
 	sigolo.FatalCheck(err)
 
 	outputFile, err := html.Generate(wikiPage, "./", styleFile)

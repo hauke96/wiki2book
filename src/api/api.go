@@ -40,7 +40,7 @@ type WikitextDto struct {
 
 var imageSources = []string{"commons", "de"}
 
-func downloadPage(language string, title string) (*WikiPageDto, error) {
+func DownloadPage(language string, title string) (*WikiPageDto, error) {
 	escapedTitle := strings.ReplaceAll(title, " ", "_")
 	escapedTitle = url.QueryEscape(escapedTitle)
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, escapedTitle)
@@ -63,7 +63,7 @@ func downloadPage(language string, title string) (*WikiPageDto, error) {
 	return wikiPageDto, nil
 }
 
-func downloadImages(images []string, outputFolder string) error {
+func DownloadImages(images []string, outputFolder string) error {
 	for _, image := range images {
 		var err error = nil
 		var outputFilepath string

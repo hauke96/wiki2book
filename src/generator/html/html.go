@@ -3,7 +3,7 @@ package html
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/wiki"
+	"github.com/hauke96/wiki2book/src/parser"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -23,7 +23,7 @@ const FOOTER = `
 </body>
 `
 
-func Generate(wikiPage wiki.Article, outputFolder string, styleFile string) (string, error) {
+func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	latexFileContent := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	latexFileContent += "\n<h1>" + wikiPage.Title + "</h1>"
 
