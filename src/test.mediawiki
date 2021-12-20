@@ -1,2 +1,33 @@
 {{Hauptartikel}}
 This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (language)|media'''text''']] text [https://parsing.com parsing].
+
+{| class="wikitable"
+|-
+! Überschrift !! Überschrift !! Überschrift
+|-
+| align="center" | B || '''Beispiel''' || ''Beispiel''
+|-
+| Beispiel ||
+{| class="wikitable"
+|+ Text der Überschrift
+|-
+! Überschrift !! Überschrift
+|-
+| Beispiel || Beispiel
+|}
+: some text next to the table
+| Beispiel
+|-
+|
+* item 1
+* item 2
+| Beispiel || Beispiel
+|}
+
+* first item
+** second item
+** yet another item
+: this element belongs to "yet another item"
+*** more nested items?
+* how many more :(
+finally the list ended :D
