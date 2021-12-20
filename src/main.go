@@ -15,7 +15,9 @@ func main() {
 	fileContent, err := ioutil.ReadFile("./test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	parser.Parse(string(fileContent), "test")
+	article := parser.Parse(string(fileContent), "test")
+
+	html.Generate(article, ".", "styles.css")
 
 	//projectFile := os.Args[1]
 	//

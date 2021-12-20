@@ -22,6 +22,7 @@ func Parse(content string, title string) Article {
 	//content, images := processImages(content)
 	return Article{
 		Title: title,
+		TokenMap: tokenMap,
 		//Images:  images,
 		Content: content,
 	}

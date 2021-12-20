@@ -7,11 +7,16 @@ import (
 	"strings"
 )
 
+const TOKEN_REGEX = `\$\$TOKEN_([A-Z_]*)_\d*\$\$`
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
-const TOKEN_INTERNAL_LINK = "TOKEN_INTERNAL_LINK"
-const TOKEN_EXTERNAL_LINK = "TOKEN_EXTERNAL_LINK"
+const TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
+const TOKEN_EXTERNAL_LINK = "EXTERNAL_LINK"
+const TOKEN_EXTERNAL_LINK_URL = "EXTERNAL_LINK_URL"
+const TOKEN_EXTERNAL_LINK_TEXT = "EXTERNAL_LINK_TEXT"
 
-// Marker do not appear in the token map
+// Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
+// and end of a primitive block of content (like a block of bold text)
+const MARKER_REGEX = `\$\$TOKEN_[A-Z_]*_\d*\$\$`
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
 const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
@@ -140,11 +145,23 @@ func parseInternalLinks(content string, tokenMap map[string]string) (string, boo
 
 func parseExternalLinks(content string, tokenMap map[string]string) (string, bool) {
 	tokenizationHappened := false
-	regex := regexp.MustCompile(`([^\[])\[([^\[].*?)\]`)
+	regex := regexp.MustCompile(`([^\[])\[([^ ]*) ?(.*)\]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
+		tokenUrl := getToken(TOKEN_EXTERNAL_LINK_URL)
+		tokenMap[tokenUrl] = submatch[2]
+
+		if submatch[3] == "" {
+			// Use URL as text
+			submatch[3] = submatch[2]
+		}
+
+		tokenText := getToken(TOKEN_EXTERNAL_LINK_TEXT)
+		tokenMap[tokenText] = submatch[3]
+
 		token := getToken(TOKEN_EXTERNAL_LINK)
-		tokenMap[token] = submatch[2]
+		tokenMap[token] = tokenUrl + " " + tokenText
+
 		content = strings.Replace(content, submatch[0], submatch[1]+token, 1)
 		tokenizationHappened = true
 	}
