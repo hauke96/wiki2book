@@ -208,7 +208,9 @@ func parseExternalLinks(content string, tokenMap map[string]string) string {
 		token := getToken(TOKEN_EXTERNAL_LINK)
 		tokenMap[token] = tokenUrl + " " + tokenText
 
-		content = strings.Replace(content, submatch[0], submatch[1]+token, 1)
+		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
+		totalMatch := submatch[0][:len(submatch[0])-1]
+		content = strings.Replace(content, totalMatch, submatch[1]+token, 1)
 	}
 
 	return content
