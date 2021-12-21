@@ -184,10 +184,15 @@ func parseExternalLinks(content string, tokenMap map[string]string) string {
 
 func parseTables(content string, tokenMap map[string]string) string {
 	lines := strings.Split(content, "\n")
+	regex := regexp.MustCompile(`^(:*)(\{\|.*)`)
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if strings.HasPrefix(line, "{|") || strings.HasPrefix(line, ":{|") {
+		if regex.MatchString(line) {
+			submatch := regex.FindStringSubmatch(line)
+			listPrefix := submatch[1]
+			line = submatch[2]
+
 			// table starts in this line.
 			token, newIndex := tokenizeTables(lines, i, tokenMap)
 
@@ -195,7 +200,7 @@ func parseTables(content string, tokenMap map[string]string) string {
 
 			newLines := []string{}
 			newLines = append(newLines, lines[:i]...)
-			newLines = append(newLines, token)
+			newLines = append(newLines, listPrefix+token)
 			if i+length+1 < len(lines) {
 				newLines = append(newLines, lines[i+length+1:]...)
 			}
@@ -330,7 +335,7 @@ func parseLists(content string, tokenMap map[string]string) string {
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 
-		regex := regexp.MustCompile(`^([*#:]) `)
+		regex := regexp.MustCompile(`^([*#:])`)
 		lineStartCharacter := regex.FindStringSubmatch(line)
 
 		if len(lineStartCharacter) > 0 && lineStartCharacter[1] != "" {
@@ -367,15 +372,30 @@ func tokenizeList(lines []string, i int, tokenMap map[string]string, itemPrefix 
 		listLines = append(listLines, line)
 	}
 
+	// lines may start directly with higher level is nesting, like "*** item one" as first item
+	// To be able to parse such list beginning, we here add some dummy list items
+	for {
+		regex := regexp.MustCompile(`^[` + itemPrefix + `]([` + itemPrefix + `]+)`)
+		submatch := regex.FindStringSubmatch(listLines[0])
+		if len(submatch) == 2 {
+			newLine := submatch[1] + " "
+			listLines = append([]string{newLine}, listLines...)
+		} else {
+			break
+		}
+	}
+
 	content := strings.Join(listLines, "\n")
 
-	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `] `)
+	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]([^` + itemPrefix + `])`)
+	submatches := regex.FindAllStringSubmatch(content, -1)
 	// Ignore first item as it's always empty
 	// Each element contains the whole item including all sub-lists and everything
 	completeListItems := regex.Split(content, -1)[1:]
 
 	for itemIndex, item := range completeListItems {
-		token := tokenizeListItem(item, tokenMap, itemPrefix)
+		// re-add the non-prefix characters which was removed by .Split() above
+		token := tokenizeListItem(submatches[itemIndex][2]+item, tokenMap, itemPrefix)
 		completeListItems[itemIndex] = token
 	}
 
