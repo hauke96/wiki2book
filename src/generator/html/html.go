@@ -24,10 +24,12 @@ const FOOTER = `</body>
 
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
 const IMAGE_TEMPLATE = "<br><div class=\"figure\"><img src=\"./images/%s\"><div class=\"caption\">%s</div></div>"
-const TABLE_TEMPLATE = `<table>
+const TABLE_TEMPLATE = `<div>
+<table>
 %s
-</table>`
-const TABLE_TEMPLATE_HEAD = `<th>
+</table>
+</div>`
+const TABLE_TEMPLATE_HEAD = `<th%s>
 %s
 </th>
 `
@@ -35,7 +37,7 @@ const TABLE_TEMPLATE_ROW = `<tr>
 %s
 </tr>
 `
-const TABLE_TEMPLATE_COL = `<td>
+const TABLE_TEMPLATE_COL = `<td%s>
 %s
 </td>
 `
@@ -93,11 +95,11 @@ func expand(content string, tokenMap map[string]string) string {
 		case parser.TOKEN_TABLE:
 			html = expandTable(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_HEAD:
-			html = expandTableHead(submatch[0], tokenMap)
+			html = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_HEAD)
 		case parser.TOKEN_TABLE_ROW:
 			html = expandTableRow(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_COL:
-			html = expandTableColumn(submatch[0], tokenMap)
+			html = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_COL)
 		case parser.TOKEN_UNORDERED_LIST:
 			html = expandUnorderedList(submatch[0], tokenMap)
 		case parser.TOKEN_ORDERED_LIST:
@@ -170,19 +172,23 @@ func expandTable(tokenString string, tokenMap map[string]string) string {
 	return fmt.Sprintf(TABLE_TEMPLATE, expand(tokenContent, tokenMap))
 }
 
-func expandTableHead(tokenString string, tokenMap map[string]string) string {
-	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TABLE_TEMPLATE_HEAD, expand(tokenContent, tokenMap))
-}
-
 func expandTableRow(tokenString string, tokenMap map[string]string) string {
 	tokenContent := tokenMap[tokenString]
 	return fmt.Sprintf(TABLE_TEMPLATE_ROW, expand(tokenContent, tokenMap))
 }
 
-func expandTableColumn(tokenString string, tokenMap map[string]string) string {
+func expandTableColumn(tokenString string, tokenMap map[string]string, template string) string {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TABLE_TEMPLATE_COL, expand(tokenContent, tokenMap))
+
+	attributes := ""
+	if strings.Contains(tokenContent, parser.TOKEN_TABLE_COL_ATTRIBUTES) {
+		regex := regexp.MustCompile(`\$\$TOKEN_` + parser.TOKEN_TABLE_COL_ATTRIBUTES + `_\d+\$\$`)
+		attributeToken := regex.FindString(tokenContent)
+		attributes = " " + tokenMap[attributeToken]
+		tokenContent = strings.Replace(tokenContent, attributeToken, "", 1)
+	}
+
+	return fmt.Sprintf(template, attributes, expand(tokenContent, tokenMap))
 }
 
 func expandUnorderedList(tokenString string, tokenMap map[string]string) string {

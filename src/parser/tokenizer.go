@@ -29,6 +29,7 @@ const TOKEN_TABLE = "TABLE"
 const TOKEN_TABLE_HEAD = "TABLE_HEAD"
 const TOKEN_TABLE_ROW = "TABLE_ROW"
 const TOKEN_TABLE_COL = "TABLE_COL"
+const TOKEN_TABLE_COL_ATTRIBUTES = "TABLE_COL_ATTRIB"
 
 const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
 const TOKEN_ORDERED_LIST = "ORDERED_LIST"
@@ -88,8 +89,8 @@ func parseHeadings(content string, tokenMap map[string]string) string {
 }
 
 func parseBoldAndItalic(content string, tokenMap map[string]string) string {
-		content, _, _, _ = tokenizeBoldAndItalic(content, 0, tokenMap, false, false)
-		return content
+	content, _, _, _ = tokenizeBoldAndItalic(content, 0, tokenMap, false, false)
+	return content
 }
 
 func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
@@ -329,10 +330,10 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 
 		line = strings.TrimPrefix(line, sep)
 
-		splittedLine := strings.SplitN(line, sep, 2)
-		if len(splittedLine) == 2 {
-			line = splittedLine[1]
-		}
+		//splittedLine := strings.SplitN(line, sep, 2)
+		//if len(splittedLine) == 2 {
+		//	line = splittedLine[1]
+		//}
 
 		// one column may consist of multiple text rows -> all text lines until the next column or row and tokenize them
 		i++
@@ -342,14 +343,22 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
 		i -= 1
 
-		line = tokenize(line, tokenMap)
+		attributes := ""
+		line, attributes = tokenizeTableColumn(line, tokenMap)
+
+		attributeToken := ""
+		if attributes != "" {
+			attributeToken = getToken(TOKEN_TABLE_COL_ATTRIBUTES)
+			tokenMap[attributeToken] = attributes
+		}
+
 		token := ""
 		if sep == "!" {
 			token = getToken(TOKEN_TABLE_HEAD)
 		} else {
 			token = getToken(TOKEN_TABLE_COL)
 		}
-		tokenMap[token] = line
+		tokenMap[token] = attributeToken + line
 
 		rowLines = append(rowLines, token)
 	}
@@ -361,6 +370,31 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 
 	// return i-1 so that i is on the last line of the row when returning
 	return token, i - 1
+}
+
+// tokenizeTableColumn returns the tokenized text of the column and as second return value relevant CSS attributes (might be empty).
+func tokenizeTableColumn(content string, tokenMap map[string]string) (string, string) {
+	splittedContent := strings.Split(content, "|")
+	if len(splittedContent) < 2 {
+		return tokenize(content, tokenMap), ""
+	}
+
+	attributeString := splittedContent[0]
+	columnText := tokenize(splittedContent[1], tokenMap)
+
+	relevantTags := []string{}
+
+	colspanMatch := regexp.MustCompile(`colspan="(\d+)"`).FindStringSubmatch(attributeString)
+	if len(colspanMatch) > 1 {
+		relevantTags = append(relevantTags, colspanMatch[0])
+	}
+
+	alignmentMatch := regexp.MustCompile(`text-align=".*?";`).FindStringSubmatch(attributeString)
+	if len(alignmentMatch) > 1 {
+		relevantTags = append(relevantTags, `style="`+alignmentMatch[0]+`"`)
+	}
+
+	return columnText, strings.Join(relevantTags, " ")
 }
 
 func parseLists(content string, tokenMap map[string]string) string {
