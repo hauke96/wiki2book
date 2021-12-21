@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const IMAGE_REGEX = `\[\[((Datei|File):([^|]*))((.|\n)*?\|([^|]*?))?]][^\]]`
+const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|[^|^\]]*?)*([^|^\]]*)]]`
 
 func Parse(content string, title string) Article {
 	content = clean(content)
@@ -38,7 +38,7 @@ func Parse(content string, title string) Article {
 }
 
 func evaluateTemplates(content string) string {
-	regex := regexp.MustCompile("\\{\\{(.*?)}}")
+	regex := regexp.MustCompile(`\{\{((.|\n|\r)*?)}}`)
 	content = regex.ReplaceAllStringFunc(content, func(match string) string {
 		evaluatedTemplate, err := api.EvaluateTemplate(match)
 		if err != nil {
@@ -61,8 +61,10 @@ func processImages(content string) (string, []string) {
 	regex = regexp.MustCompile(IMAGE_REGEX)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		filename := strings.ReplaceAll(submatch[3], " ", "_")
-		filename = submatch[2] + ":" + strings.ToUpper(string(filename[0])) + filename[1:]
+		filePrefix := submatch[2]
+		filename := submatch[3]
+		filename = strings.ReplaceAll(filename, " ", "_")
+		filename = filePrefix + ":" + strings.ToUpper(string(filename[0])) + filename[1:]
 
 		content = strings.ReplaceAll(content, submatch[1], filename)
 

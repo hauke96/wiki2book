@@ -84,11 +84,6 @@ func DownloadImages(images []string, outputFolder string) error {
 				if err != nil {
 					return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))
 				}
-
-				//err = os.Rename(outputFilepath+".tmp", outputFilepath)
-				//if err != nil {
-				//	return errors.Wrap(err, fmt.Sprintf("Unable to rename rescaled temporary image %s.tmp", outputFilepath))
-				//}
 			}
 
 			break

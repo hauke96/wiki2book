@@ -143,8 +143,8 @@ func parseImages(content string, tokenMap map[string]string) string {
 		tokenMap[filenameToken] = filename
 
 		token := getToken(TOKEN_IMAGE)
-		if len(submatch) >= 7 && submatch[6] != "" {
-			caption := tokenize(submatch[6], tokenMap)
+		if len(submatch) >= 6 && submatch[5] != "" {
+			caption := tokenize(submatch[5], tokenMap)
 			captionToken := getToken(TOKEN_IMAGE_CAPTION)
 			tokenMap[captionToken] = caption
 
@@ -153,9 +153,7 @@ func parseImages(content string, tokenMap map[string]string) string {
 			tokenMap[token] = filenameToken
 		}
 
-		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
-		totalMatch := submatch[0][:len(submatch[0])-1]
-		content = strings.Replace(content, totalMatch, token, 1)
+		content = strings.Replace(content, submatch[0], token, 1)
 	}
 
 	return content
@@ -165,7 +163,7 @@ func parseInternalLinks(content string, tokenMap map[string]string) string {
 	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*?)\|?([^|^\]^\[]*?)]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		if strings.HasPrefix(submatch[1], "Datei:") || strings.HasPrefix(submatch[1], "File:") {
+		if strings.HasPrefix(submatch[0], "[[Datei:") || strings.HasPrefix(submatch[1], "[[File:") {
 			continue
 		}
 

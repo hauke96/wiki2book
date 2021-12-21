@@ -149,6 +149,11 @@ func expandHeadings(tokenString string, tokenMap map[string]string, level int) s
 func expandImage(tokenString string, tokenMap map[string]string) string {
 	splittedToken := strings.Split(tokenMap[tokenString], " ")
 	filename := expand(tokenMap[splittedToken[0]], tokenMap)
+	if len(splittedToken) == 1 {
+		// no caption available
+		return fmt.Sprintf(IMAGE_TEMPLATE, filename, "")
+	}
+
 	caption := expand(tokenMap[splittedToken[1]], tokenMap)
 	return fmt.Sprintf(IMAGE_TEMPLATE, filename, caption)
 }

@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func clean(content string) string {
@@ -12,35 +13,34 @@ func clean(content string) string {
 }
 
 func removeUnwantedTags(content string) string {
-	regex := regexp.MustCompile("<references.*?\\/>\n?")
+	//regex := regexp.MustCompile(`<references.*?\/>\n?`)
+	//content = regex.ReplaceAllString(content, "")
+
+	regex := regexp.MustCompile("\\[\\[Kategorie:.*?]]\n?")
 	content = regex.ReplaceAllString(content, "")
 
-	regex = regexp.MustCompile("\\[\\[Kategorie:.*?]]\n?")
-	content = regex.ReplaceAllString(content, "")
+	ignoreTemplates := []string{
+		"siehe auch",
+		"Exzellent",
+		"Normdaten",
+		"Hauptartikel",
+		"Begriffsklärungshinweis",
+		"Weiterleitungshinweis",
+		"Dieser Artikel",
+		"Commons",
+		"Wikiquote",
+		"Wiktionary",
+		"Wikibooks",
+		"Wikisource",
+		"Alpha Centauri",
+		"Panorama",
+		".*(box|Box).*",
+	}
 
-	regex = regexp.MustCompile("\\{\\{Gesprochener Artikel(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Exzellent(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Normdaten(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Hauptartikel(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Begriffsklärungshinweis(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Weiterleitungshinweis(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{Dieser Artikel(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
-
-	regex = regexp.MustCompile("\\{\\{.*(box|Box).*(.|\\n|\\r)*?}}\n?")
-	content = regex.ReplaceAllString(content, "")
+	for _, template := range ignoreTemplates {
+		regex = regexp.MustCompile(`(?i)(\* )?\{\{` + template + `(.|\n|\r)*?}}\n?`)
+		content = regex.ReplaceAllString(content, "")
+	}
 
 	return content
 }
@@ -49,15 +49,28 @@ func moveCitationsToEnd(content string) string {
 	counter := 0
 	citations := ""
 
-	regex := regexp.MustCompile("<ref.*?>(.*?)</ref>")
-	content = regex.ReplaceAllStringFunc(content, func(match string) string {
+	regex := regexp.MustCompile(`</?references.*?/?>\n?`)
+	contentParts := regex.Split(content, -1)
+
+	regex = regexp.MustCompile(`<ref.*?((>((.|\n|\r)*?)</ref>)|/>)`)
+	contentParts[0] = regex.ReplaceAllStringFunc(contentParts[0], func(match string) string {
 		counter++
-		if counter > 1 {
-			citations += "<br>"
-		}
-		citations += fmt.Sprintf("\n[%d] %s", counter, match)
-		return fmt.Sprintf("[%d]", counter)
+		citations += fmt.Sprintf("[%d] %s\n", counter, strings.ReplaceAll(match, "\n", ""))
+		return fmt.Sprintf("<sup>%d</sup>", counter)
 	})
 
-	return content + citations
+	if len(contentParts) > 1 {
+		citations += "\n"
+		contentParts[1] = regex.ReplaceAllStringFunc(contentParts[1], func(match string) string {
+			citations += fmt.Sprintf("* %s\n", strings.ReplaceAll(match, "\n", ""))
+			return match
+		})
+	}
+
+	result := contentParts[0] + citations
+	if len(contentParts) > 2 {
+		result += contentParts[2]
+	}
+
+	return result
 }

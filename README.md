@@ -23,7 +23,6 @@ Open tasks of this project:
 * [ ] Ordered lists
 * [ ] Problematic pages:
   * Universum (table at the beginning)
-  * Interstellarer_Staub (list with one element at the end)
   * Riesenstern (weird top of page)
   * Sternentstehung#Molekülwolkenstruktur (table with caption)
   * Exoplanet#Erste Entdeckungen von Exoplaneten (ref that's not moved to bottom)
