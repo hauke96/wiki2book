@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const IMAGE_REGEX = `\[\[((Datei|File):([^|]*))((.|\n)*?\|([^|]*?))?]]`
+const IMAGE_REGEX = `\[\[((Datei|File):([^|]*))((.|\n)*?\|([^|]*?))?]][^\]]`
 
 func Parse(content string, title string) Article {
 	content = clean(content)

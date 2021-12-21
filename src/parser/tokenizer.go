@@ -136,7 +136,9 @@ func parseImages(content string, tokenMap map[string]string) string {
 			tokenMap[token] = filenameToken
 		}
 
-		content = strings.Replace(content, submatch[0], token, 1)
+		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
+		totalMatch := submatch[0][:len(submatch[0])-1]
+		content = strings.Replace(content, totalMatch, token, 1)
 	}
 
 	return content
