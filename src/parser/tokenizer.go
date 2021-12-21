@@ -337,7 +337,6 @@ func parseUnorderedLists(content string, tokenMap map[string]string) string {
 				newLines = append(newLines, lines[i+length+1:]...)
 			}
 			lines = newLines
-
 		}
 	}
 
@@ -380,19 +379,29 @@ func tokenizeUnorderedListItem(content string, tokenMap map[string]string) strin
 	lines := strings.Split(content, "\n")
 
 	itemContent := ""
+	subListString := ""
 
 	// collect all lines of this list item which do not belong to a nested item
-	for _, line := range lines {
+	for i, line := range lines {
 		if strings.HasPrefix(line, "*") {
 			// a sub-item starts
+			subListString = strings.Join(lines[i:], "\n")
 			break
 		}
 		itemContent += line + "\n"
 	}
 
-	// TODO handle sub-lists
-
 	token := getToken(TOKEN_LIST_ITEM)
-	tokenMap[token] = itemContent
+	tokenMap[token] = tokenize(itemContent, tokenMap)
+
+	if subListString != "" {
+		regex := regexp.MustCompile(`(^|\n)\*`)
+		subListString = regex.ReplaceAllString(subListString, "\n")
+		// Ignore first item as it's always empty (due to newline from replacement)
+		subListItemLines := strings.Split(subListString, "\n")[1:]
+		subListToken, _ := tokenizeUnorderedList(subListItemLines, 0, tokenMap)
+		tokenMap[token] += " " + subListToken
+	}
+
 	return token
 }
