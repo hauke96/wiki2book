@@ -5,6 +5,7 @@ import (
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -15,8 +16,15 @@ func Parse(content string, title string) Article {
 	tokenMap := map[string]string{}
 	content = tokenize(content, tokenMap)
 	fmt.Println(content)
-	for k, v := range tokenMap {
-		fmt.Printf("%s : %s\n", k, v)
+
+	keys := make([]string, 0, len(tokenMap))
+	for k := range tokenMap {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		fmt.Printf("%s : %s\n", k, tokenMap[k])
 	}
 
 	//content, images := processImages(content)

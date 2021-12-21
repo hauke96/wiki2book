@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
 	"regexp"
 	"strings"
 )
@@ -87,10 +86,9 @@ func parseBoldAndItalic(content string, tokenMap map[string]string) string {
 //}
 
 func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
-	for index > len(content)-1 {
+	for index < len(content) {
 		// iIn case of last opened italic marker
-		sigolo.Info("Check index %d of %d long content: %s", index, len(content), content[index:index+3])
-		if index+3 < len(content) && content[index:index+3] == "'''" {
+		if index+3 <= len(content) && content[index:index+3] == "'''" {
 			if !isBoldOpen {
 				// -3 +3 to replace the ''' as well
 				content = strings.Replace(content, content[index:index+3], MARKER_BOLD_OPEN, 1)
@@ -105,7 +103,7 @@ func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string
 				// -3 because of the ''' we replaced above
 				return content, index + len(MARKER_BOLD_CLOSE), false, isItalicOpen
 			}
-		} else if index+2 < len(content) && content[index:index+2] == "''" {
+		} else if index+2 <= len(content) && content[index:index+2] == "''" {
 			if !isItalicOpen {
 				// +2 to replace the ''
 				content = strings.Replace(content, content[index:index+2], MARKER_ITALIC_OPEN, 1)
@@ -296,7 +294,6 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 		line = strings.TrimPrefix(line, sep)
 
 		splittedLine := strings.SplitN(line, sep, 2)
-		fmt.Println(splittedLine)
 		if len(splittedLine) == 2 {
 			line = splittedLine[1]
 		}

@@ -11,15 +11,13 @@ import (
 	"strings"
 )
 
-const HEADER = `
-<html>
+const HEADER = `<html>
 <head>
 <link rel="stylesheet" href="{{STYLE}}">
 </head>
 <body>
 `
-const FOOTER = `
-</body>
+const FOOTER = `</body>
 </html>
 `
 
