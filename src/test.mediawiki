@@ -1,3 +1,6 @@
+:: descr
+
+
 {{Hauptartikel}}
 This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (language)|media'''text''']] text [https://parsing.com parsing].
 
@@ -15,22 +18,21 @@ This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (languag
 |-
 | [http://example.com Bei''spiel''] || Beispiel
 |}
-: some text next to the table
+some text next to the table
 | Beispiel
 |-
 |
-* item 1
-* item 2
 | Beispiel || Beispiel
 |}
 
 * first item
 ** second item
 ** yet another item
-: this element '''belongs''' to "yet another item"
-*** more nested items?
+:: this element hash '''no''' buletti pointi
+* no more nested items?
 * how many more :(
-*# please stop
-*# I'm serious, pleeeease
+# please stop
+#* I'm serious, pleeeease
+
 
 finally the list ended :D

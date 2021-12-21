@@ -23,7 +23,11 @@ const TOKEN_TABLE_ROW = "TABLE_ROW"
 const TOKEN_TABLE_COL = "TABLE_COL"
 
 const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
+const TOKEN_ORDERED_LIST = "ORDERED_LIST"
 const TOKEN_LIST_ITEM = "LIST_ITEM"
+
+const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
+const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"
 
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
@@ -31,6 +35,7 @@ const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
 const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
+const MARKER_NEW_LINE = "$$MARKER_NEW_LINE$$"
 
 var tokenCounter = 0
 
@@ -47,7 +52,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 		content = parseInternalLinks(content, tokenMap)
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
-		content = parseUnorderedLists(content, tokenMap)
+		content = parseLists(content, tokenMap)
 		break
 	}
 
@@ -319,14 +324,20 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 	return token, i - 1
 }
 
-func parseUnorderedLists(content string, tokenMap map[string]string) string {
+func parseLists(content string, tokenMap map[string]string) string {
 	lines := strings.Split(content, "\n")
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if strings.HasPrefix(line, "* ") {
+
+		regex := regexp.MustCompile(`^([*#:]) `)
+		lineStartCharacter := regex.FindStringSubmatch(line)
+
+		if len(lineStartCharacter) > 0 && lineStartCharacter[1] != "" {
+			listTokenString := getListTokenString(lineStartCharacter[1])
+
 			// a new unordered list starts here
-			token, newIndex := tokenizeUnorderedList(lines, i, tokenMap)
+			token, newIndex := tokenizeList(lines, i, tokenMap, lineStartCharacter[1], listTokenString)
 
 			length := newIndex - i
 
@@ -334,7 +345,7 @@ func parseUnorderedLists(content string, tokenMap map[string]string) string {
 			newLines = append(newLines, lines[:i]...)
 			newLines = append(newLines, token)
 			if i+length+1 < len(lines) {
-				newLines = append(newLines, lines[i+length+1:]...)
+				newLines = append(newLines, lines[i+length:]...)
 			}
 			lines = newLines
 		}
@@ -344,12 +355,12 @@ func parseUnorderedLists(content string, tokenMap map[string]string) string {
 	return content
 }
 
-func tokenizeUnorderedList(lines []string, i int, tokenMap map[string]string) (string, int) {
+func tokenizeList(lines []string, i int, tokenMap map[string]string, itemPrefix string, tokenString string) (string, int) {
 	listLines := []string{}
 	for ; i < len(lines); i++ {
 		line := lines[i]
 
-		if !strings.HasPrefix(line, "*") && !strings.HasPrefix(line, ":") && line != "" {
+		if !strings.HasPrefix(line, itemPrefix) && line != "" {
 			break
 		}
 
@@ -358,24 +369,25 @@ func tokenizeUnorderedList(lines []string, i int, tokenMap map[string]string) (s
 
 	content := strings.Join(listLines, "\n")
 
-	regex := regexp.MustCompile(`(^|\n)\* `)
+	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `] `)
 	// Ignore first item as it's always empty
-	listItems := regex.Split(content, -1)[1:]
+	// Each element contains the whole item including all sub-lists and everything
+	completeListItems := regex.Split(content, -1)[1:]
 
-	for itemIndex, item := range listItems {
-		token := tokenizeUnorderedListItem(item, tokenMap)
-		listItems[itemIndex] = token
+	for itemIndex, item := range completeListItems {
+		token := tokenizeListItem(item, tokenMap, itemPrefix)
+		completeListItems[itemIndex] = token
 	}
 
-	tokenContent := strings.Join(listItems, " ")
-	token := getToken(TOKEN_UNORDERED_LIST)
+	tokenContent := strings.Join(completeListItems, " ")
+	token := getToken(tokenString)
 	tokenMap[token] = tokenContent
 
 	return token, i
 }
 
-func tokenizeUnorderedListItem(content string, tokenMap map[string]string) string {
-	content = strings.TrimPrefix(content, "* ")
+func tokenizeListItem(content string, tokenMap map[string]string, itemPrefix string) string {
+	content = strings.TrimPrefix(content, itemPrefix+" ")
 	lines := strings.Split(content, "\n")
 
 	itemContent := ""
@@ -383,7 +395,7 @@ func tokenizeUnorderedListItem(content string, tokenMap map[string]string) strin
 
 	// collect all lines of this list item which do not belong to a nested item
 	for i, line := range lines {
-		if strings.HasPrefix(line, "*") {
+		if hasListItemPrefix(line) {
 			// a sub-item starts
 			subListString = strings.Join(lines[i:], "\n")
 			break
@@ -391,17 +403,48 @@ func tokenizeUnorderedListItem(content string, tokenMap map[string]string) strin
 		itemContent += line + "\n"
 	}
 
-	token := getToken(TOKEN_LIST_ITEM)
+	token := getToken(getListItemTokenString(itemPrefix))
 	tokenMap[token] = tokenize(itemContent, tokenMap)
 
 	if subListString != "" {
-		regex := regexp.MustCompile(`(^|\n)\*`)
+		subItemPrefix := subListString[0:1]
+		regex := regexp.MustCompile(`(^|\n)[` + subItemPrefix + `]`)
+
 		subListString = regex.ReplaceAllString(subListString, "\n")
 		// Ignore first item as it's always empty (due to newline from replacement)
-		subListItemLines := strings.Split(subListString, "\n")[1:]
-		subListToken, _ := tokenizeUnorderedList(subListItemLines, 0, tokenMap)
+		subListItemLines := strings.Split(subListString, "\n")
+
+		subListToken, _ := tokenizeList(subListItemLines, 0, tokenMap, subItemPrefix, getListTokenString(subItemPrefix))
 		tokenMap[token] += " " + subListToken
 	}
 
 	return token
+}
+
+func getListTokenString(listItemPrefix string) string {
+	switch listItemPrefix {
+	case "*":
+		return TOKEN_UNORDERED_LIST
+	case "#":
+		return TOKEN_ORDERED_LIST
+	case ":":
+		return TOKEN_DESCRIPTION_LIST
+	}
+	return ""
+}
+
+func getListItemTokenString(listItemPrefix string) string {
+	switch listItemPrefix {
+	case "*":
+		return TOKEN_LIST_ITEM
+	case "#":
+		return TOKEN_LIST_ITEM
+	case ":":
+		return TOKEN_DESCRIPTION_LIST_ITEM
+	}
+	return ""
+}
+
+func hasListItemPrefix(line string) bool {
+	return regexp.MustCompile(`^[*#:]`).MatchString(line)
 }

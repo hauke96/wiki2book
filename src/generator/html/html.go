@@ -42,9 +42,21 @@ const TEMPLATE_UL = `<ul>
 %s
 </ul>
 `
+const TEMPLATE_OL = `<ol>
+%s
+</ol>
+`
+const TEMPLATE_DL = `<dl>
+%s
+</dl>
+`
 const TEMPLATE_LI = `<li>
 %s
 </li>
+`
+const TEMPLATE_DD = `<dd>
+%s
+</dd>
 `
 
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
@@ -86,8 +98,14 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandTableColumn(submatch[0], tokenMap)
 		case parser.TOKEN_UNORDERED_LIST:
 			html = expandUnorderedList(submatch[0], tokenMap)
+		case parser.TOKEN_ORDERED_LIST:
+			html = expandOrderedList(submatch[0], tokenMap)
+		case parser.TOKEN_DESCRIPTION_LIST:
+			html = expandDescriptionList(submatch[0], tokenMap)
 		case parser.TOKEN_LIST_ITEM:
 			html = expandListItem(submatch[0], tokenMap)
+		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
+			html = expandDescriptionItem(submatch[0], tokenMap)
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
@@ -101,6 +119,7 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_CLOSE, "</b>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
+	content = strings.ReplaceAll(content, parser.MARKER_NEW_LINE, "<br>")
 	return content
 }
 
@@ -143,9 +162,24 @@ func expandUnorderedList(tokenString string, tokenMap map[string]string) string 
 	return fmt.Sprintf(TEMPLATE_UL, expand(tokenContent, tokenMap))
 }
 
+func expandOrderedList(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_OL, expand(tokenContent, tokenMap))
+}
+
+func expandDescriptionList(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_DL, expand(tokenContent, tokenMap))
+}
+
 func expandListItem(tokenString string, tokenMap map[string]string) string {
 	tokenContent := tokenMap[tokenString]
 	return fmt.Sprintf(TEMPLATE_LI, expand(tokenContent, tokenMap))
+}
+
+func expandDescriptionItem(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_DD, expand(tokenContent, tokenMap))
 }
 
 func escapeSpecialCharacters(content string) string {
