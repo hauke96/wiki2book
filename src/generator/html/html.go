@@ -23,6 +23,7 @@ const FOOTER = `</body>
 `
 
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
+const IMAGE_TEMPLATE = "<br><div class=\"figure\"><img src=\"./images/%s\"><div class=\"caption\">%s</div></div>"
 const TABLE_TEMPLATE = `<table>
 %s
 </table>`
@@ -79,7 +80,7 @@ func expand(content string, tokenMap map[string]string) string {
 	}
 
 	for _, submatch := range submatches {
-		sigolo.Info("Found token %s", submatch[1])
+		sigolo.Debug("Found token %s", submatch[1])
 
 		html := submatch[0]
 
@@ -106,6 +107,8 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandListItem(submatch[0], tokenMap)
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html = expandDescriptionItem(submatch[0], tokenMap)
+		case parser.TOKEN_IMAGE:
+			html = expandImage(submatch[0], tokenMap)
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
@@ -120,6 +123,13 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
 	return content
+}
+
+func expandImage(tokenString string, tokenMap map[string]string) string {
+	splittedToken := strings.Split(tokenMap[tokenString], " ")
+	filename := expand(tokenMap[splittedToken[0]], tokenMap)
+	caption := expand(tokenMap[splittedToken[1]], tokenMap)
+	return fmt.Sprintf(IMAGE_TEMPLATE, filename, caption)
 }
 
 func expandInternalLint(tokenString string, tokenMap map[string]string) string {

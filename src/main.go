@@ -17,6 +17,9 @@ func main() {
 
 	article := parser.Parse(string(fileContent), "test")
 
+	err = api.DownloadImages(article.Images, "./images")
+	sigolo.FatalCheck(err)
+
 	html.Generate(article, ".", "../example/style.css")
 
 	//projectFile := os.Args[1]

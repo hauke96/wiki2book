@@ -76,7 +76,7 @@ func DownloadImages(images []string, outputFolder string) error {
 			}
 
 			// If the file is new, rescale it using ImageMagick.
-			if outputFilepath != "" {
+			if outputFilepath != "" && !strings.HasSuffix(outputFilepath, ".svg") {
 				const imgSize = 600
 				cmd := exec.Command("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
 					"-define", "PNG:compression-level=9", "-define", "PNG:compression-filter=0", outputFilepath)

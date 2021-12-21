@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"regexp"
@@ -9,13 +8,16 @@ import (
 	"strings"
 )
 
+const IMAGE_REGEX = `\[\[((Datei|File):([^|]*))((.|\n)*?\|([^|]*?))?]]`
+
 func Parse(content string, title string) Article {
 	content = clean(content)
 	content = evaluateTemplates(content)
+	content, images := processImages(content)
 
 	tokenMap := map[string]string{}
 	content = tokenize(content, tokenMap)
-	fmt.Println(content)
+	sigolo.Debug(content)
 
 	keys := make([]string, 0, len(tokenMap))
 	for k := range tokenMap {
@@ -24,15 +26,14 @@ func Parse(content string, title string) Article {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		fmt.Printf("%s : %s\n", k, tokenMap[k])
+		sigolo.Debug("%s : %s\n", k, tokenMap[k])
 	}
 
-	//content, images := processImages(content)
 	return Article{
-		Title: title,
+		Title:    title,
 		TokenMap: tokenMap,
-		//Images:  images,
-		Content: content,
+		Images:   images,
+		Content:  content,
 	}
 }
 
@@ -54,10 +55,10 @@ func processImages(content string) (string, []string) {
 	var result []string
 
 	// Remove videos and gifs
-	regex := regexp.MustCompile("\\[\\[((Datei|File):.*?\\.(webm|gif|ogv|mp3|mp4)).*(]]|\\|)")
+	regex := regexp.MustCompile(`\[\[((Datei|File):.*?\.(webm|gif|ogv|mp3|mp4)).*(]]|\|)`)
 	content = regex.ReplaceAllString(content, "")
 
-	regex = regexp.MustCompile("\\[\\[((Datei|File):(.*?))(]]|\\|)(.*?)]]")
+	regex = regexp.MustCompile(IMAGE_REGEX)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		filename := strings.ReplaceAll(submatch[3], " ", "_")

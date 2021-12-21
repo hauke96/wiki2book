@@ -29,6 +29,10 @@ const TOKEN_LIST_ITEM = "LIST_ITEM"
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
 const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"
 
+const TOKEN_IMAGE = "IMAGE"
+const TOKEN_IMAGE_FILENAME = "IMAGE_FILENAME"
+const TOKEN_IMAGE_CAPTION = "IMAGE_CAPTION"
+
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -49,6 +53,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 	for {
 		content = parseBoldAndItalic(content, tokenMap)
 		content = parseInternalLinks(content, tokenMap)
+		content = parseImages(content, tokenMap)
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
 		content = parseLists(content, tokenMap)
@@ -112,10 +117,39 @@ func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string
 	return content, index, false, false
 }
 
+func parseImages(content string, tokenMap map[string]string) string {
+	regex := regexp.MustCompile(IMAGE_REGEX)
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		filename := submatch[3]
+		filenameToken := getToken(TOKEN_IMAGE_FILENAME)
+		tokenMap[filenameToken] = filename
+
+		token := getToken(TOKEN_IMAGE)
+		if len(submatch) >= 7 && submatch[6] != "" {
+			caption := tokenize(submatch[6], tokenMap)
+			captionToken := getToken(TOKEN_IMAGE_CAPTION)
+			tokenMap[captionToken] = caption
+
+			tokenMap[token] = filenameToken + " " + captionToken
+		} else {
+			tokenMap[token] = filenameToken
+		}
+
+		content = strings.Replace(content, submatch[0], token, 1)
+	}
+
+	return content
+}
+
 func parseInternalLinks(content string, tokenMap map[string]string) string {
 	regex := regexp.MustCompile(`\[\[([^|^\]]*)\|?(.*?)]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
+		if strings.HasPrefix(submatch[1], "Datei:") || strings.HasPrefix(submatch[1], "File:") {
+			continue
+		}
+
 		tokenArticle := getToken(TOKEN_INTERNAL_LINK_ARTICLE)
 		tokenMap[tokenArticle] = submatch[1]
 
@@ -138,20 +172,20 @@ func parseInternalLinks(content string, tokenMap map[string]string) string {
 }
 
 func parseExternalLinks(content string, tokenMap map[string]string) string {
-	regex := regexp.MustCompile(`([^\[])\[([^ ]*) ?(.*)\]`)
+	regex := regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?]([^]])`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		tokenUrl := getToken(TOKEN_EXTERNAL_LINK_URL)
 		tokenMap[tokenUrl] = submatch[2]
 
-		if submatch[3] == "" {
-			// Use URL as text
-			submatch[3] = submatch[2]
+		linkText := submatch[2]
+		if len(submatch) >= 5 {
+			linkText = submatch[4]
 		}
 
-		text := tokenize(submatch[3], tokenMap)
+		linkText = tokenize(linkText, tokenMap)
 		tokenText := getToken(TOKEN_EXTERNAL_LINK_TEXT)
-		tokenMap[tokenText] = text
+		tokenMap[tokenText] = linkText
 
 		token := getToken(TOKEN_EXTERNAL_LINK)
 		tokenMap[token] = tokenUrl + " " + tokenText
