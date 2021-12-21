@@ -119,7 +119,6 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_CLOSE, "</b>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
-	content = strings.ReplaceAll(content, parser.MARKER_NEW_LINE, "<br>")
 	return content
 }
 

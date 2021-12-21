@@ -35,7 +35,6 @@ const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
 const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
-const MARKER_NEW_LINE = "$$MARKER_NEW_LINE$$"
 
 var tokenCounter = 0
 
@@ -67,25 +66,6 @@ func parseBoldAndItalic(content string, tokenMap map[string]string) string {
 	}
 	return content
 }
-
-// tokenizeByRegex applies the regex which must have exactly one group. The tokenized content is returned and a flag
-// saying if something changed (i.e. is a tokenization happened).
-//func tokenizeByRegex(content string, tokenMap map[string]string, regexString string, tokenType string) (string, bool) {
-//	regex := regexp.MustCompile(regexString)
-//	matches := regex.FindStringSubmatch(content)
-//	if len(matches) != 0 {
-//		content = processMatch(content, tokenMap, matches[0], matches[1], tokenType)
-//		return content, true
-//	}
-//	return content, false
-//}
-//
-//func processMatch(content string, tokenMap map[string]string, wholeMatch string, untokenizedMatch string, tokenType string) string {
-//	token := getToken(tokenType)
-//	tokenizedString := Tokenize(untokenizedMatch, tokenMap)
-//	tokenMap[token] = tokenizedString
-//	return strings.Replace(content, wholeMatch, token, 1)
-//}
 
 func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
 	for index < len(content) {
