@@ -38,6 +38,14 @@ const TABLE_TEMPLATE_COL = `<td>
 %s
 </td>
 `
+const TEMPLATE_UL = `<ul>
+%s
+</ul>
+`
+const TEMPLATE_LI = `<li>
+%s
+</li>
+`
 
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
@@ -76,6 +84,10 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandTableRow(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_COL:
 			html = expandTableColumn(submatch[0], tokenMap)
+		case parser.TOKEN_UNORDERED_LIST:
+			html = expandUnorderedList(submatch[0], tokenMap)
+		case parser.TOKEN_LIST_ITEM:
+			html = expandListItem(submatch[0], tokenMap)
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
@@ -124,6 +136,16 @@ func expandTableRow(tokenString string, tokenMap map[string]string) string {
 func expandTableColumn(tokenString string, tokenMap map[string]string) string {
 	tokenContent := tokenMap[tokenString]
 	return fmt.Sprintf(TABLE_TEMPLATE_COL, expand(tokenContent, tokenMap))
+}
+
+func expandUnorderedList(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_UL, expand(tokenContent, tokenMap))
+}
+
+func expandListItem(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_LI, expand(tokenContent, tokenMap))
 }
 
 func escapeSpecialCharacters(content string) string {

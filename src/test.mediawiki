@@ -30,4 +30,7 @@ This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (languag
 : this element belongs to "yet another item"
 *** more nested items?
 * how many more :(
+*# please stop
+*# I'm serious, pleeeease
+
 finally the list ended :D

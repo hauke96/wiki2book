@@ -22,6 +22,9 @@ const TOKEN_TABLE_HEAD = "TABLE_HEAD"
 const TOKEN_TABLE_ROW = "TABLE_ROW"
 const TOKEN_TABLE_COL = "TABLE_COL"
 
+const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
+const TOKEN_LIST_ITEM = "LIST_ITEM"
+
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -44,6 +47,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 		content = parseInternalLinks(content, tokenMap)
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
+		content = parseUnorderedLists(content, tokenMap)
 		break
 	}
 
@@ -187,7 +191,9 @@ func parseTables(content string, tokenMap map[string]string) string {
 			newLines := []string{}
 			newLines = append(newLines, lines[:i]...)
 			newLines = append(newLines, token)
-			newLines = append(newLines, lines[i+length+1:]...)
+			if i+length+1 < len(lines) {
+				newLines = append(newLines, lines[i+length+1:]...)
+			}
 			lines = newLines
 
 		}
@@ -311,4 +317,82 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 
 	// return i-1 so that i is on the last line of the row when returning
 	return token, i - 1
+}
+
+func parseUnorderedLists(content string, tokenMap map[string]string) string {
+	lines := strings.Split(content, "\n")
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		if strings.HasPrefix(line, "* ") {
+			// a new unordered list starts here
+			token, newIndex := tokenizeUnorderedList(lines, i, tokenMap)
+
+			length := newIndex - i
+
+			newLines := []string{}
+			newLines = append(newLines, lines[:i]...)
+			newLines = append(newLines, token)
+			if i+length+1 < len(lines) {
+				newLines = append(newLines, lines[i+length+1:]...)
+			}
+			lines = newLines
+
+		}
+	}
+
+	content = strings.Join(lines, "\n")
+	return content
+}
+
+func tokenizeUnorderedList(lines []string, i int, tokenMap map[string]string) (string, int) {
+	listLines := []string{}
+	for ; i < len(lines); i++ {
+		line := lines[i]
+
+		if !strings.HasPrefix(line, "*") && !strings.HasPrefix(line, ":") && line != "" {
+			break
+		}
+
+		listLines = append(listLines, line)
+	}
+
+	content := strings.Join(listLines, "\n")
+
+	regex := regexp.MustCompile(`(^|\n)\* `)
+	// Ignore first item as it's always empty
+	listItems := regex.Split(content, -1)[1:]
+
+	for itemIndex, item := range listItems {
+		token := tokenizeUnorderedListItem(item, tokenMap)
+		listItems[itemIndex] = token
+	}
+
+	tokenContent := strings.Join(listItems, " ")
+	token := getToken(TOKEN_UNORDERED_LIST)
+	tokenMap[token] = tokenContent
+
+	return token, i
+}
+
+func tokenizeUnorderedListItem(content string, tokenMap map[string]string) string {
+	content = strings.TrimPrefix(content, "* ")
+	lines := strings.Split(content, "\n")
+
+	itemContent := ""
+
+	// collect all lines of this list item which do not belong to a nested item
+	for _, line := range lines {
+		if strings.HasPrefix(line, "*") {
+			// a sub-item starts
+			break
+		}
+		itemContent += line + "\n"
+	}
+
+	// TODO handle sub-lists
+
+	token := getToken(TOKEN_LIST_ITEM)
+	tokenMap[token] = itemContent
+	return token
 }
