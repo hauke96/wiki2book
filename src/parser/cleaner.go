@@ -13,9 +13,6 @@ func clean(content string) string {
 }
 
 func removeUnwantedTags(content string) string {
-	//regex := regexp.MustCompile(`<references.*?\/>\n?`)
-	//content = regex.ReplaceAllString(content, "")
-
 	regex := regexp.MustCompile("\\[\\[Kategorie:.*?]]\n?")
 	content = regex.ReplaceAllString(content, "")
 

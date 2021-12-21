@@ -1,14 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/generator/epub"
 	"github.com/hauke96/wiki2book/src/generator/html"
 	"github.com/hauke96/wiki2book/src/parser"
 	"github.com/hauke96/wiki2book/src/project"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 )
@@ -65,19 +63,4 @@ func generateHtml(article string, language string, styleFile string) (error, str
 	outputFile, err := html.Generate(wikiPage, "./", styleFile)
 	sigolo.FatalCheck(err)
 	return err, outputFile
-}
-
-// createAndUseFolder creates a folder with the given name and goes into that folder.
-func createAndUseFolder(title string) error {
-	err := os.Mkdir(title, os.ModePerm)
-	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Error creating output directory %s", title))
-	}
-
-	err = os.Chdir(title)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error switching into output directory %s", title))
-	}
-
-	return nil
 }

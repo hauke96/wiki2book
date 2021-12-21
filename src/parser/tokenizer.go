@@ -265,7 +265,6 @@ func tokenizeTables(lines []string, i int, tokenMap map[string]string) (string, 
 			// the table ends with this line
 			tableLines = append(tableLines, lines[i])
 			break
-			// TODO create token and return
 		} else {
 			tableLines = append(tableLines, line)
 		}
@@ -295,8 +294,6 @@ func tokenizeTable(content string, tokenMap map[string]string) string {
 			} else if strings.HasPrefix(lines[i+1], "|") {
 				// this table row is a normal row
 				rowToken, i = tokenizeTableRow(lines, i+1, "|", tokenMap)
-			} else {
-				// TODO throw error
 			}
 
 			tableTokens += rowToken + " "
@@ -327,11 +324,6 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 		}
 
 		line = strings.TrimPrefix(line, sep)
-
-		//splittedLine := strings.SplitN(line, sep, 2)
-		//if len(splittedLine) == 2 {
-		//	line = splittedLine[1]
-		//}
 
 		// one column may consist of multiple text rows -> all text lines until the next column or row and tokenize them
 		i++
