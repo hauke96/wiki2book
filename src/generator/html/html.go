@@ -59,6 +59,7 @@ const TEMPLATE_DD = `<dd>
 %s
 </dd>
 `
+const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
 
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
@@ -109,6 +110,18 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE:
 			html = expandImage(submatch[0], tokenMap)
+		case parser.TOKEN_HEADING_1:
+			html = expandHeadings(submatch[0], tokenMap, 1)
+		case parser.TOKEN_HEADING_2:
+			html = expandHeadings(submatch[0], tokenMap, 2)
+		case parser.TOKEN_HEADING_3:
+			html = expandHeadings(submatch[0], tokenMap, 3)
+		case parser.TOKEN_HEADING_4:
+			html = expandHeadings(submatch[0], tokenMap, 4)
+		case parser.TOKEN_HEADING_5:
+			html = expandHeadings(submatch[0], tokenMap, 5)
+		case parser.TOKEN_HEADING_6:
+			html = expandHeadings(submatch[0], tokenMap, 6)
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
@@ -123,6 +136,12 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
 	return content
+}
+
+// expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
+func expandHeadings(tokenString string, tokenMap map[string]string, level int) string {
+	title := tokenMap[tokenString]
+	return fmt.Sprintf(TEMPLATE_HEADING, level, title, level)
 }
 
 func expandImage(tokenString string, tokenMap map[string]string) string {

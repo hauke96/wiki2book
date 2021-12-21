@@ -1,38 +1,258 @@
-:: descr
+{{Begriffsklärungshinweis}}
+Unter einem '''Stern''' ({{grcS|ἀστήρ, ἄστρον|astēr, astron}} und {{laS|aster, astrum, stella, sidus}} für ‘Stern, Gestirn’; [[Althochdeutsch|ahd.]] ''sterno''; [[astronomisches Symbol]]:&nbsp;✱) versteht man in der [[Astronomie]] einen massereichen, selbstleuchtenden [[Himmelskörper]] aus sehr heißem [[Gas]] und [[Plasma (Physik)|Plasma]], wie zum Beispiel die [[Sonne]]. Daneben wird ein von der Sonne angestrahlter Planet unseres [[Sonnensystem]]s gemeinsprachlich auch ''Stern'' genannt, etwa ''[[Abendstern]]'', obgleich er kein Stern wie die Sonne ist.
+[[Datei:The Sun by the Atmospheric Imaging Assembly of NASA's Solar Dynamics Observatory - 20100819.jpg|mini|Ein Stern wie die [[Sonne]] gibt neben [[Licht]] auch [[Elektromagnetische Welle|Strahlung]] im [[Extrem ultraviolette Strahlung|extrem ultravioletten Bereich]] ab (Falschfarbendarstellung der Sonnenemission bei 30&nbsp;[[Nanometer|nm]])]]
 
+Dass nahezu alle mit dem bloßen Auge sichtbaren selbstleuchtenden Himmelskörper sonnenähnliche Objekte sind, die nur wegen ihrer weiten Entfernung punktförmig erscheinen, ist eine der wichtigsten Erkenntnisse der modernen Astronomie. Etwa drei Viertel der Sterne sind Teil eines [[Doppelstern]]- oder [[Mehrfachstern|Mehrfachsystems]], viele haben ein [[Planetensystem]]. Gemeinsam entstandene Sterne bilden öfter [[Sternhaufen]]. Unter günstigen Bedingungen können mehrere Tausend Sterne [[freiäugig]] unterschieden werden. Sie gehören alle zur gleichen [[Galaxie]] wie die Sonne, zur [[Milchstraße]], die aus über hundert Milliarden Sternen besteht. Diese Galaxis gehört gemeinsam mit ihren [[Liste der Satellitengalaxien der Milchstraße|Nachbargalaxien]] zur [[Lokale Gruppe|Lokalen Gruppe]], einem von abertausend [[Galaxienhaufen]].
+[[Datei:1e9m comparison.png|mini|Sterne können unterschiedliche Größe, Leuchtkraft und Farbe haben – wie [[Bellatrix]] als [[Blauer Riese]], [[Algol (Stern)|Algol B]] als [[Roter Riese]], die [[Sonne]] und [[OGLE-TR-122b]], ein [[Roter Zwerg]] (unten, daneben die [[Gasplanet]]en [[Jupiter (Planet)|Jupiter]] und [[Saturn (Planet)|Saturn]])]]
 
-{{Hauptartikel}}
-This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (language)|media'''text''']] text [https://parsing.com parsing].
+[[Sternentstehung|Sterne entstehen]] aus [[Gaswolke]]n – in bestimmten Gebieten ([[H-II-Gebiet]]) aus gasförmigen [[Molekülwolke]]n – durch lokale starke Verdichtung in mehreren Phasen. Sie werden von der [[Gravitation|Schwerkraft]] ihrer eigenen Masse zusammengehalten und sind daher annähernd kugelförmig. Während ein Stern im Inneren mehrere Millionen Grad heiß ist (beim [[Sonne#Kern|Kern der Sonne]] knapp 16.000.000&nbsp;[[Kelvin]]), liegt bei den meisten die [[Sternoberfläche#Oberflächentemperatur|Oberflächentemperatur]] etwa zwischen 2.000 [[Kelvin|K]] und 20.000 K (bei der [[Photosphäre#Photosphäre der Sonne|Photosphäre der Sonne]] knapp 6.000 K); [[Weißer Zwerg|Weiße Zwerge]] können als freigelegte Sternkerne Temperaturen bis zu 100.000&nbsp;K an ihrer Oberfläche erreichen. Von der glühenden [[Sternoberfläche]] geht nicht nur eine intensive Strahlung wie Licht aus, sondern auch ein Strom geladener [[Plasma (Physik)|Plasmateilchen]] ([[Sternwind]]) weit in den Raum und bildet so eine [[Astrosphäre]].
 
-{| class="wikitable"
+Sterne können sich in [[Masse (Physik)|Masse]] und [[Volumen]] erheblich unterscheiden, wie auch hinsichtlich [[Leuchtkraft]] und [[Spektralfarbe|Farbe]]; im Verlauf der Entwicklung eines Sterns verändern sich diese Eigenschaften. Eine orientierende [[Klassifizierung der Sterne]] wird schon allein mit den beiden Merkmalen [[absolute Helligkeit]] und [[Spektralklasse|Spektraltyp]] möglich. Die Eigenschaften von Sternen sind auch von Bedeutung bei der Frage, ob ein sie umkreisender Planet [[Außerirdisches Leben|Leben]] tragen könnte oder nicht (siehe [[habitable Zone]]).
+
+== Etymologie ==
+[[Althochdeutsch]] ''sterno'', [[mittelhochdeutsch]] ''stern[e]'', [[Schwedische Sprache|schwedisch]] ''stjärna'' stehen neben anders gebildetem althochdeutsch ''sterro'' und mittelhochdeutsch ''sterre'', [[Englische Sprache|englisch]] ''star''. Außergermanisch sind z.&nbsp;B. [[Altgriechische Sprache|griechisch]] ''astḗr'', [[latein]]isch ''stella'' verwandt. Die Wörter gehen auf [[Indogermanische Ursprache|indogermanisch]] ''stē̌r-'' „Stern“ zurück.<ref>{{Literatur |Titel=Das Herkunftswörterbuch |Reihe=[[Duden#Duden in zwölf Bänden (2017)|Der Duden in zwölf Bänden]] |BandReihe=7 |Auflage=2. Auflage |Verlag=Dudenverlag |Ort=Mannheim |Datum=1989 |Seiten=709}} ''Siehe auch [[Digitales Wörterbuch der deutschen Sprache|DWDS]]'' ([https://www.dwds.de/wb/Stern#et-1 „Stern“]) und {{Literatur |Autor=[[Friedrich Kluge]] |Titel=[[Etymologisches Wörterbuch der deutschen Sprache]] |Auflage=7. Auflage |Verlag=Trübner |Ort=Straßburg |Datum=1910 |Online=[http://daten.digitale-sammlungen.de/~db/0007/bsb00070228/images/index.html?&seite=464 S. 442]}}</ref>
+
+== Übersicht ==
+
+Die meisten Sterne bestehen zu 99 % aus [[Wasserstoff]] und [[Helium]] in der Form von heißem [[Plasma (Physik)|Plasma]]. Ihre [[Strahlungsenergie]] wird im Sterninnern durch die [[stellare Kernfusion]] erzeugt und gelangt durch intensive Strahlung und [[Konvektion]] an die Oberfläche. Etwa 90 % der Sterne – die [[Hauptreihe]]<nowiki>nsterne</nowiki> – sind wie die Sonne in einem stabilen Gleichgewicht zwischen Gravitation, Strahlungs- und Gasdruck, in dem sie viele Millionen bis Milliarden Jahre verbleiben.
+[[Datei:Star-sizes.jpg|mini|hochkant=1.8|Himmelskörper im Größenvergleich<br />
+1: [[Merkur (Planet)|Merkur]] < [[Mars (Planet)|Mars]] < [[Venus (Planet)|Venus]] < [[Erde]]<br />
+2: Erde < [[Neptun (Planet)|Neptun]] < [[Uranus (Planet)|Uranus]] < [[Saturn (Planet)|Saturn]] < [[Jupiter (Planet)|Jupiter]]<br />
+3: Jupiter < [[Wolf 359]] < [[Sonne]] < [[Sirius]]<br />
+4: Sirius < [[Pollux (Stern)|Pollux]] < [[Arktur]] < [[Aldebaran]]<br />
+5: Aldebaran < [[Rigel]] < [[Antares]] < [[Beteigeuze]]<br />
+6: Beteigeuze < [[Granatstern]] < [[VV Cephei#VV Cephei A|VV Cephei A]] < [[VY Canis Majoris]]]]
+
+Danach blähen sie sich zu [[Riesenstern]]en auf und schrumpfen schließlich zu [[Weißer Zwerg|Weißen Zwergen]], als die sie langsam abkühlen. Auch diese sehr kompakten Endstadien der Sternentwicklung sowie die noch dichteren [[Neutronenstern]]e werden zu den Sternen gezählt, obwohl sie nur mehr aufgrund ihrer Restwärme Strahlung abgeben.
+
+Der nächste und am besten erforschte Stern ist die [[Sonne]], das Zentrum des [[Sonnensystem]]s. Noch im Mittelalter war unbekannt, dass die Sonne ein „normaler Stern“ ist, doch ahnten bereits antike [[Naturphilosoph]]en, dass sie heißer als ein glühender Stein sein müsse. Die Sonne ist der einzige Stern, auf dem von der Erde aus Strukturen deutlich zu erkennen sind: [[Sonnenflecken]], [[Sonnenfackel]]n und [[Sonneneruption]]en.
+
+Nur einige relativ nahe [[Riesenstern|Überriesen]] wie [[Beteigeuze]] oder [[Mira (Stern)|Mira]] werden in modernsten [[Teleskop]]en als Scheiben sichtbar, die grobe Ungleichförmigkeiten erkennen lassen können. Alle anderen Sterne sind dafür zu weit entfernt; sie erscheinen mit den zur Verfügung stehenden optischen Instrumenten als [[Beugungsscheibchen]] punktförmiger Lichtquellen.
+
+Früher wurde zur Abgrenzung gegenüber ''Schweifsternen'' ([[Komet]]en) und ''Wandelsternen'' ([[Planet]]en) der Begriff der ''[[Fixstern]]e'' gebraucht. Doch liegen die Positionen von Sternen am Himmel nicht fest, sondern ihre [[Sternörter]] verschieben sich langsam gegeneinander. Die messbare [[Eigenbewegung (Astronomie)|Eigenbewegung]] ist verschieden groß und kann bei einem vergleichsweise nahen Stern wie [[Barnards Pfeilstern]] rund zehn [[Bogensekunde]]n pro Jahr betragen (10,3″/a). In zehntausend Jahren werden daher manche der heutigen [[Sternbild]]er deutlich verändert sein.
+
+Mit [[Freisichtigkeit|bloßem Auge]] sind am gesamten [[Himmelskugel|Himmel]] je nach Dunkelheit und atmosphärischen Bedingungen etwa 2000 bis 6000 Sterne zu erkennen, in Stadtnähe jedoch weniger als 1000. Der Anblick dieser scheinbar strukturlosen Lichtpunkte täuscht leicht darüber hinweg, dass Sterne nicht nur hinsichtlich ihrer Entfernung, sondern auch bezüglich der Variationsbreiten von [[Temperatur]]en, [[Leuchtkraft]], Massen[[dichte]], [[Volumen]] und Lebensdauer immense Wertebereiche überspannen. So würde man die äußersten Schichten von [[Roter Riese|roten Riesensternen]] nach den Kriterien irdischer Technik als [[Vakuum]] bezeichnen, während Neutronensterne dichter als [[Atomkern]]e sein können; bei einer [[Massendichte]] von 4·10<sup>15</sup>&nbsp;kg/m³ wöge ein Löffel mit 12&nbsp;[[Milliliter|cm³]] davon etwa soviel wie das gesamte Wasser im [[Bodensee]] (48&nbsp;[[Kubikkilometer|km³]]). Den überaus verschiedenen Erscheinungsformen von Sternen entsprechen erhebliche Unterschiede ihrer inneren Struktur; zwischen den tiefenabhängig gegliederten Zonen finden oft turbulente Austauschvorgänge statt. Dieser Artikel bietet einen groben Überblick und verweist auf weiterführende Artikel.
+
+== Sterne aus der Sicht des Menschen ==
+Sterne haben in allen [[Kultur]]en eine wichtige Rolle gespielt und die menschliche Vorstellung inspiriert. Sie wurden [[Astralkult|religiös]] interpretiert und zur Kalenderbestimmung, später auch als [[Navigationsstern]]e benutzt. In der [[Antike]] stellten sich die [[Naturphilosoph]]en vor, dass die Fixsterne aus glühendem [[Gestein]] bestehen könnten, weil normales Kohlenfeuer für die auf so große Entfernung wirkende Hitze nicht auszureichen schien. Dass Sterne hingegen nur aus Gas bestehen, wurde erst vor etwa 300 Jahren erkannt –&nbsp;unter anderem durch verschiedene Deutungen der [[Sonnenfleck]]e&nbsp;– und durch die im 19. Jahrhundert aufkommende [[Spektroskopie|Spektralanalyse]] bestätigt. Die ersten physikalisch fundierten [[Hypothese]]n zur Bildung von Sternen stammen von [[Immanuel Kant|Kant]] und [[Pierre-Simon Laplace|Laplace]]. Beide gingen von einem Urnebel aus, doch unterschieden sich ihre postulierten Bildungsvorgänge. Häufig werden beide Theorien jedoch zusammengefasst als [[Kant-Laplace-Theorie]].
+
+=== Sternbilder und Sternbezeichnungen ===
+Die im westlichen Kulturkreis bekannten [[Sternbild]]er gehen teilweise auf die [[Babylonier]] und die griechische [[Antike]] zurück. Die zwölf Sternbilder des Tierkreises bildeten die Basis der [[Astrologie]]. Aufgrund der [[Zyklus der Präzession|Präzession]] sind die sichtbaren Sternbilder heute jedoch gegen die astrologischen [[Tierkreiszeichen]] um etwa ein Zeichen verschoben. Viele der heute bekannten [[Liste der Sterne|Eigennamen]] wie [[Algol (Stern)|Algol]], [[Deneb]] oder [[Regulus (Stern)|Regulus]] entstammen dem [[Arabische Sprache|Arabischen]] und [[Latein]]ischen.
+
+Etwa ab 1600 nutzte die [[Astronomie]] die Sternbilder zur namentlichen Kennzeichnung der Objekte in den jeweiligen Himmelsregionen. Ein noch heute weit verbreitetes System zur Benennung der jeweils hellsten Sterne eines Sternbildes geht auf die [[Sternkarte]]n des deutschen Astronomen [[Johann Bayer (Astronom)|Johann Bayer]] zurück. Die [[Bayer-Bezeichnung]] eines Sterns besteht aus einem griechischen Buchstaben gefolgt vom [[Genitiv]] des lateinischen Namens des Sternbilds, in dem der Stern liegt; so bezieht sich beispielsweise γ&nbsp;Lyrae auf den dritthellsten Stern im Sternbild [[Leier (Sternbild)|Leier]]. Ein ähnliches System wurde vom britischen Astronomen [[John Flamsteed]] eingeführt: Die [[Flamsteed-Bezeichnung]] eines Sterns besteht aus einer vorangestellten, aufsteigend nach [[Rektaszension]] geordneten Zahl und wiederum dem Genitiv des lateinischen Namens des Sternbilds, wie zum Beispiel bei 13&nbsp;Lyrae. Die Flamsteed-Bezeichnung wird oft dann gewählt, wenn für einen Stern keine Bayer-Bezeichnung existiert. Die meisten Sterne werden aber lediglich durch ihre Nummer in einem [[Sternkatalog]] identifiziert. Am gebräuchlichsten ist hierfür der [[SAO-Katalog]] mit rund 250.000 Sternen. In Buchform (100 Sterne pro Seite) umfasst er etwa 2.500 Seiten in 4 Bänden, ist aber auch als [[Datenbank]] verfügbar.
+
+Es gibt eine Reihe von Firmen und sogar einige [[Sternwarte]]n, die zahlenden Kunden anbieten, Sterne nach ihnen zu benennen. Diese Namen werden jedoch von niemandem außer der registrierenden Firma und dem Kunden anerkannt. Die [[Internationale Astronomische Union]], die offiziell für [[Sternbenennung]]en zuständige Stelle, hat sich deutlich von dieser Praxis distanziert.
+
+=== Scheinbare Bewegung des Sternenhimmels ===
+
+Da sich die Erde im Laufe eines Tages einmal um sich selbst [[Erdrotation|dreht]] und im Laufe eines Jahres einmal um die Sonne kreist, ändert sich der Anblick des Himmels mit Sternen und [[Sternbild]]ern für den Beobachter auf der Erde sowohl im Verlauf einer Nacht wie auch mit den [[Jahreszeit]]en.
+[[Datei:Zirkumpolar ani.gif|mini|Blickrichtung nach Norden (Anklicken für Animation)]]
+
+Für den Beobachter auf der Nordhalbkugel der Erde (nördlich des Erdäquators) gilt: Bei Blickrichtung nach Norden dreht sich während der Nacht der [[Sternhimmel]] im Gegenuhrzeigersinn um den [[Polarstern]]. Bei Blickrichtung nach Süden verlaufen die scheinbaren [[Sternbahn]]en andersherum (weil der Beobachter andersherum steht): Die Sterne und der Sternhimmel bewegen sich im Uhrzeigersinn von links (Osten) nach rechts (Westen). Auch im Ablauf eines Jahres gilt die gleiche, nur 365-mal langsamere Bewegung, wenn man immer zur selben [[Uhrzeit]] auf den Himmel schaut: im Norden gegen den Uhrzeiger, im Süden von links nach rechts. Der Sternenhimmel kann dabei – ausgenommen die Stellungen der Planeten und des Mondes – sehr ähnliche Bilder zeigen: Beispielsweise ist der Anblick am 31.&nbsp;Oktober um 4:00&nbsp;Uhr fast gleich dem am 31.&nbsp;Dezember um 24:00&nbsp;Uhr oder dem am 2.&nbsp;März um 20:00&nbsp;Uhr. Das bedeutet, dass eine Uhrzeit-Veränderung von vier Stunden (ein sechstel Tag) einer Kalender-Veränderung von rund 60 Tagen (ein sechstel Jahr) entspricht.
+
+Für den Beobachter auf der Südhalbkugel der Erde (südlich des Erdäquators) gilt: Bei Blickrichtung nach Süden dreht sich der Sternenhimmel im Uhrzeigersinn um den Himmelssüdpol. Bei Blickrichtung nach Norden verlaufen die scheinbaren Sternbahnen andersherum: Die Sterne bewegen sich im Gegenuhrzeigersinn von rechts (Osten) nach links (Westen). Auch im Verlauf eines Jahres ergibt sich bei Blick nach Süden die gleiche Bewegung, nur langsamer, im Uhrzeigersinn. Bei Blick nach Norden ist die scheinbare Bewegung wieder im Gegenuhrzeigersinn von rechts nach links.
+
+=== Verteilung der Sterne am Himmel ===
+Der erdnächste Stern ist die Sonne. Der nächste Fixstern in klassischem Sinn ist [[Proxima Centauri]], er befindet sich in einer Entfernung von 4,22&nbsp;[[Lichtjahr]]en (Lj). Der nach der Sonne am hellsten erscheinende Stern ist [[Sirius]] mit einer [[Scheinbare Helligkeit|scheinbaren Helligkeit]] von −1,46<sup>m</sup>, gefolgt von etwa 20 Sternen [[Stern 1. Größe|''erster Größe'']]. Die Leuchtkraft des 8,6&nbsp;Lj entfernten Sirius ist etwa 25-mal stärker als die der Sonne, und über tausendmal schwächer als die von [[Deneb]]. Alle mit bloßem Auge erkennbaren Sterne gehören der [[Milchstraße]] an. Sie konzentrieren sich – zusammen mit über 100&nbsp;Milliarden schwächeren, freiäugig nicht sichtbaren Sternen – in einem Band quer über den [[Sternhimmel|Nachthimmel]], das die Ebene der Milchstraße markiert.
+
+[[Datei:Einstern.jpg|mini|Bild eines Sterns bei hoher Vergrößerung (hier der etwa 330&nbsp;Lj. entfernte [[R Leonis]]). Zu sehen sind neben dem unaufgelösten Bild des Sterns auch die [[Beugungsscheibchen]] der Punktquelle.]]
+Sterne erscheinen wegen ihrer riesigen Entfernung nur als [[Lichtpunkt]]e am Himmel, die bei der Abbildung durch das Auge oder Teleskop zu [[Beugungsscheibchen]] verschmieren. Je größer die [[Apertur]], desto kleiner sind die Beugungsringe (siehe Bild). Nur die beiden recht nahen [[Riesenstern]]e [[Beteigeuze]] und [[Mira (Stern)|Mira]] liegen mit einem scheinbaren Durchmesser von ca.&nbsp;0,03" an der Auflösungsgrenze des [[Hubble-Weltraumteleskop]]s und erscheinen dort als unstrukturierte Fläche.
+
+Das Flackern der Sterne, die [[Szintillation (Astronomie)|Szintillation]], das meist beim Beobachten mit bloßem Auge sichtbar ist, beruht auf [[Luftunruhe|Turbulenzen]] in der [[Erdatmosphäre]]. Es hat nichts mit den Leuchteigenschaften der Sterne zu tun.
+
+Mit bloßem Auge sind unter optimalen Bedingungen Sterne der sechsten [[Scheinbare Helligkeit|Größenklasse]] erkennbar. Am irdischen Nachthimmel sind dies maximal 5000, d.&nbsp;h., auf der sichtbaren Himmelshälfte rund 2000. Diese Zahl gilt für völlig klare Luft und sinkt durch die industrielle und städtische [[Lichtverschmutzung]] oft auf nur 300–500, in den Stadtzentren sogar auf 50–100 Sterne.
+
+== Vorkommen und Eigenschaften ==
+Die Astronomie hat in den letzten hundert Jahren zunehmend auf Methoden der [[Physik]] zurückgegriffen. So beruht ein großer Teil des Wissens über Sterne aus theoretischen Sternmodellen, deren Qualität an der Übereinstimmung mit den astronomischen Beobachtungen gemessen wird. Umgekehrt ist die Erforschung der Sterne aufgrund der enormen Vielfalt der Phänomene und der Spannweite der beteiligten Parameter auch für die physikalische [[Grundlagenforschung]] von großer Bedeutung.
+
+=== Räumliche Verteilung und Dynamik der Sterne ===
+[[Datei:Galactic Cntr full cropped.jpg|mini|Die [[Milchstraße]]. Allein in diesem spektakulären Feld hat die [[Two Micron All Sky Survey|2MASS]] Analyse-Software fast 10&nbsp;Millionen Sterne identifiziert und ihre Eigenschaften gemessen.]]
+Fast alle Sterne finden sich in [[Galaxie]]n. Galaxien bestehen aus einigen Millionen bis zu Hunderten von Milliarden Sternen und sind ihrerseits in [[Galaxienhaufen]] angeordnet. Nach Schätzungen der [[Astronom]]en gibt es im gesamten [[Beobachtbares Universum|sichtbaren Universum]] etwa 100&nbsp;Milliarden solcher Galaxien mit insgesamt etwa 70&nbsp;Trilliarden (7 × 10<sup>22</sup>) Sternen. Aufgrund der [[Gravitation]] umkreisen Sterne das Zentrum ihrer Galaxie mit Geschwindigkeiten im Bereich von einigen Dutzend km/s und benötigen typischerweise für einen Umlauf mehrere 100.000 Jahre bis 200&nbsp;Millionen Jahre (vgl. [[Galaktisches Jahr]]). Zum Zentrum hin stellen sich jedoch deutlich kürzere Umlaufzeiten ein. Die Sterne sind innerhalb einer Galaxie nicht völlig gleichmäßig verteilt, sondern bilden teilweise [[Offener Sternhaufen|offene Sternhaufen]] wie beispielsweise die [[Plejaden]], auch Siebengestirn genannt, oder [[Kugelsternhaufen]], die sich im [[Halo (Astronomie)|Halo]] von Galaxien befinden. Darüber hinaus stehen sie im [[Galaktisches Zentrum|galaktischen Zentrum]] deutlich dichter als in den Randbereichen.
+
+Die längste Liste von bekannten Sternen, der Tycho-Katalog<ref name="article1">{{cite journal | last1=Høg | first1=E. | last2=Fabricius | first2=C. | last3=Makarov | first3=V.V. | last4=Urban | first4=S. | last5=Corbin | first5=T. | last6=Wycoff | first6=G. | last7=Bastian | first7=U. | last8=Schwekendiek u.&nbsp;a.| first8=P. | title=The Tycho-2 Catalogue of the 2.5 million brightest stars | journal=[[Astronomy & Astrophysics]] | volume=355 | pages=L27..L30 | year=2000 | bibcode=2000A&A...355L..27H }}</ref>, zählt 2.539.913 Sterne (Stand 2015) und listet deren Position, Bewegung und photometrische Information. Bis zur Magnitude +11,0 hält man den Katalog für 99,9 % vollständig. Er ist das Ergebnis der [[Hipparcos]]-Satellitenmission und deren systematischer [[Durchmusterung]] des Himmels. Die Nachfolgemission zu Hipparcos ist die [[Gaia (Raumsonde)|Gaia]]-Satellitenmission. Dieser Satellit sammelt seit 2013 Daten und soll den bestehenden Datensatz erheblich erweitern.
+
+=== Zustandsgrößen der Sterne ===
+[[Datei:Farbenhelligkeitsdiagramm.svg|mini|hochkant=1.5|Farben-Helligkeits-Diagramm, schematisch. Die logarithmische Helligkeitsskala erstreckt sich über mehr als vier Zehnerpotenzen. Links befindet sich der blaue und rechts der rote Spektralbereich. Das eingezeichnete Linienfeld markiert Spektralklassen B0 bis M0 und Helligkeitsklassen Ia bis V.]]
+
+Sterne lassen sich mit wenigen [[Zustandsgröße (Astrophysik)|Zustandsgrößen]] nahezu vollständig charakterisieren. Die wichtigsten nennt man ''fundamentale Parameter''. Dazu zählen:
+* [[Sternoberfläche#Oberflächentemperatur|Oberflächentemperatur]]
+* [[Schwerebeschleunigung]] an der Oberfläche
+* [[Masse (Physik)|Masse]] (wichtigster Parameter), meist in Einheiten der [[Sonnenmasse]]
+
+sowie, je nach Zusammenhang:
+* [[Radius]]
+* [[Dichte]]
+* [[absolute Helligkeit]] ([[Leuchtkraft]])
+* [[Metallizität]] (Häufigkeit [[Chemisches Element|chemischer Elemente]] schwerer als [[Helium]])
+* [[Winkelgeschwindigkeit|Rotationsgeschwindigkeit]]
+* [[Eigenbewegung (Astronomie)|Eigenbewegung]]
+
+Die Oberflächentemperatur, die Schwerebeschleunigung und die Häufigkeit der chemischen Elemente an der [[Sternoberfläche]] lassen sich unmittelbar aus dem [[Sternspektrum]] ermitteln. Ist die Entfernung eines Sterns bekannt, beispielsweise durch die Messung seiner [[jährliche Parallaxe|Parallaxe]], so kann man die Leuchtkraft über die [[scheinbare Helligkeit]] berechnen, die durch [[Fotometrie]] gemessen wird. Aus diesen Informationen können schließlich der Radius und die Masse des Sterns berechnet werden. Die Rotationsgeschwindigkeit ''v'' am [[Äquator]] kann nicht direkt bestimmt werden, sondern nur die [[Skalarprodukt|projizierte]] Komponente <math>v\cdot \sin i</math> mit der [[Bahnneigung|Inklination]] ''i'', die die Orientierung der Rotationsachse beschreibt.
+
+Mehr als 99 Prozent aller Sterne lassen sich eindeutig einer [[Spektralklasse]] sowie einer [[Leuchtkraftklasse]] zuordnen. Diese fallen innerhalb des [[Hertzsprung-Russell-Diagramm]]s (HRD) oder des verwandten [[Farben-Helligkeits-Diagramm]]s in relativ kleine Bereiche, deren wichtigster die [[Hauptreihe]] ist. Durch eine Eichung anhand der bekannten Zustandsgrößen einiger Sterne erhält man die Möglichkeit, die Zustandsgrößen anderer Sterne unmittelbar aus ihrer Position in diesem Diagramm abzuschätzen. Die Tatsache, dass sich fast alle Sterne so einfach einordnen lassen, bedeutet, dass das Erscheinungsbild der Sterne von nur relativ wenigen physikalischen Prinzipien bestimmt wird.
+
+Im Verlauf seiner Entwicklung bewegt sich der Stern im Hertzsprung-Russell-Diagramm. Die zugehörige Bahn eines Sternes in diesem Diagramm ist weitgehend durch eine einzige Größe festgelegt, nämlich seine anfängliche [[Sternmasse|Masse]]. Dabei verharren die Sterne die meiste Zeit auf der Hauptreihe, entwickeln sich im Spätstadium zu [[Roter Riese|Roten Riesen]] und enden teilweise als [[Weißer Zwerg|Weiße Zwerge]]. Diese Stadien werden im Abschnitt über die Sternentwicklung näher beschrieben.
+
+Der Wertebereich einiger Zustandsgrößen überdeckt viele [[Größenordnung]]en. Die Oberflächentemperaturen von Hauptreihensternen reichen von etwa 2200&nbsp;[[Kelvin|K]] bis 45.000&nbsp;K, ihre Massen von 0,07 bis 120 [[Sonnenmasse]]n und ihre Radien von 0,1 bis 25 [[Sonnenradius|Sonnenradien]]. Rote Riesen sind deutlich kühler und können so groß werden, dass die komplette [[Erdbahn]] in ihnen Platz hätte. Weiße Zwerge haben Temperaturen bis zu 100.000&nbsp;K, sind aber nur so klein wie die Erde, obwohl ihre Masse mit der der [[Sonne]] vergleichbar ist. Die Masse von Sternen der Hauptreihe kann durch die [[Masse-Leuchtkraft-Relation]] abgeschätzt werden.
+
+Die Eigenbewegung eines Sterns schließlich ist der Geschwindigkeitsvektor in Bezug auf die Position der Sonne. Typische Eigenbewegungen liegen zwischen 10 und 100&nbsp;Kilometern pro Sekunde. Diese ist meist auch eine Eigenschaft der Umgebung des Sterns, d.&nbsp;h. Sterne befinden sich meist in Ruhe in ihrer eigenen Umgebung. Das rührt daher, dass Sterne in Gruppen aus großen Gaswolken entstehen. Durch zufällige Prozesse wie beispielsweise Sternbegegnungen in dichten Kugelsternhaufen oder mögliche Supernova-Explosionen in ihrer Umgebung können Sterne überdurchschnittliche Eigengeschwindigkeiten erhalten (so genannte ''runaway stars'' oder [[Hyperschnellläufer]]). Die jeweilige Geschwindigkeit geht aber nie über Werte von wenigen hundert Kilometern pro Sekunde hinaus. Die erste Entdeckung von Sternen, die aufgrund ihrer Eigenbewegung die Milchstraße verlassen werden, wurde in den letzten Jahren gemacht. Momentan sind elf dieser Sterne bekannt, die großteils durch nahe Begegnungen mit dem Schwarzen Loch im galaktischen Zentrum ihren Impuls bekommen haben.<ref>Norbert Przybilla et al.: ''HD 271791: An Extreme Supernova Runaway B Star Escaping from the Galaxy.'' {{arXiv|0811.0576v1}}, [[doi:10.1086/592245]].</ref><ref>Brown et al.: ''MMT Hypervelocity Star Survey.'' {{arXiv|0808.2469v2}}.</ref>
+
+== Sternentwicklung ==
+=== Entstehung ===
+{{Hauptartikel|Sternentstehung}}
+Ein großer Anteil der Sterne ist im [[Urknall#Frühes Universum|Frühstadium des Universums]] vor über 10 Milliarden Jahren entstanden. Aber auch heute bilden sich noch Sterne. Die typische Sternentstehung verläuft nach folgendem Schema:
+
+[[Datei:Protostellar jet.jpg|mini|Aufnahmen eines entstehenden Sterns: oben ein leuchtender Jet von 12 Lichtjahren Länge in einer optischen Aufnahme, in der unteren Infrarotaufnahme die Staubscheibe, deren Rand als Balken in der Mitte eines dunklen Doppelkegels erkennbar ist.]]
+[[Datei:Sternentwicklung.png|mini|Schematische Übersicht der Lebensphasen eines Sternes]]
+
+# Ausgangspunkt für die Sternentstehung ist eine [[Gaswolke]] (meist [[Molekülwolke]]), die überwiegend aus [[Wasserstoff]] besteht, und die aufgrund ihrer eigenen [[Gravitation|Schwerkraft]] kollabiert. Das geschieht, wenn die Schwerkraft den [[Gasdruck]] dominiert, und damit das [[Jeans-Kriterium]] erfüllt ist. Auslöser können z.&nbsp;B. die [[Druckwelle]] einer nahen [[Supernova]], Dichtewellen in der interstellaren Materie oder der [[Strahlungsdruck]] bereits entstandener Jungsterne sein.
+# Durch die weitere Verdichtung der Gaswolke entstehen einzelne [[Globule]]n (räumlich eng begrenzte Staub- und Gaswolken), aus denen anschließend die Sterne hervorgehen: Dabei entstehen die Sterne selten isoliert, sondern eher in Gruppen. Die Periode der Kontraktion dauert insgesamt etwa 10 bis 15 Millionen Jahre.
+# Bei der weiteren Kontraktion der Globulen nimmt die Dichte zu und wegen der freiwerdenden Gravitationsenergie (wie des damit erhöhten Gravitationsdrucks) steigt die Temperatur weiter an ([[Virialsatz]]; die kinetische Energie der Teilchen entspricht der Temperatur). Der freie Kollaps kommt zum Stillstand, wenn die Wolke im Farben-Helligkeits-Diagramm die so genannte [[Hayashi-Linie]] erreicht, die das Gebiet abgrenzt, innerhalb dessen überhaupt stabile Sterne möglich sind. Danach bewegt sich der Stern im Farben-Helligkeits-Diagramm zunächst entlang dieser Hayashi-Linie, bevor er sich auf die Hauptreihe zubewegt, wo das sogenannte [[Wasserstoffbrennen]] einsetzt, das heißt die [[stellare Kernfusion]] von Wasserstoff zu [[Helium]] durch den [[Bethe-Weizsäcker-Zyklus]] oder die [[Proton-Proton-Reaktion]]. Als Folge des [[Drehimpuls]]es der Globule bildet sich eine Scheibe aus, die den jungen Stern umkreist, und aus der er weiter Masse [[Akkretion (Astronomie)|akkretiert]]. Aus dieser [[Akkretionsscheibe]] können ein oder mehrere Sterne sowie Planeten entstehen. Diese Phase der Sternentwicklung ist jedoch bisher noch nicht so gut verstanden. Aus der Ebene der Scheibe wird die [[Ekliptik]]. Bei der Akkretion aus der Scheibe bilden sich auch in beide Richtungen der Polachsen Materie-[[Jet (Astronomie)|Jets]] (siehe Bild), die eine Länge von über 10 Lichtjahren erreichen können.
+
+Massereiche Sterne entstehen seltener als massearme. Dies wird beschrieben durch die [[Ursprüngliche Massenfunktion]]. Je nach Masse ergeben sich verschiedene Szenarien der Sternentstehung:
+
+* Oberhalb einer gewissen Grenzmasse können Sterne durch den Akkretionsprozess vermutlich gar nicht entstehen, da diese Sterne bereits im Akkretionsstadium einen dermaßen starken [[Sternwind]] produzieren würden, dass der Massenverlust die Akkretionsrate übersteigen würde. Sterne dieser Größe, wie beispielsweise die [[Blaue Nachzügler|blauen Nachzügler]] (engl. ''blue stragglers''), entstehen vermutlich durch [[Sternkollision]]en.
+* ''Massereiche und damit heiße Sterne mit mehr als 8 [[Sonnenmasse]]n'' kontrahieren vergleichsweise schnell. Nach der Zündung der Kernfusion treibt die [[Ultraviolettstrahlung|UV]]-reiche Strahlung die umgebende Globule schnell auseinander und der Stern akkretiert keine weitere Masse. Sie gelangen deshalb sehr schnell auf die Hauptreihe im [[Hertzsprung-Russell-Diagramm]]. Der mit 265 Sonnenmassen schwerste bislang entdeckte Stern mit Kurzbezeichnung [[R136a1]] ist etwas über eine Million Jahre alt und befindet sich in einem Sternhaufen im Tarantelnebel der Großen [[Magellansche Wolken|Magellanschen Wolke]].<ref>[http://www.scinexx.de/wissen-aktuell-11979-2010-07-21.html Massereichste Sterne übertreffen bisher angenommenes Maximum um das Doppelte]</ref> Bei seiner Entstehung könnte der Stern bis zu 320 Sonnenmassen gehabt haben.<ref name="idw-online-379895">{{IDW-online | ID=379895 | Titel=Rekordstern weit größer als gedacht: Stern mit 300 Sonnenmassen entdeckt | Autor=Carolin Liefke | Institution=Max-Planck-Institut für Astronomie | Datum=21.&nbsp;Juli 2010 |Zugriff=23.&nbsp;Dezember 2014}}</ref>
+* ''Sterne zwischen etwa 3 und 8 Sonnenmassen'' durchlaufen eine Phase, in der sie [[Herbig-Ae/Be-Stern]]e genannt werden. In dieser Phase befindet sich der Stern schon auf der Hauptreihe, akkretiert aber noch einige Zeit Masse.
+* ''Masseärmere Sterne zwischen 0,07 und 3 Sonnenmassen'' bleiben nach der Zündung der Kernfusion noch einige Zeit in die Globule eingebettet und akkretieren weiter Masse. In dieser Zeit sind sie nur im infraroten Spektralbereich erkennbar. Während sie sich der Hauptreihe annähern, durchlaufen sie das Stadium der [[T-Tauri-Stern]]e.
+* ''Objekte zwischen 13 und 75 [[Jupitermasse]]n (oder 0,07 Sonnenmassen)'' erreichen ebenfalls die nötige Temperatur, um eine [[Kernfusion]] zu zünden, allerdings nicht die Fusion von Wasserstoff, sondern nur die von [[Primordiale Nukleosynthese|primordial]] in geringen Mengen vorhandenem [[Deuterium]], ab 65 Jupitermassen auch von [[Lithium]]. Diese Objekte werden [[Brauner Zwerg|Braune Zwerge]] genannt und sind hinsichtlich ihrer Masse zwischen den [[Planetarer Gasriese|planetaren Gasriesen]] (bis 13 [[Jupitermasse|M<sub>J</sub>]]) und Sternen angesiedelt. Da der Brennstoffvorrat nicht ausreicht, die Kontraktion nennenswert aufzuhalten, werden Braune Zwerge als substellare Objekte bezeichnet.<ref name="joergens2005">{{cite journal | last=Joergens | first=V. | language=Englisch | title=Origins of Brown Dwarfs | journal=Reviews in Modern Astronomy | year=2005 | volume=18 | pages=216–239 | bibcode=2005RvMA...18..216J |arxiv=astro-ph/0501220v2}}</ref>
+
+[[Datei:Ngc604 hst.jpg|mini|Aktives Sternentstehungsgebiet NGC604 mit einem Durchmesser von 1.300 Lichtjahren im [[Dreiecksnebel]] M33]]
+
+Aus einer Globule kann sowohl ein [[Doppelsternsystem|Doppel-]] oder [[Mehrfachsternsystem]] als auch ein einzelner Stern entstehen. Wenn sich Sterne in Gruppen bilden, können aber auch unabhängig voneinander entstandene Sterne durch gegenseitigen Einfang Doppel- oder Mehrfachsternsysteme bilden. Man schätzt, dass etwa zwei Drittel aller Sterne Bestandteil eines Doppel- oder Mehrfachsternsystems sind.
+
+Im Frühstadium des Universums standen für die Sternentstehung nur Wasserstoff und Helium zur Verfügung. Diese Sterne zählt man zur so genannten [[Population (Astronomie)|Population]] III, sie waren zu massereich und somit zu kurzlebig, um bis heute zu existieren. Die nächste Generation, Population-II-Sterne genannt, existieren noch heute, man findet sie vor allem im Halo der Milchstraße, aber auch in Sonnennähe wurden sie nachgewiesen. Sterne, die später entstanden sind, enthalten von Anfang an einen gewissen Anteil an schweren Elementen, die in früheren Sterngenerationen durch [[Kernreaktion]]en erzeugt wurden und beispielsweise über Supernova-Explosionen die interstellare Materie mit schweren Elementen anreicherten. Die meisten Sterne in der Scheibe der Milchstraße gehören dazu. Man bezeichnet sie als Sterne der Population I.
+
+Ein Beispiel für eine aktive Sternentstehungsregion ist [[NGC&nbsp;3603]] im Sternbild [[Kiel des Schiffs]] in einer Entfernung von 20.000 [[Lichtjahr]]en. Sternentstehungsprozesse werden im [[Infrarotastronomie|Infraroten]] und im [[Röntgenastronomie|Röntgenbereich]] beobachtet, da diese Spektralbereiche durch die umgebenden Staubwolken kaum absorbiert werden, anders als das sichtbare Licht. Dazu werden [[Satellit (Raumfahrt)|Satelliten]] eingesetzt wie beispielsweise das Röntgenteleskop [[Chandra (Teleskop)|Chandra]].
+
+=== Hauptreihenphase ===
+[[Datei:Abzweigepunkt im FHD.svg|mini|Das Farben-Helligkeits-Diagramm gleichzeitig entstandener Sterne unterschiedlicher Massen enthält einen ''Abzweigepunkt'', der das Alter der Gruppe widerspiegelt. Oberhalb dieses Punktes haben sich die Sterne bereits von der Hauptreihe fortentwickelt.]]
+{{Hauptartikel|Hauptreihe}}
+
+Der weitere Verlauf der Sternentwicklung wird im Wesentlichen durch die Masse bestimmt. Je größer die Masse eines Sternes ist, desto kürzer ist seine Brenndauer. Die massereichsten Sterne verbrauchen in nur wenigen hunderttausend Jahren ihren gesamten Brennstoff. Ihre Strahlungsleistung übertrifft dabei die der Sonne um das Hunderttausendfache oder mehr. Die Sonne dagegen hat nach 4,6&nbsp;Milliarden Jahren noch nicht einmal die Hälfte ihrer Hauptreihenphase hinter sich gebracht. Die massearmen [[Roter Zwerg|Roten Zwerge]] entwickeln sich noch wesentlich langsamer. Da die Roten Zwerge ein Alter von [[Roter Zwerg#Entwicklung|mehreren 10&nbsp;Milliarden bis hin zu Billionen von Jahren]] erreichen und das Universum erst etwa 14 Milliarden Jahre alt ist, hat von den masseärmsten Sternen auch noch kein einziger die Hauptreihe verlassen können.
+
+Neben der Masse ist der Anteil an schweren Elementen von Bedeutung. Neben seinem Einfluss auf die Brenndauer bestimmt er, ob sich beispielsweise [[Magnetfeld]]er bilden können oder wie stark der [[Sternwind]] wird, der zu einem erheblichen Massenverlust im Laufe der Sternentwicklung führen kann. Die folgenden Entwicklungsszenarien beziehen sich auf Sterne mit solaren Elementhäufigkeiten, wie sie für die meisten Sterne in der Scheibe der Milchstraße üblich sind. In den [[Magellansche Wolken|magellanschen Wolken]] beispielsweise, zwei Zwerggalaxien in der Nachbarschaft der Milchstraße, haben die Sterne jedoch einen deutlich geringeren Anteil an schweren Elementen.
+
+Sterne verbringen nach ihrer Entstehung den größten Teil ihrer Brenndauer (etwa 90 Prozent ihrer Lebenszeit) auf der Hauptreihe. Während dieser Dauer wird im Kern der Sterne gleichmäßig [[Wasserstoff]] zu [[Helium]] [[Kernfusion|fusioniert]]. Die schwereren Sterne sind dabei heißer und heller und befinden sich links oben im Farben-Helligkeits-Diagramm, die leichteren rechts unten bei den kühleren mit geringerer Leuchtkraft. Im Verlauf dieser Hauptreihenphase werden die Sterne langsam größer, heißer und heller und bewegen sich in Richtung der Riesensterne. Dies trifft auch auf die Sonne zu, die heute etwa 40 Prozent heller ist als bei ihrer Entstehung.
+
+Die Kernfusion von Wasserstoff zu Helium findet dabei in einem Zentralbereich des Sternes statt, der nur wenige Prozent seines Gesamtvolumens einnimmt, jedoch etwa die Hälfte seiner Masse enthält. Die Temperatur beträgt dort über 10&nbsp;Millionen Kelvin. Dort sammeln sich auch die Fusionsprodukte an. Der Energietransport an die Sternoberfläche dauert mehrere hunderttausend Jahre. Er findet über [[Strahlungstransport]], [[Wärmeleitung]] oder [[Konvektion]] statt. Den Bereich, der die Strahlung in den Weltraum abgibt, nennt man die [[Sternatmosphäre]]. Ihre Temperatur beträgt mehrere tausend bis mehrere zehntausend Kelvin. So weist beispielsweise ein Stern mit 30 Sonnenmassen eine typische Oberflächentemperatur von 40.000&nbsp;K auf. Er gibt daher fast ausschließlich UV-Strahlung ab und nur etwa 3 % sichtbares Licht.
+
+=== Spätstadien ===
+==== Letzte Brennphasen ====
+[[Datei:Ring Nebula.jpg|mini|Planetarischer Nebel Messier&nbsp;57 ([[Ringnebel]]) mit einem Durchmesser von etwa einem Lichtjahr]]
+[[Datei:EtaCarinae-HST-1995-09.jpg|mini|Nebel um den extrem massereichen Stern [[Eta Carinae]] mit einem Längsdurchmesser von etwa 0,5 Lichtjahren<!--, entstanden durch Eruptionen vor 7600 bis 7650 Jahren-->]]
+Bei genügend hoher Temperatur und ausreichend hohem Druck beginnen die beim Wasserstoffbrennen erbrüteten Heliumkerne im Kern des Sterns zu fusionieren. Das Wasserstoffbrennen wird dabei nicht ausgesetzt, sondern läuft in einer Schale um den Helium brennenden Kern weiter. Damit einher geht, dass der Stern die Hauptreihe im Hertzsprung-Russell-Diagramm verlässt. Das Zünden des [[Heliumbrennen]]s ist aber nur für Sterne hinreichender Masse möglich (ab 0,3 Sonnenmassen, siehe unten), leichtere Sterne glühen nach Abschluss des Wasserstoffbrennens aus. Die weitere Entwicklung verläuft für massearme und massereiche Sterne deutlich verschieden. Dabei bezeichnet man Sterne bis zu 2,3 Sonnenmassen als massearm.
+* ''Massearme Sterne bis zu 0,3 Sonnenmassen'' führen die Fusion des Wasserstoffs in einer wachsenden Schale um den erloschenen Kern fort. Sie erlöschen nach dem Ende dieses so genannten [[Schalenbrennen]]s vollständig. Durch die Temperaturabnahme im Zentrum geben sie der Schwerkraft nach und kontrahieren zu [[Weißer Zwerg|Weißen Zwergen]] mit Durchmessern von einigen tausend Kilometern. Dadurch steigt die Oberflächentemperatur zunächst stark an. Im weiteren Verlauf kühlen die Weißen Zwerge jedoch ab und enden schließlich als [[Schwarzer Zwerg|Schwarze Zwerge]].
+* ''Massearme Sterne zwischen 0,3 und 2,3 Sonnenmassen'' wie die Sonne selbst erreichen durch weitere Kontraktion die zum Heliumbrennen notwendige Temperatur und Dichte in ihrem Kern. Bei der Zündung des Heliumbrennens spielen sich innerhalb von Sekunden dramatische Prozesse ab, bei denen der Leistungsumsatz im Zentrum auf das 100-Milliarden-Fache der heutigen Sonnenleistung ansteigen kann, ohne dass an der Oberfläche davon etwas erkennbar ist. Diese Vorgänge bis zur Stabilisierung des Heliumbrennens werden als [[Helium-Blitz|Heliumflash]] bezeichnet. Beim Heliumbrennen entstehen Elemente bis zum [[Sauerstoff]]. Gleichzeitig findet in einer Schale um den Kern noch Wasserstoffbrennen statt. Durch den Temperatur- und Leistungsanstieg expandieren die Sterne zu [[Roter Riese|Roten Riesen]] mit Durchmessern von typischerweise dem Hundertfachen der Sonne. Dabei werden oft die äußeren Hüllen der Sterne abgestoßen und bilden [[Planetarischer Nebel|Planetarische Nebel]]. Schließlich erlischt auch das Heliumbrennen und die Sterne werden zu [[Weißer Zwerg|Weißen Zwergen]] wie oben beschrieben.
+* ''Massereiche Sterne zwischen 2,3 und 3 Sonnenmassen'' erreichen nach dem Heliumbrennen das Stadium des [[Kohlenstoffbrennen]]s, bei dem Elemente bis zum [[Eisen]] entstehen. Eisen ist in gewissem Sinne die Sternenasche, da aus ihm durch Fusion keine weitere Energie gewonnen werden kann. Durch [[Sternwind]] oder die Bildung [[Planetarischer Nebel]] verlieren diese Sterne jedoch einen erheblichen Teil ihrer Masse. Sie geraten so unter die kritische Grenze für eine [[Supernova]]-Explosion und werden ebenfalls zu Weißen Zwergen.
+* ''Massereiche Sterne über 3 Sonnenmassen'' verbrennen in den letzten Jahrtausenden ihres Lebenszyklus praktisch alle leichteren Elemente in ihrem Kern zu Eisen. Auch diese Sterne stoßen einen großen Teil der Masse in ihren äußeren Schichten als Sternwind ab. Die dabei entstehenden Nebel sind oft bipolare Strukturen, wie zum Beispiel der Homunkulusnebel um [[Eta Carinae|η&nbsp;Carinae]]. Gleichzeitig bilden sich um den Kern im Sterninneren Schalen nach Art einer Zwiebel, in denen verschiedene Fusionsprozesse stattfinden. Die Zustände in diesen Schalen unterscheiden sich dramatisch. Das sei exemplarisch am Beispiel eines Sternes mit 18 Sonnenmassen dargestellt, der die 40.000-fache Sonnenleistung und den 50-fachen Sonnendurchmesser aufweist:
+
+[[File:Kernfusionen0 de.png|mini|Übersicht über die Fusionsprozesse innerhalb massereicher Sterne]]
+:{| class="wikitable"
 |-
-! Überschrift !! Überschrift !! Überschrift
+! Fusions-<br />material
+![[Nukleosynthese|Fusionsvorgang]]<br />(Nukleosynthese)&nbsp; !!Temperatur<br />(Mill. [[Kelvin|K]]) !!&nbsp;&nbsp;[[Dichte]]<br />(kg/cm³) !! Fusions-<br />dauer
 |-
-| align="center" | B || '''Beispiel''' || ''Beispiel''
+|align=center |[[Wasserstoff|H]] || align=center |[[Wasserstoffbrennen]] || align=center |40 || align=center |0,006 || align=center |&nbsp;&nbsp;10 Mill. Jahre
 |-
-| Beispiel ||
-{| class="wikitable"
-|+ Text der Überschrift
+|align=center |[[Helium|He]] || align=center |[[Heliumbrennen]] || align=center |190 || align=center |1,1 || align=center |1 Mill. Jahre
 |-
-! Überschrift !! Überschrift
+|align=center |[[Kohlenstoff|C]] || align=center |[[Kohlenstoffbrennen]] || align=center |740 || align=center |240 || align=center |10.000 Jahre
 |-
-| [http://example.com Bei''spiel''] || Beispiel
+|align=center |[[Neon|Ne]] || align=center |[[Neonbrennen]] || align=center |1.600 || align=center |7.400 || align=center |10 Jahre
+|-
+|align=center |[[Sauerstoff|O]] || align=center |[[Sauerstoffbrennen]] || align=center |2.100 || align=center |16.000 || align=center |5 Jahre
+|-
+|align=center |[[Silicium|Si]] || align=center |[[Siliciumbrennen]] || align=center |3.400 || align=center |50.000 || align=center |1 Woche
+|-
+|align=center |[[Eisen|Fe]]-Kern || align=center |[[Supernova|Kernfusion schwerster Elemente]] || align=center |10.000 || align=center |&nbsp;&nbsp;10.000.000&nbsp;&nbsp; || align=center | -
+|-
 |}
-some text next to the table
-| Beispiel
-|-
-|
-| Beispiel || Beispiel
-|}
 
-* first item
-** second item
-** yet another item
-:: this element hash '''no''' buletti pointi
-* no more nested items?
-* how many more :(
-# please stop
-#* I'm serious, pleeeease
+:Die Grenze zwischen der Helium- und der Kohlenstoffzone ist hinsichtlich des relativen Temperatur- und Dichtesprungs vergleichbar mit der Erdatmosphäre über einem Lavasee. Ein erheblicher Teil der gesamten Sternmasse konzentriert sich im Eisenkern mit einem Durchmesser von nur etwa 10.000&nbsp;km. Sobald er die [[Chandrasekhar-Grenze]] von 1,44 Sonnenmassen überschreitet, kollabiert er innerhalb von Sekundenbruchteilen, während die äußeren Schichten durch freigesetzte Energie in Form von [[Neutrino]]s und Strahlung abgestoßen werden und eine expandierende Explosionswolke bilden. Unter welchen Umständen als Endprodukt einer solchen ''Supernova vom Typ II'' ein [[Neutronenstern]] oder ein [[Schwarzes Loch]] entsteht, ist noch nicht genau bekannt. Dabei dürfte neben der Masse aber auch die Rotation des Vorläufersterns und dessen Magnetfeld eine besondere Rolle spielen. Möglich wäre auch die Bildung eines [[Quarkstern]]s, dessen Existenz jedoch bisher lediglich hypothetisch ist. Ereignet sich die Supernova in einem Doppelsternsystem, bei dem Massetransfer von einem Roten Riesen zu einem Weißen Zwerg stattfindet ([[Supernova vom Typ Ia|Typ Ia]]), können Kohlenstofffusionsprozesse den Stern sogar vollständig zerreißen.
 
+==== Nukleosynthese und Metallizität ====
+Elemente schwerer als Helium werden fast ausschließlich durch Kernreaktionen im späten Verlauf der Sternentwicklung erzeugt, in der so genannten [[Nukleosynthese]]. Bei den im [[Thermisches Gleichgewicht|thermischen Gleichgewicht]] ablaufenden Fusionsreaktionen im Plasma können alle Elemente bis zur Kernladungszahl von Eisen entstehen. Schwerere Elemente, bei denen die Bindungsenergie pro Nukleon wieder ansteigt, werden durch Einfangen von Nuklearteilchen in nichtthermischen Kernreaktionen gebildet. Hauptsächlich entstehen schwere Elemente durch [[Neutroneneinfang]] mit nachfolgendem [[Betazerfall|β-Zerfall]] in kohlenstoffbrennenden Riesensternen im [[s-Prozess]] oder in der ersten, explosiven Phase einer Supernova im [[r-Prozess]]. Hierbei steht s für ''slow'' und r für ''rapid''. Neben diesen beiden häufigsten Prozessen, die im Endergebnis zu deutlich unterscheidbaren Signaturen in den Elementhäufigkeiten führen, finden auch [[Protoneneinfang]] und [[Spallation]] statt.
 
-finally the list ended :D
+Die entstandenen Elemente werden zum großen Teil wieder in das interstellare Medium eingespeist, aus dem weitere '''Sterngenerationen''' entstehen. Je häufiger dieser Prozess bereits durchlaufen wurde, umso mehr sind die Elemente, die schwerer als Helium sind, angereichert<!--sic!-->. Für diese Elemente hat sich in der Astronomie der Sammelbegriff ''Metalle'' eingebürgert. Da sich diese Metalle einigermaßen gleichmäßig anreichern, genügt es oft, statt der einzelnen Elementhäufigkeiten die [[Metallizität]] anzugeben. Sterne, deren relative Häufigkeitsmuster von diesem Schema abweichen, werden als [[Pekuliärer Stern|chemisch pekuliar]] bezeichnet. Spätere Sternengenerationen haben folglich eine höhere Metallizität. Die Metallizität ist daher ein Maß für das Entstehungsalter eines Sternes.
+
+== Doppelsterne ==
+{{Hauptartikel|Doppelstern}}
+Ein Doppelstern oder Doppelsternsystem besteht aus zwei Sternen, die scheinbar oder tatsächlich am Himmel nahe beisammenstehen. Wenn sie [[Gravitation|gravitativ]] aneinander gebunden sind, bewegen sie sich periodisch um ihren gemeinsamen [[Baryzentrum|Schwerpunkt]].
+
+Man unterscheidet folgende Arten doppelter Sterne bzw. Sternpaare:
+* Optische Doppelsterne (scheinbare Doppelsterne): zwei Sterne, die von der Erde aus in fast gleicher Richtung am Himmel erscheinen, die sich aber gravitativ nicht gegenseitig beeinflussen.
+* Geometrische Doppelsterne (räumliche Doppelsterne): Sterne, die einander räumlich nahe, aufgrund ihrer hohen Relativgeschwindigkeiten jedoch nicht aneinander gebunden sind.
+* Physikalische Doppelsterne oder Doppelsternsysteme sind zwei Sterne, die aufgrund ihrer räumlichen Nähe gravitativ gebunden sind und sich nach den [[Keplersche Gesetze|Kepler’schen Gesetzen]] um einen gemeinsamen Schwerpunkt bewegen. Über die Hälfte aller Sterne im [[Universum]] sind Teil eines Doppelsternsystems.
+* Ein Mehrfachsternsystem besteht aus mehr als zwei physikalisch gebundenen Sternen.
+
+== Veränderliche Sterne ==
+{{Hauptartikel|Veränderlicher Stern}}
+Die scheinbare und oft auch die absolute Helligkeit mancher Sterne unterliegt zeitlichen Schwankungen, erkennbar in den [[Lichtkurve]]n. Man unterscheidet folgende Typen von veränderlichen Sternen:
+* [[Bedeckungsveränderlicher Stern|Bedeckungsveränderliche]]. Dabei handelt es sich um Doppelsterne, die sich während ihres Umlaufs aus irdischer Perspektive zeitweise verdecken.
+* [[Rotationsveränderlicher Stern|Rotationsveränderliche]]. Dabei ist die beobachtete Veränderung auf die Rotation des Sterns zurückzuführen, da er nicht in alle Richtungen gleich hell strahlt (z.&nbsp;B. [[Pulsar]]e).
+* [[Pulsationsveränderlicher Stern|Pulsationsveränderliche]]. Dabei verändern sich die Zustandsgrößen mehr oder weniger periodisch und damit auch die [[Leuchtkraft]]. Die meisten Sterne durchlaufen solche instabile Phasen während ihrer Entwicklung, in der Regel aber erst nach dem Hauptreihenstadium. Wichtige Typen sind:
+** [[Cepheiden]] – Ihrer Periode lässt sich exakt eine bestimmte Leuchtkraft zuordnen. Sie sind daher bei der Entfernungsbestimmung als so genannte Standardkerzen von Bedeutung.
+** [[Mira-Stern]]e – Ihre Periode ist länger und unregelmäßiger als die der Cepheiden.
+** [[RR-Lyrae-Stern]]e – Sie pulsieren sehr regelmäßig mit vergleichsweise kurzer Periode und haben etwa die 90-fache Leuchtkraft der Sonne.
+* [[Kataklysmisch veränderlicher Stern|Kataklysmisch Veränderliche]]. Dabei handelt es sich üblicherweise um [[Doppelstern]]&shy;systeme, bei denen ein Massetransfer von einem [[Roter Riese|Roten Riesen]] zu einem [[Weißer Zwerg|Weißen Zwerg]] stattfindet. Sie zeigen Ausbrüche in Abständen von wenigen Stunden bis zu mehreren Millionen Jahren.[[Datei:425985main Cas a composite unlabeled.jpg|mini|Supernova-Überrest [[Cassiopeia&nbsp;A]]]]
+** [[Supernova]]e. Bei Supernovae gibt es mehrere Typen, von denen [[Supernova vom Typ Ia|Typ Ia]] ebenfalls ein Doppelsternphänomen ist. Nur die Typen Ib, Ic und II markieren das Ende der Evolution eines massereichen Sterns.
+* [[Eruptiv veränderlicher Stern|Eruptiv Veränderliche]]. Sie erleiden für kurze Zeiten Ausbrüche, die sich oft in mehr oder weniger unregelmäßigen Abständen wiederholen. Beispiele sind (z.&nbsp;B. [[UV-Ceti-Stern]]e, [[T-Tauri-Stern]]e):
+* [[Röntgendoppelstern]]e sind Doppelsternsysteme, die Röntgenstrahlung aussenden. Dabei empfängt ein [[Kompakter Stern|kompakter Partner]] durch [[Akkretion (Astronomie)|Akkretion]] Materie von einem anderen Stern. Dadurch ähneln die Röntgendoppelsterne den kataklysmischen Veränderlichen.
+
+== Siehe auch ==
+* [[Sternaufbau]], [[Sternoberfläche]]
+* [[Gestirn]], [[Astronomisches Objekt]]
+* [[Klassifizierung der Sterne]]
+* [[Liste der Sterne]]
+* [[Liste der Doppel- und Mehrfachsterne]]
+* [[Liste der größten Sterne]]
+* [[Liste der nächsten Sterne]]
+* [[Liste der hellsten Sterne]]
+* [[Celestia]] – freie 3D Echtzeit-Weltraumsimulation (OpenGL)
+
+== Literatur ==
+* S.W. Stahler & F. Palla: ''The Formation of Stars.'' WILEY-VCH, Weinheim 2004, ISBN 3-527-40559-3
+* H.H. Voigt: ''Abriss der Astronomie.'' 4. Auflage. Bibliographisches Institut, Mannheim 1988, ISBN 3-411-03148-4.
+* H. Scheffler, [[Hans Elsässer]]: ''Physik der Sterne und der Sonne.'' 2. Auflage. BI-Wiss.-Verl., Mannheim 1990, ISBN 3-411-14172-7.
+* [[Rudolf Kippenhahn]], A. Weigert: ''Stellar structure and evolution.'' Springer, Berlin 1990, ISBN 3-540-50211-4 (englisch).
+* N. Langer: ''Leben und Sterben der Sterne.'' Becksche Reihe. Beck, München 1995, ISBN 3-406-39720-4.
+* D. Prialnik: ''An Introduction to the Theory of Stellar Structure and Evolution''. Cambridge University Press, Cambridge 2000, ISBN 0-521-65065-8.
+* J.Bennett, M.Donahue, N.Schneider, M.Voith: ''Astronomie (Kapitel 14–16)'', Hsg. Harald Lesch, 5. Auflage (1170 S.), Pearson-Studienverlag, München-Boston-Harlow-Sydney-Madrid 2010
+* [[Thassilo von Scheffer]], ''Die Legenden der Sterne'', 1939.
+
+== Weblinks ==
+{{Commonscat|Stars|Stern}}
+{{Wikiquote|Stern (Gestirn)|Stern}}
+{{Wiktionary}}
+* {{DNB-Portal|4057342-4}}
+* [http://www.zum.de/Faecher/A/Sa/STERNE/beg_sky.htm Sternentstehung] bei ''www.zum.de''
+* [http://www.astronomia.de/sternent.htm Sternentstehung] – Zusammenfassung bei ''www.astronomia.de''
+* [http://www.astro.uni-bonn.de/~javahrd/ Interaktives Hertzsprung-Russell-Diagramm zur Sternentwicklung] (Java) auf der Internetpräsenz der [[Universität Bonn]]
+* {{Alpha Centauri|13}}
+* {{Alpha Centauri|48}}
+* {{Alpha Centauri|68}}
+* {{Alpha Centauri|90}}
+* {{Alpha Centauri|111}}
+* {{Alpha Centauri|132}}
+
+== Belege ==
+<references />
+
+{{Gesprochener Artikel
+|artikel = Stern
+|dateiname = De-Stern-article.ogg
+|dauer = 39:42
+|größe = 19,1 MiB
+|sprecher = Daniel L.F.
+|geschlecht = männlich
+|dialekt = Hochdeutsch
+|oldid = 134483975
+|artikeldatum = 2014-09-30
+}}
+{{Exzellent|6. Mai 2004|1235263}}
+{{Normdaten|TYP=s|GND=4057342-4|LCCN=sh85127415|NDL=00566683}}
+
+[[Kategorie:Stern| ]]
+[[Kategorie:Stellarphysik]]
+[[Kategorie:Himmelsbeobachtung]]

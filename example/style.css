@@ -152,6 +152,10 @@ div.hanging-indent {
     }
 }
 
+ol, ul, dl {
+    margin: 0.75rem 0;
+}
+
 td, th {
     padding: 0.25rem;
     border: 1px solid #a2a2a2;
@@ -162,6 +166,7 @@ th {
 }
 
 table {
+    margin: 0.75rem 0;
     border-collapse: collapse;
 }
 

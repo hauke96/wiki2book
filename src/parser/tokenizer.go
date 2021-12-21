@@ -6,8 +6,16 @@ import (
 	"strings"
 )
 
-const TOKEN_REGEX = `\$\$TOKEN_([A-Z_]*)_\d*\$\$`
+const TOKEN_REGEX = `\$\$TOKEN_([A-Z_0-9]*)_\d+\$\$`
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
+
+const TOKEN_HEADING_TEMPLATE = "HEADING_%d"
+const TOKEN_HEADING_1 = "HEADING_1"
+const TOKEN_HEADING_2 = "HEADING_2"
+const TOKEN_HEADING_3 = "HEADING_3"
+const TOKEN_HEADING_4 = "HEADING_4"
+const TOKEN_HEADING_5 = "HEADING_5"
+const TOKEN_HEADING_6 = "HEADING_6"
 
 const TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
 const TOKEN_INTERNAL_LINK_ARTICLE = "INTERNAL_LINK_ARTICLE"
@@ -50,8 +58,10 @@ func getToken(tokenType string) string {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func tokenize(content string, tokenMap map[string]string) string {
+	content = parseBoldAndItalic(content, tokenMap)
+	content = parseHeadings(content, tokenMap)
+
 	for {
-		content = parseBoldAndItalic(content, tokenMap)
 		content = parseInternalLinks(content, tokenMap)
 		content = parseImages(content, tokenMap)
 		content = parseExternalLinks(content, tokenMap)
@@ -63,13 +73,23 @@ func tokenize(content string, tokenMap map[string]string) string {
 	return content
 }
 
-func parseBoldAndItalic(content string, tokenMap map[string]string) string {
-	index := strings.Index(content, "''")
-	if index != -1 {
-		content, _, _, _ = tokenizeBoldAndItalic(content, index, tokenMap, false, false)
-		return content
+func parseHeadings(content string, tokenMap map[string]string) string {
+	for i := 1; i < 7; i++ {
+		headingPrefixSuffix := strings.Repeat("=", i)
+		matches := regexp.MustCompile(`(?m)^`+headingPrefixSuffix+` (.*) `+headingPrefixSuffix+`$`).FindAllStringSubmatch(content, -1)
+		for _, match := range matches {
+			token := getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i))
+			tokenMap[token] = match[1]
+			content = strings.Replace(content, match[0], token, 1)
+		}
 	}
+
 	return content
+}
+
+func parseBoldAndItalic(content string, tokenMap map[string]string) string {
+		content, _, _, _ = tokenizeBoldAndItalic(content, 0, tokenMap, false, false)
+		return content
 }
 
 func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
@@ -108,10 +128,6 @@ func tokenizeBoldAndItalic(content string, index int, tokenMap map[string]string
 		} else {
 			index++
 		}
-
-		if !isBoldOpen && !isItalicOpen {
-			break
-		}
 	}
 
 	return content, index, false, false
@@ -145,7 +161,7 @@ func parseImages(content string, tokenMap map[string]string) string {
 }
 
 func parseInternalLinks(content string, tokenMap map[string]string) string {
-	regex := regexp.MustCompile(`\[\[([^|^\]]*)\|?(.*?)]]`)
+	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*?)\|?([^|^\]^\[]*?)]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		if strings.HasPrefix(submatch[1], "Datei:") || strings.HasPrefix(submatch[1], "File:") {
