@@ -17,7 +17,7 @@ func main() {
 
 	article := parser.Parse(string(fileContent), "test")
 
-	html.Generate(article, ".", "styles.css")
+	html.Generate(article, ".", "../example/style.css")
 
 	//projectFile := os.Args[1]
 	//

@@ -29,13 +29,6 @@ const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 
-const MARKER_TABLE_HEAD_START = "$$MARKER_TABLE_HEAD_START$$"
-const MARKER_TABLE_HEAD_END = "$$MARKER_TABLE_HEAD_END$$"
-const MARKER_TABLE_ROW_START = "$$MARKER_TABLE_ROW_START$$"
-const MARKER_TABLE_ROW_END = "$$MARKER_TABLE_ROW_END$$"
-const MARKER_TABLE_COL_START = "$$MARKER_TABLE_COL_START$$"
-const MARKER_TABLE_COL_END = "$$MARKER_TABLE_COL_END$$"
-
 var tokenCounter = 0
 
 func getToken(tokenType string) string {
@@ -230,8 +223,7 @@ func tokenizeTables(lines []string, i int, tokenMap map[string]string) (string, 
 	}
 
 	tableContent := strings.Join(tableLines, "\n")
-	token := getToken(TOKEN_TABLE)
-	tokenMap[token] = tokenizeTable(tableContent, tokenMap)
+	token := tokenizeTable(tableContent, tokenMap)
 	return token, i
 }
 
@@ -276,12 +268,6 @@ func tokenizeTable(content string, tokenMap map[string]string) string {
 func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]string) (string, int) {
 	rowLines := []string{}
 
-	if sep == "!" {
-		rowLines = append(rowLines, MARKER_TABLE_HEAD_START)
-	} else {
-		rowLines = append(rowLines, MARKER_TABLE_ROW_START)
-	}
-
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
 		line := lines[i]
@@ -307,27 +293,20 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 		i -= 1
 
 		line = tokenize(line, tokenMap)
-		token := getToken(TOKEN_TABLE_COL)
+		token := ""
+		if sep == "!" {
+			token = getToken(TOKEN_TABLE_HEAD)
+		} else {
+			token = getToken(TOKEN_TABLE_COL)
+		}
 		tokenMap[token] = line
 
 		rowLines = append(rowLines, token)
 	}
 
-	if sep == "!" {
-		rowLines = append(rowLines, MARKER_TABLE_HEAD_END)
-	} else {
-		rowLines = append(rowLines, MARKER_TABLE_ROW_END)
-	}
-
 	tokenContent := strings.Join(rowLines, " ")
 
-	token := ""
-	if sep == "!" {
-		token = getToken(TOKEN_TABLE_HEAD)
-	} else {
-		token = getToken(TOKEN_TABLE_ROW)
-	}
-
+	token := getToken(TOKEN_TABLE_ROW)
 	tokenMap[token] = tokenContent
 
 	// return i-1 so that i is on the last line of the row when returning

@@ -13,6 +13,7 @@ import (
 
 const HEADER = `<html>
 <head>
+<meta charset="utf-8">
 <link rel="stylesheet" href="{{STYLE}}">
 </head>
 <body>
@@ -22,6 +23,21 @@ const FOOTER = `</body>
 `
 
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
+const TABLE_TEMPLATE = `<table>
+%s
+</table>`
+const TABLE_TEMPLATE_HEAD = `<th>
+%s
+</th>
+`
+const TABLE_TEMPLATE_ROW = `<tr>
+%s
+</tr>
+`
+const TABLE_TEMPLATE_COL = `<td>
+%s
+</td>
+`
 
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
@@ -52,6 +68,14 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandExternalLink(submatch[0], tokenMap)
 		case parser.TOKEN_INTERNAL_LINK:
 			html = expandInternalLint(submatch[0], tokenMap)
+		case parser.TOKEN_TABLE:
+			html = expandTable(submatch[0], tokenMap)
+		case parser.TOKEN_TABLE_HEAD:
+			html = expandTableHead(submatch[0], tokenMap)
+		case parser.TOKEN_TABLE_ROW:
+			html = expandTableRow(submatch[0], tokenMap)
+		case parser.TOKEN_TABLE_COL:
+			html = expandTableColumn(submatch[0], tokenMap)
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
@@ -80,6 +104,26 @@ func expandExternalLink(tokenString string, tokenMap map[string]string) string {
 	url := tokenMap[splittedToken[0]]
 	text := expand(tokenMap[splittedToken[1]], tokenMap)
 	return fmt.Sprintf(HREF_TEMPLATE, url, text)
+}
+
+func expandTable(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TABLE_TEMPLATE, expand(tokenContent, tokenMap))
+}
+
+func expandTableHead(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TABLE_TEMPLATE_HEAD, expand(tokenContent, tokenMap))
+}
+
+func expandTableRow(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TABLE_TEMPLATE_ROW, expand(tokenContent, tokenMap))
+}
+
+func expandTableColumn(tokenString string, tokenMap map[string]string) string {
+	tokenContent := tokenMap[tokenString]
+	return fmt.Sprintf(TABLE_TEMPLATE_COL, expand(tokenContent, tokenMap))
 }
 
 func escapeSpecialCharacters(content string) string {

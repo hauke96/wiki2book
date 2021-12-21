@@ -13,7 +13,7 @@ This is an '''''e''xam''pl'''e'' file to [[test]] the basic [[mediawiki (languag
 |-
 ! Überschrift !! Überschrift
 |-
-| Beispiel || Beispiel
+| [http://example.com Bei''spiel''] || Beispiel
 |}
 : some text next to the table
 | Beispiel
