@@ -15,12 +15,12 @@ func main() {
 	//fileContent, err := ioutil.ReadFile("./test.mediawiki")
 	//sigolo.FatalCheck(err)
 	//
-	//article := parser.Parse(string(fileContent), "test")
+	//articleName := parser.Parse(string(fileContent), "test")
 	//
-	//err = api.DownloadImages(article.Images, "./images")
+	//err = api.DownloadImages(articleName.Images, "./images")
 	//sigolo.FatalCheck(err)
 	//
-	//html.Generate(article, ".", "../example/style.css")
+	//html.Generate(articleName, ".", "../example/style.css")
 	//os.Exit(0)
 
 	projectFile := os.Args[1]
@@ -34,15 +34,20 @@ func main() {
 
 	var articleFiles []string
 
-	for _, article := range project.Articles {
-		sigolo.Info("Start processing article %s", article)
+	for _, articleName := range project.Articles {
+		sigolo.Info("Start processing articleName %s", articleName)
 
-		err, outputFile := generateHtml(article, project.Domain, project.Style)
+		wikiPageDto, err := api.DownloadPage(project.Domain, articleName)
+		sigolo.FatalCheck(err)
+
+		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title)
+
+		err, outputFile := generateHtml(article, project.Style)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
 
-		sigolo.Info("Succeesfully created HTML for article %s", article)
+		sigolo.Info("Succeesfully created HTML for articleName %s", articleName)
 	}
 
 	sigolo.Info("Start generating EPUB file")
@@ -51,13 +56,8 @@ func main() {
 	sigolo.Info("Successfully created EPUB file")
 }
 
-func generateHtml(article string, language string, styleFile string) (error, string) {
-	wikiPageDto, err := api.DownloadPage(language, article)
-	sigolo.FatalCheck(err)
-
-	wikiPage := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title)
-
-	err = api.DownloadImages(wikiPage.Images, "./images")
+func generateHtml(wikiPage parser.Article, styleFile string) (error, string) {
+	err := api.DownloadImages(wikiPage.Images, "./images")
 	sigolo.FatalCheck(err)
 
 	outputFile, err := html.Generate(wikiPage, "./", styleFile)

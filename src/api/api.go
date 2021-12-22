@@ -58,7 +58,10 @@ func DownloadPage(language string, title string) (*WikiPageDto, error) {
 	}
 
 	wikiPageDto := &WikiPageDto{}
-	json.Unmarshal(bodyBytes, wikiPageDto)
+	err = json.Unmarshal(bodyBytes, wikiPageDto)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", language, title))
+	}
 
 	return wikiPageDto, nil
 }

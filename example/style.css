@@ -61,7 +61,6 @@ Fonts
 /*
 Standard HTML elements
  */
-
 body {
     margin: 1rem;
     font-family: DejaVuSans, sans-serif;
@@ -80,7 +79,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* For title, author, and date on the cover page */
 h1.title {
-    margin-top: 20%;
+    margin-top: 10%;
     text-align: center;
 }
 
@@ -90,8 +89,7 @@ p.author {
 }
 
 div.rights {
-    position: fixed;
-    bottom: 3rem;
+    margin-top: 10%;
     width:100%;
     text-align: center;
 }
@@ -150,10 +148,6 @@ div.hanging-indent {
         overflow: visible !important;
         white-space: pre-wrap !important;
     }
-}
-
-ol, ul, dl {
-    margin: 0.75rem 0;
 }
 
 td, th {
