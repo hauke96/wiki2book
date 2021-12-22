@@ -21,11 +21,11 @@ const TEMPLATE_FOLDER = "./templates/"
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|[^|^\]]*?)*([^|^\]]*)]]`
 
 func Parse(content string, title string) Article {
+	tokenMap := map[string]string{}
+
 	content = clean(content)
 	content = evaluateTemplates(content)
-	content, images := processImages(content)
-
-	tokenMap := map[string]string{}
+	content, images := escapeImages(content)
 	content = tokenize(content, tokenMap)
 
 	// print some debug information if wanted
@@ -140,8 +140,8 @@ func saveTemplate(key string, evaluatedTemplate string) error {
 	return nil
 }
 
-// processImages returns the list of all images and also escapes the image names in the content
-func processImages(content string) (string, []string) {
+// escapeImages returns the list of all images and also escapes the image names in the content
+func escapeImages(content string) (string, []string) {
 	var result []string
 
 	// Remove videos and gifs
