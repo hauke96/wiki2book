@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"sort"
@@ -547,10 +549,10 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	referenceUsages := map[string]string{}
 
 	// These map take the index of the reference in "content" as determined by  strings.Index()  as key/value.
-	contentIndexToReference := map[int]string{}
+	contentIndexToRefName := map[int]string{}
 
 	// Maps the reference name to the actual index starting at 1 as they will appear in the generated result later on.
-	referenceToIndex := map[string]int{}
+	refNameToIndex := map[string]int{}
 
 	// Split the content into section before, at and after the reference list
 	regex := regexp.MustCompile(`</?references.*?/?>\n?`)
@@ -571,39 +573,48 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	if len(contentParts) == 2 {
 		foot = contentParts[1]
 	} else if len(contentParts) == 3 {
-		head += contentParts[1]
 		foot = contentParts[2]
 	}
 
-	// For usage <ref name="..." />
-	regex = regexp.MustCompile(`<ref name="([^"]*?)" />`)
+	// For definition <ref name="...">...</ref>   -> create usage with the given name
+	regex = regexp.MustCompile(`<ref name="?([^"^>]*?)"?>((.|\n)*?)</ref>`)
+	// Go throught "content" to also parse the definitions in the reference section below "head"
 	submatches := regex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		name := submatch[1]
-		referenceUsages[name] = submatch[0]
-	}
-
-	// For definition <ref name="...">...</ref>
-	regex = regexp.MustCompile(`<ref name="([^"]*?)">((.|\n)*?)</ref>`)
-	submatches = regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		name := submatch[1]
 		totalRef := submatch[0]
 		referenceDefinitions[name] = totalRef
-		contentIndexToReference[strings.Index(content, totalRef)] = name
+		head = strings.ReplaceAll(head, totalRef, fmt.Sprintf("<ref name=\"%s\" />", name))
 	}
 
-	// For <ref>...</ref>
-	regex = regexp.MustCompile(`<ref>(.|\n)*?</ref>`)
+	// For definition <ref>...</ref>   -> create usage with a new random name
+	regex = regexp.MustCompile(`<ref>((.|\n)*?)</ref>`)
+	// Go throught "content" to also parse the definitions in the reference section below "head"
 	submatches = regex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		name := submatch[0]
-		referenceDefinitions[name] = name
-		contentIndexToReference[strings.Index(content, name)] = name
+	for i, submatch := range submatches {
+		totalRef := submatch[0]
+
+		// Generate more or less random but unique name
+		hash := sha1.New()
+		hash.Write([]byte(fmt.Sprintf("%d", i)))
+		hash.Write([]byte(totalRef))
+		name := hex.EncodeToString(hash.Sum(nil))
+
+		referenceDefinitions[name] = totalRef
+		head = strings.ReplaceAll(head, totalRef, fmt.Sprintf("<ref name=\"%s\" />", name))
 	}
 
-	contentIndexToReferenceKeys := make([]int, 0, len(contentIndexToReference))
-	for key := range contentIndexToReference {
+	// For usage <ref name="..." />
+	regex = regexp.MustCompile(`<ref name="([^"]*?)" ?/>`)
+	submatches = regex.FindAllStringSubmatch(head, -1)
+	for _, submatch := range submatches {
+		name := submatch[1]
+		referenceUsages[name] = submatch[0]
+		contentIndexToRefName[strings.Index(head, submatch[0])] = name
+	}
+
+	contentIndexToReferenceKeys := make([]int, 0, len(contentIndexToRefName))
+	for key := range contentIndexToRefName {
 		contentIndexToReferenceKeys = append(contentIndexToReferenceKeys, key)
 	}
 	sort.Ints(contentIndexToReferenceKeys)
@@ -611,24 +622,24 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	// Assign increasing index to each reference based on their occurrence in "content"
 	refCounter := 1
 	sortedRefNames := []string{}
-	for _, refKey := range contentIndexToReferenceKeys {
-		refName := contentIndexToReference[refKey]
-		referenceToIndex[refName] = refCounter
+	for _, refContentIndex := range contentIndexToReferenceKeys {
+		refName := contentIndexToRefName[refContentIndex]
+		refNameToIndex[refName] = refCounter
 		sortedRefNames = append(sortedRefNames, refName)
 		refCounter++
 	}
 
 	// Replace definition with usage token
-	for _, name := range sortedRefNames {
-		ref := referenceDefinitions[name]
-		token := getToken(TOKEN_REF_USAGE)
-		tokenMap[token] = fmt.Sprintf("%d %s", referenceToIndex[name], ref)
-		head = strings.ReplaceAll(head, ref, token)
-	}
+	//for _, name := range sortedRefNames {
+	//	ref := referenceDefinitions[name]
+	//	token := getToken(TOKEN_REF_USAGE)
+	//	tokenMap[token] = fmt.Sprintf("%d %s", refNameToIndex[name], ref)
+	//	head = strings.ReplaceAll(head, ref, token)
+	//}
 
 	// Create usage token for ref usages like <ref name="foo" />
 	for name, ref := range referenceUsages {
-		refIndex := referenceToIndex[name]
+		refIndex := refNameToIndex[name]
 		token := getToken(TOKEN_REF_USAGE)
 		tokenMap[token] = fmt.Sprintf("%d %s", refIndex, ref)
 		head = strings.ReplaceAll(head, ref, token)
@@ -638,7 +649,7 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	for _, name := range sortedRefNames {
 		ref := referenceDefinitions[name]
 		token := getToken(TOKEN_REF_DEF)
-		tokenMap[token] = fmt.Sprintf("%d %s", referenceToIndex[name], ref)
+		tokenMap[token] = fmt.Sprintf("%d %s", refNameToIndex[name], ref)
 		head += token + "\n"
 	}
 

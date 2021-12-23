@@ -20,7 +20,7 @@ Open tasks of this project:
 
 * [x] Add cover to EPUB file
 * [x] Tables
-* [ ] Ordered lists
+* [x] Ordered lists
 * [ ] Problematic pages:
   * Universum (table at the beginning)
   * Riesenstern (weird top of page)
@@ -32,6 +32,6 @@ Open tasks of this project:
   * Sonne (not rendered table at beginning)
 * [ ] Use superscript `<sup>...</sup>` for citations
 * [ ] Math rendering
-* [ ] Save rendered templates like images
+* [x] Save rendered templates like images
 * [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests
