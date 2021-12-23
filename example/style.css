@@ -162,6 +162,7 @@ th {
 table {
     margin: 0.75rem auto;
     border-collapse: collapse;
+    font-size: .9em;
 }
 
 /*

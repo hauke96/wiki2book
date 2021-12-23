@@ -14,20 +14,22 @@ func removeUnwantedTags(content string) string {
 	content = regex.ReplaceAllString(content, "")
 
 	ignoreTemplates := []string{
-		"siehe auch",
-		"Exzellent",
-		"Normdaten",
-		"Hauptartikel",
-		"Begriffsklärungshinweis",
-		"Weiterleitungshinweis",
-		"Dieser Artikel",
-		"Commons",
-		"Wikiquote",
-		"Wiktionary",
-		"Wikibooks",
-		"Wikisource",
 		"Alpha Centauri",
+		"Begriffsklärungshinweis",
+		"Commons",
+		"Dieser Artikel",
+		"Exzellent",
+		"Hauptartikel",
+		"Lesenswert",
+		"Navigationsleiste",
+		"Normdaten",
 		"Panorama",
+		"siehe auch",
+		"Weiterleitungshinweis",
+		"Wikibooks",
+		"Wikiquote",
+		"Wikisource",
+		"Wiktionary",
 	}
 
 	for _, template := range ignoreTemplates {

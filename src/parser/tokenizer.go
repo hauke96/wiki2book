@@ -66,7 +66,9 @@ func getToken(tokenType string) string {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func tokenize(content string, tokenMap map[string]string) string {
-	content = tokenizeOnce(content, tokenMap)
+	content = parseBoldAndItalic(content, tokenMap)
+	content = parseHeadings(content, tokenMap)
+	content = tokenizeReferences(content, tokenMap)
 
 	for {
 		content = parseInternalLinks(content, tokenMap)
@@ -77,16 +79,6 @@ func tokenize(content string, tokenMap map[string]string) string {
 		break
 	}
 
-	return content
-}
-
-func tokenizeOnce(content string, tokenMap map[string]string) string {
-	if !tokenizedOnce {
-		tokenizedOnce = true
-		content = parseBoldAndItalic(content, tokenMap)
-		content = parseHeadings(content, tokenMap)
-		content = tokenizeReferences(content, tokenMap)
-	}
 	return content
 }
 
@@ -649,7 +641,7 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	for _, name := range sortedRefNames {
 		ref := referenceDefinitions[name]
 		token := getToken(TOKEN_REF_DEF)
-		tokenMap[token] = fmt.Sprintf("%d %s", refNameToIndex[name], ref)
+		tokenMap[token] = fmt.Sprintf("%d %s", refNameToIndex[name], tokenize(ref, tokenMap))
 		head += token + "\n"
 	}
 
