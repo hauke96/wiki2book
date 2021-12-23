@@ -132,6 +132,8 @@ func expand(content string, tokenMap map[string]string) (string, error) {
 			html = expandHeadings(submatch[0], tokenMap, 6)
 		case parser.TOKEN_REF_DEF:
 			html, err = expandRefDefinition(submatch[0], tokenMap)
+		case parser.TOKEN_REF_USAGE:
+			html, err = expandRefUsage(submatch[0], tokenMap)
 		}
 		if err != nil {
 			return "", err
@@ -141,22 +143,6 @@ func expand(content string, tokenMap map[string]string) (string, error) {
 	}
 
 	return content, nil
-}
-
-func expandRefDefinition(tokenString string, tokenMap map[string]string) (string, error) {
-	tokenContent := tokenMap[tokenString]
-	splittedToken := strings.SplitN(tokenContent, " ", 2)
-	refIndex, err := strconv.Atoi(splittedToken[0])
-	if err != nil {
-		return "", err
-	}
-
-	tokenizedContent, err := expand(splittedToken[1], tokenMap)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("<sup>%d</sup> %s<br>", refIndex, tokenizedContent), nil
 }
 
 func expandMarker(content string) string {
@@ -296,6 +282,33 @@ func expandDescriptionItem(tokenString string, tokenMap map[string]string) (stri
 	}
 
 	return fmt.Sprintf(TEMPLATE_DD, tokenizedContent), nil
+}
+
+func expandRefDefinition(tokenString string, tokenMap map[string]string) (string, error) {
+	tokenContent := tokenMap[tokenString]
+	splittedToken := strings.SplitN(tokenContent, " ", 2)
+	refIndex, err := strconv.Atoi(splittedToken[0])
+	if err != nil {
+		return "", err
+	}
+
+	tokenizedContent, err := expand(splittedToken[1], tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("<sup>%d</sup> %s<br>", refIndex, tokenizedContent), nil
+}
+
+func expandRefUsage(tokenString string, tokenMap map[string]string) (string, error) {
+	tokenContent := tokenMap[tokenString]
+	splittedToken := strings.SplitN(tokenContent, " ", 2)
+	refIndex, err := strconv.Atoi(splittedToken[0])
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("<sup>%d</sup>", refIndex), nil
 }
 
 func escapeSpecialCharacters(content string) string {

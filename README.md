@@ -30,7 +30,7 @@ Open tasks of this project:
   * Exoplanet#Zahl der bekannten Exoplaneten (not rendered table)
   * Exoplanet#Masse und Radius der entdeckten Planeten (not evaluated template)
   * Sonne (not rendered table at beginning)
-* [ ] Use superscript `<sup>...</sup>` for citations
+* [x] Use superscript `<sup>...</sup>` for citations
 * [ ] Math rendering
 * [x] Save rendered templates like images
 * [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
