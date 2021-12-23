@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -42,6 +43,9 @@ const TOKEN_IMAGE = "IMAGE"
 const TOKEN_IMAGE_FILENAME = "IMAGE_FILENAME"
 const TOKEN_IMAGE_CAPTION = "IMAGE_CAPTION"
 
+const TOKEN_REF_USAGE = "REF_USAGE"
+const TOKEN_REF_DEF = "REF_DEF"
+
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -50,6 +54,7 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 
 var tokenCounter = 0
+var tokenizedOnce = false
 
 func getToken(tokenType string) string {
 	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, tokenCounter)
@@ -59,8 +64,7 @@ func getToken(tokenType string) string {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func tokenize(content string, tokenMap map[string]string) string {
-	content = parseBoldAndItalic(content, tokenMap)
-	content = parseHeadings(content, tokenMap)
+	content = tokenizeOnce(content, tokenMap)
 
 	for {
 		content = parseInternalLinks(content, tokenMap)
@@ -71,6 +75,16 @@ func tokenize(content string, tokenMap map[string]string) string {
 		break
 	}
 
+	return content
+}
+
+func tokenizeOnce(content string, tokenMap map[string]string) string {
+	if !tokenizedOnce {
+		tokenizedOnce = true
+		content = parseBoldAndItalic(content, tokenMap)
+		content = parseHeadings(content, tokenMap)
+		content = tokenizeReferences(content, tokenMap)
+	}
 	return content
 }
 
@@ -329,6 +343,7 @@ func tokenizeTableRow(lines []string, i int, sep string, tokenMap map[string]str
 		i++
 		for ; !strings.HasPrefix(lines[i], sep) && !strings.HasPrefix(lines[i], "|"); i++ {
 			line += "\n" + lines[i]
+			fmt.Println(lines[i])
 		}
 		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
 		i -= 1
@@ -525,4 +540,107 @@ func getListItemTokenString(listItemPrefix string) string {
 
 func hasListItemPrefix(line string) bool {
 	return regexp.MustCompile(`^[*#:]`).MatchString(line)
+}
+
+func tokenizeReferences(content string, tokenMap map[string]string) string {
+	referenceDefinitions := map[string]string{}
+	referenceUsages := map[string]string{}
+
+	// These map take the index of the reference in "content" as determined by  strings.Index()  as key/value.
+	contentIndexToReference := map[int]string{}
+
+	// Maps the reference name to the actual index starting at 1 as they will appear in the generated result later on.
+	referenceToIndex := map[string]int{}
+
+	// Split the content into section before, at and after the reference list
+	regex := regexp.MustCompile(`</?references.*?/?>\n?`)
+	if !regex.MatchString(content) {
+		return content
+	}
+	contentParts := regex.Split(content, -1)
+	// In case of dedicated <references>...</references> block
+	//   part 0: everything before <references...>
+	//   part 1: everything between <references> and </references>
+	//   part 2: everything after </references>
+	// In case of <references/>
+	//   part 0: everything before <references/>
+	//   part 1: everything after <references/>
+	// Completely remove the reference section as we already parsed it above with the regex.
+	head := contentParts[0]
+	foot := ""
+	if len(contentParts) == 2 {
+		foot = contentParts[1]
+	} else if len(contentParts) == 3 {
+		head += contentParts[1]
+		foot = contentParts[2]
+	}
+
+	// For usage <ref name="..." />
+	regex = regexp.MustCompile(`<ref name="([^"]*?)" />`)
+	submatches := regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		name := submatch[1]
+		referenceUsages[name] = submatch[0]
+	}
+
+	// For definition <ref name="...">...</ref>
+	regex = regexp.MustCompile(`<ref name="([^"]*?)">((.|\n)*?)</ref>`)
+	submatches = regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		name := submatch[1]
+		totalRef := submatch[0]
+		referenceDefinitions[name] = totalRef
+		contentIndexToReference[strings.Index(content, totalRef)] = name
+	}
+
+	// For <ref>...</ref>
+	regex = regexp.MustCompile(`<ref>(.|\n)*?</ref>`)
+	submatches = regex.FindAllStringSubmatch(content, -1)
+	for _, submatch := range submatches {
+		name := submatch[0]
+		referenceDefinitions[name] = name
+		contentIndexToReference[strings.Index(content, name)] = name
+	}
+
+	contentIndexToReferenceKeys := make([]int, 0, len(contentIndexToReference))
+	for key := range contentIndexToReference {
+		contentIndexToReferenceKeys = append(contentIndexToReferenceKeys, key)
+	}
+	sort.Ints(contentIndexToReferenceKeys)
+
+	// Assign increasing index to each reference based on their occurrence in "content"
+	refCounter := 1
+	sortedRefNames := []string{}
+	for _, refKey := range contentIndexToReferenceKeys {
+		refName := contentIndexToReference[refKey]
+		referenceToIndex[refName] = refCounter
+		sortedRefNames = append(sortedRefNames, refName)
+		refCounter++
+	}
+
+	// Replace definition with usage token
+	for _, name := range sortedRefNames {
+		ref := referenceDefinitions[name]
+		token := getToken(TOKEN_REF_USAGE)
+		tokenMap[token] = fmt.Sprintf("%d %s", referenceToIndex[name], ref)
+		head = strings.ReplaceAll(head, ref, token)
+	}
+
+	// Create usage token for ref usages like <ref name="foo" />
+	for name, ref := range referenceUsages {
+		refIndex := referenceToIndex[name]
+		token := getToken(TOKEN_REF_USAGE)
+		tokenMap[token] = fmt.Sprintf("%d %s", refIndex, ref)
+		head = strings.ReplaceAll(head, ref, token)
+	}
+
+	// Append ref definitions to head
+	for _, name := range sortedRefNames {
+		ref := referenceDefinitions[name]
+		token := getToken(TOKEN_REF_DEF)
+		tokenMap[token] = fmt.Sprintf("%d %s", referenceToIndex[name], ref)
+		head += token + "\n"
+	}
+
+	return head + foot
 }

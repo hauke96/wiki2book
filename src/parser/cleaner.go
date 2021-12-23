@@ -8,7 +8,7 @@ import (
 
 func clean(content string) string {
 	content = removeUnwantedTags(content)
-	content = moveCitationsToEnd(content)
+	//content = moveCitationsToEnd(content)
 	return content
 }
 

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -66,12 +67,16 @@ const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiPage.Title + "</h1>"
-	content += expand(wikiPage.Content, wikiPage.TokenMap)
+	expandedContent, err := expand(wikiPage.Content, wikiPage.TokenMap)
+	if err != nil {
+		return "", err
+	}
+	content += expandedContent
 	content += FOOTER
 	return write(wikiPage.Title, outputFolder, content)
 }
 
-func expand(content string, tokenMap map[string]string) string {
+func expand(content string, tokenMap map[string]string) (string, error) {
 	content = expandMarker(content)
 
 	regex := regexp.MustCompile(parser.TOKEN_REGEX)
@@ -79,39 +84,40 @@ func expand(content string, tokenMap map[string]string) string {
 
 	if len(submatches) == 0 {
 		// no token in content
-		return content
+		return content, nil
 	}
 
 	for _, submatch := range submatches {
 		sigolo.Debug("Found token %s", submatch[1])
 
 		html := submatch[0]
+		var err error = nil
 
 		switch submatch[1] {
 		case parser.TOKEN_EXTERNAL_LINK:
-			html = expandExternalLink(submatch[0], tokenMap)
+			html, err = expandExternalLink(submatch[0], tokenMap)
 		case parser.TOKEN_INTERNAL_LINK:
-			html = expandInternalLint(submatch[0], tokenMap)
+			html, err = expandInternalLint(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE:
-			html = expandTable(submatch[0], tokenMap)
+			html, err = expandTable(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_HEAD:
-			html = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_HEAD)
+			html, err = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_HEAD)
 		case parser.TOKEN_TABLE_ROW:
-			html = expandTableRow(submatch[0], tokenMap)
+			html, err = expandTableRow(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_COL:
-			html = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_COL)
+			html, err = expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_COL)
 		case parser.TOKEN_UNORDERED_LIST:
-			html = expandUnorderedList(submatch[0], tokenMap)
+			html, err = expandUnorderedList(submatch[0], tokenMap)
 		case parser.TOKEN_ORDERED_LIST:
-			html = expandOrderedList(submatch[0], tokenMap)
+			html, err = expandOrderedList(submatch[0], tokenMap)
 		case parser.TOKEN_DESCRIPTION_LIST:
-			html = expandDescriptionList(submatch[0], tokenMap)
+			html, err = expandDescriptionList(submatch[0], tokenMap)
 		case parser.TOKEN_LIST_ITEM:
-			html = expandListItem(submatch[0], tokenMap)
+			html, err = expandListItem(submatch[0], tokenMap)
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
-			html = expandDescriptionItem(submatch[0], tokenMap)
+			html, err = expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE:
-			html = expandImage(submatch[0], tokenMap)
+			html, err = expandImage(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
 			html = expandHeadings(submatch[0], tokenMap, 1)
 		case parser.TOKEN_HEADING_2:
@@ -124,12 +130,33 @@ func expand(content string, tokenMap map[string]string) string {
 			html = expandHeadings(submatch[0], tokenMap, 5)
 		case parser.TOKEN_HEADING_6:
 			html = expandHeadings(submatch[0], tokenMap, 6)
+		case parser.TOKEN_REF_DEF:
+			html, err = expandRefDefinition(submatch[0], tokenMap)
+		}
+		if err != nil {
+			return "", err
 		}
 
 		content = strings.Replace(content, submatch[0], html, 1)
 	}
 
-	return content
+	return content, nil
+}
+
+func expandRefDefinition(tokenString string, tokenMap map[string]string) (string, error) {
+	tokenContent := tokenMap[tokenString]
+	splittedToken := strings.SplitN(tokenContent, " ", 2)
+	refIndex, err := strconv.Atoi(splittedToken[0])
+	if err != nil {
+		return "", err
+	}
+
+	tokenizedContent, err := expand(splittedToken[1], tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("<sup>%d</sup> %s<br>", refIndex, tokenizedContent), nil
 }
 
 func expandMarker(content string) string {
@@ -146,43 +173,63 @@ func expandHeadings(tokenString string, tokenMap map[string]string, level int) s
 	return fmt.Sprintf(TEMPLATE_HEADING, level, title, level)
 }
 
-func expandImage(tokenString string, tokenMap map[string]string) string {
+func expandImage(tokenString string, tokenMap map[string]string) (string, error) {
 	splittedToken := strings.Split(tokenMap[tokenString], " ")
-	filename := expand(tokenMap[splittedToken[0]], tokenMap)
+	filename, err := expand(tokenMap[splittedToken[0]], tokenMap)
+	if err != nil {
+		return "", err
+	}
 	if len(splittedToken) == 1 {
 		// no caption available
-		return fmt.Sprintf(IMAGE_TEMPLATE, filename, "")
+		return fmt.Sprintf(IMAGE_TEMPLATE, filename, ""), nil
 	}
 
-	caption := expand(tokenMap[splittedToken[1]], tokenMap)
-	return fmt.Sprintf(IMAGE_TEMPLATE, filename, caption)
+	caption, err := expand(tokenMap[splittedToken[1]], tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(IMAGE_TEMPLATE, filename, caption), nil
 }
 
-func expandInternalLint(tokenString string, tokenMap map[string]string) string {
+func expandInternalLint(tokenString string, tokenMap map[string]string) (string, error) {
 	splittedToken := strings.Split(tokenMap[tokenString], " ")
-	text := expand(tokenMap[splittedToken[1]], tokenMap)
 	// Yeah, let's not add an link to the article in an eBook. Maybe make it configurable some day...
-	return text
+	return expand(tokenMap[splittedToken[1]], tokenMap)
 }
 
-func expandExternalLink(tokenString string, tokenMap map[string]string) string {
+func expandExternalLink(tokenString string, tokenMap map[string]string) (string, error) {
 	splittedToken := strings.Split(tokenMap[tokenString], " ")
 	url := tokenMap[splittedToken[0]]
-	text := expand(tokenMap[splittedToken[1]], tokenMap)
-	return fmt.Sprintf(HREF_TEMPLATE, url, text)
+	text, err := expand(tokenMap[splittedToken[1]], tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(HREF_TEMPLATE, url, text), nil
 }
 
-func expandTable(tokenString string, tokenMap map[string]string) string {
+func expandTable(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TABLE_TEMPLATE, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TABLE_TEMPLATE, tokenizedContent), nil
 }
 
-func expandTableRow(tokenString string, tokenMap map[string]string) string {
+func expandTableRow(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TABLE_TEMPLATE_ROW, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TABLE_TEMPLATE_ROW, tokenizedContent), nil
 }
 
-func expandTableColumn(tokenString string, tokenMap map[string]string, template string) string {
+func expandTableColumn(tokenString string, tokenMap map[string]string, template string) (string, error) {
 	tokenContent := tokenMap[tokenString]
 
 	attributes := ""
@@ -193,32 +240,62 @@ func expandTableColumn(tokenString string, tokenMap map[string]string, template 
 		tokenContent = strings.Replace(tokenContent, attributeToken, "", 1)
 	}
 
-	return fmt.Sprintf(template, attributes, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(template, attributes, tokenizedContent), nil
 }
 
-func expandUnorderedList(tokenString string, tokenMap map[string]string) string {
+func expandUnorderedList(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_UL, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_UL, tokenizedContent), nil
 }
 
-func expandOrderedList(tokenString string, tokenMap map[string]string) string {
+func expandOrderedList(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_OL, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_OL, tokenizedContent), nil
 }
 
-func expandDescriptionList(tokenString string, tokenMap map[string]string) string {
+func expandDescriptionList(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_DL, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_DL, tokenizedContent), nil
 }
 
-func expandListItem(tokenString string, tokenMap map[string]string) string {
+func expandListItem(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_LI, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_LI, tokenizedContent), nil
 }
 
-func expandDescriptionItem(tokenString string, tokenMap map[string]string) string {
+func expandDescriptionItem(tokenString string, tokenMap map[string]string) (string, error) {
 	tokenContent := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_DD, expand(tokenContent, tokenMap))
+	tokenizedContent, err := expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_DD, tokenizedContent), nil
 }
 
 func escapeSpecialCharacters(content string) string {

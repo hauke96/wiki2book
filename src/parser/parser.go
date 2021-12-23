@@ -28,6 +28,8 @@ func Parse(content string, title string) Article {
 	content, images := escapeImages(content)
 	content = tokenize(content, tokenMap)
 
+	sigolo.Info("Token map length: %d", len(tokenMap))
+
 	// print some debug information if wanted
 	if sigolo.LogLevel >= sigolo.LOG_DEBUG {
 		sigolo.Debug(content)
