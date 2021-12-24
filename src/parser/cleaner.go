@@ -30,6 +30,7 @@ func removeUnwantedTags(content string) string {
 		"Wikiquote",
 		"Wikisource",
 		"Wiktionary",
+		"Toter Link",
 	}
 
 	for _, template := range ignoreTemplates {

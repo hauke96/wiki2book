@@ -18,7 +18,7 @@ import (
 
 const TEMPLATE_FOLDER = "./templates/"
 
-const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|[^|^\]]*?)*([^|^\]]*)]]`
+const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
 func Parse(content string, title string) Article {
 	tokenMap := map[string]string{}
@@ -147,7 +147,7 @@ func escapeImages(content string) (string, []string) {
 	var result []string
 
 	// Remove videos and gifs
-	regex := regexp.MustCompile(`\[\[((Datei|File):.*?\.(webm|gif|ogv|mp3|mp4)).*(]]|\|)`)
+	regex := regexp.MustCompile(`\[\[((Datei|File):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
 	content = regex.ReplaceAllString(content, "")
 
 	regex = regexp.MustCompile(IMAGE_REGEX)

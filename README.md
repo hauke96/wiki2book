@@ -22,7 +22,6 @@ Open tasks of this project:
 * [x] Tables
 * [x] Ordered lists
 * [ ] Problematic pages:
-  * Universum (table at the beginning)
   * Riesenstern (weird top of page)
   * Sternentstehung#Molekülwolkenstruktur (table with caption)
   * Exoplanet#Erste Entdeckungen von Exoplaneten (ref that's not moved to bottom)

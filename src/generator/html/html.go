@@ -24,7 +24,9 @@ const FOOTER = `</body>
 `
 
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
-const IMAGE_TEMPLATE = "<br><div class=\"figure\"><img alt=\"image\" src=\"./images/%s\"><div class=\"caption\">%s</div></div>"
+const IMAGE_SIZE_TEMPLATE = `style="vertical-align: middle; width: %spx; height: %spx;"`
+const IMAGE_INLINE_TEMPLATE = "<img alt=\"image\" src=\"./images/%s\" %s>"
+const IMAGE_TEMPLATE = "<br><div class=\"figure\"><img alt=\"image\" src=\"./images/%s\" %s><div class=\"caption\">%s</div></div>"
 const TABLE_TEMPLATE = `<div>
 <table>
 %s
@@ -116,6 +118,8 @@ func expand(content string, tokenMap map[string]string) (string, error) {
 			html, err = expandListItem(submatch[0], tokenMap)
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html, err = expandDescriptionItem(submatch[0], tokenMap)
+		case parser.TOKEN_IMAGE_INLINE:
+			html, err = expandImage(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE:
 			html, err = expandImage(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
@@ -160,22 +164,53 @@ func expandHeadings(tokenString string, tokenMap map[string]string, level int) s
 }
 
 func expandImage(tokenString string, tokenMap map[string]string) (string, error) {
-	splittedToken := strings.Split(tokenMap[tokenString], " ")
-	filename, err := expand(tokenMap[splittedToken[0]], tokenMap)
-	if err != nil {
-		return "", err
-	}
-	if len(splittedToken) == 1 {
-		// no caption available
-		return fmt.Sprintf(IMAGE_TEMPLATE, filename, ""), nil
+	filename := ""
+	xSize := ""
+	ySize := ""
+	caption := ""
+	var err error = nil
+
+	regex := regexp.MustCompile(parser.TOKEN_REGEX)
+	tokenName := regex.FindStringSubmatch(tokenString)[1]
+	inline := tokenName == parser.TOKEN_IMAGE_INLINE
+
+	submatches := regex.FindAllStringSubmatch(tokenMap[tokenString], -1)
+
+	if len(submatches) == 0 {
+		return "", errors.New("No token found in image token: " + tokenString)
 	}
 
-	caption, err := expand(tokenMap[splittedToken[1]], tokenMap)
-	if err != nil {
-		return "", err
+	for _, submatch := range submatches {
+		sigolo.Debug("Found sub-token %s in image token %s", submatch[1], tokenString)
+
+		subTokenString := submatch[0]
+
+		switch submatch[1] {
+		case parser.TOKEN_IMAGE_FILENAME:
+			filename = tokenMap[subTokenString]
+		case parser.TOKEN_IMAGE_CAPTION:
+			caption, err = expand(tokenMap[subTokenString], tokenMap)
+		case parser.TOKEN_IMAGE_SIZE:
+			sizes := strings.Split(tokenMap[subTokenString], "x")
+			xSize = sizes[0]
+			ySize = sizes[1]
+		}
 	}
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, filename, caption), nil
+	if err != nil {
+		return "", errors.Wrap(err, "Error while parsing image token "+tokenString)
+	}
+
+	sizeTemplate := ""
+	if xSize != "" && ySize != "" {
+		sizeTemplate = fmt.Sprintf(IMAGE_SIZE_TEMPLATE, xSize, ySize)
+	}
+
+	if inline {
+		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, sizeTemplate), nil
+	}
+
+	return fmt.Sprintf(IMAGE_TEMPLATE, filename, sizeTemplate, caption), nil
 }
 
 func expandInternalLint(tokenString string, tokenMap map[string]string) (string, error) {

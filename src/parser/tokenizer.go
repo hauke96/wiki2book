@@ -42,8 +42,10 @@ const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
 const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"
 
 const TOKEN_IMAGE = "IMAGE"
+const TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
 const TOKEN_IMAGE_FILENAME = "IMAGE_FILENAME"
 const TOKEN_IMAGE_CAPTION = "IMAGE_CAPTION"
+const TOKEN_IMAGE_SIZE = "IMAGE_SIZE"
 
 const TOKEN_REF_USAGE = "REF_USAGE"
 const TOKEN_REF_DEF = "REF_DEF"
@@ -56,7 +58,6 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 
 var tokenCounter = 0
-var tokenizedOnce = false
 
 func getToken(tokenType string) string {
 	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, tokenCounter)
@@ -76,6 +77,23 @@ func tokenize(content string, tokenMap map[string]string) string {
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
 		content = parseLists(content, tokenMap)
+		break
+	}
+
+	return content
+}
+
+// tokenizeInline is meant for strings that are known to be inline string. Example: The text of an internal link cannot
+// contain tables and lists, so we do not want to parse them.
+func tokenizeInline(content string, tokenMap map[string]string) string {
+	content = parseBoldAndItalic(content, tokenMap)
+	content = parseHeadings(content, tokenMap)
+	content = tokenizeReferences(content, tokenMap)
+
+	for {
+		content = parseInternalLinks(content, tokenMap)
+		content = parseImages(content, tokenMap)
+		content = parseExternalLinks(content, tokenMap)
 		break
 	}
 
@@ -150,16 +168,66 @@ func parseImages(content string, tokenMap map[string]string) string {
 		filenameToken := getToken(TOKEN_IMAGE_FILENAME)
 		tokenMap[filenameToken] = filename
 
-		token := getToken(TOKEN_IMAGE)
-		if len(submatch) >= 6 && submatch[5] != "" {
-			caption := tokenize(submatch[5], tokenMap)
-			captionToken := getToken(TOKEN_IMAGE_CAPTION)
-			tokenMap[captionToken] = caption
+		tokenString := TOKEN_IMAGE_INLINE
+		imageSizeToken := ""
+		captionToken := ""
+		if len(submatch) >= 4 {
+			options := strings.Split(submatch[5], "|")
+			ignorePrefixes := []string{
+				"left",
+				"right",
+				"top",
+				"text-top",
+				"bottom",
+				"text-bottom",
+				"center",
+				"none",
+				"upright",
+				"baseline",
+				"sub",
+				"super",
+				"middle",
+				"link",
+				"alt",
+				"page",
+				"class",
+				"lang",
+				"zentriert",
+			}
 
-			tokenMap[token] = filenameToken + " " + captionToken
-		} else {
-			tokenMap[token] = filenameToken
+			nonInlinePrefix := []string{
+				"mini",
+				"thumb",
+			}
+
+			for i, option := range options {
+				if strings.HasSuffix(option, "px") {
+					option = strings.TrimSuffix(option, "px")
+					sizes := strings.Split(option, "x")
+
+					xSize := sizes[0]
+					ySize := xSize
+					if len(sizes) == 2 {
+						ySize = sizes[1]
+					}
+
+					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
+					imageSizeToken = getToken(TOKEN_IMAGE_SIZE)
+					tokenMap[imageSizeToken] = imageSizeString
+				} else if elemetHasPrefix(option, ignorePrefixes) {
+					continue
+				} else if elemetHasPrefix(option, nonInlinePrefix) {
+					tokenString = TOKEN_IMAGE
+				} else if i == len(options)-1 && tokenString == TOKEN_IMAGE {
+					// last remaining option is caption as long as we do NOT have an inline image
+					captionToken = getToken(TOKEN_IMAGE_CAPTION)
+					tokenMap[captionToken] = option
+				}
+			}
 		}
+
+		token := getToken(tokenString)
+		tokenMap[token] = filenameToken + " " + captionToken + " " + imageSizeToken
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -167,8 +235,17 @@ func parseImages(content string, tokenMap map[string]string) string {
 	return content
 }
 
+func elemetHasPrefix(element string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(element, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func parseInternalLinks(content string, tokenMap map[string]string) string {
-	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*?)\|?([^|^\]^\[]*?)]]`)
+	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		if strings.HasPrefix(submatch[0], "[[Datei:") || strings.HasPrefix(submatch[1], "[[File:") {
@@ -178,12 +255,13 @@ func parseInternalLinks(content string, tokenMap map[string]string) string {
 		tokenArticle := getToken(TOKEN_INTERNAL_LINK_ARTICLE)
 		tokenMap[tokenArticle] = submatch[1]
 
-		if submatch[2] == "" {
+		linkText := submatch[1]
+		if submatch[3] != "" {
 			// Use article as text
-			submatch[2] = submatch[1]
+			linkText = submatch[3]
 		}
 
-		text := tokenize(submatch[2], tokenMap)
+		text := tokenizeInline(linkText, tokenMap)
 		tokenText := getToken(TOKEN_INTERNAL_LINK_TEXT)
 		tokenMap[tokenText] = text
 
@@ -620,14 +698,6 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 		sortedRefNames = append(sortedRefNames, refName)
 		refCounter++
 	}
-
-	// Replace definition with usage token
-	//for _, name := range sortedRefNames {
-	//	ref := referenceDefinitions[name]
-	//	token := getToken(TOKEN_REF_USAGE)
-	//	tokenMap[token] = fmt.Sprintf("%d %s", refNameToIndex[name], ref)
-	//	head = strings.ReplaceAll(head, ref, token)
-	//}
 
 	// Create usage token for ref usages like <ref name="foo" />
 	for name, ref := range referenceUsages {
