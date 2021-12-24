@@ -20,15 +20,12 @@ Open tasks of this project:
 
 * [x] Add cover to EPUB file
 * [x] Tables
+* [ ] Caption of tables
 * [x] Ordered lists
 * [ ] Problematic pages:
-  * Riesenstern (weird top of page)
-  * Sternentstehung#Molekülwolkenstruktur (table with caption)
-  * Exoplanet#Erste Entdeckungen von Exoplaneten (ref that's not moved to bottom)
-  * Exoplanet#Bekannte Projekte und Instrumente zum Nachweis von Exoplaneten (not rendered table)
-  * Exoplanet#Zahl der bekannten Exoplaneten (not rendered table)
-  * Exoplanet#Masse und Radius der entdeckten Planeten (not evaluated template)
-  * Sonne (not rendered table at beginning)
+  * Exoplanet#Zahl der bekannten Exoplaneten (not rendered template "Manueller Rahmen")
+  * Exoplanet#Masse und Radius der entdeckten Planeten (not evaluated template "Manueller Rahmen")
+  * Sonne (not rendered template "Internetquelle" in citation 31)
 * [x] Use superscript `<sup>...</sup>` for citations
 * [ ] Math rendering
 * [x] Save rendered templates like images

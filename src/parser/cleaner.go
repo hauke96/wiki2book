@@ -6,6 +6,7 @@ import (
 
 func clean(content string) string {
 	content = removeUnwantedTags(content)
+	// TODO remove div tags?
 	return content
 }
 
@@ -31,6 +32,7 @@ func removeUnwantedTags(content string) string {
 		"Wikisource",
 		"Wiktionary",
 		"Toter Link",
+		"Linkbox",
 	}
 
 	for _, template := range ignoreTemplates {
