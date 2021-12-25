@@ -23,9 +23,7 @@ Open tasks of this project:
 * [ ] Caption of tables
 * [x] Ordered lists
 * [ ] Problematic pages:
-  * Exoplanet#Zahl der bekannten Exoplaneten (not rendered template "Manueller Rahmen")
-  * Exoplanet#Masse und Radius der entdeckten Planeten (not evaluated template "Manueller Rahmen")
-  * Sonne (not rendered template "Internetquelle" in citation 31)
+  * ???
 * [x] Use superscript `<sup>...</sup>` for citations
 * [ ] Math rendering
 * [x] Save rendered templates like images

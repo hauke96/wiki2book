@@ -20,12 +20,11 @@ const TEMPLATE_FOLDER = "./templates/"
 
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
+var images = []string{}
+
 func Parse(content string, title string) Article {
 	tokenMap := map[string]string{}
 
-	content = clean(content)
-	content = evaluateTemplates(content)
-	content, images := escapeImages(content)
 	content = tokenize(content, tokenMap)
 
 	sigolo.Info("Token map length: %d", len(tokenMap))
@@ -53,8 +52,8 @@ func Parse(content string, title string) Article {
 	}
 }
 
-func evaluateTemplates(content string) string {
-	regex := regexp.MustCompile(`\{\{((.|\n|\r)*?)}}`)
+func evaluateTemplates(content string, tokenMap map[string]string) string {
+	regex := regexp.MustCompile(`\{\{([a-zA-Z](.|\n|\r)*?)}}`)
 	content = regex.ReplaceAllStringFunc(content, func(match string) string {
 		evaluatedTemplate := ""
 		var err error = nil
@@ -88,7 +87,10 @@ func evaluateTemplates(content string) string {
 				return ""
 			}
 		}
-		return evaluatedTemplate
+
+		evaluatedTemplate = escapeImages(evaluatedTemplate)
+
+		return tokenize(evaluatedTemplate, tokenMap)
 	})
 	return content
 }
@@ -143,7 +145,7 @@ func saveTemplate(key string, evaluatedTemplate string) error {
 }
 
 // escapeImages returns the list of all images and also escapes the image names in the content
-func escapeImages(content string) (string, []string) {
+func escapeImages(content string) string {
 	var result []string
 
 	// Remove videos and gifs
@@ -156,6 +158,7 @@ func escapeImages(content string) (string, []string) {
 		filePrefix := submatch[2]
 		filename := submatch[3]
 		filename = strings.ReplaceAll(filename, " ", "_")
+		filename = strings.ReplaceAll(filename, "%20", "_")
 		filename = filePrefix + ":" + strings.ToUpper(string(filename[0])) + filename[1:]
 
 		content = strings.ReplaceAll(content, submatch[1], filename)
@@ -165,6 +168,8 @@ func escapeImages(content string) (string, []string) {
 		sigolo.Debug("Found image: %s", filename)
 	}
 
+	images = append(images, result...)
+
 	sigolo.Info("Found and embedded %d images", len(submatches))
-	return content, result
+	return content
 }

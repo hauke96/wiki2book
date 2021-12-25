@@ -72,12 +72,21 @@ func tokenize(content string, tokenMap map[string]string) string {
 	content = tokenizeReferences(content, tokenMap)
 
 	for {
+		originalContent := content
+
+		content = clean(content)
+		content = evaluateTemplates(content, tokenMap)
+		content = escapeImages(content)
+
 		content = parseInternalLinks(content, tokenMap)
 		content = parseImages(content, tokenMap)
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
 		content = parseLists(content, tokenMap)
-		break
+
+		if content == originalContent {
+			break
+		}
 	}
 
 	return content

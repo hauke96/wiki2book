@@ -33,6 +33,8 @@ func removeUnwantedTags(content string) string {
 		"Wiktionary",
 		"Toter Link",
 		"Linkbox",
+		"Graph:Chart",
+		"Manueller Rahmen",
 	}
 
 	for _, template := range ignoreTemplates {
