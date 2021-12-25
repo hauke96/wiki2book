@@ -75,7 +75,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 		originalContent := content
 
 		content = clean(content)
-		content = evaluateTemplates(content, tokenMap)
+		content = evaluateTemplates(content)
 		content = escapeImages(content)
 
 		content = parseInternalLinks(content, tokenMap)

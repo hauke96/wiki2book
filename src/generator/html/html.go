@@ -26,7 +26,7 @@ const FOOTER = `</body>
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
 const IMAGE_SIZE_TEMPLATE = `style="vertical-align: middle; width: %spx; height: %spx;"`
 const IMAGE_INLINE_TEMPLATE = "<img alt=\"image\" src=\"./images/%s\" %s>"
-const IMAGE_TEMPLATE = "<br><div class=\"figure\"><img alt=\"image\" src=\"./images/%s\" %s><div class=\"caption\">%s</div></div>"
+const IMAGE_TEMPLATE = "<div class=\"figure\"><img alt=\"image\" src=\"./images/%s\" %s><div class=\"caption\">%s</div></div>"
 const TABLE_TEMPLATE = `<div>
 <table>
 %s
