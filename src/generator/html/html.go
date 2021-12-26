@@ -26,11 +26,19 @@ const FOOTER = `</body>
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
 const IMAGE_SIZE_TEMPLATE = `style="vertical-align: middle; width: %spx; height: %spx;"`
 const IMAGE_INLINE_TEMPLATE = "<img alt=\"image\" src=\"./images/%s\" %s>"
-const IMAGE_TEMPLATE = "<div class=\"figure\"><img alt=\"image\" src=\"./images/%s\" %s><div class=\"caption\">%s</div></div>"
-const TABLE_TEMPLATE = `<div>
+const IMAGE_TEMPLATE = `<div class="figure">
+<img alt="image" src="./images/%s" %s>
+<div class="caption">
+%s
+</div>
+</div>`
+const TABLE_TEMPLATE = `<div class="figure">
 <table>
 %s
 </table>
+<div class="caption">
+%s
+</div>
 </div>`
 const TABLE_TEMPLATE_HEAD = `<th%s>
 %s
@@ -237,7 +245,23 @@ func expandTable(tokenString string, tokenMap map[string]string) (string, error)
 		return "", err
 	}
 
-	return fmt.Sprintf(TABLE_TEMPLATE, tokenizedContent), nil
+	regex := regexp.MustCompile(parser.TOKEN_REGEX)
+	caption := ""
+	for _, subToken := range strings.Split(tokenizedContent, " ") {
+		match := regex.FindStringSubmatch(subToken)
+		if len(match) < 2 {
+			continue
+		}
+		tokenName := match[1]
+		hasCaption := tokenName == parser.TOKEN_TABLE_CAPTION
+		if hasCaption {
+			caption = tokenMap[match[0]]
+			tokenizedContent = strings.Replace(tokenizedContent, match[0], "", 1)
+			break
+		}
+	}
+
+	return fmt.Sprintf(TABLE_TEMPLATE, tokenizedContent, caption), nil
 }
 
 func expandTableRow(tokenString string, tokenMap map[string]string) (string, error) {

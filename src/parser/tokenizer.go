@@ -29,6 +29,7 @@ const TOKEN_EXTERNAL_LINK_URL = "EXTERNAL_LINK_URL"
 const TOKEN_EXTERNAL_LINK_TEXT = "EXTERNAL_LINK_TEXT"
 
 const TOKEN_TABLE = "TABLE"
+const TOKEN_TABLE_CAPTION = "TABLE_CAPTION"
 const TOKEN_TABLE_HEAD = "TABLE_HEAD"
 const TOKEN_TABLE_ROW = "TABLE_ROW"
 const TOKEN_TABLE_COL = "TABLE_COL"
@@ -378,10 +379,16 @@ func tokenizeTable(content string, tokenMap map[string]string) string {
 	lines := strings.Split(content, "\n")
 
 	tableTokens := ""
+	captionToken := ""
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if strings.HasPrefix(line, "|-") {
+		if strings.HasPrefix(line, "|+") {
+			caption := strings.TrimPrefix(line, "|+")
+			captionToken = getToken(TOKEN_TABLE_CAPTION)
+			tokenMap[captionToken] = caption
+			tableTokens += captionToken + " "
+		} else if strings.HasPrefix(line, "|-") {
 			rowToken := ""
 			if strings.HasPrefix(lines[i+1], "!") {
 				// this table row is a heading

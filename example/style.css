@@ -160,7 +160,9 @@ th {
 }
 
 table {
-    margin: 0.75rem auto;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 auto;
     border-collapse: collapse;
     font-size: .9em;
 }
@@ -172,12 +174,15 @@ Custom classes
 .caption, .figure {
     max-width: 100%;
 }
+.caption {
+    margin-top: 0.25rem;
+}
 
 .figure {
     display: block;
     page-break-inside: avoid;
-    margin: 2em auto;
-    text-align: center
+    margin: 0.5rem auto;
+    text-align: center;
 }
 
 .figure img {
