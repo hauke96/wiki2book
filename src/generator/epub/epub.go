@@ -24,6 +24,7 @@ func Generate(sourceFiles []string, outputFile string, styleFile string, coverFi
 		"--metadata", "author=" + metadata.Author,
 		"--metadata", "rights=" + metadata.License,
 		"--metadata", "language=" + metadata.Language,
+		"--metadata", "date=" + metadata.Date,
 	}
 	args = append(args, sourceFiles...)
 

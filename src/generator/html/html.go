@@ -73,6 +73,8 @@ const TEMPLATE_DD = `<dd>
 </dd>
 `
 const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
+const TEMPLATE_REF_DEF = "[%d] %s<br>"
+const TEMPLATE_REF_USAGE = "[%d]"
 
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
@@ -356,7 +358,7 @@ func expandRefDefinition(tokenString string, tokenMap map[string]string) (string
 		return "", err
 	}
 
-	return fmt.Sprintf("<sup>%d</sup> %s<br>", refIndex, tokenizedContent), nil
+	return fmt.Sprintf(TEMPLATE_REF_DEF, refIndex, tokenizedContent), nil
 }
 
 func expandRefUsage(tokenString string, tokenMap map[string]string) (string, error) {
@@ -367,7 +369,7 @@ func expandRefUsage(tokenString string, tokenMap map[string]string) (string, err
 		return "", err
 	}
 
-	return fmt.Sprintf("<sup>%d</sup>", refIndex), nil
+	return fmt.Sprintf(TEMPLATE_REF_USAGE, refIndex), nil
 }
 
 func escapeSpecialCharacters(content string) string {

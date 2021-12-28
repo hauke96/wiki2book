@@ -21,6 +21,7 @@ type Metadata struct {
 	Language string `json:"language"`
 	Author   string `json:"author"`
 	License  string `json:"license"`
+	Date     string `json:"date"`
 }
 
 func LoadProject(file string) (*Project, error) {

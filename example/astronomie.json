@@ -3,7 +3,8 @@
     "title": "Wikipedia: Astronomie",
     "author": "Wikipedia contributors",
     "license": "Creative Commons Non-Commercial Share Alike 3.0",
-    "language": "de-DE"
+    "language": "de-DE",
+    "date": "2021-12-27"
   },
   "wikipedia-domain": "de",
   "output": "astronomie.epub",
