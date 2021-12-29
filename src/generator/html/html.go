@@ -167,6 +167,9 @@ func expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_CLOSE, "</b>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_OPEN, "<i>")
 	content = strings.ReplaceAll(content, parser.MARKER_ITALIC_CLOSE, "</i>")
+
+	// TODO use <p> and </p> here (needs more parsing and an additional marker)
+	content = strings.ReplaceAll(content, parser.MARKER_PARAGRAPH, "<br><br>")
 	return content
 }
 

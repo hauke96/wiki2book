@@ -59,6 +59,7 @@ const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
 const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
 const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
+const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 var tokenCounter = 0
 
@@ -87,6 +88,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 		content = parseTables(content, tokenMap)
 		content = parseLists(content, tokenMap)
 		content = parseMath(content, tokenMap)
+		content = parseParagraphs(content)
 
 		if content == originalContent {
 			break
@@ -746,4 +748,8 @@ func parseMath(content string, tokenMap map[string]string) string {
 		content = strings.Replace(content, match[0], token, 1)
 	}
 	return content
+}
+
+func parseParagraphs(content string) string {
+	return strings.ReplaceAll(content, "\n\n", "\n"+MARKER_PARAGRAPH)
 }
