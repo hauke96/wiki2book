@@ -111,17 +111,21 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], filename)
 	sigolo.Debug(url)
 
+	return donwloadAndCache(url, outputFolder, filename)
+}
+
+func donwloadAndCache(url string, cacheFolder string, filename string) (string, error) {
 	// Create the output folder
-	err := os.Mkdir(outputFolder, os.ModePerm)
+	err := os.Mkdir(cacheFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", cacheFolder))
 	}
 
 	// If file exists -> ignore
-	outputFilepath := filepath.Join(outputFolder, "/", filename)
+	outputFilepath := filepath.Join(cacheFolder, "/", filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
 		sigolo.Info("Image file %s does already exist. Skip.", outputFilepath)
-		return "", nil
+		return outputFilepath, nil
 	}
 
 	// Get the data
@@ -129,7 +133,7 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	for {
 		response, err = http.Get(url)
 		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("Unable to get image %s with url %s", fileDescriptor, url))
+			return "", errors.Wrap(err, fmt.Sprintf("Unable to get image %s with url %s", filename, url))
 		}
 		defer response.Body.Close()
 
@@ -147,7 +151,7 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", fileDescriptor))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", filename))
 	}
 	defer outputFile.Close()
 
@@ -175,7 +179,7 @@ func EvaluateTemplate(template string) (string, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return "", errors.New(fmt.Sprintf("Response returned with status code %d", response.StatusCode))
+		return "", errors.New(fmt.Sprintf("Evaluating template: Response returned with status code %d", response.StatusCode))
 	}
 
 	evaluatedTemplateString, err := ioutil.ReadAll(response.Body)
@@ -187,4 +191,30 @@ func EvaluateTemplate(template string) (string, error) {
 	json.Unmarshal(evaluatedTemplateString, evaluatedTemplate)
 
 	return evaluatedTemplate.ExpandTemplate.Content, nil
+}
+
+func RenderMath(mathString string) (string, error) {
+	sigolo.Info("Render math %s", mathString)
+
+	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
+	requestData := fmt.Sprintf("q=%s", mathString)
+
+	sigolo.Debug("Call %s", urlString)
+	response, err := http.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to call render URL for math %s", mathString))
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return "", errors.New(fmt.Sprintf("Rendering Math: Response returned with status code %d", response.StatusCode))
+	}
+
+	locationHeader := response.Header.Get("x-resource-location")
+	if locationHeader == "" {
+		return "", errors.New(fmt.Sprintf("Unsable to get location header for math %s", mathString))
+	}
+
+	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + locationHeader
+	return donwloadAndCache(imageUrl, "./images", locationHeader+".svg")
 }

@@ -3,6 +3,7 @@ package html
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
+	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/parser"
 	"github.com/pkg/errors"
 	"os"
@@ -25,9 +26,9 @@ const FOOTER = `</body>
 
 const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
 const IMAGE_SIZE_TEMPLATE = `style="vertical-align: middle; width: %spx; height: %spx;"`
-const IMAGE_INLINE_TEMPLATE = "<img alt=\"image\" src=\"./images/%s\" %s>"
+const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
-<img alt="image" src="./images/%s" %s>
+<img alt="image" src="./%s" %s>
 <div class="caption">
 %s
 </div>
@@ -132,6 +133,8 @@ func expand(content string, tokenMap map[string]string) (string, error) {
 			html, err = expandImage(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE:
 			html, err = expandImage(submatch[0], tokenMap)
+		case parser.TOKEN_MATH:
+			html, err = expandMath(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
 			html = expandHeadings(submatch[0], tokenMap, 1)
 		case parser.TOKEN_HEADING_2:
@@ -370,6 +373,21 @@ func expandRefUsage(tokenString string, tokenMap map[string]string) (string, err
 	}
 
 	return fmt.Sprintf(TEMPLATE_REF_USAGE, refIndex), nil
+}
+
+func expandMath(tokenString string, tokenMap map[string]string) (string, error) {
+	filename, err := api.RenderMath(tokenMap[tokenString])
+	if err != nil {
+		return "", err
+	}
+
+	inline := true
+
+	if inline {
+		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, ""), nil
+	}
+
+	return fmt.Sprintf(IMAGE_TEMPLATE, filename, "100%", ""), nil
 }
 
 func escapeSpecialCharacters(content string) string {

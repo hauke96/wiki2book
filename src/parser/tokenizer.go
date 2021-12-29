@@ -51,6 +51,8 @@ const TOKEN_IMAGE_SIZE = "IMAGE_SIZE"
 const TOKEN_REF_USAGE = "REF_USAGE"
 const TOKEN_REF_DEF = "REF_DEF"
 
+const TOKEN_MATH = "REF_MATH"
+
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -70,7 +72,7 @@ func getToken(tokenType string) string {
 func tokenize(content string, tokenMap map[string]string) string {
 	content = parseBoldAndItalic(content, tokenMap)
 	content = parseHeadings(content, tokenMap)
-	content = tokenizeReferences(content, tokenMap)
+	content = parseReferences(content, tokenMap)
 
 	for {
 		originalContent := content
@@ -84,6 +86,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 		content = parseExternalLinks(content, tokenMap)
 		content = parseTables(content, tokenMap)
 		content = parseLists(content, tokenMap)
+		content = parseMath(content, tokenMap)
 
 		if content == originalContent {
 			break
@@ -98,7 +101,7 @@ func tokenize(content string, tokenMap map[string]string) string {
 func tokenizeInline(content string, tokenMap map[string]string) string {
 	content = parseBoldAndItalic(content, tokenMap)
 	content = parseHeadings(content, tokenMap)
-	content = tokenizeReferences(content, tokenMap)
+	content = parseReferences(content, tokenMap)
 
 	for {
 		content = parseInternalLinks(content, tokenMap)
@@ -630,7 +633,7 @@ func hasListItemPrefix(line string) bool {
 	return regexp.MustCompile(`^[*#:]`).MatchString(line)
 }
 
-func tokenizeReferences(content string, tokenMap map[string]string) string {
+func parseReferences(content string, tokenMap map[string]string) string {
 	referenceDefinitions := map[string]string{}
 	referenceUsages := map[string]string{}
 
@@ -732,4 +735,15 @@ func tokenizeReferences(content string, tokenMap map[string]string) string {
 	}
 
 	return head + foot
+}
+
+func parseMath(content string, tokenMap map[string]string) string {
+	regex := regexp.MustCompile(`<math>(.*?)</math>`)
+	matches := regex.FindAllStringSubmatch(content, -1)
+	for _, match := range matches {
+		token := getToken(TOKEN_MATH)
+		tokenMap[token] = match[1]
+		content = strings.Replace(content, match[0], token, 1)
+	}
+	return content
 }

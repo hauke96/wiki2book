@@ -189,3 +189,7 @@ Custom classes
     max-height: 100%;
     margin: 0 auto
 }
+
+img.inline {
+    vertical-align: -0.4rem;
+}
