@@ -65,7 +65,7 @@ const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 type Parser struct {
 	tokenMap     map[string]string
 	tokenCounter int
-	imageFolder string
+	imageFolder  string
 }
 
 func (p *Parser) getToken(tokenType string) string {
@@ -75,7 +75,11 @@ func (p *Parser) getToken(tokenType string) string {
 }
 
 func (p *Parser) setToken(key string, tokenContent string) {
-	p.tokenMap[key] = p.tokenize(tokenContent)
+	p.setRawToken(key, p.tokenize(tokenContent))
+}
+
+func (p *Parser) setRawToken(key string, tokenContent string) {
+	p.tokenMap[key] = tokenContent
 }
 
 // https://www.mediawiki.org/wiki/Markup_spec
@@ -95,7 +99,7 @@ func (p *Parser) tokenize(content string) string {
 		content = p.parseImages(content)
 		content = p.parseExternalLinks(content)
 		content = p.parseMath(content)
-		content = p.parseParagraphs(content)
+		//content = p.parseParagraphs(content)
 		content = p.parseTables(content)
 		content = p.parseLists(content)
 
@@ -251,7 +255,7 @@ func (p *Parser) parseImages(content string) string {
 		}
 
 		token := p.getToken(tokenString)
-		p.setToken(token, filenameToken + " " + captionToken + " " + imageSizeToken)
+		p.setToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -290,7 +294,7 @@ func (p *Parser) parseInternalLinks(content string) string {
 		p.setToken(tokenText, text)
 
 		token := p.getToken(TOKEN_INTERNAL_LINK)
-		p.setToken(token, tokenArticle + " " + tokenText)
+		p.setToken(token, tokenArticle+" "+tokenText)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -314,7 +318,7 @@ func (p *Parser) parseExternalLinks(content string) string {
 		p.setToken(tokenText, linkText)
 
 		token := p.getToken(TOKEN_EXTERNAL_LINK)
-		p.setToken(token, tokenUrl + " " + tokenText)
+		p.setToken(token, tokenUrl+" "+tokenText)
 
 		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
 		totalMatch := submatch[0][:len(submatch[0])-1]
@@ -464,7 +468,7 @@ func (p *Parser) tokenizeTableRow(lines []string, i int, sep string) (string, in
 		} else {
 			token = p.getToken(TOKEN_TABLE_COL)
 		}
-		p.setToken(token, attributeToken + line)
+		p.setToken(token, attributeToken+line)
 
 		rowLines = append(rowLines, token)
 	}
@@ -540,6 +544,7 @@ func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenStr
 		line := lines[i]
 
 		if !strings.HasPrefix(line, itemPrefix) && line != "" {
+			i -= 1
 			break
 		}
 
@@ -753,12 +758,12 @@ func (p *Parser) parseMath(content string) string {
 	matches := regex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
 		token := p.getToken(TOKEN_MATH)
-		p.setToken(token, match[1])
+		p.setRawToken(token, match[1])
 		content = strings.Replace(content, match[0], token, 1)
 	}
 	return content
 }
 
 func (p *Parser) parseParagraphs(content string) string {
-	return strings.ReplaceAll(content, "\n\n", "\n"+MARKER_PARAGRAPH)
+	return strings.ReplaceAll(content, "\n\n", "\n"+MARKER_PARAGRAPH+"\n")
 }
