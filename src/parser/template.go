@@ -16,7 +16,7 @@ import (
 )
 
 func evaluateTemplates(content string) string {
-	regex := regexp.MustCompile(`\{\{([a-zA-Z](.|\n|\r)*?)}}`)
+	regex := regexp.MustCompile(`\{\{((.|\n|\r)*?)}}`)
 	content = regex.ReplaceAllStringFunc(content, func(match string) string {
 		evaluatedTemplate := ""
 		var err error = nil

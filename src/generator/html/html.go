@@ -263,7 +263,10 @@ func expandTable(tokenString string, tokenMap map[string]string) (string, error)
 		tokenName := match[1]
 		hasCaption := tokenName == parser.TOKEN_TABLE_CAPTION
 		if hasCaption {
-			caption = tokenMap[match[0]]
+			caption, err = expand(tokenMap[match[0]], tokenMap)
+			if err != nil {
+				return "", err
+			}
 			tokenizedContent = strings.Replace(tokenizedContent, match[0], "", 1)
 			break
 		}

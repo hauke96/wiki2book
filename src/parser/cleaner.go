@@ -6,7 +6,7 @@ import (
 
 func clean(content string) string {
 	content = removeUnwantedTags(content)
-	// TODO remove div tags?
+	content = removeUnwantedHtml(content)
 	return content
 }
 
@@ -41,6 +41,16 @@ func removeUnwantedTags(content string) string {
 		regex = regexp.MustCompile(`(?i)(\* )?\{\{` + template + `(.|\n|\r)*?}}\n?`)
 		content = regex.ReplaceAllString(content, "")
 	}
+
+	return content
+}
+
+func removeUnwantedHtml(content string) string {
+	regex := regexp.MustCompile(`<div[^>]*>`)
+	content = regex.ReplaceAllString(content, "")
+
+	regex = regexp.MustCompile(`</div>`)
+	content = regex.ReplaceAllString(content, "")
 
 	return content
 }
