@@ -10,12 +10,14 @@ import (
 )
 
 func main() {
+	imageFolder := "./images"
+
 	fileContent, err := ioutil.ReadFile("./test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	articleName := parser.Parse(string(fileContent), "test")
+	articleName := parser.Parse(string(fileContent), "test", imageFolder)
 
-	err = api.DownloadImages(articleName.Images, "./images")
+	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
 	html.Generate(articleName, ".", "../example/style.css")

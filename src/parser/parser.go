@@ -9,10 +9,11 @@ const TEMPLATE_FOLDER = "./templates/"
 
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
-func Parse(content string, title string) Article {
+func Parse(content string, title string, imageFolder string) Article {
 	parser := Parser{
 		tokenMap:     map[string]string{},
 		tokenCounter: 0,
+		imageFolder: imageFolder,
 	}
 
 	content = parser.tokenize(content)

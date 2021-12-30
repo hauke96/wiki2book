@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -64,6 +65,7 @@ const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 type Parser struct {
 	tokenMap     map[string]string
 	tokenCounter int
+	imageFolder string
 }
 
 func (p *Parser) getToken(tokenType string) string {
@@ -73,7 +75,7 @@ func (p *Parser) getToken(tokenType string) string {
 }
 
 func (p *Parser) setToken(key string, tokenContent string) {
-	p.tokenMap[key] = tokenContent
+	p.tokenMap[key] = p.tokenize(tokenContent)
 }
 
 // https://www.mediawiki.org/wiki/Markup_spec
@@ -186,7 +188,7 @@ func (p *Parser) parseImages(content string) string {
 	regex := regexp.MustCompile(IMAGE_REGEX)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		filename := submatch[3]
+		filename := filepath.Join(p.imageFolder, submatch[3])
 		filenameToken := p.getToken(TOKEN_IMAGE_FILENAME)
 		p.setToken(filenameToken, filename)
 
@@ -223,7 +225,11 @@ func (p *Parser) parseImages(content string) string {
 			}
 
 			for i, option := range options {
-				if strings.HasSuffix(option, "px") {
+				if p.elemetHasPrefix(option, nonInlinePrefix) {
+					tokenString = TOKEN_IMAGE
+				} else if p.elemetHasPrefix(option, ignorePrefixes) {
+					continue
+				} else if strings.HasSuffix(option, "px") && tokenString != TOKEN_IMAGE {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
 
@@ -236,10 +242,6 @@ func (p *Parser) parseImages(content string) string {
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
 					imageSizeToken = p.getToken(TOKEN_IMAGE_SIZE)
 					p.setToken(imageSizeToken, imageSizeString)
-				} else if p.elemetHasPrefix(option, ignorePrefixes) {
-					continue
-				} else if p.elemetHasPrefix(option, nonInlinePrefix) {
-					tokenString = TOKEN_IMAGE
 				} else if i == len(options)-1 && tokenString == TOKEN_IMAGE {
 					// last remaining option is caption as long as we do NOT have an inline image
 					captionToken = p.getToken(TOKEN_IMAGE_CAPTION)
@@ -308,7 +310,6 @@ func (p *Parser) parseExternalLinks(content string) string {
 			linkText = submatch[4]
 		}
 
-		linkText = p.tokenize(linkText)
 		tokenText := p.getToken(TOKEN_EXTERNAL_LINK_TEXT)
 		p.setToken(tokenText, linkText)
 
