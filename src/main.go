@@ -20,7 +20,9 @@ func main() {
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
-	html.Generate(articleName, ".", "../example/style.css")
+	_, err = html.Generate(articleName, ".", "../example/style.css")
+	sigolo.FatalCheck(err)
+
 	os.Exit(0)
 
 	//projectFile := os.Args[1]

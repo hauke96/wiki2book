@@ -414,6 +414,7 @@ func removeEmptyLines(content string) string {
 	return content
 }
 
+// write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
 	err := os.Mkdir(outputFolder, os.ModePerm)

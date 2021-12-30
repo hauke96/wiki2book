@@ -196,6 +196,8 @@ func EvaluateTemplate(template string) (string, error) {
 func RenderMath(mathString string) (string, error) {
 	sigolo.Info("Render math %s", mathString)
 
+	mathString = url.QueryEscape(mathString)
+
 	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
 	requestData := fmt.Sprintf("q=%s", mathString)
 

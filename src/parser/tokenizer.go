@@ -94,10 +94,10 @@ func (p *Parser) tokenize(content string) string {
 		content = p.parseInternalLinks(content)
 		content = p.parseImages(content)
 		content = p.parseExternalLinks(content)
-		content = p.parseTables(content)
-		content = p.parseLists(content)
 		content = p.parseMath(content)
 		content = p.parseParagraphs(content)
+		content = p.parseTables(content)
+		content = p.parseLists(content)
 
 		if content == originalContent {
 			break
@@ -749,7 +749,7 @@ func (p *Parser) parseReferences(content string) string {
 }
 
 func (p *Parser) parseMath(content string) string {
-	regex := regexp.MustCompile(`<math>(.*?)</math>`)
+	regex := regexp.MustCompile(`<math>((.|\n|\r)*?)</math>`)
 	matches := regex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
 		token := p.getToken(TOKEN_MATH)
