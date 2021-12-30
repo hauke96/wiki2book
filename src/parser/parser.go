@@ -10,30 +10,33 @@ const TEMPLATE_FOLDER = "./templates/"
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
 func Parse(content string, title string) Article {
-	tokenMap := map[string]string{}
+	parser := Parser{
+		tokenMap:     map[string]string{},
+		tokenCounter: 0,
+	}
 
-	content = tokenize(content, tokenMap)
+	content = parser.tokenize(content)
 
-	sigolo.Info("Token map length: %d", len(tokenMap))
+	sigolo.Info("Token map length: %d", len(parser.tokenMap))
 
 	// print some debug information if wanted
 	if sigolo.LogLevel >= sigolo.LOG_DEBUG {
 		sigolo.Debug(content)
 
-		keys := make([]string, 0, len(tokenMap))
-		for k := range tokenMap {
+		keys := make([]string, 0, len(parser.tokenMap))
+		for k := range parser.tokenMap {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 
 		for _, k := range keys {
-			sigolo.Debug("%s : %s\n", k, tokenMap[k])
+			sigolo.Debug("%s : %s\n", k, parser.tokenMap[k])
 		}
 	}
 
 	return Article{
 		Title:    title,
-		TokenMap: tokenMap,
+		TokenMap: parser.tokenMap,
 		Images:   images,
 		Content:  content,
 	}
