@@ -5,15 +5,14 @@ import (
 	"sort"
 )
 
-const TEMPLATE_FOLDER = "./templates/"
-
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
-func Parse(content string, title string, imageFolder string) Article {
+func Parse(content string, title string, imageFolder string, templateFolder string) Article {
 	parser := Parser{
-		tokenMap:     map[string]string{},
-		tokenCounter: 0,
-		imageFolder: imageFolder,
+		tokenMap:       map[string]string{},
+		tokenCounter:   0,
+		imageFolder:    imageFolder,
+		templateFolder: templateFolder,
 	}
 
 	content = parser.tokenize(content)

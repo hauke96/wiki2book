@@ -8,12 +8,14 @@ import (
 )
 
 type Project struct {
-	Metadata Metadata `json:"metadata"`
-	Domain   string   `json:"wikipedia-domain"`
-	Output   string   `json:"output"`
-	Cover    string   `json:"cover"`
-	Style    string   `json:"style"`
-	Articles []string `json:"articles"`
+	Metadata       Metadata `json:"metadata"`
+	Domain         string   `json:"wikipedia-domain"`
+	OutputFile     string   `json:"output-file"`
+	ImageFolder    string   `json:"image-folder"`
+	TemplateFolder string   `json:"template-folder"`
+	Cover          string   `json:"cover"`
+	Style          string   `json:"style"`
+	Articles       []string `json:"articles"`
 }
 
 type Metadata struct {

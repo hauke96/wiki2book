@@ -66,6 +66,7 @@ type Parser struct {
 	tokenMap     map[string]string
 	tokenCounter int
 	imageFolder  string
+	templateFolder  string
 }
 
 func (p *Parser) getToken(tokenType string) string {
@@ -92,7 +93,7 @@ func (p *Parser) tokenize(content string) string {
 		originalContent := content
 
 		content = clean(content)
-		content = evaluateTemplates(content)
+		content = evaluateTemplates(content, p.templateFolder)
 		content = escapeImages(content)
 
 		content = p.parseInternalLinks(content)
@@ -149,7 +150,7 @@ func (p *Parser) parseBoldAndItalic(content string) string {
 
 func (p *Parser) tokenizeBoldAndItalic(content string, index int, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
 	for index < len(content) {
-		// iIn case of last opened italic marker
+		// In case of last opened italic marker
 		if index+3 <= len(content) && content[index:index+3] == "'''" {
 			if !isBoldOpen {
 				// -3 +3 to replace the ''' as well
@@ -527,7 +528,7 @@ func (p *Parser) parseLists(content string) string {
 			newLines := []string{}
 			newLines = append(newLines, lines[:i]...)
 			newLines = append(newLines, token)
-			if i+length+1 < len(lines) {
+			if i+length < len(lines) {
 				newLines = append(newLines, lines[i+length:]...)
 			}
 			lines = newLines
@@ -544,7 +545,6 @@ func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenStr
 		line := lines[i]
 
 		if !strings.HasPrefix(line, itemPrefix) && line != "" {
-			i -= 1
 			break
 		}
 
@@ -566,7 +566,7 @@ func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenStr
 
 	content := strings.Join(listLines, "\n")
 
-	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]([^` + itemPrefix + `])`)
+	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]([^*^#^:])`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	// Ignore first item as it's always empty
 	// Each element contains the whole item including all sub-lists and everything
@@ -574,7 +574,8 @@ func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenStr
 
 	for itemIndex, item := range completeListItems {
 		// re-add the non-prefix characters which was removed by .Split() above
-		token := p.tokenizeListItem(submatches[itemIndex][2]+item, itemPrefix)
+		item = submatches[itemIndex][2] + item
+		token := p.tokenizeListItem(item, itemPrefix)
 		completeListItems[itemIndex] = token
 	}
 
@@ -606,15 +607,15 @@ func (p *Parser) tokenizeListItem(content string, itemPrefix string) string {
 	tokenContent := p.tokenize(itemContent)
 
 	if subListString != "" {
-		subItemPrefix := subListString[0:1]
-		regex := regexp.MustCompile(`(^|\n)[` + subItemPrefix + `]`)
+		regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]`)
 
-		subListString = regex.ReplaceAllString(subListString, "\n")
+		subListItemLines := regex.Split(subListString, -1)[1:]
 		// Ignore first item as it's always empty (due to newline from replacement)
-		subListItemLines := strings.Split(subListString, "\n")
+		subItemPrefix := subListItemLines[0][0:1]
 
-		subListToken, _ := p.tokenizeList(subListItemLines, 0, subItemPrefix, p.getListTokenString(subItemPrefix))
-		p.tokenMap[token] += " " + subListToken
+		listTokenString := p.getListTokenString(subItemPrefix)
+		subListToken, _ := p.tokenizeList(subListItemLines, 0, subItemPrefix, listTokenString)
+		tokenContent += " " + subListToken
 	}
 
 	p.setToken(token, tokenContent)

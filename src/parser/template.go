@@ -11,11 +11,12 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-func evaluateTemplates(content string) string {
+func evaluateTemplates(content string, templateFolder string) string {
 	regex := regexp.MustCompile(`\{\{((.|\n|\r)*?)}}`)
 	content = regex.ReplaceAllStringFunc(content, func(match string) string {
 		evaluatedTemplate := ""
@@ -25,14 +26,14 @@ func evaluateTemplates(content string) string {
 		hash.Write([]byte(match))
 		key := hex.EncodeToString(hash.Sum(nil))
 
-		if hasLocalTemplate(key) {
+		if hasLocalTemplate(key, templateFolder) {
 			matchSubString := match[:int(math.Min(float64(len(match)), 30))]
 			if len(match) > 30 {
 				matchSubString += "..."
 			}
 			sigolo.Info("Template \"%s\" already evaluated, use cached version", matchSubString)
 
-			evaluatedTemplate, err = getTemplate(key)
+			evaluatedTemplate, err = getTemplate(key, templateFolder)
 			if err != nil {
 				sigolo.Stack(err)
 				return ""
@@ -44,7 +45,7 @@ func evaluateTemplates(content string) string {
 				return ""
 			}
 
-			err = saveTemplate(key, evaluatedTemplate)
+			err = saveTemplate(key, evaluatedTemplate, templateFolder)
 			if err != nil {
 				sigolo.Stack(err)
 				return ""
@@ -56,8 +57,8 @@ func evaluateTemplates(content string) string {
 	return content
 }
 
-func hasLocalTemplate(key string) bool {
-	templateFilepath := TEMPLATE_FOLDER + key
+func hasLocalTemplate(key string, templateFolder string) bool {
+	templateFilepath := filepath.Join(templateFolder, key)
 
 	file, err := os.Open(templateFilepath)
 	if file == nil || errors.Is(err, os.ErrNotExist) {
@@ -68,8 +69,8 @@ func hasLocalTemplate(key string) bool {
 	return true
 }
 
-func getTemplate(key string) (string, error) {
-	templateFilepath := TEMPLATE_FOLDER + key
+func getTemplate(key string, templateFolder string) (string, error) {
+	templateFilepath := filepath.Join(templateFolder, key)
 
 	content, err := ioutil.ReadFile(templateFilepath)
 	if err != nil {
@@ -79,16 +80,15 @@ func getTemplate(key string) (string, error) {
 	return string(content), nil
 }
 
-func saveTemplate(key string, evaluatedTemplate string) error {
-	outputFilepath := TEMPLATE_FOLDER + key
-
+func saveTemplate(key string, evaluatedTemplate string, templateFolder string) error {
 	// Create the output folder
-	err := os.Mkdir(TEMPLATE_FOLDER, os.ModePerm)
+	err := os.Mkdir(templateFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", TEMPLATE_FOLDER))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", templateFolder))
 	}
 
 	// Create the output file
+	outputFilepath := filepath.Join(templateFolder, key)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for template %s", key))

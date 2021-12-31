@@ -11,11 +11,12 @@ import (
 
 func main() {
 	imageFolder := "./images"
+	templateFolder := "./templates"
 
 	fileContent, err := ioutil.ReadFile("./test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	articleName := parser.Parse(string(fileContent), "test", imageFolder)
+	articleName := parser.Parse(string(fileContent), "test", imageFolder, templateFolder)
 
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
@@ -42,7 +43,7 @@ func main() {
 	//	wikiPageDto, err := api.DownloadPage(project.Domain, articleName)
 	//	sigolo.FatalCheck(err)
 	//
-	//	article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title)
+	//	article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, project.ImageFolder, project.TemplateFolder)
 	//
 	//	err, outputFile := generateHtml(article, project.Style)
 	//	sigolo.FatalCheck(err)
@@ -53,7 +54,7 @@ func main() {
 	//}
 	//
 	//sigolo.Info("Start generating EPUB file")
-	//err = epub.Generate(articleFiles, project.Output, project.Style, project.Cover, project.Metadata)
+	//err = epub.Generate(articleFiles, project.OutputFile, project.Style, project.Cover, project.Metadata)
 	//sigolo.FatalCheck(err)
 	//sigolo.Info("Successfully created EPUB file")
 }
