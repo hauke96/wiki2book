@@ -11,7 +11,7 @@ func clean(content string) string {
 }
 
 func removeUnwantedTags(content string) string {
-	regex := regexp.MustCompile("\\[\\[Kategorie:.*?]]\n?")
+	regex := regexp.MustCompile("\\[\\[(Kategorie|Category):.*?]]\n?")
 	content = regex.ReplaceAllString(content, "")
 
 	ignoreTemplates := []string{

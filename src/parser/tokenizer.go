@@ -92,8 +92,8 @@ func (p *Parser) tokenize(content string) string {
 	for {
 		originalContent := content
 
-		content = clean(content)
 		content = evaluateTemplates(content, p.templateFolder)
+		content = clean(content)
 		content = escapeImages(content)
 
 		content = p.parseInternalLinks(content)
