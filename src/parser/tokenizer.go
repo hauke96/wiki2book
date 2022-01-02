@@ -85,6 +85,7 @@ func (p *Parser) setRawToken(key string, tokenContent string) {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func (p *Parser) tokenize(content string) string {
+	content = clean(content)
 	content = p.parseBoldAndItalic(content)
 	content = p.parseHeadings(content)
 	content = p.parseReferences(content)

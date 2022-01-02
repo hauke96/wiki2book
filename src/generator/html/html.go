@@ -5,6 +5,7 @@ import (
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/parser"
+	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -13,12 +14,13 @@ import (
 	"strings"
 )
 
-const HEADER = `<html>
+const HEADER = `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8">
 <link rel="stylesheet" href="{{STYLE}}">
 </head>
-<body>
+<body xmlns:epub="http://www.idpf.org/2007/ops">
 `
 const FOOTER = `</body>
 </html>
@@ -33,6 +35,7 @@ const IMAGE_TEMPLATE = `<div class="figure">
 %s
 </div>
 </div>`
+const MATH_TEMPLATE = `<img alt="image" src="./%s" style="width: %s; height: %s; %s">`
 const TABLE_TEMPLATE = `<div class="figure">
 <table>
 %s
@@ -61,17 +64,17 @@ const TEMPLATE_OL = `<ol>
 %s
 </ol>
 `
-const TEMPLATE_DL = `<dl>
+const TEMPLATE_DL = `<div class="list">
 %s
-</dl>
+</div>
 `
 const TEMPLATE_LI = `<li>
 %s
 </li>
 `
-const TEMPLATE_DD = `<dd>
+const TEMPLATE_DD = `<div>
 %s
-</dd>
+</div>
 `
 const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
 const TEMPLATE_REF_DEF = "[%d] %s<br>"
@@ -387,13 +390,14 @@ func expandMath(tokenString string, tokenMap map[string]string) (string, error) 
 		return "", err
 	}
 
-	inline := true
-
-	if inline {
-		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, ""), nil
+	svg, err := util.ReadSvg(filename)
+	if err != nil {
+		return "", err
 	}
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, filename, "100%", ""), nil
+	sigolo.Debug("File: %s, Width: %s, Height: %s, Style: %s", filename, svg.Width, svg.Height, svg.Style)
+
+	return fmt.Sprintf(MATH_TEMPLATE, filename, svg.Width, svg.Height, svg.Style), nil
 }
 
 func escapeSpecialCharacters(content string) string {

@@ -122,7 +122,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 	}
 
 	// If file exists -> ignore
-	outputFilepath := filepath.Join(cacheFolder, "/", filename)
+	outputFilepath := filepath.Join(cacheFolder, filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
 		sigolo.Info("Image file %s does already exist. Skip.", outputFilepath)
 		return outputFilepath, nil
@@ -218,5 +218,22 @@ func RenderMath(mathString string) (string, error) {
 	}
 
 	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + locationHeader
-	return donwloadAndCache(imageUrl, "./images", locationHeader+".svg")
+	// TODO move images folder path to parameter
+	cachedFile, err := donwloadAndCache(imageUrl, "./images", locationHeader+".svg")
+	if err != nil {
+		return "", err
+	}
+
+	//imageFile := filepath.Join("./images", locationHeader+".png")
+	//err = util.Execute("inkscape", cachedFile, "-o", imageFile)
+	//err = util.Execute("magick", "-density", "5", cachedFile, imageFile)
+	//if err != nil {
+	//	return "", errors.Wrap(err, "Error simplifying SVG")
+	//}
+	//err = util.Execute("mv", imageFile, cachedFile)
+	//if err != nil {
+	//	return "", errors.Wrap(err, "Error replacing original SVG with simplified version")
+	//}
+
+	return cachedFile, nil
 }

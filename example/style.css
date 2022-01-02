@@ -62,7 +62,7 @@ Fonts
 Standard HTML elements
  */
 body {
-    margin: 1rem;
+    margin: 2rem;
     font-family: DejaVuSans, sans-serif;
     font-size: .925em;
     line-height: 1.65em;
@@ -164,6 +164,7 @@ table {
     margin: 0 auto;
     border-collapse: collapse;
     font-size: .9em;
+    word-break: break-all;
 }
 
 /*
@@ -190,6 +191,10 @@ Custom classes
     margin: 0 auto
 }
 
-img.inline {
-    vertical-align: -0.4rem;
+ol, ul {
+    padding-left: 0.75rem;
+}
+
+.list {
+    margin-left: 1.25rem;
 }

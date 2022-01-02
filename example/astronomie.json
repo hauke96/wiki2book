@@ -9,7 +9,7 @@
   "wikipedia-domain": "de",
   "output-file": "astronomie.epub",
   "image-folder": "images",
-  "template-folder": "images",
+  "template-folder": "templates",
   "cover": "wikipedia-astronomie-cover.png",
   "style": "style.css",
   "articles": [

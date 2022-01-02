@@ -20,8 +20,12 @@ func removeUnwantedTags(content string) string {
 		"Commons",
 		"Dieser Artikel",
 		"Exzellent",
+		"Gesprochener",
+		"Graph:Chart",
 		"Hauptartikel",
 		"Lesenswert",
+		"Linkbox",
+		"Manueller Rahmen",
 		"Navigationsleiste",
 		"Normdaten",
 		"Panorama",
@@ -32,9 +36,6 @@ func removeUnwantedTags(content string) string {
 		"Wikisource",
 		"Wiktionary",
 		"Toter Link",
-		"Linkbox",
-		"Graph:Chart",
-		"Manueller Rahmen",
 	}
 
 	for _, template := range ignoreTemplates {
