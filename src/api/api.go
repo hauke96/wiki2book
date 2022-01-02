@@ -193,7 +193,7 @@ func EvaluateTemplate(template string) (string, error) {
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }
 
-func RenderMath(mathString string) (string, error) {
+func RenderMath(mathString string, cacheFolder string) (string, error) {
 	sigolo.Info("Render math %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
@@ -218,8 +218,7 @@ func RenderMath(mathString string) (string, error) {
 	}
 
 	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + locationHeader
-	// TODO move images folder path to parameter
-	cachedFile, err := donwloadAndCache(imageUrl, "./images", locationHeader+".svg")
+	cachedFile, err := donwloadAndCache(imageUrl, cacheFolder, locationHeader+".svg")
 	if err != nil {
 		return "", err
 	}

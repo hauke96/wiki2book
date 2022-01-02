@@ -29,7 +29,7 @@ func generateTestEbook() {
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
-	_, err = html.Generate(articleName, "../test/", "../example/style.css")
+	_, err = html.Generate(articleName, "../test/", "../example/style.css", imageFolder)
 	sigolo.FatalCheck(err)
 
 	sigolo.Info("Start generating EPUB file")
@@ -78,10 +78,12 @@ func generateEbook() {
 }
 
 func generateHtml(wikiPage parser.Article, styleFile string) (error, string) {
-	err := api.DownloadImages(wikiPage.Images, "./images")
+	imageFolder := "./images"
+
+	err := api.DownloadImages(wikiPage.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
-	outputFile, err := html.Generate(wikiPage, "./", styleFile)
+	outputFile, err := html.Generate(wikiPage, "./", styleFile, imageFolder)
 	sigolo.FatalCheck(err)
 	return err, outputFile
 }

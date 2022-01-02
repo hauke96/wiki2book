@@ -80,7 +80,12 @@ const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
 const TEMPLATE_REF_DEF = "[%d] %s<br>"
 const TEMPLATE_REF_USAGE = "[%d]"
 
-func Generate(wikiPage parser.Article, outputFolder string, styleFile string) (string, error) {
+// Just a helper field to not pass that parameter around through all the function calls.
+// TODO create generator struct and put it in there
+var imageFolder = ""
+
+func Generate(wikiPage parser.Article, outputFolder string, styleFile string, imgFolder string) (string, error) {
+	imageFolder = imgFolder
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiPage.Title + "</h1>"
 	expandedContent, err := expand(wikiPage.Content, wikiPage.TokenMap)
@@ -385,7 +390,7 @@ func expandRefUsage(tokenString string, tokenMap map[string]string) (string, err
 }
 
 func expandMath(tokenString string, tokenMap map[string]string) (string, error) {
-	filename, err := api.RenderMath(tokenMap[tokenString])
+	filename, err := api.RenderMath(tokenMap[tokenString], imageFolder)
 	if err != nil {
 		return "", err
 	}
