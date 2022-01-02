@@ -1,0 +1,98 @@
+This is a file to test the transpiler from WikiText to HTML.
+
+== Basics ==
+
+As you can see, ''headings'' work and '''formatting''' as well.
+
+== References ==
+
+You found something smart? Better but a <ref>Reference to a source</ref> on it.
+
+== Templates ==
+
+Some get ignored (due to layout reasons or low significance for an ebook) but some work like the ''grcS'' template used in the German [https://de.wikipedia.org/wiki/Stern Stern] article: {{grcS|ἀστήρ, ἄστρον|astēr, astron}}.
+
+== Links ==
+
+[https://en.wikipedia.org/wiki/As As] [https://en.wikipedia.org/wiki/you you] [https://en.wikipedia.org/wiki/can can] [https://en.wikipedia.org/wiki/see see], links work as well.
+
+== Math ==
+Let us do some <math>m \cdot a + t - \mathbb{H}</math> stuff:
+
+:<math>
+\begin{align}
+\rho - 1 &= \sqrt{5} \\
+\rho &= \sqrt{5} + 1 \\
+\rho &> 1
+\end{align}
+</math>
+
+== Lists ==
+
+We can do lists as well.
+
+=== Unordered lists ===
+
+Yummi:
+
+* apple
+* banana
+
+=== Ordered lists ===
+
+How to go shopping:
+
+# Go to the store
+# Buy stuff
+# ...
+# Profit
+
+=== Description list ===
+
+Mostly used for indention without bullet-points or numbers:
+
+: first line
+: second line
+
+== Images ==
+
+We can embed images:
+
+[[Datei:Wikimedia_Servers-0051_19.jpg|mini|With some caption.]]
+
+Or embed the image inline like this [[Datei:Wikipedia-logo-v2.svg|16px]] Wikipedia icon.
+
+All (raster) images will be scaled down and turned into grayscale images. SVGs stay as they are. Some media types (like mp4 and gif) are not supported.
+
+== Tables ==
+
+A bit tricky but they work as well:
+
+{| class="wikitable"
+|+ Some heading
+|-
+! Heading A !! Heading Bee
+|-
+| Important value: [[Datei:Wikipedia-logo-v2.svg|mini|64px|Images in tables work as well]] || Even more important value
+|-
+| This row is ...
+| ...multi-line wikitext
+|-
+| Not so important value ||
+{| class="wikitable"
+|+ Even inner tables work
+|-
+! Col 1 !! Col 2
+|-
+| This col ... || ... is cool
+|-
+| Foo
+| Bar
+|}
+|}
+
+== References ==
+
+They will be collected and are visible at the end of the document:<br>
+
+<references />
