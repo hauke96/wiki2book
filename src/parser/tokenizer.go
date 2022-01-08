@@ -62,48 +62,48 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
-type Parser struct {
+type Tokenizer struct {
 	tokenMap     map[string]string
 	tokenCounter int
 	imageFolder  string
 	templateFolder  string
 }
 
-func (p *Parser) getToken(tokenType string) string {
-	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, p.tokenCounter)
-	p.tokenCounter++
+func (t *Tokenizer) getToken(tokenType string) string {
+	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, t.tokenCounter)
+	t.tokenCounter++
 	return token
 }
 
-func (p *Parser) setToken(key string, tokenContent string) {
-	p.setRawToken(key, p.tokenize(tokenContent))
+func (t *Tokenizer) setToken(key string, tokenContent string) {
+	t.setRawToken(key, t.tokenize(tokenContent))
 }
 
-func (p *Parser) setRawToken(key string, tokenContent string) {
-	p.tokenMap[key] = tokenContent
+func (t *Tokenizer) setRawToken(key string, tokenContent string) {
+	t.tokenMap[key] = tokenContent
 }
 
 // https://www.mediawiki.org/wiki/Markup_spec
-func (p *Parser) tokenize(content string) string {
+func (t *Tokenizer) tokenize(content string) string {
 	content = clean(content)
-	content = p.parseBoldAndItalic(content)
-	content = p.parseHeadings(content)
-	content = p.parseReferences(content)
+	content = t.parseBoldAndItalic(content)
+	content = t.parseHeadings(content)
+	content = t.parseReferences(content)
 
 	for {
 		originalContent := content
 
-		content = evaluateTemplates(content, p.templateFolder)
+		content = evaluateTemplates(content, t.templateFolder)
 		content = clean(content)
 		content = escapeImages(content)
 
-		content = p.parseInternalLinks(content)
-		content = p.parseImages(content)
-		content = p.parseExternalLinks(content)
-		content = p.parseMath(content)
-		//content = p.parseParagraphs(content)
-		content = p.parseTables(content)
-		content = p.parseLists(content)
+		content = t.parseInternalLinks(content)
+		content = t.parseImages(content)
+		content = t.parseExternalLinks(content)
+		content = t.parseMath(content)
+		//content = t.parseParagraphs(content)
+		content = t.parseTables(content)
+		content = t.parseLists(content)
 
 		if content == originalContent {
 			break
@@ -115,28 +115,28 @@ func (p *Parser) tokenize(content string) string {
 
 // tokenizeInline is meant for strings that are known to be inline string. Example: The text of an internal link cannot
 // contain tables and lists, so we do not want to parse them.
-func (p *Parser) tokenizeInline(content string) string {
-	content = p.parseBoldAndItalic(content)
-	content = p.parseHeadings(content)
-	content = p.parseReferences(content)
+func (t *Tokenizer) tokenizeInline(content string) string {
+	content = t.parseBoldAndItalic(content)
+	content = t.parseHeadings(content)
+	content = t.parseReferences(content)
 
 	for {
-		content = p.parseInternalLinks(content)
-		content = p.parseImages(content)
-		content = p.parseExternalLinks(content)
+		content = t.parseInternalLinks(content)
+		content = t.parseImages(content)
+		content = t.parseExternalLinks(content)
 		break
 	}
 
 	return content
 }
 
-func (p *Parser) parseHeadings(content string) string {
+func (t *Tokenizer) parseHeadings(content string) string {
 	for i := 1; i < 7; i++ {
 		headingPrefixSuffix := strings.Repeat("=", i)
 		matches := regexp.MustCompile(`(?m)^`+headingPrefixSuffix+` (.*) `+headingPrefixSuffix+`$`).FindAllStringSubmatch(content, -1)
 		for _, match := range matches {
-			token := p.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i))
-			p.setToken(token, match[1])
+			token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i))
+			t.setToken(token, match[1])
 			content = strings.Replace(content, match[0], token, 1)
 		}
 	}
@@ -144,12 +144,12 @@ func (p *Parser) parseHeadings(content string) string {
 	return content
 }
 
-func (p *Parser) parseBoldAndItalic(content string) string {
-	content, _, _, _ = p.tokenizeBoldAndItalic(content, 0, false, false)
+func (t *Tokenizer) parseBoldAndItalic(content string) string {
+	content, _, _, _ = t.tokenizeBoldAndItalic(content, 0, false, false)
 	return content
 }
 
-func (p *Parser) tokenizeBoldAndItalic(content string, index int, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
+func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, isBoldOpen bool, isItalicOpen bool) (string, int, bool, bool) {
 	for index < len(content) {
 		// In case of last opened italic marker
 		if index+3 <= len(content) && content[index:index+3] == "'''" {
@@ -159,7 +159,7 @@ func (p *Parser) tokenizeBoldAndItalic(content string, index int, isBoldOpen boo
 				index = index + len(MARKER_BOLD_OPEN)
 
 				// Check for further nested italic tags
-				content, index, isBoldOpen, isItalicOpen = p.tokenizeBoldAndItalic(content, index, true, isItalicOpen)
+				content, index, isBoldOpen, isItalicOpen = t.tokenizeBoldAndItalic(content, index, true, isItalicOpen)
 			} else {
 				// +3 to replace the '''
 				content = strings.Replace(content, content[index:index+3], MARKER_BOLD_CLOSE, 1)
@@ -174,7 +174,7 @@ func (p *Parser) tokenizeBoldAndItalic(content string, index int, isBoldOpen boo
 				index = index + len(MARKER_ITALIC_OPEN)
 
 				// Check for further nested italic tags
-				content, index, isBoldOpen, isItalicOpen = p.tokenizeBoldAndItalic(content, index, isBoldOpen, true)
+				content, index, isBoldOpen, isItalicOpen = t.tokenizeBoldAndItalic(content, index, isBoldOpen, true)
 			} else {
 				// +2 to replace the ''
 				content = strings.Replace(content, content[index:index+2], MARKER_ITALIC_CLOSE, 1)
@@ -190,13 +190,13 @@ func (p *Parser) tokenizeBoldAndItalic(content string, index int, isBoldOpen boo
 	return content, index, false, false
 }
 
-func (p *Parser) parseImages(content string) string {
+func (t *Tokenizer) parseImages(content string) string {
 	regex := regexp.MustCompile(IMAGE_REGEX)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		filename := filepath.Join(p.imageFolder, submatch[3])
-		filenameToken := p.getToken(TOKEN_IMAGE_FILENAME)
-		p.setToken(filenameToken, filename)
+		filename := filepath.Join(t.imageFolder, submatch[3])
+		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
+		t.setToken(filenameToken, filename)
 
 		tokenString := TOKEN_IMAGE_INLINE
 		imageSizeToken := ""
@@ -231,9 +231,9 @@ func (p *Parser) parseImages(content string) string {
 			}
 
 			for i, option := range options {
-				if p.elemetHasPrefix(option, nonInlinePrefix) {
+				if t.elemetHasPrefix(option, nonInlinePrefix) {
 					tokenString = TOKEN_IMAGE
-				} else if p.elemetHasPrefix(option, ignorePrefixes) {
+				} else if t.elemetHasPrefix(option, ignorePrefixes) {
 					continue
 				} else if strings.HasSuffix(option, "px") && tokenString != TOKEN_IMAGE {
 					option = strings.TrimSuffix(option, "px")
@@ -246,18 +246,18 @@ func (p *Parser) parseImages(content string) string {
 					}
 
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
-					imageSizeToken = p.getToken(TOKEN_IMAGE_SIZE)
-					p.setToken(imageSizeToken, imageSizeString)
+					imageSizeToken = t.getToken(TOKEN_IMAGE_SIZE)
+					t.setToken(imageSizeToken, imageSizeString)
 				} else if i == len(options)-1 && tokenString == TOKEN_IMAGE {
 					// last remaining option is caption as long as we do NOT have an inline image
-					captionToken = p.getToken(TOKEN_IMAGE_CAPTION)
-					p.setToken(captionToken, option)
+					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
+					t.setToken(captionToken, option)
 				}
 			}
 		}
 
-		token := p.getToken(tokenString)
-		p.setToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
+		token := t.getToken(tokenString)
+		t.setToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -265,7 +265,7 @@ func (p *Parser) parseImages(content string) string {
 	return content
 }
 
-func (p *Parser) elemetHasPrefix(element string, prefixes []string) bool {
+func (t *Tokenizer) elemetHasPrefix(element string, prefixes []string) bool {
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(element, prefix) {
 			return true
@@ -274,7 +274,7 @@ func (p *Parser) elemetHasPrefix(element string, prefixes []string) bool {
 	return false
 }
 
-func (p *Parser) parseInternalLinks(content string) string {
+func (t *Tokenizer) parseInternalLinks(content string) string {
 	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
@@ -282,8 +282,8 @@ func (p *Parser) parseInternalLinks(content string) string {
 			continue
 		}
 
-		tokenArticle := p.getToken(TOKEN_INTERNAL_LINK_ARTICLE)
-		p.setToken(tokenArticle, submatch[1])
+		tokenArticle := t.getToken(TOKEN_INTERNAL_LINK_ARTICLE)
+		t.setToken(tokenArticle, submatch[1])
 
 		linkText := submatch[1]
 		if submatch[3] != "" {
@@ -291,12 +291,12 @@ func (p *Parser) parseInternalLinks(content string) string {
 			linkText = submatch[3]
 		}
 
-		text := p.tokenizeInline(linkText)
-		tokenText := p.getToken(TOKEN_INTERNAL_LINK_TEXT)
-		p.setToken(tokenText, text)
+		text := t.tokenizeInline(linkText)
+		tokenText := t.getToken(TOKEN_INTERNAL_LINK_TEXT)
+		t.setToken(tokenText, text)
 
-		token := p.getToken(TOKEN_INTERNAL_LINK)
-		p.setToken(token, tokenArticle+" "+tokenText)
+		token := t.getToken(TOKEN_INTERNAL_LINK)
+		t.setToken(token, tokenArticle+" "+tokenText)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -304,23 +304,23 @@ func (p *Parser) parseInternalLinks(content string) string {
 	return content
 }
 
-func (p *Parser) parseExternalLinks(content string) string {
+func (t *Tokenizer) parseExternalLinks(content string) string {
 	regex := regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?]([^]])`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		tokenUrl := p.getToken(TOKEN_EXTERNAL_LINK_URL)
-		p.setToken(tokenUrl, submatch[2])
+		tokenUrl := t.getToken(TOKEN_EXTERNAL_LINK_URL)
+		t.setToken(tokenUrl, submatch[2])
 
 		linkText := submatch[2]
 		if len(submatch) >= 5 {
 			linkText = submatch[4]
 		}
 
-		tokenText := p.getToken(TOKEN_EXTERNAL_LINK_TEXT)
-		p.setToken(tokenText, linkText)
+		tokenText := t.getToken(TOKEN_EXTERNAL_LINK_TEXT)
+		t.setToken(tokenText, linkText)
 
-		token := p.getToken(TOKEN_EXTERNAL_LINK)
-		p.setToken(token, tokenUrl+" "+tokenText)
+		token := t.getToken(TOKEN_EXTERNAL_LINK)
+		t.setToken(token, tokenUrl+" "+tokenText)
 
 		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
 		totalMatch := submatch[0][:len(submatch[0])-1]
@@ -330,7 +330,7 @@ func (p *Parser) parseExternalLinks(content string) string {
 	return content
 }
 
-func (p *Parser) parseTables(content string) string {
+func (t *Tokenizer) parseTables(content string) string {
 	lines := strings.Split(content, "\n")
 	regex := regexp.MustCompile(`^(:*)(\{\|.*)`)
 
@@ -342,7 +342,7 @@ func (p *Parser) parseTables(content string) string {
 			line = submatch[2]
 
 			// table starts in this line.
-			token, newIndex := p.tokenizeTables(lines, i)
+			token, newIndex := t.tokenizeTables(lines, i)
 
 			length := newIndex - i
 
@@ -362,7 +362,7 @@ func (p *Parser) parseTables(content string) string {
 }
 
 // tokenizeTable returns the token of the table and the index of the row where this table ended.
-func (p *Parser) tokenizeTables(lines []string, i int) (string, int) {
+func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 	tableLines := []string{}
 	tableLines = append(tableLines, lines[i])
 	i++
@@ -374,7 +374,7 @@ func (p *Parser) tokenizeTables(lines []string, i int) (string, int) {
 		if strings.HasPrefix(line, "{|") || strings.HasPrefix(line, ":{|") {
 			// another table starts
 			tableToken := ""
-			tableToken, i = p.tokenizeTables(lines, i)
+			tableToken, i = t.tokenizeTables(lines, i)
 			tableLines = append(tableLines, tableToken)
 		} else if strings.HasPrefix(line, "|}") {
 			// the table ends with this line
@@ -386,12 +386,12 @@ func (p *Parser) tokenizeTables(lines []string, i int) (string, int) {
 	}
 
 	tableContent := strings.Join(tableLines, "\n")
-	token := p.tokenizeTable(tableContent)
+	token := t.tokenizeTable(tableContent)
 	return token, i
 }
 
 // tokenizeTable expects content to be all lines of a table.
-func (p *Parser) tokenizeTable(content string) string {
+func (t *Tokenizer) tokenizeTable(content string) string {
 	// ensure that each columns starts in a new row
 	content = strings.ReplaceAll(content, "||", "\n|")
 	content = strings.ReplaceAll(content, "!!", "\n!")
@@ -404,17 +404,17 @@ func (p *Parser) tokenizeTable(content string) string {
 		line := lines[i]
 		if strings.HasPrefix(line, "|+") {
 			caption := strings.TrimPrefix(line, "|+")
-			captionToken = p.getToken(TOKEN_TABLE_CAPTION)
-			p.setToken(captionToken, caption)
+			captionToken = t.getToken(TOKEN_TABLE_CAPTION)
+			t.setToken(captionToken, caption)
 			tableTokens += captionToken + " "
 		} else if strings.HasPrefix(line, "|-") {
 			rowToken := ""
 			if strings.HasPrefix(lines[i+1], "!") {
 				// this table row is a heading
-				rowToken, i = p.tokenizeTableRow(lines, i+1, "!")
+				rowToken, i = t.tokenizeTableRow(lines, i+1, "!")
 			} else if strings.HasPrefix(lines[i+1], "|") {
 				// this table row is a normal row
-				rowToken, i = p.tokenizeTableRow(lines, i+1, "|")
+				rowToken, i = t.tokenizeTableRow(lines, i+1, "|")
 			}
 
 			tableTokens += rowToken + " "
@@ -424,15 +424,15 @@ func (p *Parser) tokenizeTable(content string) string {
 		}
 	}
 
-	token := p.getToken(TOKEN_TABLE)
-	p.setToken(token, tableTokens)
+	token := t.getToken(TOKEN_TABLE)
+	t.setToken(token, tableTokens)
 
 	return token
 }
 
 // tokenizeTableRow expects i to be the line with the first text item (i.e. the line after |- ). The returned index
 // points to the last text line of this table row.
-func (p *Parser) tokenizeTableRow(lines []string, i int, sep string) (string, int) {
+func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string, int) {
 	rowLines := []string{}
 
 	// collect all lines from this row
@@ -456,43 +456,43 @@ func (p *Parser) tokenizeTableRow(lines []string, i int, sep string) (string, in
 		i -= 1
 
 		attributes := ""
-		line, attributes = p.tokenizeTableColumn(line)
+		line, attributes = t.tokenizeTableColumn(line)
 
 		attributeToken := ""
 		if attributes != "" {
-			attributeToken = p.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
-			p.setToken(attributeToken, attributes)
+			attributeToken = t.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
+			t.setToken(attributeToken, attributes)
 		}
 
 		token := ""
 		if sep == "!" {
-			token = p.getToken(TOKEN_TABLE_HEAD)
+			token = t.getToken(TOKEN_TABLE_HEAD)
 		} else {
-			token = p.getToken(TOKEN_TABLE_COL)
+			token = t.getToken(TOKEN_TABLE_COL)
 		}
-		p.setToken(token, attributeToken+line)
+		t.setToken(token, attributeToken+line)
 
 		rowLines = append(rowLines, token)
 	}
 
 	tokenContent := strings.Join(rowLines, " ")
 
-	token := p.getToken(TOKEN_TABLE_ROW)
-	p.setToken(token, tokenContent)
+	token := t.getToken(TOKEN_TABLE_ROW)
+	t.setToken(token, tokenContent)
 
 	// return i-1 so that i is on the last line of the row when returning
 	return token, i - 1
 }
 
 // tokenizeTableColumn returns the tokenized text of the column and as second return value relevant CSS attributes (might be empty).
-func (p *Parser) tokenizeTableColumn(content string) (string, string) {
+func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
 	splittedContent := strings.Split(content, "|")
 	if len(splittedContent) < 2 {
-		return p.tokenize(content), ""
+		return t.tokenize(content), ""
 	}
 
 	attributeString := splittedContent[0]
-	columnText := p.tokenize(splittedContent[1])
+	columnText := t.tokenize(splittedContent[1])
 
 	relevantTags := []string{}
 
@@ -509,7 +509,7 @@ func (p *Parser) tokenizeTableColumn(content string) (string, string) {
 	return columnText, strings.Join(relevantTags, " ")
 }
 
-func (p *Parser) parseLists(content string) string {
+func (t *Tokenizer) parseLists(content string) string {
 	lines := strings.Split(content, "\n")
 
 	for i := 0; i < len(lines); i++ {
@@ -519,10 +519,10 @@ func (p *Parser) parseLists(content string) string {
 		lineStartCharacter := regex.FindStringSubmatch(line)
 
 		if len(lineStartCharacter) > 0 && lineStartCharacter[1] != "" {
-			listTokenString := p.getListTokenString(lineStartCharacter[1])
+			listTokenString := t.getListTokenString(lineStartCharacter[1])
 
 			// a new unordered list starts here
-			token, newIndex := p.tokenizeList(lines, i, lineStartCharacter[1], listTokenString)
+			token, newIndex := t.tokenizeList(lines, i, lineStartCharacter[1], listTokenString)
 
 			length := newIndex - i
 
@@ -540,7 +540,7 @@ func (p *Parser) parseLists(content string) string {
 	return content
 }
 
-func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenString string) (string, int) {
+func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, tokenString string) (string, int) {
 	listLines := []string{}
 	for ; i < len(lines); i++ {
 		line := lines[i]
@@ -576,18 +576,18 @@ func (p *Parser) tokenizeList(lines []string, i int, itemPrefix string, tokenStr
 	for itemIndex, item := range completeListItems {
 		// re-add the non-prefix characters which was removed by .Split() above
 		item = submatches[itemIndex][2] + item
-		token := p.tokenizeListItem(item, itemPrefix)
+		token := t.tokenizeListItem(item, itemPrefix)
 		completeListItems[itemIndex] = token
 	}
 
 	tokenContent := strings.Join(completeListItems, " ")
-	token := p.getToken(tokenString)
-	p.setToken(token, tokenContent)
+	token := t.getToken(tokenString)
+	t.setToken(token, tokenContent)
 
 	return token, i
 }
 
-func (p *Parser) tokenizeListItem(content string, itemPrefix string) string {
+func (t *Tokenizer) tokenizeListItem(content string, itemPrefix string) string {
 	content = strings.TrimPrefix(content, itemPrefix+" ")
 	lines := strings.Split(content, "\n")
 
@@ -596,7 +596,7 @@ func (p *Parser) tokenizeListItem(content string, itemPrefix string) string {
 
 	// collect all lines of this list item which do not belong to a nested item
 	for i, line := range lines {
-		if p.hasListItemPrefix(line) {
+		if t.hasListItemPrefix(line) {
 			// a sub-item starts
 			subListString = strings.Join(lines[i:], "\n")
 			break
@@ -604,8 +604,8 @@ func (p *Parser) tokenizeListItem(content string, itemPrefix string) string {
 		itemContent += line + "\n"
 	}
 
-	token := p.getToken(p.getListItemTokenString(itemPrefix))
-	tokenContent := p.tokenize(itemContent)
+	token := t.getToken(t.getListItemTokenString(itemPrefix))
+	tokenContent := t.tokenize(itemContent)
 
 	if subListString != "" {
 		regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]`)
@@ -614,16 +614,16 @@ func (p *Parser) tokenizeListItem(content string, itemPrefix string) string {
 		// Ignore first item as it's always empty (due to newline from replacement)
 		subItemPrefix := subListItemLines[0][0:1]
 
-		listTokenString := p.getListTokenString(subItemPrefix)
-		subListToken, _ := p.tokenizeList(subListItemLines, 0, subItemPrefix, listTokenString)
+		listTokenString := t.getListTokenString(subItemPrefix)
+		subListToken, _ := t.tokenizeList(subListItemLines, 0, subItemPrefix, listTokenString)
 		tokenContent += " " + subListToken
 	}
 
-	p.setToken(token, tokenContent)
+	t.setToken(token, tokenContent)
 	return token
 }
 
-func (p *Parser) getListTokenString(listItemPrefix string) string {
+func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
 	switch listItemPrefix {
 	case "*":
 		return TOKEN_UNORDERED_LIST
@@ -635,7 +635,7 @@ func (p *Parser) getListTokenString(listItemPrefix string) string {
 	return ""
 }
 
-func (p *Parser) getListItemTokenString(listItemPrefix string) string {
+func (t *Tokenizer) getListItemTokenString(listItemPrefix string) string {
 	switch listItemPrefix {
 	case "*":
 		return TOKEN_LIST_ITEM
@@ -647,11 +647,11 @@ func (p *Parser) getListItemTokenString(listItemPrefix string) string {
 	return ""
 }
 
-func (p *Parser) hasListItemPrefix(line string) bool {
+func (t *Tokenizer) hasListItemPrefix(line string) bool {
 	return regexp.MustCompile(`^[*#:]`).MatchString(line)
 }
 
-func (p *Parser) parseReferences(content string) string {
+func (t *Tokenizer) parseReferences(content string) string {
 	referenceDefinitions := map[string]string{}
 	referenceUsages := map[string]string{}
 
@@ -739,33 +739,33 @@ func (p *Parser) parseReferences(content string) string {
 	// Create usage token for ref usages like <ref name="foo" />
 	for name, ref := range referenceUsages {
 		refIndex := refNameToIndex[name]
-		token := p.getToken(TOKEN_REF_USAGE)
-		p.setToken(token, fmt.Sprintf("%d %s", refIndex, ref))
+		token := t.getToken(TOKEN_REF_USAGE)
+		t.setToken(token, fmt.Sprintf("%d %s", refIndex, ref))
 		head = strings.ReplaceAll(head, ref, token)
 	}
 
 	// Append ref definitions to head
 	for _, name := range sortedRefNames {
 		ref := referenceDefinitions[name]
-		token := p.getToken(TOKEN_REF_DEF)
-		p.setToken(token, fmt.Sprintf("%d %s", refNameToIndex[name], p.tokenize(ref)))
+		token := t.getToken(TOKEN_REF_DEF)
+		t.setToken(token, fmt.Sprintf("%d %s", refNameToIndex[name], t.tokenize(ref)))
 		head += token + "\n"
 	}
 
 	return head + foot
 }
 
-func (p *Parser) parseMath(content string) string {
+func (t *Tokenizer) parseMath(content string) string {
 	regex := regexp.MustCompile(`<math>((.|\n|\r)*?)</math>`)
 	matches := regex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
-		token := p.getToken(TOKEN_MATH)
-		p.setRawToken(token, match[1])
+		token := t.getToken(TOKEN_MATH)
+		t.setRawToken(token, match[1])
 		content = strings.Replace(content, match[0], token, 1)
 	}
 	return content
 }
 
-func (p *Parser) parseParagraphs(content string) string {
+func (t *Tokenizer) parseParagraphs(content string) string {
 	return strings.ReplaceAll(content, "\n\n", "\n"+MARKER_PARAGRAPH+"\n")
 }
