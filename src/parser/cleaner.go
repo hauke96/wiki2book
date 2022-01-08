@@ -5,15 +5,18 @@ import (
 )
 
 func clean(content string) string {
-	content = removeUnwantedTags(content)
+	content = removeUnwantedCategories(content)
+	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
 	return content
 }
 
-func removeUnwantedTags(content string) string {
-	regex := regexp.MustCompile("\\[\\[(Kategorie|Category):.*?]]\n?")
-	content = regex.ReplaceAllString(content, "")
+func removeUnwantedCategories(content string) string {
+	regex := regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`)
+	return regex.ReplaceAllString(content, "")
+}
 
+func removeUnwantedTemplates(content string) string {
 	ignoreTemplates := []string{
 		"Alpha Centauri",
 		"Begriffsklärungshinweis",
@@ -39,7 +42,7 @@ func removeUnwantedTags(content string) string {
 	}
 
 	for _, template := range ignoreTemplates {
-		regex = regexp.MustCompile(`(?i)(\* )?\{\{` + template + `(.|\n|\r)*?}}\n?`)
+		regex := regexp.MustCompile(`(?i)(\* )?\{\{` + template + `[^}]*?}}\n?`)
 		content = regex.ReplaceAllString(content, "")
 	}
 
