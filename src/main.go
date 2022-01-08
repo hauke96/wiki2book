@@ -13,8 +13,7 @@ import (
 )
 
 func main() {
-	generateTestEbook()
-	//generateEbook()
+	generateEbook()
 }
 
 func generateTestEbook() {
@@ -39,12 +38,18 @@ func generateTestEbook() {
 	err = epub.Generate([]string{"../test/test.html"}, "../test/test.epub", "../example/style.css", "../example/wikipedia-astronomie-cover.png", metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
-
-	os.Exit(0)
 }
 
 func generateEbook() {
 	projectFile := os.Args[1]
+
+	if "test" == projectFile {
+		sigolo.Info("Use test file instead of real project file")
+		generateTestEbook()
+		os.Exit(0)
+	}
+
+	sigolo.Info("Use project file: %s", projectFile)
 
 	directory, _ := filepath.Split(projectFile)
 	err := os.Chdir(directory)
