@@ -1,6 +1,6 @@
 # wiki2book
 
-Create an eBook (EPUB) from wikipedia pages.
+Create an eBook (EPUB) from a collection of wikipedia articles.
 
 ## Preliminaries
 
@@ -34,3 +34,4 @@ Open tasks of this project:
 * [x] Save rendered templates like images
 * [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests
+* [ ] Pretty focused on German articles
