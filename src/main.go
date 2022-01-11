@@ -24,7 +24,7 @@ func generateTestEbook() {
 	sigolo.FatalCheck(err)
 
 	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
-	articleName := parser.Parse(string(fileContent), "test", tokenizer)
+	articleName := parser.Parse(string(fileContent), "test", &tokenizer)
 
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
@@ -68,7 +68,7 @@ func generateEbook() {
 		sigolo.FatalCheck(err)
 
 		tokenizer := parser.NewTokenizer(project.ImageFolder, project.TemplateFolder)
-		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, tokenizer)
+		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, &tokenizer)
 
 		err, outputFile := generateHtml(article, project.Style)
 		sigolo.FatalCheck(err)

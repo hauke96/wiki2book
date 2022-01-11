@@ -12,11 +12,13 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 		content := "[[Datei:foo." + extension + "]][[File:bar." + extension + "|some|further|settings]]"
 		content = escapeImages(content)
 		test.AssertEmptyString(t, content)
+		test.AssertEqual(t, []string{}, images)
 	}
 }
 
 func TestEscapeImages_escapeFileNames(t *testing.T) {
 	content := "[[Datei:some photo.png|with|properties]]"
 	content = escapeImages(content)
-	test.AssertEqualString(t, "[[Datei:Some_photo.png|with|properties]]", content)
+	test.AssertEqual(t, "[[Datei:Some_photo.png|with|properties]]", content)
+	test.AssertEqual(t, []string{"Datei:Some_photo.png"}, images)
 }

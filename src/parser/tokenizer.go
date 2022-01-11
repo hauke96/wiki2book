@@ -62,6 +62,11 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
+type ITokenizer interface {
+	tokenize(content string) string
+	getTokenMap() map[string]string
+}
+
 type Tokenizer struct {
 	tokenMap     map[string]string
 	tokenCounter int
@@ -76,6 +81,10 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
 	}
+}
+
+func (t *Tokenizer) getTokenMap() map[string]string {
+	return t.tokenMap
 }
 
 func (t *Tokenizer) getToken(tokenType string) string {

@@ -12,9 +12,9 @@ func TestReadSvg(t *testing.T) {
 		t.Fail()
 	}
 
-	test.AssertEqualString(t, svg.Width, "16.156ex")
-	test.AssertEqualString(t, svg.Height, "9.176ex")
-	test.AssertEqualString(t, svg.Style, "vertical-align: -4.005ex;")
+	test.AssertEqual(t, svg.Width, "16.156ex")
+	test.AssertEqual(t, svg.Height, "9.176ex")
+	test.AssertEqual(t, svg.Style, "vertical-align: -4.005ex;")
 }
 
 func TestReadSvg_imageNotFound(t *testing.T) {

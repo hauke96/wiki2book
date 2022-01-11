@@ -1,10 +1,14 @@
 package test
 
-import "testing"
+import (
+	"reflect"
+	"regexp"
+	"testing"
+)
 
-func AssertEqualString(t *testing.T, expected string, actual string) {
-	if expected != actual {
-		t.Errorf("Expected: %s\nActual: %s", expected, actual)
+func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Expect to be equal.\nExpected: %+v\nActual: %+v", expected, actual)
 		t.Fail()
 	}
 }
@@ -22,3 +26,34 @@ func AssertEmptyString(t *testing.T, s string) {
 		t.Fail()
 	}
 }
+
+func AssertTrue(t *testing.T, b bool) {
+	if !b {
+		t.Error("Expected true but got false")
+		t.Fail()
+	}
+}
+
+func AssertFalse(t *testing.T, b bool) {
+	if b {
+		t.Error("Expected false but got true")
+		t.Fail()
+	}
+}
+
+func AssertMatch(t *testing.T, regexString string, content string) {
+	regex := regexp.MustCompile(regexString)
+	if !regex.MatchString(content) {
+		t.Errorf("Expected to match\nRegex: %s\nContent: %s", regexString, content)
+		t.Fail()
+	}
+}
+
+func AssertNoMatch(t *testing.T, regexString string, content string) {
+	regex := regexp.MustCompile(regexString)
+	if regex.MatchString(content) {
+		t.Errorf("Expected NOT to match\nRegex: %s\nContent: %s", regexString, content)
+		t.Fail()
+	}
+}
+

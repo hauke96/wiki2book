@@ -11,6 +11,8 @@ var images = []string{}
 
 // escapeImages escapes the image names in the content and returns the updated content.
 func escapeImages(content string) string {
+	var result []string
+
 	// Remove videos and gifs
 	regex := regexp.MustCompile(`\[\[((Datei|File):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
 	content = regex.ReplaceAllString(content, "")
@@ -32,9 +34,12 @@ func escapeImages(content string) string {
 		filename = filePrefix + ":" + filename
 
 		content = strings.ReplaceAll(content, submatch[1], filename)
+		result = append(result, filename)
 
 		sigolo.Debug("Found image: %s", filename)
 	}
+
+	images = append(images, result...)
 
 	firstPartOfContent := content[:int(math.Min(float64(len(content)), 30))]
 	if len(content) > 30 {
