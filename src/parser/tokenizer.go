@@ -69,6 +69,15 @@ type Tokenizer struct {
 	templateFolder  string
 }
 
+func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
+	return Tokenizer{
+		tokenMap:       map[string]string{},
+		tokenCounter:   0,
+		imageFolder:    imageFolder,
+		templateFolder: templateFolder,
+	}
+}
+
 func (t *Tokenizer) getToken(tokenType string) string {
 	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, t.tokenCounter)
 	t.tokenCounter++

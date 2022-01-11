@@ -23,7 +23,8 @@ func generateTestEbook() {
 	fileContent, err := ioutil.ReadFile("../test/test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	articleName := parser.Parse(string(fileContent), "test", imageFolder, templateFolder)
+	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
+	articleName := parser.Parse(string(fileContent), "test", tokenizer)
 
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
@@ -66,7 +67,8 @@ func generateEbook() {
 		wikiPageDto, err := api.DownloadPage(project.Domain, articleName)
 		sigolo.FatalCheck(err)
 
-		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, project.ImageFolder, project.TemplateFolder)
+		tokenizer := parser.NewTokenizer(project.ImageFolder, project.TemplateFolder)
+		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, tokenizer)
 
 		err, outputFile := generateHtml(article, project.Style)
 		sigolo.FatalCheck(err)

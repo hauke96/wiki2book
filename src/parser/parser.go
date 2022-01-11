@@ -7,14 +7,7 @@ import (
 
 const IMAGE_REGEX = `\[\[((Datei|File):([^|^\]]*))(\|([^\]]*))?]]`
 
-func Parse(content string, title string, imageFolder string, templateFolder string) Article {
-	tokenizer := Tokenizer{
-		tokenMap:       map[string]string{},
-		tokenCounter:   0,
-		imageFolder:    imageFolder,
-		templateFolder: templateFolder,
-	}
-
+func Parse(content string, title string, tokenizer Tokenizer) Article {
 	content = tokenizer.tokenize(content)
 
 	sigolo.Info("Token map length: %d", len(tokenizer.tokenMap))
