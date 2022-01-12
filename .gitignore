@@ -10,6 +10,7 @@
 *.epub
 images
 templates
+./src/test
 
 # IDE stuff
 .idea

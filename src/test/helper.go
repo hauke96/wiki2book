@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/hauke96/sigolo"
 	"reflect"
 	"regexp"
 	"testing"
@@ -8,35 +9,42 @@ import (
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	if !reflect.DeepEqual(expected, actual) {
-		t.Errorf("Expect to be equal.\nExpected: %+v\nActual: %+v", expected, actual)
+		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\nActual: %+v", expected, actual)
+		t.Fail()
+	}
+}
+
+func AssertNil(t *testing.T, value interface{}) {
+	if !reflect.DeepEqual(nil, value) {
+		sigolo.Errorb(1, "Expect to be 'nil' but was: %+v", value)
 		t.Fail()
 	}
 }
 
 func AssertError(t *testing.T, expectedMessage string, err error) {
 	if expectedMessage != err.Error() {
-		t.Errorf("Expected message: %s\nActual error message: %s", expectedMessage, err.Error())
+		sigolo.Errorb(1, "Expected message: %s\nActual error message: %s", expectedMessage, err.Error())
 		t.Fail()
 	}
 }
 
 func AssertEmptyString(t *testing.T, s string) {
 	if "" != s {
-		t.Errorf("Expected: empty string\nActual: %s", s)
+		sigolo.Errorb(1, "Expected: empty string\nActual: %s", s)
 		t.Fail()
 	}
 }
 
 func AssertTrue(t *testing.T, b bool) {
 	if !b {
-		t.Error("Expected true but got false")
+		sigolo.Errorb(1, "Expected true but got false")
 		t.Fail()
 	}
 }
 
 func AssertFalse(t *testing.T, b bool) {
 	if b {
-		t.Error("Expected false but got true")
+		sigolo.Errorb(1, "Expected false but got true")
 		t.Fail()
 	}
 }
@@ -44,7 +52,7 @@ func AssertFalse(t *testing.T, b bool) {
 func AssertMatch(t *testing.T, regexString string, content string) {
 	regex := regexp.MustCompile(regexString)
 	if !regex.MatchString(content) {
-		t.Errorf("Expected to match\nRegex: %s\nContent: %s", regexString, content)
+		sigolo.Errorb(1, "Expected to match\nRegex: %s\nContent: %s", regexString, content)
 		t.Fail()
 	}
 }
@@ -52,8 +60,7 @@ func AssertMatch(t *testing.T, regexString string, content string) {
 func AssertNoMatch(t *testing.T, regexString string, content string) {
 	regex := regexp.MustCompile(regexString)
 	if regex.MatchString(content) {
-		t.Errorf("Expected NOT to match\nRegex: %s\nContent: %s", regexString, content)
+		sigolo.Errorb(1, "Expected NOT to match\nRegex: %s\nContent: %s", regexString, content)
 		t.Fail()
 	}
 }
-

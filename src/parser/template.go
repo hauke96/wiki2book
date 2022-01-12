@@ -82,9 +82,14 @@ func getTemplate(key string, templateFolder string) (string, error) {
 
 func saveTemplate(key string, evaluatedTemplate string, templateFolder string) error {
 	// Create the output folder
-	err := os.Mkdir(templateFolder, os.ModePerm)
-	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", templateFolder))
+	info, err := os.Stat(templateFolder)
+	if err == nil && !info.IsDir() {
+		return errors.New(fmt.Sprintf("Given path exists but is not a folder: %s", templateFolder))
+	} else if os.IsNotExist(err) {
+		err := os.Mkdir(templateFolder, os.ModePerm)
+		if err != nil && !os.IsExist(err) {
+			return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", templateFolder))
+		}
 	}
 
 	// Create the output file
