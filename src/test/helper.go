@@ -9,7 +9,7 @@ import (
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	if !reflect.DeepEqual(expected, actual) {
-		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\nActual: %+v", expected, actual)
+		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\nActual  : %+v", expected, actual)
 		t.Fail()
 	}
 }
@@ -30,7 +30,7 @@ func AssertError(t *testing.T, expectedMessage string, err error) {
 
 func AssertEmptyString(t *testing.T, s string) {
 	if "" != s {
-		sigolo.Errorb(1, "Expected: empty string\nActual: %s", s)
+		sigolo.Errorb(1, "Expected: empty string\nActual  : %s", s)
 		t.Fail()
 	}
 }

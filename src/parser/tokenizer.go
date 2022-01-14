@@ -62,16 +62,44 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
+var imageIgnoreParameters = []string{
+	"left",
+	"right",
+	"top",
+	"text-top",
+	"bottom",
+	"text-bottom",
+	"center",
+	"none",
+	"upright",
+	"baseline",
+	"sub",
+	"super",
+	"middle",
+	"link",
+	"alt",
+	"page",
+	"class",
+	"lang",
+	"zentriert",
+}
+var imageNonInlineParameters = []string{
+	"mini",
+	"thumb",
+}
+
 type ITokenizer interface {
 	tokenize(content string) string
 	getTokenMap() map[string]string
 }
 
 type Tokenizer struct {
-	tokenMap     map[string]string
-	tokenCounter int
-	imageFolder  string
-	templateFolder  string
+	tokenMap       map[string]string
+	tokenCounter   int
+	imageFolder    string
+	templateFolder string
+
+	tokenizeContent func(tokenizer *Tokenizer, content string) string
 }
 
 func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
@@ -80,6 +108,8 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 		tokenCounter:   0,
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
+
+		tokenizeContent: tokenizeContent,
 	}
 }
 
@@ -103,6 +133,10 @@ func (t *Tokenizer) setRawToken(key string, tokenContent string) {
 
 // https://www.mediawiki.org/wiki/Markup_spec
 func (t *Tokenizer) tokenize(content string) string {
+	return t.tokenizeContent(t, content)
+}
+
+func tokenizeContent(t *Tokenizer, content string) string {
 	content = clean(content)
 	content = t.parseBoldAndItalic(content)
 	content = t.parseHeadings(content)
@@ -221,37 +255,11 @@ func (t *Tokenizer) parseImages(content string) string {
 		captionToken := ""
 		if len(submatch) >= 4 {
 			options := strings.Split(submatch[5], "|")
-			ignorePrefixes := []string{
-				"left",
-				"right",
-				"top",
-				"text-top",
-				"bottom",
-				"text-bottom",
-				"center",
-				"none",
-				"upright",
-				"baseline",
-				"sub",
-				"super",
-				"middle",
-				"link",
-				"alt",
-				"page",
-				"class",
-				"lang",
-				"zentriert",
-			}
-
-			nonInlinePrefix := []string{
-				"mini",
-				"thumb",
-			}
 
 			for i, option := range options {
-				if t.elemetHasPrefix(option, nonInlinePrefix) {
+				if t.elementHasPrefix(option, imageNonInlineParameters) {
 					tokenString = TOKEN_IMAGE
-				} else if t.elemetHasPrefix(option, ignorePrefixes) {
+				} else if t.elementHasPrefix(option, imageIgnoreParameters) {
 					continue
 				} else if strings.HasSuffix(option, "px") && tokenString != TOKEN_IMAGE {
 					option = strings.TrimSuffix(option, "px")
@@ -283,7 +291,7 @@ func (t *Tokenizer) parseImages(content string) string {
 	return content
 }
 
-func (t *Tokenizer) elemetHasPrefix(element string, prefixes []string) bool {
+func (t *Tokenizer) elementHasPrefix(element string, prefixes []string) bool {
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(element, prefix) {
 			return true
@@ -323,7 +331,7 @@ func (t *Tokenizer) parseInternalLinks(content string) string {
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	regex := regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?]([^]])`)
+	regex := regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		tokenUrl := t.getToken(TOKEN_EXTERNAL_LINK_URL)
@@ -340,8 +348,11 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 		token := t.getToken(TOKEN_EXTERNAL_LINK)
 		t.setToken(token, tokenUrl+" "+tokenText)
 
-		// Remove last characters as it's the first character after the closing  ]]  of the file tag.
-		totalMatch := submatch[0][:len(submatch[0])-1]
+		// Remove last characters as it's the first character after the closing  ]  of the file tag.
+		totalMatch := submatch[0]
+		if totalMatch[len(totalMatch)-1] != ']' {
+			totalMatch = totalMatch[:len(totalMatch)-1]
+		}
 		content = strings.Replace(content, totalMatch, submatch[1]+token, 1)
 	}
 
