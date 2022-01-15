@@ -156,7 +156,7 @@ func TestParseExternalLinks(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
-func TestTokenizeTable(t *testing.T) {
+func TestParseTable(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `before
 {| class="wikitable"
@@ -178,7 +178,7 @@ after`
 	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 18), tokenizedTable)
 	test.AssertEqual(t, map[string]string{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 18): fmt.Sprintf(
-			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" ",
+			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
 			TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 3, TOKEN_TABLE_ROW, 9, TOKEN_TABLE_ROW, 12, TOKEN_TABLE_ROW, 17,
 		),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0): " capti0n",
@@ -203,6 +203,33 @@ after`
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 13): "colspan=\"42\" style=\"text-align:right;\"",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 16):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes ", TOKEN_TABLE_COL_ATTRIBUTES, 15),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 15): "colspan=\"1\"",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseTable_tableInTable(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `{| class="wikitable"
+|-
+| foo ||
+{| class="wikitable"
+|-
+| inner || table
+|}
+|}`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7), tokenizedTable)
+	test.AssertEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6),
+		// outer table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4, TOKEN_TABLE_COL, 5),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): " foo ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 5): fmt.Sprintf("\n"+TOKEN_TEMPLATE, TOKEN_TABLE, 3),
+		// inner table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3):     fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " inner ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): " table",
 	}, tokenizer.getTokenMap())
 }
 

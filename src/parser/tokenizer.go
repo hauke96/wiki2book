@@ -426,7 +426,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	content = strings.ReplaceAll(content, "!!", "\n!")
 	lines := strings.Split(content, "\n")
 
-	tableTokens := ""
+	tableTokens := []string{}
 	captionToken := ""
 
 	for i := 0; i < len(lines); i++ {
@@ -435,7 +435,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 			caption := strings.TrimPrefix(line, "|+")
 			captionToken = t.getToken(TOKEN_TABLE_CAPTION)
 			t.setToken(captionToken, caption)
-			tableTokens += captionToken + " "
+			tableTokens = append(tableTokens, captionToken)
 		} else if strings.HasPrefix(line, "|-") {
 			rowToken := ""
 			if strings.HasPrefix(lines[i+1], "!") {
@@ -446,7 +446,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 				rowToken, i = t.tokenizeTableRow(lines, i+1, "|")
 			}
 
-			tableTokens += rowToken + " "
+			tableTokens = append(tableTokens, rowToken)
 		} else if strings.HasPrefix(line, "|}") {
 			// table ends with this line
 			break
@@ -454,7 +454,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	}
 
 	token := t.getToken(TOKEN_TABLE)
-	t.setToken(token, tableTokens)
+	t.setToken(token, strings.Join(tableTokens, " "))
 
 	return token
 }
