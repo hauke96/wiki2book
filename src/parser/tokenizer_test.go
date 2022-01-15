@@ -156,6 +156,56 @@ func TestParseExternalLinks(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestTokenizeTable(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `before
+{| class="wikitable"
+|+ capti0n
+|-
+! head1 !! '''head2'''
+|-
+| foo [[internal]] || bar
+|-
+| This row
+is
+| multi-line wikitext
+|-
+| colspan="42" style="text-align:right; background: white;" | some || colspan="1" | attributes 
+|}
+after`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 18), tokenizedTable)
+	test.AssertEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 18): fmt.Sprintf(
+			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" ",
+			TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 3, TOKEN_TABLE_ROW, 9, TOKEN_TABLE_ROW, 12, TOKEN_TABLE_ROW, 17,
+		),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0): " capti0n",
+		// row 0: heading
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1, TOKEN_TABLE_HEAD, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): " head1 ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2): " " + MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
+		// row 1: internal link
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 9):             fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7, TOKEN_TABLE_COL, 8),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7):             fmt.Sprintf(" foo "+TOKEN_TEMPLATE+" ", TOKEN_INTERNAL_LINK, 6),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 6):         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 4, TOKEN_INTERNAL_LINK_TEXT, 5),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 4): "internal",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_TEXT, 5):    "internal",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8):             " bar",
+		// row 2: multi-line
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 12): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10, TOKEN_TABLE_COL, 11),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10): " This row\nis",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11): " multi-line wikitext",
+		// row 3: attributes
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 17):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 14, TOKEN_TABLE_COL, 16),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 14):            fmt.Sprintf(TOKEN_TEMPLATE+" some ", TOKEN_TABLE_COL_ATTRIBUTES, 13),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 13): "colspan=\"42\" style=\"text-align:right;\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 16):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes ", TOKEN_TABLE_COL_ATTRIBUTES, 15),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 15): "colspan=\"1\"",
+	}, tokenizer.getTokenMap())
+}
+
 func TestTokenizeTableRow_withHead(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	lines := []string{
