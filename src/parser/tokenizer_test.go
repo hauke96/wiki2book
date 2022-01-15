@@ -155,3 +155,50 @@ func TestParseExternalLinks(t *testing.T) {
 		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_TEXT + "_1$$": "website",
 	}, tokenizer.getTokenMap())
 }
+
+func TestTokenizeTableRow_withHead(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	lines := []string{
+		"! foo",
+		"!bar",
+		"|-",
+	}
+	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "!")
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2), tokenizedColumn)
+	test.AssertEqual(t, 1, i)
+	test.AssertEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0): " foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): "bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0, TOKEN_TABLE_HEAD, 1),
+	}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeTableRow_withColumn(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	lines := []string{
+		"| foo",
+		"|bar",
+		"| colspan=\"2\"| abc",
+		"def",
+		"|-",
+		"| this row should be ignored",
+	}
+	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "|")
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4), tokenizedColumn)
+	test.AssertEqual(t, 3, i)
+	test.AssertEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0):            " foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1):            "bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 2): `colspan="2"`,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3):            fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 2) + " abc\ndef",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1, TOKEN_TABLE_COL, 3),
+	}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeTableColumn(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `colspan="2" style="text-align:center; background:Lightgray;" | ''foo'' bar`
+	tokenizedColumn, css := tokenizer.tokenizeTableColumn(content)
+	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
+	test.AssertEqual(t, `colspan="2" style="text-align:center;"`, css)
+}

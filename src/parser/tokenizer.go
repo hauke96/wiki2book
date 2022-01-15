@@ -459,7 +459,8 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	return token
 }
 
-// tokenizeTableRow expects i to be the line with the first text item (i.e. the line after |- ). The returned index
+// tokenizeTableRow expects i to be the line with the first text item (i.e. the line after |- ). Furthermore this
+// function expects that each column starts in a new line starting with "| " (or whatever "sep" is). The returned index
 // points to the last text line of this table row.
 func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string, int) {
 	rowLines := []string{}
@@ -530,8 +531,8 @@ func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
 		relevantTags = append(relevantTags, colspanMatch[0])
 	}
 
-	alignmentMatch := regexp.MustCompile(`text-align=".*?";`).FindStringSubmatch(attributeString)
-	if len(alignmentMatch) > 1 {
+	alignmentMatch := regexp.MustCompile(`text-align:.+?;`).FindStringSubmatch(attributeString)
+	if len(alignmentMatch) > 0 {
 		relevantTags = append(relevantTags, `style="`+alignmentMatch[0]+`"`)
 	}
 
