@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/hauke96/wiki2book/src/test"
+	"strings"
 	"testing"
 )
 
@@ -176,7 +177,7 @@ after`
 	tokenizedTable := tokenizer.parseTables(content)
 
 	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 18), tokenizedTable)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 18): fmt.Sprintf(
 			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
 			TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 3, TOKEN_TABLE_ROW, 9, TOKEN_TABLE_ROW, 12, TOKEN_TABLE_ROW, 17,
@@ -219,7 +220,7 @@ func TestParseTable_tableInTable(t *testing.T) {
 	tokenizedTable := tokenizer.parseTables(content)
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7), tokenizedTable)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6),
 		// outer table
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4, TOKEN_TABLE_COL, 5),
@@ -243,7 +244,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "!")
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2), tokenizedColumn)
 	test.AssertEqual(t, 1, i)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0): " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): "bar",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0, TOKEN_TABLE_HEAD, 1),
@@ -263,7 +264,7 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "|")
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4), tokenizedColumn)
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0):            " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1):            "bar",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 2): `colspan="2"`,
@@ -278,4 +279,94 @@ func TestTokenizeTableColumn(t *testing.T) {
 	tokenizedColumn, css := tokenizer.tokenizeTableColumn(content)
 	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
 	test.AssertEqual(t, `colspan="2" style="text-align:center;"`, css)
+}
+
+func TestTokenizeList(t *testing.T) {
+	content := `stuff before list
+* foo
+* bar
+end of list
+`
+	tokenizer := NewTokenizer("foo", "bar")
+	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	test.AssertEqual(t, 3, i)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2), token)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " foo\n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " bar\n",
+	}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeList_higherLevelStart(t *testing.T) {
+	content := `stuff before list
+*** foo
+*** bar
+end of list
+`
+	tokenizer := NewTokenizer("foo", "bar")
+	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	test.AssertEqual(t, 3, i)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6), token)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      fmt.Sprintf(" \n "+TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      fmt.Sprintf(" \n "+TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2, TOKEN_LIST_ITEM, 3),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      " foo\n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):      " bar\n",
+	}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeListItem(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	token := tokenizer.tokenizeListItem("* foo ''bar''", "*")
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0), token)
+	test.AssertEqual(t, fmt.Sprintf("foo %sbar%s\n", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizer.getTokenMap()[token])
+}
+
+func TestTokenizeListItem_withSubList(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	token := tokenizer.tokenizeListItem("* foo\n*# bar", "*")
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0), token)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):    fmt.Sprintf("foo\n "+TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):    " bar\n",
+	}, tokenizer.getTokenMap())
+}
+
+func TestGetListTokenString(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	test.AssertEqual(t, TOKEN_UNORDERED_LIST, tokenizer.getListTokenString("*"))
+	test.AssertEqual(t, TOKEN_ORDERED_LIST, tokenizer.getListTokenString("#"))
+	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST, tokenizer.getListTokenString(":"))
+	test.AssertEqual(t, "", tokenizer.getListTokenString("-"))
+	test.AssertEqual(t, "", tokenizer.getListTokenString("~"))
+	test.AssertEqual(t, "", tokenizer.getListTokenString("~"))
+}
+
+func TestGetListItemToken(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenString("*"))
+	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenString("#"))
+	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST_ITEM, tokenizer.getListItemTokenString(":"))
+	test.AssertEqual(t, "", tokenizer.getListItemTokenString("-"))
+	test.AssertEqual(t, "", tokenizer.getListItemTokenString("~"))
+	test.AssertEqual(t, "", tokenizer.getListItemTokenString("~"))
+}
+
+func TestHasListItemPrefix(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	test.AssertTrue(t, tokenizer.hasListItemPrefix("* foo"))
+	test.AssertTrue(t, tokenizer.hasListItemPrefix("*** foo"))
+	test.AssertTrue(t, tokenizer.hasListItemPrefix("# foo"))
+	test.AssertTrue(t, tokenizer.hasListItemPrefix(": foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix("foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix(" foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix("- foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix("~ foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix(" * foo"))
+	test.AssertFalse(t, tokenizer.hasListItemPrefix("bar * foo"))
 }

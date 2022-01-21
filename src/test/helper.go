@@ -1,15 +1,43 @@
 package test
 
 import (
+	"fmt"
 	"github.com/hauke96/sigolo"
 	"reflect"
 	"regexp"
+	"sort"
+	"strings"
 	"testing"
 )
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	if !reflect.DeepEqual(expected, actual) {
 		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\nActual  : %+v", expected, actual)
+		t.Fail()
+	}
+}
+
+func AssertMapEqual(t *testing.T, expected map[string]string, actual map[string]string) {
+	if !reflect.DeepEqual(expected, actual) {
+		var expectedMapLines []string
+		for k, v := range expected {
+			s := fmt.Sprintf("> '%s' -> '%s'", k, v)
+			s = strings.ReplaceAll(s, "\n", "\\n\n")
+			expectedMapLines = append(expectedMapLines, s)
+		}
+		sort.Strings(expectedMapLines)
+		expectedMapString := strings.Join(expectedMapLines, "\n")
+
+		var actualMapLines []string
+		for k, v := range actual {
+			s := fmt.Sprintf("> '%s' -> '%s'", k, v)
+			s = strings.ReplaceAll(s, "\n", "\\n\n")
+			actualMapLines = append(actualMapLines, s)
+		}
+		sort.Strings(actualMapLines)
+		actualMapString := strings.Join(actualMapLines, "\n")
+
+		sigolo.Errorb(1, "Expect to be equal.\nExpected:\n%s\n----------\nActual:\n%s", expectedMapString, actualMapString)
 		t.Fail()
 	}
 }
