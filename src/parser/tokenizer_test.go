@@ -44,8 +44,22 @@ func TestSetRawToken(t *testing.T) {
 	test.AssertEqual(t, map[string]string{"someKey": "tokenContent"}, tokenizer.getTokenMap())
 }
 
+func TestParseHeading(t *testing.T) {
+	for i := 1; i < 7; i++ {
+		tokenizer := NewTokenizer("foo", "bar")
+		headingPrefixSuffix := strings.Repeat("=", i)
+		content := tokenizer.parseHeadings(fmt.Sprintf("%s h%d %s", headingPrefixSuffix, i, headingPrefixSuffix))
+		token := fmt.Sprintf(TOKEN_TEMPLATE, fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i), 0)
+		test.AssertEqual(t, token, content)
+		test.AssertEqual(t, map[string]string{
+			token: fmt.Sprintf("h%d", i),
+		}, tokenizer.getTokenMap())
+	}
+}
+
 func TestParseBoldAndItalic(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
+
 	content := tokenizer.parseBoldAndItalic("''foo'' some text '''bar'''")
 	test.AssertEqual(t, MARKER_ITALIC_OPEN+"foo"+MARKER_ITALIC_CLOSE+" some text "+MARKER_BOLD_OPEN+"bar"+MARKER_BOLD_CLOSE, content)
 
@@ -281,6 +295,44 @@ func TestTokenizeTableColumn(t *testing.T) {
 	test.AssertEqual(t, `colspan="2" style="text-align:center;"`, css)
 }
 
+func TestParseList(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `foo
+* a
+bar
+# b
+end
+`
+
+	newContent := tokenizer.parseLists(content)
+
+	expectedTokenizedContent := fmt.Sprintf(`foo
+%s
+bar
+%s
+end
+`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3))
+	test.AssertEqual(t, expectedTokenizedContent, newContent)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3):   fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " a\n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      " b\n",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseList_withoutListInContent(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `some
+text
+without list
+`
+
+	newContent := tokenizer.parseLists(content)
+
+	test.AssertEqual(t, content, newContent)
+}
+
 func TestTokenizeList(t *testing.T) {
 	content := `stuff before list
 * foo
@@ -369,4 +421,124 @@ func TestHasListItemPrefix(t *testing.T) {
 	test.AssertFalse(t, tokenizer.hasListItemPrefix("~ foo"))
 	test.AssertFalse(t, tokenizer.hasListItemPrefix(" * foo"))
 	test.AssertFalse(t, tokenizer.hasListItemPrefix("bar * foo"))
+}
+
+func TestGetReferenceHeadAndFoot(t *testing.T) {
+	head := "some text<ref>foo</ref> with refs<ref name=\"barbar\">bar</ref>.\n"
+	foot := "foooooooter"
+	content := head + "<references />\n" + foot
+
+	tokenizer := NewTokenizer("foo", "bar")
+	newHead, newFoot, newContent, noRefListFound := tokenizer.getReferenceHeadAndFoot(content)
+
+	test.AssertEqual(t, head, newHead)
+	test.AssertEqual(t, foot, newFoot)
+	test.AssertEqual(t, content, newContent)
+	test.AssertFalse(t, noRefListFound)
+}
+
+func TestGetSortedReferenceNames(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	refIndexToName := map[int]string{
+		3: "bar",
+		1: "foo",
+		2: "blubb",
+	}
+
+	sortedName, refNameToIndex := tokenizer.getSortedReferenceNames(refIndexToName)
+
+	test.AssertEqual(t, []string{"foo", "blubb", "bar"}, sortedName)
+	test.AssertEqual(t, map[string]int{
+		"foo":   1,
+		"blubb": 2,
+		"bar":   3,
+	}, refNameToIndex)
+}
+
+func TestReplaceNamedReferences(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref>`
+	content := head + ` and even more<ref>blubb</ref>text`
+	referenceDefinitions := map[string]string{}
+	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
+
+	test.AssertEqual(t, map[string]string{
+		"barbar": `<ref name="barbar">bar</ref>`,
+	}, referenceDefinitions)
+	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" />`, newHead)
+}
+
+func TestReplaceUnnamedReferences(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref>`
+	content := head + ` and even more<ref>blubb</ref>text`
+	referenceDefinitions := map[string]string{}
+	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, head)
+
+	test.AssertEqual(t, map[string]string{
+		"43bc374243faf9da85c2f04d54518eba4b225c0f": "<ref>foo</ref>",
+		"25af31f34f6a58fe0fe243506d40d90cbd838c3b": "<ref>blubb</ref>",
+	}, referenceDefinitions)
+	test.AssertEqual(t, `some<ref name="43bc374243faf9da85c2f04d54518eba4b225c0f" /> text with refs<ref name="barbar">bar</ref>`, newHead)
+}
+
+func TestGetReferenceUsages(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `some<ref name="bar" /> text with refs<ref name="foo" />`
+	usages, _ := tokenizer.getReferenceUsages(content)
+
+	test.AssertEqual(t, map[string]string{
+		"bar": `<ref name="bar" />`,
+		"foo": `<ref name="foo" />`,
+	}, usages)
+}
+
+func TestParseReferences(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `some text<ref>bar</ref>
+some<ref name="blubb">blubbeldy</ref> other<ref name="fooref" /> text
+<references responsive>
+<ref name="fooref">foo</ref>
+</references>
+some footer`
+	expectedContent := "some text" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
+		"some" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + " other" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + " text\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 5) + "\n" +
+		"some footer"
+
+	newContent := tokenizer.parseReferences(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+}
+
+func TestParseMath(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `abc<math>x \cdot y</math>def
+some
+<math>
+\multiline{math}
+</math>
+end`
+	tokenizedContent := tokenizer.parseMath(content)
+
+	test.AssertEqual(t, "abc"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 0)+"def\nsome\n"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 1)+"\nend", tokenizedContent)
+}
+
+func TestParseParagraph(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `foo
+
+bar
+ 
+blubb`
+
+	tokenizedContent := tokenizer.parseParagraphs(content)
+
+	test.AssertEqual(t, fmt.Sprintf(`foo
+%s
+bar
+ 
+blubb`, MARKER_PARAGRAPH), tokenizedContent)
 }

@@ -11,8 +11,16 @@ import (
 )
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
+	switch expected.(type) {
+	case string:
+		expected = strings.ReplaceAll(expected.(string), "\n", "\\n\n")
+	}
+	switch actual.(type) {
+	case string:
+		actual = strings.ReplaceAll(actual.(string), "\n", "\\n\n")
+	}
 	if !reflect.DeepEqual(expected, actual) {
-		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\nActual  : %+v", expected, actual)
+		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
 		t.Fail()
 	}
 }
