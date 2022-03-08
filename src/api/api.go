@@ -39,6 +39,7 @@ type WikitextDto struct {
 }
 
 var imageSources = []string{"commons", "de"}
+var httpClient = GetDefaultHttpClient()
 
 func DownloadPage(language string, title string) (*WikiPageDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
@@ -47,7 +48,7 @@ func DownloadPage(language string, title string) (*WikiPageDto, error) {
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cacheFolder := "./articles"
-	cachedFilePath, err := donwloadAndCache(urlString, cacheFolder, cachedFile)
+	cachedFilePath, err := downloadAndCache(urlString, cacheFolder, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
@@ -111,12 +112,12 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], filename)
 	sigolo.Debug(url)
 
-	return donwloadAndCache(url, outputFolder, filename)
+	return downloadAndCache(url, outputFolder, filename)
 }
 
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath or an error. If the file already exists, no HTTP request is made.
-func donwloadAndCache(url string, cacheFolder string, filename string) (string, error) {
+func downloadAndCache(url string, cacheFolder string, filename string) (string, error) {
 	// Create the output folder
 	err := os.Mkdir(cacheFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
@@ -133,7 +134,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 	// Get the data
 	var response *http.Response
 	for {
-		response, err = http.Get(url)
+		response, err = httpClient.Get(url)
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
@@ -173,7 +174,7 @@ func EvaluateTemplate(template string, cacheFile string) (string, error) {
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
 	cacheFolder := "./templates"
-	cacheFilePath, err := donwloadAndCache(urlString, cacheFolder, cacheFile)
+	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
@@ -201,7 +202,7 @@ func RenderMath(mathString string, cacheFolder string) (string, error) {
 	requestData := fmt.Sprintf("q=%s", mathString)
 
 	sigolo.Debug("Call %s", urlString)
-	response, err := http.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to call render URL for math %s", mathString))
 	}
@@ -217,7 +218,7 @@ func RenderMath(mathString string, cacheFolder string) (string, error) {
 	}
 
 	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + locationHeader
-	cachedFile, err := donwloadAndCache(imageUrl, cacheFolder, locationHeader+".svg")
+	cachedFile, err := downloadAndCache(imageUrl, cacheFolder, locationHeader+".svg")
 	if err != nil {
 		return "", err
 	}

@@ -24,6 +24,7 @@ func evaluateTemplates(content string, templateFolder string) string {
 		hash.Write([]byte(match))
 		key := hex.EncodeToString(hash.Sum(nil))
 
+		// TODO remove if, the api already takes care of existing files
 		if hasLocalTemplate(key, templateFolder) {
 			matchSubString := match[:int(math.Min(float64(len(match)), 30))]
 			if len(match) > 30 {
