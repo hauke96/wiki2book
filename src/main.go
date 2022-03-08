@@ -21,16 +21,18 @@ func generateTestEbook() {
 	mathFolder := "../test/math"
 	templateFolder := "../test/templates"
 
+	sigolo.LogLevel = sigolo.LOG_DEBUG
+
 	fileContent, err := ioutil.ReadFile("../test/test.mediawiki")
 	sigolo.FatalCheck(err)
 
 	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
-	articleName := parser.Parse(string(fileContent), "test", &tokenizer)
+	article := parser.Parse(string(fileContent), "test", &tokenizer)
 
-	err = api.DownloadImages(articleName.Images, imageFolder)
+	err = api.DownloadImages(article.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
-	_, err = html.Generate(articleName, "../test/", "../example/style.css", imageFolder, mathFolder)
+	_, err = html.Generate(article, "../test/", "../example/style.css", imageFolder, mathFolder)
 	sigolo.FatalCheck(err)
 
 	sigolo.Info("Start generating EPUB file")

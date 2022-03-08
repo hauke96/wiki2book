@@ -23,7 +23,7 @@ func Parse(content string, title string, tokenizer ITokenizer) Article {
 		sort.Strings(keys)
 
 		for _, k := range keys {
-			sigolo.Debug("%s : %s\n", k, tokenizer.getTokenMap()[k])
+			sigolo.Debug("%s : %s", k, tokenizer.getTokenMap()[k])
 		}
 	}
 
