@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-const FILE_PREFIXES = "Datei|File|Bild|Media"
+const FILE_PREFIXES = "Datei|File|Bild|Image|Media"
 const IMAGE_REGEX = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`
 
 func Parse(content string, title string, tokenizer ITokenizer) Article {

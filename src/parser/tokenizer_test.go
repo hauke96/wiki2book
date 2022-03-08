@@ -83,7 +83,7 @@ func TestParseBoldAndItalic(t *testing.T) {
 func TestParseGalleries(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseGalleries(`foo
-<gallery>
+<gallery>file0.jpg
 file1.jpg|captiion
 </gallery>
 bar
@@ -94,10 +94,34 @@ file 3.jpg
 blubb`)
 
 	test.AssertEqual(t, `foo
+[[File:File0.jpg]]
 [[File:File1.jpg|captiion]]
 bar
 [[File:File2.jpg|test123]]
 [[File:File_3.jpg]]
+blubb`, content)
+
+	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
+}
+
+func TestParseImagemaps(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseImageMaps(`foo
+<imagemap>picture.jpg
+some
+stuff
+</imagemap>
+bar
+<imagemap some="parameter">
+picture.jpg
+some stuff
+</imagemap>
+blubb`)
+
+	test.AssertEqual(t, `foo
+[[File:Picture.jpg]]
+bar
+[[File:Picture.jpg]]
 blubb`, content)
 
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())

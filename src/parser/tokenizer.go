@@ -151,6 +151,7 @@ func tokenizeContent(t *Tokenizer, content string) string {
 
 		content = t.parseInternalLinks(content)
 		content = t.parseGalleries(content)
+		content = t.parseImageMaps(content)
 		content = t.parseImages(content)
 		content = t.parseExternalLinks(content)
 		content = t.parseMath(content)
@@ -248,6 +249,8 @@ func (t *Tokenizer) parseGalleries(content string) string {
 
 	withinGallery := false
 
+	galleryStartRegex := regexp.MustCompile("^<gallery.*?>")
+
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 
@@ -260,12 +263,18 @@ func (t *Tokenizer) parseGalleries(content string) string {
 			continue
 		}
 
-		// Gallery ends -> Simply remove line and start "withinGallery" mode
-		if strings.HasPrefix(line, "<gallery") {
-			withinGallery = true
-			// delete this line i
-			lines = append(lines[:i], lines[i+1:]...)
+		// Gallery starts -> Remove line, maybe parse first image and start "withinGallery" mode
+		if galleryStartRegex.MatchString(line) {
+			line = strings.TrimSpace(galleryStartRegex.ReplaceAllString(line, ""))
+			if line == "" {
+				// if empty -> delete this line i, the next line contains the first image
+				lines = append(lines[:i], lines[i+1:]...)
+			} else {
+				// otherwise -> process this line again as it now contains the first image
+				lines[i] = line
+			}
 			i--
+			withinGallery = true
 			continue
 		}
 
@@ -273,6 +282,51 @@ func (t *Tokenizer) parseGalleries(content string) string {
 		if withinGallery {
 			line = strings.TrimSpace(line)
 			lines[i] = escapeImages(fmt.Sprintf("[[File:%s]]", line))
+		}
+	}
+
+	content = strings.Join(lines, "\n")
+	return content
+}
+
+func (t *Tokenizer) parseImageMaps(content string) string {
+	lines := strings.Split(content, "\n")
+
+	withinImageMap := false
+
+	imagemapStartRegex := regexp.MustCompile("^<imagemap.*?>")
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
+		// Delete uninteresting lines (end of map or all the polygon-map-stuff in between)
+		if withinImageMap || line == "</imagemap>" {
+			// delete this line i
+			lines = append(lines[:i], lines[i+1:]...)
+			i--
+
+			// Imagemap ends -> end "withinImageMap" mode
+			if line == "</imagemap>" {
+				withinImageMap = false
+			}
+
+			continue
+		}
+
+		// Image map starts -> Parse the image
+		if imagemapStartRegex.MatchString(line) {
+			line = strings.TrimSpace(imagemapStartRegex.ReplaceAllString(line, ""))
+			if line == "" {
+				// if empty -> delete this line i, the next line contains the image
+				lines = append(lines[:i], lines[i+1:]...)
+				line = lines[i]
+			}
+
+			// "line" contains definitely the image of the imagemap
+			lines[i] = escapeImages(fmt.Sprintf("[[%s]]", line))
+
+			withinImageMap = true
+			continue
 		}
 	}
 
@@ -304,14 +358,15 @@ func (t *Tokenizer) parseImages(content string) string {
 					sizes := strings.Split(option, "x")
 
 					xSize := sizes[0]
-					ySize := xSize
+					ySize := ""
 					if len(sizes) == 2 {
 						ySize = sizes[1]
 					}
 
-					// Too large SVGs should not be considered inline.
-					ySizeInt, err := strconv.Atoi(ySize)
-					if err == nil && ySizeInt > 50 {
+					xSizeInt, _ := strconv.Atoi(xSize)
+					ySizeInt, _ := strconv.Atoi(ySize)
+					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
+					if ySizeInt > 50 && xSizeInt > 100 {
 						tokenString = TOKEN_IMAGE
 					}
 
