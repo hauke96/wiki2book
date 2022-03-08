@@ -1,9 +1,8 @@
 package parser
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
+	"github.com/hauke96/wiki2book/src/util"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -819,10 +818,7 @@ func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[st
 		totalRef := submatch[0]
 
 		// Generate more or less random but unique name
-		hash := sha1.New()
-		hash.Write([]byte(fmt.Sprintf("%d", i)))
-		hash.Write([]byte(totalRef))
-		name := hex.EncodeToString(hash.Sum(nil))
+		name := util.Hash(fmt.Sprintf("%d%s", i, totalRef))
 
 		nameToRefDef[name] = totalRef
 		head = strings.ReplaceAll(head, totalRef, fmt.Sprintf("<ref name=\"%s\" />", name))

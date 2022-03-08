@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hauke96/sigolo"
+	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -153,15 +154,10 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath or an error. If the file already exists, no HTTP request is made.
 func downloadAndCache(url string, cacheFolder string, filename string) (string, error) {
-	// Create the output folder
-	err := os.Mkdir(cacheFolder, os.ModePerm)
-	if err != nil && !os.IsExist(err) {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", cacheFolder))
-	}
-
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
-	if _, err := os.Stat(outputFilepath); err == nil {
+	_, err := os.Stat(outputFilepath)
+	if err == nil {
 		sigolo.Info("File %s does already exist. Skip.", outputFilepath)
 		return outputFilepath, nil
 	}
@@ -173,35 +169,53 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 		if err != nil {
 			return "", errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
-		defer response.Body.Close()
 
 		// Handle 429 (too many requests): wait a bit and retry
 		if response.StatusCode == 429 {
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != 200 {
-			return "", errors.New(fmt.Sprintf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url))
+			return "", errors.Errorf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url)
 		}
 
 		break
 	}
+	defer response.Body.Close()
+	reader := response.Body
+
+	err = cacheToFile(cacheFolder, filename, reader)
+	if err != nil {
+		return "", errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
+	}
+
+	return outputFilepath, nil
+}
+
+func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
+	// Create the output folder
+	err := os.MkdirAll(cacheFolder, os.ModePerm)
+	if err != nil && !os.IsExist(err) {
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", cacheFolder))
+	}
+
+	outputFilepath := filepath.Join(cacheFolder, filename)
 
 	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for file %s", filename))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for file %s", outputFilepath))
 	}
 	defer outputFile.Close()
 
 	// Write the body to file
-	_, err = io.Copy(outputFile, response.Body)
+	_, err = io.Copy(outputFile, reader)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
 	}
 
 	sigolo.Info("Cached file to %s", outputFilepath)
 
-	return outputFilepath, nil
+	return nil
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
@@ -232,32 +246,18 @@ func RenderMath(mathString string, cacheFolder string) (string, error) {
 
 	mathString = url.QueryEscape(mathString)
 
-	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
-	requestData := fmt.Sprintf("q=%s", mathString)
-
-	sigolo.Debug("Call %s", urlString)
-	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	mathSvgFilename, err := getMathResource(mathString)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to call render URL for math %s", mathString))
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		return "", errors.New(fmt.Sprintf("Rendering Math: Response returned with status code %d", response.StatusCode))
+		return "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
 	}
 
-	locationHeader := response.Header.Get("x-resource-location")
-	if locationHeader == "" {
-		return "", errors.New(fmt.Sprintf("Unsable to get location header for math %s", mathString))
-	}
-
-	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + locationHeader
-	cachedFile, err := downloadAndCache(imageUrl, cacheFolder, locationHeader+".svg")
+	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
+	cachedFile, err := downloadAndCache(imageUrl, cacheFolder, mathSvgFilename+".svg")
 	if err != nil {
 		return "", err
 	}
 
-	//imageFile := filepath.Join("./images", locationHeader+".png")
+	//imageFile := filepath.Join("./images", mathSvgFilename+".png")
 	//err = util.Execute("inkscape", cachedFile, "-o", imageFile)
 	//err = util.Execute("magick", "-density", "5", cachedFile, imageFile)
 	//if err != nil {
@@ -269,4 +269,48 @@ func RenderMath(mathString string, cacheFolder string) (string, error) {
 	//}
 
 	return cachedFile, nil
+}
+
+// getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SVG filename.
+func getMathResource(mathString string) (string, error) {
+	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
+	requestData := fmt.Sprintf("q=%s", mathString)
+
+	// If file exists -> ignore
+	filename := util.Hash(mathString)
+	cacheFolder := "./math/filenames"
+	outputFilepath := filepath.Join(cacheFolder, filename)
+	if _, err := os.Stat(outputFilepath); err == nil {
+		mathSvgFilenameBytes, err := ioutil.ReadFile(outputFilepath)
+		mathSvgFilename := string(mathSvgFilenameBytes)
+		if err != nil {
+			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
+		}
+		sigolo.Info("File %s does already exist. Skip.", outputFilepath)
+		return mathSvgFilename, nil
+	}
+
+	sigolo.Debug("Rendering math %s", util.TruncString(mathString))
+
+	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	if err != nil {
+		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return "", errors.Errorf("Rendering Math: Response returned with status code %d", response.StatusCode)
+	}
+
+	locationHeader := response.Header.Get("x-resource-location")
+	if locationHeader == "" {
+		return "", errors.Errorf("Unable to get location header for math %s", mathString)
+	}
+
+	err = cacheToFile(cacheFolder, filename, ioutil.NopCloser(strings.NewReader(locationHeader)))
+	if err != nil {
+		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
+	}
+
+	return locationHeader, nil
 }

@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/hauke96/sigolo"
-	"math"
+	"github.com/hauke96/wiki2book/src/util"
 	"regexp"
 	"strings"
 )
@@ -41,10 +41,7 @@ func escapeImages(content string) string {
 
 	images = append(images, result...)
 
-	firstPartOfContent := content[:int(math.Min(float64(len(content)), 50))]
-	if len(content) > 50 {
-		firstPartOfContent += "..."
-	}
+	firstPartOfContent := util.TruncString(content)
 
 	sigolo.Info("Found and embedded %d images in content %s", len(submatches), firstPartOfContent)
 	return content
