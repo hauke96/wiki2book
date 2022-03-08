@@ -50,10 +50,10 @@ func removeUnwantedTemplates(content string) string {
 }
 
 func removeUnwantedHtml(content string) string {
-	regex := regexp.MustCompile(`<div[^>]*>`)
+	regex := regexp.MustCompile(`<(div|span)[^>]*>`)
 	content = regex.ReplaceAllString(content, "")
 
-	regex = regexp.MustCompile(`</div>`)
+	regex = regexp.MustCompile(`</(div|span)>`)
 	content = regex.ReplaceAllString(content, "")
 
 	return content

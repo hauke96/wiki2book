@@ -4,6 +4,8 @@ This is a file to test the transpiler from WikiText to HTML.
 
 As you can see, ''headings'' work and '''formatting''' as well.
 
+'''''plane'''tary '''m'''ass '''o'''bject''
+
 == References ==
 
 You found something smart? Better but a <ref>Reference to a source</ref> on it.
@@ -63,6 +65,20 @@ We can embed images:
 Or embed the image inline like this [[Datei:Wikipedia-logo-v2.svg|16px]] Wikipedia icon.
 
 All (raster) images will be scaled down and turned into grayscale images. SVGs stay as they are. Some media types (like mp4 and gif) are not supported.
+
+=== Galleries ===
+
+<gallery>
+Wikimedia_Servers-0051_19.jpg|With some caption.
+Wikipedia-logo-v2.svg
+</gallery>
+
+=== Image maps ===
+
+<imagemap>Wikimedia_Servers-0051_19.jpg|With some caption.
+some imagemap stuff
+which will be ignored
+</imagemap>
 
 == Tables ==
 

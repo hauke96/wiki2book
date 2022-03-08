@@ -78,6 +78,11 @@ func TestParseBoldAndItalic(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseBoldAndItalic("'''foo [[bar]] abc'''")
 	test.AssertEqual(t, MARKER_BOLD_OPEN+"foo [[bar]] abc"+MARKER_BOLD_CLOSE, content)
+
+	// TODO this should work (according to pandoc and wikipedia parser)
+	//tokenizer = NewTokenizer("foo", "bar")
+	//content = tokenizer.parseBoldAndItalic("'''''plane'''tary '''m'''ass '''o'''bject''")
+	//test.AssertEqual(t, MARKER_ITALIC_OPEN+MARKER_BOLD_OPEN+"plane"+MARKER_BOLD_CLOSE+"tary "+MARKER_BOLD_OPEN+"m"+MARKER_BOLD_CLOSE+"ass "+MARKER_BOLD_OPEN+"o"+MARKER_BOLD_CLOSE+"bject"+MARKER_ITALIC_CLOSE, content)
 }
 
 func TestParseGalleries(t *testing.T) {
@@ -107,13 +112,13 @@ blubb`, content)
 func TestParseImagemaps(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImageMaps(`foo
-<imagemap>picture.jpg
+<imagemap>File:picture.jpg
 some
 stuff
 </imagemap>
 bar
 <imagemap some="parameter">
-picture.jpg
+Image:picture.jpg
 some stuff
 </imagemap>
 blubb`)
@@ -121,7 +126,7 @@ blubb`)
 	test.AssertEqual(t, `foo
 [[File:Picture.jpg]]
 bar
-[[File:Picture.jpg]]
+[[Image:Picture.jpg]]
 blubb`, content)
 
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
@@ -504,29 +509,29 @@ func TestGetSortedReferenceNames(t *testing.T) {
 
 func TestReplaceNamedReferences(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref>`
+	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref> some other <ref>foo</ref>`
 	content := head + ` and even more<ref>blubb</ref>text`
 	referenceDefinitions := map[string]string{}
 	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
 
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		"barbar": `<ref name="barbar">bar</ref>`,
 	}, referenceDefinitions)
-	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" />`, newHead)
+	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" /> some other <ref>foo</ref>`, newHead)
 }
 
 func TestReplaceUnnamedReferences(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref>`
+	head := `some<ref some="param">foo</ref> text with refs<ref name="barbar">bar</ref>`
 	content := head + ` and even more<ref>blubb</ref>text`
 	referenceDefinitions := map[string]string{}
 	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, head)
 
-	test.AssertEqual(t, map[string]string{
-		"43bc374243faf9da85c2f04d54518eba4b225c0f": "<ref>foo</ref>",
-		"25af31f34f6a58fe0fe243506d40d90cbd838c3b": "<ref>blubb</ref>",
+	test.AssertMapEqual(t, map[string]string{
+		"2ae457b665ef5955b2fc685cdaaa879c96c14801": `<ref some="param">foo</ref>`,
+		"2839c654c615b6833625f76f38b609c71b74ada4": "<ref>blubb</ref>",
 	}, referenceDefinitions)
-	test.AssertEqual(t, `some<ref name="43bc374243faf9da85c2f04d54518eba4b225c0f" /> text with refs<ref name="barbar">bar</ref>`, newHead)
+	test.AssertEqual(t, `some<ref name="2ae457b665ef5955b2fc685cdaaa879c96c14801" /> text with refs<ref name="barbar">bar</ref>`, newHead)
 }
 
 func TestGetReferenceUsages(t *testing.T) {

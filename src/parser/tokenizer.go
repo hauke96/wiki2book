@@ -892,7 +892,8 @@ func (t *Tokenizer) getSortedReferenceNames(indexToRefName map[int]string) ([]st
 
 // replaceNamedReferences replaces all occurrences of named reference definitions in "head" by a named reference usage.
 func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[string]string, head string) string {
-	regex := regexp.MustCompile(`<ref name="?([^"^>]*?)"?>((.|\n)*?)</ref>`)
+	// Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
+	regex := regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`)
 	// Go through "content" to also parse the definitions inside the <references>...</references> block and below it.
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
@@ -906,11 +907,17 @@ func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[stri
 
 // replaceNamedReferences replaces all occurrences of unnamed reference definitions by a named reference usage with a random reference name.
 func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[string]string, head string) string {
-	regex := regexp.MustCompile(`<ref>((.|\n)*?)</ref>`)
+	regex := regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
+	namedRefRegex := regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
 	// Go throught "content" to also parse the definitions in the reference section below "head"
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	for i, submatch := range submatches {
 		totalRef := submatch[0]
+
+		// Ignore named references, we're just interested in UNnamed ones
+		if namedRefRegex.MatchString(totalRef) {
+			continue
+		}
 
 		// Generate more or less random but unique name
 		name := util.Hash(fmt.Sprintf("%d%s", i, totalRef))
@@ -928,7 +935,7 @@ func (t *Tokenizer) getReferenceUsages(head string) (map[string]string, map[int]
 	// This map take the index of the reference in "content" as determined by  strings.Index()  as key/value.
 	indexToRefName := map[int]string{}
 
-	regex := regexp.MustCompile(`<ref name="([^"]*?)" ?/>`)
+	regex := regexp.MustCompile(`<ref.*?name="([^"]*?)".*?/>`)
 	submatches := regex.FindAllStringSubmatch(head, -1)
 	for _, submatch := range submatches {
 		name := submatch[1]
@@ -940,7 +947,7 @@ func (t *Tokenizer) getReferenceUsages(head string) (map[string]string, map[int]
 }
 
 func (t *Tokenizer) parseMath(content string) string {
-	regex := regexp.MustCompile(`<math>((.|\n|\r)*?)</math>`)
+	regex := regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
 	matches := regex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
 		token := t.getToken(TOKEN_MATH)

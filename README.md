@@ -63,6 +63,8 @@ Open tasks of this project:
 * [x] Tables
 * [x] Caption of tables
 * [x] Ordered lists
+* [ ] Definition list <dl> (wikitext ;)
+* [ ] Italic and bold sections are still a problem
 * [ ] Problematic pages:
   * *(currently no problematic pages are known)*
 * [x] ~~Use superscript `<sup>...</sup>` for citations~~ (brackets are used)
