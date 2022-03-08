@@ -309,8 +309,11 @@ func (t *Tokenizer) elementHasPrefix(element string, prefixes []string) bool {
 func (t *Tokenizer) parseInternalLinks(content string) string {
 	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
 	submatches := regex.FindAllStringSubmatch(content, -1)
+
+	prefixRegex := regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
+
 	for _, submatch := range submatches {
-		if strings.HasPrefix(submatch[0], "[[Datei:") || strings.HasPrefix(submatch[1], "[[File:") {
+		if prefixRegex.MatchString(submatch[0]) {
 			continue
 		}
 
@@ -388,7 +391,6 @@ func (t *Tokenizer) parseTables(content string) string {
 				newLines = append(newLines, lines[i+length+1:]...)
 			}
 			lines = newLines
-
 		}
 	}
 

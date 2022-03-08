@@ -14,7 +14,7 @@ func escapeImages(content string) string {
 	var result []string
 
 	// Remove videos and gifs
-	regex := regexp.MustCompile(`\[\[((Datei|File):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
+	regex := regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
 	content = regex.ReplaceAllString(content, "")
 
 	regex = regexp.MustCompile(IMAGE_REGEX)
