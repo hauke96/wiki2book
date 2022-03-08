@@ -41,8 +41,8 @@ func escapeImages(content string) string {
 
 	images = append(images, result...)
 
-	firstPartOfContent := content[:int(math.Min(float64(len(content)), 30))]
-	if len(content) > 30 {
+	firstPartOfContent := content[:int(math.Min(float64(len(content)), 50))]
+	if len(content) > 50 {
 		firstPartOfContent += "..."
 	}
 

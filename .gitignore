@@ -11,7 +11,7 @@
 images
 templates
 articles
-./src/test
+src/test/
 
 # IDE stuff
 .idea

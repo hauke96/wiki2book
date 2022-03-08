@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -36,6 +37,40 @@ type WikiExpandedTemplateDto struct {
 
 type WikitextDto struct {
 	Content string `json:"wikitext"`
+}
+
+type MockHttpClient struct {
+	Response   string
+	StatusCode int
+	GetCalls   int
+	PostCalls  int
+}
+
+func (h *MockHttpClient) Get(url string) (resp *http.Response, err error) {
+	h.GetCalls++
+	return &http.Response{
+		Body:       ioutil.NopCloser(bytes.NewReader([]byte(h.Response))),
+		StatusCode: h.StatusCode,
+	}, nil
+}
+
+func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
+	h.PostCalls++
+	return &http.Response{
+		Body:       ioutil.NopCloser(bytes.NewReader([]byte(h.Response))),
+		StatusCode: h.StatusCode,
+	}, nil
+}
+
+func MockHttp(response string, statusCode int) *MockHttpClient {
+	mockedHttpClient := &MockHttpClient{
+		response,
+		statusCode,
+		0,
+		0,
+	}
+	httpClient = mockedHttpClient
+	return mockedHttpClient
 }
 
 var imageSources = []string{"commons", "de"}
@@ -169,11 +204,10 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	return outputFilepath, nil
 }
 
-func EvaluateTemplate(template string, cacheFile string) (string, error) {
+func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Info("Evaluate template %s", template)
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
-	cacheFolder := "./templates"
 	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
