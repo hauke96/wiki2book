@@ -41,18 +41,18 @@ type WikitextDto struct {
 var imageSources = []string{"commons", "de"}
 
 func DownloadPage(language string, title string) (*WikiPageDto, error) {
-	escapedTitle := strings.ReplaceAll(title, " ", "_")
-	escapedTitle = url.QueryEscape(escapedTitle)
+	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
+	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, escapedTitle)
-	response, err := http.Get(urlString)
+
+	cachedFile := titleWithoutWhitespaces + ".json"
+	cacheFolder := "./articles"
+	cachedFilePath, err := donwloadAndCache(urlString, cacheFolder, cachedFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to download article content of article "+title)
-	}
-	if response.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Downloading article %s failed with status code %d für url %s", title, response.StatusCode, urlString))
+		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
 
-	bodyBytes, err := ioutil.ReadAll(response.Body)
+	bodyBytes, err := ioutil.ReadFile(cachedFilePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
@@ -114,6 +114,8 @@ func downloadImage(fileDescriptor string, outputFolder string, source string) (s
 	return donwloadAndCache(url, outputFolder, filename)
 }
 
+// downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
+// value is this resulting filepath or an error. If the file already exists, no HTTP request is made.
 func donwloadAndCache(url string, cacheFolder string, filename string) (string, error) {
 	// Create the output folder
 	err := os.Mkdir(cacheFolder, os.ModePerm)
@@ -124,7 +126,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
-		sigolo.Info("Image file %s does already exist. Skip.", outputFilepath)
+		sigolo.Info("File %s does already exist. Skip.", outputFilepath)
 		return outputFilepath, nil
 	}
 
@@ -133,7 +135,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 	for {
 		response, err = http.Get(url)
 		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("Unable to get image %s with url %s", filename, url))
+			return "", errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
 		defer response.Body.Close()
 
@@ -142,7 +144,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != 200 {
-			return "", errors.New(fmt.Sprintf("Downloading image %s failed with status code %d for url %s", filename, response.StatusCode, url))
+			return "", errors.New(fmt.Sprintf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url))
 		}
 
 		break
@@ -151,7 +153,7 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for image %s", filename))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file for file %s", filename))
 	}
 	defer outputFile.Close()
 
@@ -161,34 +163,31 @@ func donwloadAndCache(url string, cacheFolder string, filename string) (string, 
 		return "", errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
 	}
 
-	sigolo.Info("Saved image to %s", outputFilepath)
+	sigolo.Info("Cached file to %s", outputFilepath)
 
 	return outputFilepath, nil
 }
 
-func EvaluateTemplate(template string) (string, error) {
+func EvaluateTemplate(template string, cacheFile string) (string, error) {
 	sigolo.Info("Evaluate template %s", template)
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
-	sigolo.Debug("Call %s", urlString)
-
-	response, err := http.Get(urlString)
+	cacheFolder := "./templates"
+	cacheFilePath, err := donwloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to call evaluation URL for template %s", template))
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		return "", errors.New(fmt.Sprintf("Evaluating template: Response returned with status code %d", response.StatusCode))
+		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
 
-	evaluatedTemplateString, err := ioutil.ReadAll(response.Body)
+	evaluatedTemplateString, err := ioutil.ReadFile(cacheFilePath)
 	if err != nil {
-		return "", errors.Wrap(err, "Reading response body failed")
+		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
 	}
 
 	evaluatedTemplate := &WikiExpandedTemplateDto{}
-	json.Unmarshal(evaluatedTemplateString, evaluatedTemplate)
+	err = json.Unmarshal(evaluatedTemplateString, evaluatedTemplate)
+	if err != nil {
+		return "", errors.Wrapf(err, "Unable to unmarshal template string:\n%s", evaluatedTemplateString)
+	}
 
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }

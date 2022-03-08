@@ -36,49 +36,6 @@ func TestGetTemplate_notExisting(t *testing.T) {
 	test.AssertEqual(t, "", content)
 }
 
-func TestSaveTemplate(t *testing.T) {
-	key := "TestSaveTemplate"
-	content := "Some interesting content"
-
-	cleanup(t, key)
-
-	// Write file
-	err := saveTemplate(key, content, templateFolder)
-	test.AssertNil(t, err)
-
-	// Check if file exists
-	hasTemplate := hasLocalTemplate(key, templateFolder)
-	test.AssertEqual(t, true, hasTemplate)
-
-	actualContent, err := getTemplate(key, templateFolder)
-	test.AssertNil(t, err)
-	test.AssertEqual(t, content, actualContent)
-}
-
-func TestSaveTemplate_existButNotFolder(t *testing.T) {
-	key := "TestSaveTemplate"
-	content := "Some interesting content"
-
-	// Write file but use file as output folder -> should not work as file exist
-	err := saveTemplate(key, content, templateFolder+"/template1")
-	test.AssertEqual(t, "Given path exists but is not a folder: ../test/templates/template1", err.Error())
-}
-
-func TestSaveTemplate_errorCreatingFile(t *testing.T) {
-	key := "TestSaveTemplate_errorCreatingFile"
-	content := "Some interesting content"
-
-	cleanup(t, key)
-
-	// create folder with the name of the key -> should later fail to create a file with this name
-	err := os.Mkdir(templateFolder+"/"+key, os.ModePerm)
-	test.AssertNil(t, err)
-
-	// Write file but use file as output folder -> should not work as file exist
-	err = saveTemplate(key, content, templateFolder)
-	test.AssertEqual(t, "Unable to create output file for template TestSaveTemplate_errorCreatingFile: open ../test/templates/TestSaveTemplate_errorCreatingFile: is a directory", err.Error())
-}
-
 func TestEvaluateTemplate_existingFile(t *testing.T) {
 	content := evaluateTemplates("Wikitext with {{my-template}}.", templateFolder)
 	test.AssertEqual(t, "Wikitext with blubb.", content)

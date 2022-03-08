@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -269,6 +270,12 @@ func (t *Tokenizer) parseImages(content string) string {
 					ySize := xSize
 					if len(sizes) == 2 {
 						ySize = sizes[1]
+					}
+
+					// Too large SVGs should not be considered inline.
+					ySizeInt, err := strconv.Atoi(ySize)
+					if err == nil && ySizeInt > 50 {
+						tokenString = TOKEN_IMAGE
 					}
 
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
