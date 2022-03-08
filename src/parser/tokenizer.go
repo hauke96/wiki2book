@@ -223,11 +223,11 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 	// based on the assumption that only a small percentage of the content is actually part of an italic or bold block.
 	// Because this approach is based on recursion, this per-block parsing reduces the recursion depth.
 	for {
-		for index < len(content) && content[index] != '\'' {
+		for index < len(content)-1 && content[index:index+2] != "''" {
 			index++
 		}
 
-		if index >= len(content) {
+		if index >= len(content)-1 {
 			break
 		}
 

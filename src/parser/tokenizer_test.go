@@ -176,6 +176,14 @@ func TestParseImages(t *testing.T) {
 	}
 
 	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseImages("foo [[Datei:image.jpg|100x50px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
+
+	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseImages("foo [[Datei:image.jpg|101x51px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+
+	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[Datei:image.jpg|10x20px|mini|some caption]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_3$$ bar", content)
 	test.AssertEqual(t, map[string]string{
