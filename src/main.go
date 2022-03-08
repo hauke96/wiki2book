@@ -18,6 +18,7 @@ func main() {
 
 func generateTestEbook() {
 	imageFolder := "../test/images"
+	mathFolder := "../test/math"
 	templateFolder := "../test/templates"
 
 	fileContent, err := ioutil.ReadFile("../test/test.mediawiki")
@@ -29,7 +30,7 @@ func generateTestEbook() {
 	err = api.DownloadImages(articleName.Images, imageFolder)
 	sigolo.FatalCheck(err)
 
-	_, err = html.Generate(articleName, "../test/", "../example/style.css", imageFolder)
+	_, err = html.Generate(articleName, "../test/", "../example/style.css", imageFolder, mathFolder)
 	sigolo.FatalCheck(err)
 
 	sigolo.Info("Start generating EPUB file")
@@ -64,13 +65,13 @@ func generateEbook() {
 	for _, articleName := range project.Articles {
 		sigolo.Info("Start processing articleName %s", articleName)
 
-		wikiPageDto, err := api.DownloadPage(project.Domain, articleName)
+		wikiPageDto, err := api.DownloadPage(project.Domain, articleName, project.Caches.Articles)
 		sigolo.FatalCheck(err)
 
-		tokenizer := parser.NewTokenizer(project.ImageFolder, project.TemplateFolder)
+		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
 		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, &tokenizer)
 
-		err, outputFile := generateHtml(article, project.Style)
+		err, outputFile := generateHtml(article, project.Style, project.Caches.Images, project.Caches.Math)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
@@ -84,13 +85,11 @@ func generateEbook() {
 	sigolo.Info("Successfully created EPUB file")
 }
 
-func generateHtml(wikiPage parser.Article, styleFile string) (error, string) {
-	imageFolder := "./images"
-
-	err := api.DownloadImages(wikiPage.Images, imageFolder)
+func generateHtml(wikiPage parser.Article, styleFile string, imageCacheFolder string, mathCacheFolder string) (error, string) {
+	err := api.DownloadImages(wikiPage.Images, imageCacheFolder)
 	sigolo.FatalCheck(err)
 
-	outputFile, err := html.Generate(wikiPage, "./", styleFile, imageFolder)
+	outputFile, err := html.Generate(wikiPage, "./", styleFile, imageCacheFolder, mathCacheFolder)
 	sigolo.FatalCheck(err)
 	return err, outputFile
 }

@@ -77,13 +77,12 @@ func MockHttp(response string, statusCode int) *MockHttpClient {
 var imageSources = []string{"commons", "de"}
 var httpClient = GetDefaultHttpClient()
 
-func DownloadPage(language string, title string) (*WikiPageDto, error) {
+func DownloadPage(language string, title string, cacheFolder string) (*WikiPageDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
-	cacheFolder := "./articles"
 	cachedFilePath, err := downloadAndCache(urlString, cacheFolder, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
@@ -241,44 +240,32 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }
 
-func RenderMath(mathString string, cacheFolder string) (string, error) {
+func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, error) {
 	sigolo.Info("Render math %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
 
-	mathSvgFilename, err := getMathResource(mathString)
+	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
 	}
 
 	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
-	cachedFile, err := downloadAndCache(imageUrl, cacheFolder, mathSvgFilename+".svg")
+	cachedFile, err := downloadAndCache(imageUrl, imageCacheFolder, mathSvgFilename+".svg")
 	if err != nil {
 		return "", err
 	}
-
-	//imageFile := filepath.Join("./images", mathSvgFilename+".png")
-	//err = util.Execute("inkscape", cachedFile, "-o", imageFile)
-	//err = util.Execute("magick", "-density", "5", cachedFile, imageFile)
-	//if err != nil {
-	//	return "", errors.Wrap(err, "Error simplifying SVG")
-	//}
-	//err = util.Execute("mv", imageFile, cachedFile)
-	//if err != nil {
-	//	return "", errors.Wrap(err, "Error replacing original SVG with simplified version")
-	//}
 
 	return cachedFile, nil
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SVG filename.
-func getMathResource(mathString string) (string, error) {
+func getMathResource(mathString string, cacheFolder string) (string, error) {
 	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
 	requestData := fmt.Sprintf("q=%s", mathString)
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	cacheFolder := "./math/filenames"
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
 		mathSvgFilenameBytes, err := ioutil.ReadFile(outputFilepath)

@@ -82,10 +82,12 @@ const TEMPLATE_REF_USAGE = "[%d]"
 
 // Just a helper field to not pass that parameter around through all the function calls.
 // TODO create generator struct and put it in there
-var imageFolder = ""
+var imageCacheFolder = ""
+var mathCacheFolder = ""
 
-func Generate(wikiPage parser.Article, outputFolder string, styleFile string, imgFolder string) (string, error) {
-	imageFolder = imgFolder
+func Generate(wikiPage parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string) (string, error) {
+	imageCacheFolder = imgFolder
+	mathCacheFolder = mathFolder
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiPage.Title + "</h1>"
 	expandedContent, err := expand(wikiPage.Content, wikiPage.TokenMap)
@@ -390,7 +392,7 @@ func expandRefUsage(tokenString string, tokenMap map[string]string) (string, err
 }
 
 func expandMath(tokenString string, tokenMap map[string]string) (string, error) {
-	filename, err := api.RenderMath(tokenMap[tokenString], imageFolder)
+	filename, err := api.RenderMath(tokenMap[tokenString], imageCacheFolder, mathCacheFolder)
 	if err != nil {
 		return "", err
 	}
