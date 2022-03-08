@@ -2,9 +2,7 @@ This is a file to test the transpiler from WikiText to HTML.
 
 == Basics ==
 
-As you can see, ''headings'' work and '''formatting''' as well.
-
-'''''plane'''tary '''m'''ass '''o'''bject''
+As you can see, ''headings'' work and '''formatting''' as well. Even '''com''plex''' struc''tures work:
 
 == References ==
 
@@ -112,3 +110,8 @@ A bit tricky but they work as well:
 They will be collected and are visible at the end of the document:<br>
 
 <references />
+
+== Mixing stuff ==
+
+1. Mixing stuff also works:
+2. Planemo = '''''plane'''tary [https://object.de '''m'''ass] '''o'''bject''
