@@ -69,6 +69,7 @@ Open tasks of this project:
   * *(currently no problematic pages are known)*
 * [x] ~~Use superscript `<sup>...</sup>` for citations~~ (brackets are used)
 * [x] Math rendering
+  * [ ] Turn SVGs into PNGs (Tolino has some issues displaying the math-SVGs)
 * [x] Save rendered templates like images
 * [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests
