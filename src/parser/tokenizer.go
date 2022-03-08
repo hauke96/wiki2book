@@ -150,6 +150,7 @@ func tokenizeContent(t *Tokenizer, content string) string {
 		content = escapeImages(content)
 
 		content = t.parseInternalLinks(content)
+		content = t.parseGalleries(content)
 		content = t.parseImages(content)
 		content = t.parseExternalLinks(content)
 		content = t.parseMath(content)
@@ -240,6 +241,43 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, isBoldOpen 
 	}
 
 	return content, index, false, false
+}
+
+func (t *Tokenizer) parseGalleries(content string) string {
+	lines := strings.Split(content, "\n")
+
+	withinGallery := false
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
+		// Gallery ends -> Simply remove line and end "withinGallery" mode
+		if line == "</gallery>" {
+			withinGallery = false
+			// delete this line i
+			lines = append(lines[:i], lines[i+1:]...)
+			i--
+			continue
+		}
+
+		// Gallery ends -> Simply remove line and start "withinGallery" mode
+		if strings.HasPrefix(line, "<gallery") {
+			withinGallery = true
+			// delete this line i
+			lines = append(lines[:i], lines[i+1:]...)
+			i--
+			continue
+		}
+
+		// We're within a gallery -> turn each line into separate wikitext image
+		if withinGallery {
+			line = strings.TrimSpace(line)
+			lines[i] = escapeImages(fmt.Sprintf("[[File:%s]]", line))
+		}
+	}
+
+	content = strings.Join(lines, "\n")
+	return content
 }
 
 func (t *Tokenizer) parseImages(content string) string {

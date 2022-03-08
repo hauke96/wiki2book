@@ -80,6 +80,29 @@ func TestParseBoldAndItalic(t *testing.T) {
 	test.AssertEqual(t, MARKER_BOLD_OPEN+"foo [[bar]] abc"+MARKER_BOLD_CLOSE, content)
 }
 
+func TestParseGalleries(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseGalleries(`foo
+<gallery>
+file1.jpg|captiion
+</gallery>
+bar
+<gallery some="parameter">
+file2.jpg|test123
+file 3.jpg
+</gallery>
+blubb`)
+
+	test.AssertEqual(t, `foo
+[[File:File1.jpg|captiion]]
+bar
+[[File:File2.jpg|test123]]
+[[File:File_3.jpg]]
+blubb`, content)
+
+	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
+}
+
 func TestParseImages(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[Datei:image.jpg]] bar")
