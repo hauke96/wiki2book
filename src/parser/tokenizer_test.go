@@ -92,7 +92,11 @@ func TestParseBoldAndItalic(t *testing.T) {
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseBoldAndItalic("'''''a''b'''")
-	test.AssertEqual(t, MARKER_ITALIC_OPEN+MARKER_BOLD_OPEN+"a"+MARKER_BOLD_CLOSE+MARKER_ITALIC_CLOSE+MARKER_BOLD_OPEN+"b"+MARKER_BOLD_CLOSE, content)
+	test.AssertEqual(t, MARKER_BOLD_OPEN+MARKER_ITALIC_OPEN+"a"+MARKER_ITALIC_CLOSE+"b"+MARKER_BOLD_CLOSE, content)
+
+	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseBoldAndItalic("''x'''a''b'''")
+	test.AssertEqual(t, MARKER_ITALIC_OPEN+"x"+MARKER_BOLD_OPEN+"a"+MARKER_BOLD_CLOSE+MARKER_ITALIC_CLOSE+MARKER_BOLD_OPEN+"b"+MARKER_BOLD_CLOSE, content)
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseBoldAndItalic("'''foo [[bar]] abc'''")

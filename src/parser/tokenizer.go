@@ -232,10 +232,18 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 		}
 
 		var stack []BoldItalicStackItem
-		success, stack = t.tokenizeBoldAndItalic(content, index, false, false, stack)
+		// First try everything without repairing crossovers. Crossovers can happen even if a normal solution is possible.
+		success, stack = t.tokenizeBoldAndItalic(content, index, stack, false, false, false)
 		if !success {
-			sigolo.Error("Unable to parse bold and italic tags in: %s", util.TruncString(content))
-			return content
+			sigolo.Error("Unable to parse bold and italic tags WITHOUT repairing crossovers in: %s. I'll try it again with repairing crossovers enabled.", util.TruncString(content))
+			stack = []BoldItalicStackItem{}
+			// Okay, not try to repair crossovers.
+			success, stack = t.tokenizeBoldAndItalic(content, index, stack, true, false, false)
+
+			if !success {
+				sigolo.Error("Unable to parse bold and italic tags EVEN WITH repairing crossovers in: %s", util.TruncString(content))
+				return content
+			}
 		}
 
 		// the index increase when inserting the markers as the content gets longer
@@ -275,11 +283,11 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 
 // tokenizeBoldAndItalic takes the content, an index in that content, if this index is currently in a bold or italic
 // block and a stack to parse the content for bold and italic blocks. It returns a success-bool and the resulting stack.
-func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, isBoldOpen bool, isItalicOpen bool, stack []BoldItalicStackItem) (bool, []BoldItalicStackItem) {
+func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []BoldItalicStackItem, repairCrossovers, isBoldOpen, isItalicOpen bool) (bool, []BoldItalicStackItem) {
 	// The idea of this approach:
 	// Find the next possible match for a start/stop of an italic/bold block. Put that item on the stack (e.g.
 	// BOLD_START), increase the index and recursively move on to further parse the content. Whenever something's
-	// "flacky", stop using the new stack and proceed with the old one which has one item less.
+	// "flaky", stop using the new stack and proceed with the old one which has one item less.
 	// Example of such an exit-condition: Say  ''  have been interpreted as ITALIC_OPEN but one  '  is left -> this
 	// should probably a BOLD_OPEN or BOLD_CLOSE as there are three  '''. Move one step back, interpret the  '''  as a
 	// BOLD-block and move on from there.
@@ -301,12 +309,16 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, isBoldOpen 
 			// -> insert dummy-items to resolve this issue
 			hasCrossover := len(stack) > 0 && stack[len(stack)-1].itemType == BOLD_OPEN && itemType == ITALIC_CLOSE
 			if hasCrossover {
-				newStack = append(stack, BoldItalicStackItem{itemType: BOLD_CLOSE, index: index, length: 0})
-				newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 2})
-				newStack = append(newStack, BoldItalicStackItem{itemType: BOLD_OPEN, index: index + 2, length: 0})
+				if repairCrossovers {
+					newStack = append(stack, BoldItalicStackItem{itemType: BOLD_CLOSE, index: index, length: 0})
+					newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 2})
+					newStack = append(newStack, BoldItalicStackItem{itemType: BOLD_OPEN, index: index + 2, length: 0})
+				} else {
+					return false, stack
+				}
 			}
 
-			success, newStack := t.tokenizeBoldAndItalic(content, index+2, isBoldOpen, !isItalicOpen, newStack)
+			success, newStack := t.tokenizeBoldAndItalic(content, index+2, newStack, repairCrossovers, isBoldOpen, !isItalicOpen)
 
 			if success {
 				// path went well -> end recursion and return
@@ -328,12 +340,16 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, isBoldOpen 
 			// -> insert dummy-items to resolve this issue
 			hasCrossover := len(stack) > 0 && stack[len(stack)-1].itemType == ITALIC_OPEN && itemType == BOLD_CLOSE
 			if hasCrossover {
-				newStack = append(stack, BoldItalicStackItem{itemType: ITALIC_CLOSE, index: index, length: 0})
-				newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 3})
-				newStack = append(newStack, BoldItalicStackItem{itemType: ITALIC_OPEN, index: index + 3, length: 0})
+				if repairCrossovers {
+					newStack = append(stack, BoldItalicStackItem{itemType: ITALIC_CLOSE, index: index, length: 0})
+					newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 3})
+					newStack = append(newStack, BoldItalicStackItem{itemType: ITALIC_OPEN, index: index + 3, length: 0})
+				} else {
+					return false, stack
+				}
 			}
 
-			success, newStack := t.tokenizeBoldAndItalic(content, index+3, !isBoldOpen, isItalicOpen, newStack)
+			success, newStack := t.tokenizeBoldAndItalic(content, index+3, newStack, repairCrossovers, !isBoldOpen, isItalicOpen)
 
 			if success {
 				// path went well -> end recursion and return
