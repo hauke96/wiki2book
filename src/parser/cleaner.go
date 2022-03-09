@@ -2,6 +2,7 @@ package parser
 
 import (
 	"regexp"
+	"strings"
 )
 
 func clean(content string) string {
@@ -17,33 +18,47 @@ func removeUnwantedCategories(content string) string {
 }
 
 func removeUnwantedTemplates(content string) string {
+	// All lower case. Makes things easier below.
 	ignoreTemplates := []string{
-		"Alpha Centauri",
-		"Begriffsklärungshinweis",
-		"Commons",
-		"Dieser Artikel",
-		"Exzellent",
-		"Gesprochener",
-		"Graph:Chart",
-		"Hauptartikel",
-		"Lesenswert",
-		"Linkbox",
-		"Manueller Rahmen",
-		"Navigationsleiste",
-		"Normdaten",
-		"Panorama",
+		"alpha centauri",
+		"begriffsklärungshinweis",
+		"commons",
+		"dieser artikel",
+		"exzellent",
+		"gesprochener",
+		"graph:chart",
+		"hauptartikel",
+		"lesenswert",
+		"linkbox",
+		"manueller rahmen",
+		"navigationsleiste",
+		"normdaten",
+		"panorama",
 		"siehe auch",
-		"Weiterleitungshinweis",
-		"Wikibooks",
-		"Wikiquote",
-		"Wikisource",
-		"Wiktionary",
-		"Toter Link",
+		"weiterleitungshinweis",
+		"wikibooks",
+		"wikiquote",
+		"wikisource",
+		"wiktionary",
+		"toter link",
 	}
 
+	// Find all templates that actually appear in the text
+	lowerCaseContent := strings.ToLower(content)
+	var ignoreRegexes []*regexp.Regexp
 	for _, template := range ignoreTemplates {
-		regex := regexp.MustCompile(`(?i)(\* )?\{\{` + template + `[^}]*?}}\n?`)
-		content = regex.ReplaceAllString(content, "")
+		if strings.Contains(lowerCaseContent, template) {
+			ignoreRegexes = append(ignoreRegexes, regexp.MustCompile(`(?i)(\* )?\{\{`+template+`[^}]*?}}\n?`))
+		}
+	}
+
+	var matches []string
+	for _, regex := range ignoreRegexes {
+		matches = append(matches, regex.FindAllString(content, -1)...)
+	}
+
+	for _, match := range matches {
+		content = strings.ReplaceAll(content, match, "")
 	}
 
 	return content
