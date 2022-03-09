@@ -9,16 +9,17 @@ import (
 
 var images = []string{}
 
+// Remove videos and gifs
+var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
+var imageRegex = regexp.MustCompile(IMAGE_REGEX_PATTERN)
+
 // escapeImages escapes the image names in the content and returns the updated content.
 func escapeImages(content string) string {
 	var result []string
 
-	// Remove videos and gifs
-	regex := regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
-	content = regex.ReplaceAllString(content, "")
+	content = nonImageRegex.ReplaceAllString(content, "")
 
-	regex = regexp.MustCompile(IMAGE_REGEX)
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := imageRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		filePrefix := submatch[2]
 		filename := submatch[3]

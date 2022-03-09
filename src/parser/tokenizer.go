@@ -89,6 +89,32 @@ var imageNonInlineParameters = []string{
 	"thumb",
 }
 
+var (
+	internalLinkRegex                = regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
+	filePrefixRegex                  = regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
+	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
+	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
+	externalLinkRegex                = regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
+	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
+	tableColspanRegex                = regexp.MustCompile(`colspan="(\d+)"`)
+	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
+	listPrefixRegex                  = regexp.MustCompile(`^([*#:])`)
+	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
+	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
+	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
+	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
+	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
+	headingRegexes                   = []*regexp.Regexp{
+		regexp.MustCompile(`(?m)^= (.*) =$`),
+		regexp.MustCompile(`(?m)^== (.*) ==$`),
+		regexp.MustCompile(`(?m)^=== (.*) ===$`),
+		regexp.MustCompile(`(?m)^==== (.*) ====$`),
+		regexp.MustCompile(`(?m)^===== (.*) =====$`),
+		regexp.MustCompile(`(?m)^====== (.*) ======$`),
+		regexp.MustCompile(`(?m)^======= (.*) =======$`),
+	}
+)
+
 type ITokenizer interface {
 	tokenize(content string) string
 	getTokenMap() map[string]string
@@ -101,6 +127,21 @@ type Tokenizer struct {
 	templateFolder string
 
 	tokenizeContent func(tokenizer *Tokenizer, content string) string
+}
+
+type BoldItalicStackItemType int
+
+const (
+	BOLD_OPEN BoldItalicStackItemType = iota
+	BOLD_CLOSE
+	ITALIC_OPEN
+	ITALIC_CLOSE
+)
+
+type BoldItalicStackItem struct {
+	itemType BoldItalicStackItemType
+	index    int
+	length   int
 }
 
 func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
@@ -187,8 +228,7 @@ func (t *Tokenizer) tokenizeInline(content string) string {
 
 func (t *Tokenizer) parseHeadings(content string) string {
 	for i := 1; i < 7; i++ {
-		headingPrefixSuffix := strings.Repeat("=", i)
-		matches := regexp.MustCompile(`(?m)^`+headingPrefixSuffix+` (.*) `+headingPrefixSuffix+`$`).FindAllStringSubmatch(content, -1)
+		matches := headingRegexes[i].FindAllStringSubmatch(content, -1)
 		for _, match := range matches {
 			token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i))
 			t.setToken(token, match[1])
@@ -197,21 +237,6 @@ func (t *Tokenizer) parseHeadings(content string) string {
 	}
 
 	return content
-}
-
-type BoldItalicStackItemType int
-
-const (
-	BOLD_OPEN BoldItalicStackItemType = iota
-	BOLD_CLOSE
-	ITALIC_OPEN
-	ITALIC_CLOSE
-)
-
-type BoldItalicStackItem struct {
-	itemType BoldItalicStackItemType
-	index    int
-	length   int
 }
 
 func (t *Tokenizer) parseBoldAndItalic(content string) string {
@@ -412,8 +437,6 @@ func (t *Tokenizer) parseGalleries(content string) string {
 
 	withinGallery := false
 
-	galleryStartRegex := regexp.MustCompile("^<gallery.*?>")
-
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 
@@ -457,8 +480,6 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 
 	withinImageMap := false
 
-	imagemapStartRegex := regexp.MustCompile("^<imagemap.*?>")
-
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 
@@ -498,8 +519,7 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 }
 
 func (t *Tokenizer) parseImages(content string) string {
-	regex := regexp.MustCompile(IMAGE_REGEX)
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := imageRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		filename := filepath.Join(t.imageFolder, submatch[3])
 		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
@@ -563,13 +583,11 @@ func (t *Tokenizer) elementHasPrefix(element string, prefixes []string) bool {
 }
 
 func (t *Tokenizer) parseInternalLinks(content string) string {
-	regex := regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
-	submatches := regex.FindAllStringSubmatch(content, -1)
-
-	prefixRegex := regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
+	submatches := internalLinkRegex.FindAllStringSubmatch(content, -1)
 
 	for _, submatch := range submatches {
-		if prefixRegex.MatchString(submatch[0]) {
+		// Ignore all kind of files, they are parsed elsewhere
+		if filePrefixRegex.MatchString(submatch[0]) {
 			continue
 		}
 
@@ -596,8 +614,7 @@ func (t *Tokenizer) parseInternalLinks(content string) string {
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	regex := regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := externalLinkRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		tokenUrl := t.getToken(TOKEN_EXTERNAL_LINK_URL)
 		t.setToken(tokenUrl, submatch[2])
@@ -626,12 +643,11 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 
 func (t *Tokenizer) parseTables(content string) string {
 	lines := strings.Split(content, "\n")
-	regex := regexp.MustCompile(`^(:*)(\{\|.*)`)
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if regex.MatchString(line) {
-			submatch := regex.FindStringSubmatch(line)
+		submatch := tableStartRegex.FindStringSubmatch(line)
+		if submatch != nil {
 			listPrefix := submatch[1]
 			line = submatch[2]
 
@@ -790,12 +806,12 @@ func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
 
 	relevantTags := []string{}
 
-	colspanMatch := regexp.MustCompile(`colspan="(\d+)"`).FindStringSubmatch(attributeString)
+	colspanMatch := tableColspanRegex.FindStringSubmatch(attributeString)
 	if len(colspanMatch) > 1 {
 		relevantTags = append(relevantTags, colspanMatch[0])
 	}
 
-	alignmentMatch := regexp.MustCompile(`text-align:.+?;`).FindStringSubmatch(attributeString)
+	alignmentMatch := tableTextAlignRegex.FindStringSubmatch(attributeString)
 	if len(alignmentMatch) > 0 {
 		relevantTags = append(relevantTags, `style="`+alignmentMatch[0]+`"`)
 	}
@@ -809,8 +825,7 @@ func (t *Tokenizer) parseLists(content string) string {
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 
-		regex := regexp.MustCompile(`^([*#:])`)
-		lineStartCharacter := regex.FindStringSubmatch(line)
+		lineStartCharacter := listPrefixRegex.FindStringSubmatch(line)
 
 		if len(lineStartCharacter) > 0 && lineStartCharacter[1] != "" {
 			listTokenString := t.getListTokenString(lineStartCharacter[1])
@@ -942,7 +957,7 @@ func (t *Tokenizer) getListItemTokenString(listItemPrefix string) string {
 }
 
 func (t *Tokenizer) hasListItemPrefix(line string) bool {
-	return regexp.MustCompile(`^[*#:]`).MatchString(line)
+	return listPrefixRegex.MatchString(line)
 }
 
 func (t *Tokenizer) parseReferences(content string) string {
@@ -1004,14 +1019,12 @@ func (t *Tokenizer) parseReferences(content string) string {
 // getReferenceHeadAndFoot splits the content into section before, at and after the reference list.
 // The return values are head, foot, content and a boolean which is true if there's no reference list in content.
 func (t *Tokenizer) getReferenceHeadAndFoot(content string) (string, string, string, bool) {
-	regex := regexp.MustCompile(`</?references.*?/?>\n?`)
-
 	// No reference list found -> abort
-	if !regex.MatchString(content) {
+	if !referenceBlockStartRegex.MatchString(content) {
 		return "", "", content, true
 	}
 
-	contentParts := regex.Split(content, -1)
+	contentParts := referenceBlockStartRegex.Split(content, -1)
 	// In case of dedicated <references>...</references> block
 	//   part 0 = head   : everything before <references...>
 	//   part 1 (ignored): everything between <references> and </references>
@@ -1055,10 +1068,8 @@ func (t *Tokenizer) getSortedReferenceNames(indexToRefName map[int]string) ([]st
 
 // replaceNamedReferences replaces all occurrences of named reference definitions in "head" by a named reference usage.
 func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[string]string, head string) string {
-	// Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
-	regex := regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`)
 	// Go through "content" to also parse the definitions inside the <references>...</references> block and below it.
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := namedReferenceRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		name := submatch[1]
 		totalRef := submatch[0]
@@ -1070,15 +1081,13 @@ func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[stri
 
 // replaceNamedReferences replaces all occurrences of unnamed reference definitions by a named reference usage with a random reference name.
 func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[string]string, head string) string {
-	regex := regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
-	namedRefRegex := regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
 	// Go throught "content" to also parse the definitions in the reference section below "head"
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := unnamedReferenceRegex.FindAllStringSubmatch(content, -1)
 	for i, submatch := range submatches {
 		totalRef := submatch[0]
 
 		// Ignore named references, we're just interested in UNnamed ones
-		if namedRefRegex.MatchString(totalRef) {
+		if namedReferenceWithoutGroupsRegex.MatchString(totalRef) {
 			continue
 		}
 
@@ -1098,8 +1107,7 @@ func (t *Tokenizer) getReferenceUsages(head string) (map[string]string, map[int]
 	// This map take the index of the reference in "content" as determined by  strings.Index()  as key/value.
 	indexToRefName := map[int]string{}
 
-	regex := regexp.MustCompile(`<ref.*?name="([^"]*?)".*?/>`)
-	submatches := regex.FindAllStringSubmatch(head, -1)
+	submatches := namedReferenceWithoutGroupsRegex.FindAllStringSubmatch(head, -1)
 	for _, submatch := range submatches {
 		name := submatch[1]
 		nameToRefDef[name] = submatch[0]
@@ -1110,8 +1118,7 @@ func (t *Tokenizer) getReferenceUsages(head string) (map[string]string, map[int]
 }
 
 func (t *Tokenizer) parseMath(content string) string {
-	regex := regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
-	matches := regex.FindAllStringSubmatch(content, -1)
+	matches := mathRegex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
 		token := t.getToken(TOKEN_MATH)
 		t.setRawToken(token, match[1])

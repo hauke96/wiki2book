@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func main() {
@@ -45,6 +46,16 @@ func generateTestEbook() {
 }
 
 func generateEbook() {
+	start := time.Now()
+
+	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
+	//f, err := os.Create("profiling.prof")
+	//sigolo.FatalCheck(err)
+	//
+	//err = pprof.StartCPUProfile(f)
+	//sigolo.FatalCheck(err)
+	//defer pprof.StopCPUProfile()
+
 	projectFile := os.Args[1]
 
 	if "test" == projectFile {
@@ -56,7 +67,7 @@ func generateEbook() {
 	sigolo.Info("Use project file: %s", projectFile)
 
 	directory, _ := filepath.Split(projectFile)
-	err := os.Chdir(directory)
+	err = os.Chdir(directory)
 	sigolo.FatalCheck(err)
 
 	project, err := project.LoadProject(projectFile)
@@ -85,6 +96,11 @@ func generateEbook() {
 	err = epub.Generate(articleFiles, project.OutputFile, project.Style, project.Cover, project.Metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
+
+	end := time.Now()
+	sigolo.Debug("Start   : %s", start.Format(time.RFC1123))
+	sigolo.Debug("End     : %s", end.Format(time.RFC1123))
+	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
 func generateHtml(wikiPage parser.Article, styleFile string, imageCacheFolder string, mathCacheFolder string) (error, string) {

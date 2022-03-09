@@ -46,7 +46,7 @@ func TestImageRegex(t *testing.T) {
 	}
 
 	for _, i := range valid {
-		test.AssertMatch(t, IMAGE_REGEX, i)
+		test.AssertMatch(t, IMAGE_REGEX_PATTERN, i)
 	}
 
 	invalid := []string{
@@ -58,6 +58,6 @@ func TestImageRegex(t *testing.T) {
 	}
 
 	for _, i := range invalid {
-		test.AssertNoMatch(t, IMAGE_REGEX, i)
+		test.AssertNoMatch(t, IMAGE_REGEX_PATTERN, i)
 	}
 }

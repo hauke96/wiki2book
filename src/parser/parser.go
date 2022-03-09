@@ -6,7 +6,7 @@ import (
 )
 
 const FILE_PREFIXES = "Datei|File|Bild|Image|Media"
-const IMAGE_REGEX = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`
+const IMAGE_REGEX_PATTERN = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`
 
 func Parse(content string, title string, tokenizer ITokenizer) Article {
 	content = tokenizer.tokenize(content)
