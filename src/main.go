@@ -46,6 +46,7 @@ func generateTestEbook() {
 }
 
 func generateEbook() {
+	var err error
 	start := time.Now()
 
 	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
