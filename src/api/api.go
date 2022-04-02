@@ -240,23 +240,29 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }
 
-func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, error) {
+func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
 	sigolo.Info("Render math %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
 	if err != nil {
-		return "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
+		return "", "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
 	}
 
-	imageUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
-	cachedFile, err := downloadAndCache(imageUrl, imageCacheFolder, mathSvgFilename+".svg")
+	imageSvgUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
+	cachedSvgFile, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+".svg")
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return cachedFile, nil
+	imagePngUrl := "https://wikimedia.org/api/rest_v1/media/math/render/png/" + mathSvgFilename
+	cachedPngFile, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
+	if err != nil {
+		return "", "", err
+	}
+
+	return cachedSvgFile, cachedPngFile, nil
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SVG filename.

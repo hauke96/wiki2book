@@ -392,19 +392,19 @@ func expandRefUsage(tokenString string, tokenMap map[string]string) (string, err
 }
 
 func expandMath(tokenString string, tokenMap map[string]string) (string, error) {
-	filename, err := api.RenderMath(tokenMap[tokenString], imageCacheFolder, mathCacheFolder)
+	svgFilename, pngFilename, err := api.RenderMath(tokenMap[tokenString], imageCacheFolder, mathCacheFolder)
 	if err != nil {
 		return "", err
 	}
 
-	svg, err := util.ReadSvg(filename)
+	svg, err := util.ReadSvg(svgFilename)
 	if err != nil {
 		return "", err
 	}
 
-	sigolo.Debug("File: %s, Width: %s, Height: %s, Style: %s", filename, svg.Width, svg.Height, svg.Style)
+	sigolo.Debug("File: %s, Width: %s, Height: %s, Style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
 
-	return fmt.Sprintf(MATH_TEMPLATE, filename, svg.Width, svg.Height, svg.Style), nil
+	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
 }
 
 func escapeSpecialCharacters(content string) string {
