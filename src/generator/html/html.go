@@ -88,6 +88,10 @@ var mathCacheFolder = ""
 func Generate(wikiPage parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string) (string, error) {
 	imageCacheFolder = imgFolder
 	mathCacheFolder = mathFolder
+
+	err := api.DownloadImages(wikiPage.Images, imageCacheFolder)
+	sigolo.FatalCheck(err)
+
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiPage.Title + "</h1>"
 	expandedContent, err := expand(wikiPage.Content, wikiPage.TokenMap)

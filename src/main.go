@@ -17,34 +17,6 @@ func main() {
 	generateEbook()
 }
 
-func generateTestEbook() {
-	imageFolder := "../test/images"
-	mathFolder := "../test/math"
-	templateFolder := "../test/templates"
-
-	sigolo.LogLevel = sigolo.LOG_DEBUG
-
-	fileContent, err := ioutil.ReadFile("../test/test.mediawiki")
-	sigolo.FatalCheck(err)
-
-	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
-	article := parser.Parse(string(fileContent), "test", &tokenizer)
-
-	err = api.DownloadImages(article.Images, imageFolder)
-	sigolo.FatalCheck(err)
-
-	_, err = html.Generate(article, "../test/", "../example/style.css", imageFolder, mathFolder)
-	sigolo.FatalCheck(err)
-
-	sigolo.Info("Start generating EPUB file")
-	metadata := project.Metadata{
-		Title: "Foobar",
-	}
-	err = epub.Generate([]string{"../test/test.html"}, "../test/test.epub", "../example/style.css", "../example/wikipedia-astronomie-cover.png", metadata)
-	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file")
-}
-
 func generateEbook() {
 	var err error
 	start := time.Now()
@@ -85,7 +57,7 @@ func generateEbook() {
 		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
 		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, &tokenizer)
 
-		err, outputFile := generateHtml(article, project.Style, project.Caches.Images, project.Caches.Math)
+		outputFile, err := html.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
@@ -104,11 +76,30 @@ func generateEbook() {
 	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
-func generateHtml(wikiPage parser.Article, styleFile string, imageCacheFolder string, mathCacheFolder string) (error, string) {
-	err := api.DownloadImages(wikiPage.Images, imageCacheFolder)
+func generateTestEbook() {
+	imageFolder := "../test/images"
+	mathFolder := "../test/math"
+	templateFolder := "../test/templates"
+
+	sigolo.LogLevel = sigolo.LOG_DEBUG
+
+	fileContent, err := ioutil.ReadFile("../test/test.mediawiki")
 	sigolo.FatalCheck(err)
 
-	outputFile, err := html.Generate(wikiPage, "./", styleFile, imageCacheFolder, mathCacheFolder)
+	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
+	article := parser.Parse(string(fileContent), "test", &tokenizer)
+
+	err = api.DownloadImages(article.Images, imageFolder)
 	sigolo.FatalCheck(err)
-	return err, outputFile
+
+	_, err = html.Generate(article, "../test/", "../example/style.css", imageFolder, mathFolder)
+	sigolo.FatalCheck(err)
+
+	sigolo.Info("Start generating EPUB file")
+	metadata := project.Metadata{
+		Title: "Foobar",
+	}
+	err = epub.Generate([]string{"../test/test.html"}, "../test/test.epub", "../example/style.css", "../example/wikipedia-astronomie-cover.png", metadata)
+	sigolo.FatalCheck(err)
+	sigolo.Info("Successfully created EPUB file")
 }

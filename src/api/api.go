@@ -110,7 +110,7 @@ func DownloadImages(images []string, outputFolder string) error {
 		for _, source := range imageSources {
 			outputFilepath, err = downloadImage(image, outputFolder, source)
 			if err != nil {
-				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.", image, source, err.Error())
+				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.\n%+v", image, source, err.Error(), err)
 				continue
 			}
 
@@ -194,7 +194,7 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 	// Create the output folder
 	err := os.MkdirAll(cacheFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", cacheFolder))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolder))
 	}
 
 	outputFilepath := filepath.Join(cacheFolder, filename)
@@ -202,17 +202,17 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 	// Create the output file
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for file %s", outputFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for file '%s'", outputFilepath))
 	}
 	defer outputFile.Close()
 
 	// Write the body to file
 	_, err = io.Copy(outputFile, reader)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file %s", outputFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file '%s'", outputFilepath))
 	}
 
-	sigolo.Info("Cached file to %s", outputFilepath)
+	sigolo.Info("Cached file to '%s'", outputFilepath)
 
 	return nil
 }
