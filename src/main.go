@@ -51,11 +51,11 @@ func generateEbook() {
 	for _, articleName := range project.Articles {
 		sigolo.Info("Start processing articleName %s", articleName)
 
-		wikiPageDto, err := api.DownloadPage(project.Domain, articleName, project.Caches.Articles)
+		wikiArticleDto, err := api.DownloadArticle(project.Domain, articleName, project.Caches.Articles)
 		sigolo.FatalCheck(err)
 
 		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
-		article := parser.Parse(wikiPageDto.Parse.Wikitext.Content, wikiPageDto.Parse.Title, &tokenizer)
+		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
 
 		outputFile, err := html.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math)
 		sigolo.FatalCheck(err)

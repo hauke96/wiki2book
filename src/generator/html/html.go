@@ -85,22 +85,22 @@ const TEMPLATE_REF_USAGE = "[%d]"
 var imageCacheFolder = ""
 var mathCacheFolder = ""
 
-func Generate(wikiPage parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string) (string, error) {
+func Generate(wikiArticle parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string) (string, error) {
 	imageCacheFolder = imgFolder
 	mathCacheFolder = mathFolder
 
-	err := api.DownloadImages(wikiPage.Images, imageCacheFolder)
+	err := api.DownloadImages(wikiArticle.Images, imageCacheFolder)
 	sigolo.FatalCheck(err)
 
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
-	content += "\n<h1>" + wikiPage.Title + "</h1>"
-	expandedContent, err := expand(wikiPage.Content, wikiPage.TokenMap)
+	content += "\n<h1>" + wikiArticle.Title + "</h1>"
+	expandedContent, err := expand(wikiArticle.Content, wikiArticle.TokenMap)
 	if err != nil {
 		return "", err
 	}
 	content += expandedContent
 	content += FOOTER
-	return write(wikiPage.Title, outputFolder, content)
+	return write(wikiArticle.Title, outputFolder, content)
 }
 
 func expand(content string, tokenMap map[string]string) (string, error) {

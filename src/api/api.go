@@ -19,11 +19,11 @@ import (
 	"time"
 )
 
-type WikiPageDto struct {
-	Parse WikiParsePageDto `json:"parse"`
+type WikiArticleDto struct {
+	Parse WikiParseArticleDto `json:"parse"`
 }
 
-type WikiParsePageDto struct {
+type WikiParseArticleDto struct {
 	Title    string              `json:"title"`
 	Wikitext WikiWildcardTextDto `json:"wikitext"`
 }
@@ -77,7 +77,7 @@ func MockHttp(response string, statusCode int) *MockHttpClient {
 var imageSources = []string{"commons", "de"}
 var httpClient = GetDefaultHttpClient()
 
-func DownloadPage(language string, title string, cacheFolder string) (*WikiPageDto, error) {
+func DownloadArticle(language string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, escapedTitle)
@@ -93,13 +93,13 @@ func DownloadPage(language string, title string, cacheFolder string) (*WikiPageD
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
 
-	wikiPageDto := &WikiPageDto{}
-	err = json.Unmarshal(bodyBytes, wikiPageDto)
+	wikiArticleDto := &WikiArticleDto{}
+	err = json.Unmarshal(bodyBytes, wikiArticleDto)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", language, title))
 	}
 
-	return wikiPageDto, nil
+	return wikiArticleDto, nil
 }
 
 func DownloadImages(images []string, outputFolder string) error {
