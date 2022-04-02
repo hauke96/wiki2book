@@ -19,9 +19,9 @@ This is just a local wikitext file, so no content is downloaded from Wikipedia w
 
 # Run tests
 
-Normal, without coverage file: `go test ./...`
+Normal (without creating a coverage file) go into the `src` folder and execute `go test ./...`.
 
-With coverage: `go test -coverprofile test.out ./... && go tool cover -html=test.out`
+With coverage: Go into `src` folder, use `go test -coverprofile test.out ./...` to run tests and `go tool cover -html=test.out` to view the coverage result.
 
 ---
 ¹ Especially useful when using trains in Germany. No joke.
