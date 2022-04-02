@@ -64,19 +64,14 @@ Open tasks of this project:
 * [x] Caption of tables
 * [x] Ordered lists
 * [ ] Definition list `<dl>` (wikitext ;)
-* [ ] Italic and bold sections are still a problem
+* [x] Italic and bold sections are still a problem
 * [ ] Problematic pages:
   * *(currently no problematic pages are known)*
 * [x] ~~Use superscript `<sup>...</sup>` for citations~~ (brackets are used)
 * [x] Math rendering
-  * [ ] Turn SVGs into PNGs (Tolino has some issues displaying the math-SVGs)
+  * [x] Turn SVGs into PNGs (Tolino has some issues displaying the math-SVGs)
 * [x] Save rendered templates like images
 * [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
 * [ ] Add tests
 * [ ] Pretty focused on German articles → support at least English Wikipedia
-* [ ] Extend CLI
-  * [ ] Parameter for project (`--project ./path/to/project.json`) 
-  * [ ] Single wiki articles (`--article foobar`) 
-  * [ ] Wikitext file (`--file ./file.wikitext`)
-  * [ ] Style file (`--style ./style.css`)
-  * [ ] Font (`--font /usr/share/fonts/TTF/SuperPrettyFont.ttf`)
+* [ ] Extend CLI (#2)
