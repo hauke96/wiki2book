@@ -102,6 +102,7 @@ var (
 	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
 	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
 	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
+	namedReferenceUsageRegex         = regexp.MustCompile(`<ref name="(.*?)"\s?/>`)
 	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
 	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
 	headingRegexes                   = []*regexp.Regexp{
@@ -1107,7 +1108,7 @@ func (t *Tokenizer) getReferenceUsages(head string) (map[string]string, map[int]
 	// This map take the index of the reference in "content" as determined by  strings.Index()  as key/value.
 	indexToRefName := map[int]string{}
 
-	submatches := namedReferenceWithoutGroupsRegex.FindAllStringSubmatch(head, -1)
+	submatches := namedReferenceUsageRegex.FindAllStringSubmatch(head, -1)
 	for _, submatch := range submatches {
 		name := submatch[1]
 		nameToRefDef[name] = submatch[0]
