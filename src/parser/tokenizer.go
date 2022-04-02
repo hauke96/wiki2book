@@ -227,10 +227,10 @@ func (t *Tokenizer) tokenizeInline(content string) string {
 }
 
 func (t *Tokenizer) parseHeadings(content string) string {
-	for i := 1; i < 7; i++ {
+	for i := 0; i < 7; i++ {
 		matches := headingRegexes[i].FindAllStringSubmatch(content, -1)
 		for _, match := range matches {
-			token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i))
+			token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i+1))
 			t.setToken(token, match[1])
 			content = strings.Replace(content, match[0], token, 1)
 		}
