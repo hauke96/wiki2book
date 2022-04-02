@@ -1,5 +1,16 @@
 # wiki2book
-**wiki2book** is a tool to create good-looking EPUB-eBooks from one or more wikipedia articles.
+**wiki2book** is a tool to create good-looking EPUB-eBooks from one or more Wikipedia articles.
+
+The goal of this converter is to create nearly print-ready eBooks from a couple of Wikipedia articles.
+This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge. 
+
+**Why not simply using pandoc?**<br>
+Good question.
+Pandoc (and a lot of other tools as well) is great and yes, it can convert mediawiki to ePUB.
+In fact, this converter relies heavily on pandoc because turning HTML into ePUB works perfectly.
+However, there are a lot of things missing, for example rendering math but more importantly downloading images and evaluating templates.
+Also pandoc doesn't do any eBook specific assumptions, e.g. ignoring ebook-unsuitable styles or not evaluating Wikipedia oriented templates.
+A lot of existing tools are furthermore tied to their implementation as non-specific but rather general purpose tool, which is not beneficial when converting Wikipedia articles to eBooks. 
 
 # Usage
 
@@ -55,23 +66,8 @@ But because a lot of German template-strings are removed while parsing, the Engl
 1. Go into `src` folder
 2. Follow instructions of the README.md there
 
-# TODOs
+# Long-term goals
 
-Open tasks of this project:
-
-* [x] Add cover to EPUB file
-* [x] Tables
-* [x] Caption of tables
-* [x] Ordered lists
-* [ ] Definition list `<dl>` (wikitext ;)
-* [x] Italic and bold sections are still a problem
-* [ ] Problematic pages:
-  * *(currently no problematic pages are known)*
-* [x] ~~Use superscript `<sup>...</sup>` for citations~~ (brackets are used)
-* [x] Math rendering
-  * [x] Turn SVGs into PNGs (Tolino has some issues displaying the math-SVGs)
-* [x] Save rendered templates like images
-* [x] Create a file format (JSON?) to create a book in onw run (multiple articles, style, fonts, cover, ...)
-* [ ] Add tests
-* [ ] Pretty focused on German articles → support at least English Wikipedia
-* [ ] Extend CLI (#2)
+* Be independent of the specific Wikipedia instance (#5)
+* Create a public API and web app (#7)
+* Ask Wikipedia if they want to embed/link to this tool in any way
