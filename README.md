@@ -5,7 +5,7 @@ The goal of this converter is to create nearly print-ready eBooks from a couple 
 This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge. 
 
 <p align="center">
-<img src="photo.png" alt="eBook of the German article about astronomy."/>
+<img src="photo.JPG" alt="eBook of the German article about astronomy."/>
 </p>
 
 ### Why not simply using pandoc?
