@@ -94,7 +94,7 @@ var (
 	filePrefixRegex                  = regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
 	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
-	externalLinkRegex                = regexp.MustCompile(`([^\[])\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
+	externalLinkRegex                = regexp.MustCompile(`([^\[])?\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
 	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
 	tableColspanRegex                = regexp.MustCompile(`colspan="(\d+)"`)
 	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
