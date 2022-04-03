@@ -761,7 +761,6 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string,
 		i++
 		for ; !strings.HasPrefix(lines[i], sep) && !strings.HasPrefix(lines[i], "|"); i++ {
 			line += "\n" + lines[i]
-			fmt.Println(lines[i])
 		}
 		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
 		i -= 1

@@ -44,6 +44,6 @@ func escapeImages(content string) string {
 
 	firstPartOfContent := util.TruncString(content)
 
-	sigolo.Info("Found and embedded %d images in content %s", len(submatches), firstPartOfContent)
+	sigolo.Debug("Found and embedded %d images in content %s", len(submatches), firstPartOfContent)
 	return content
 }

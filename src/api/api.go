@@ -218,7 +218,7 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
-	sigolo.Info("Evaluate template %s", template)
+	sigolo.Info("Evaluate template %s", util.TruncString(template))
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
 	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
