@@ -524,7 +524,7 @@ func (t *Tokenizer) parseImages(content string) string {
 	for _, submatch := range submatches {
 		filename := filepath.Join(t.imageFolder, submatch[3])
 		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
-		t.setToken(filenameToken, filename)
+		t.setRawToken(filenameToken, filename)
 
 		tokenString := TOKEN_IMAGE_INLINE
 		imageSizeToken := ""
@@ -556,7 +556,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
 					imageSizeToken = t.getToken(TOKEN_IMAGE_SIZE)
-					t.setToken(imageSizeToken, imageSizeString)
+					t.setRawToken(imageSizeToken, imageSizeString)
 				} else if i == len(options)-1 && tokenString == TOKEN_IMAGE {
 					// last remaining option is caption as long as we do NOT have an inline image
 					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
@@ -566,7 +566,7 @@ func (t *Tokenizer) parseImages(content string) string {
 		}
 
 		token := t.getToken(tokenString)
-		t.setToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
+		t.setRawToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -592,21 +592,24 @@ func (t *Tokenizer) parseInternalLinks(content string) string {
 			continue
 		}
 
-		tokenArticle := t.getToken(TOKEN_INTERNAL_LINK_ARTICLE)
-		t.setToken(tokenArticle, submatch[1])
+		articleName := submatch[1]
+		linkText := submatch[3]
 
-		linkText := submatch[1]
-		if submatch[3] != "" {
+		tokenArticle := t.getToken(TOKEN_INTERNAL_LINK_ARTICLE)
+		t.setRawToken(tokenArticle, articleName)
+
+		if linkText != "" {
 			// Use article as text
-			linkText = submatch[3]
+			linkText = t.tokenizeInline(linkText)
+		} else {
+			linkText = articleName
 		}
 
-		text := t.tokenizeInline(linkText)
 		tokenText := t.getToken(TOKEN_INTERNAL_LINK_TEXT)
-		t.setToken(tokenText, text)
+		t.setRawToken(tokenText, linkText)
 
 		token := t.getToken(TOKEN_INTERNAL_LINK)
-		t.setToken(token, tokenArticle+" "+tokenText)
+		t.setRawToken(token, tokenArticle+" "+tokenText)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}
@@ -618,7 +621,7 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 	submatches := externalLinkRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		tokenUrl := t.getToken(TOKEN_EXTERNAL_LINK_URL)
-		t.setToken(tokenUrl, submatch[2])
+		t.setRawToken(tokenUrl, submatch[2])
 
 		linkText := submatch[2]
 		if len(submatch) >= 5 {
@@ -629,7 +632,7 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 		t.setToken(tokenText, linkText)
 
 		token := t.getToken(TOKEN_EXTERNAL_LINK)
-		t.setToken(token, tokenUrl+" "+tokenText)
+		t.setRawToken(token, tokenUrl+" "+tokenText)
 
 		// Remove last characters as it's the first character after the closing  ]  of the file tag.
 		totalMatch := submatch[0]
@@ -735,7 +738,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	}
 
 	token := t.getToken(TOKEN_TABLE)
-	t.setToken(token, strings.Join(tableTokens, " "))
+	t.setRawToken(token, strings.Join(tableTokens, " "))
 
 	return token
 }
@@ -744,34 +747,34 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 // function expects that each column starts in a new line starting with "| " (or whatever "sep" is). The returned index
 // points to the last text line of this table row.
 func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string, int) {
-	rowLines := []string{}
+	rowLineTokens := []string{}
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
-		line := lines[i]
+		tokenizedLine := lines[i]
 
-		if strings.HasPrefix(line, "|-") || strings.HasPrefix(line, "|}") {
+		if strings.HasPrefix(tokenizedLine, "|-") || strings.HasPrefix(tokenizedLine, "|}") {
 			// table row ended
 			break
 		}
 
-		line = strings.TrimPrefix(line, sep)
+		tokenizedLine = strings.TrimPrefix(tokenizedLine, sep)
 
 		// one column may consist of multiple text rows -> all text lines until the next column or row and tokenize them
 		i++
 		for ; !strings.HasPrefix(lines[i], sep) && !strings.HasPrefix(lines[i], "|"); i++ {
-			line += "\n" + lines[i]
+			tokenizedLine += "\n" + lines[i]
 		}
 		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
 		i -= 1
 
 		attributes := ""
-		line, attributes = t.tokenizeTableColumn(line)
+		tokenizedLine, attributes = t.tokenizeTableColumn(tokenizedLine)
 
 		attributeToken := ""
 		if attributes != "" {
 			attributeToken = t.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
-			t.setToken(attributeToken, attributes)
+			t.setRawToken(attributeToken, attributes)
 		}
 
 		token := ""
@@ -780,15 +783,13 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string,
 		} else {
 			token = t.getToken(TOKEN_TABLE_COL)
 		}
-		t.setToken(token, attributeToken+line)
+		t.setRawToken(token, attributeToken+tokenizedLine)
 
-		rowLines = append(rowLines, token)
+		rowLineTokens = append(rowLineTokens, token)
 	}
 
-	tokenContent := strings.Join(rowLines, " ")
-
 	token := t.getToken(TOKEN_TABLE_ROW)
-	t.setToken(token, tokenContent)
+	t.setRawToken(token, strings.Join(rowLineTokens, " "))
 
 	// return i-1 so that i is on the last line of the row when returning
 	return token, i - 1
@@ -880,18 +881,18 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 	submatches := regex.FindAllStringSubmatch(content, -1)
 	// Ignore first item as it's always empty
 	// Each element contains the whole item including all sub-lists and everything
-	completeListItems := regex.Split(content, -1)[1:]
+	allListItemTokens := regex.Split(content, -1)[1:]
 
-	for itemIndex, item := range completeListItems {
+	for itemIndex, item := range allListItemTokens {
 		// re-add the non-prefix characters which was removed by .Split() above
 		item = submatches[itemIndex][2] + item
 		token := t.tokenizeListItem(item, itemPrefix)
-		completeListItems[itemIndex] = token
+		allListItemTokens[itemIndex] = token
 	}
 
-	tokenContent := strings.Join(completeListItems, " ")
+	tokenContent := strings.Join(allListItemTokens, " ")
 	token := t.getToken(tokenString)
-	t.setToken(token, tokenContent)
+	t.setRawToken(token, tokenContent)
 
 	return token, i
 }
@@ -914,7 +915,7 @@ func (t *Tokenizer) tokenizeListItem(content string, itemPrefix string) string {
 	}
 
 	token := t.getToken(t.getListItemTokenString(itemPrefix))
-	tokenContent := t.tokenize(itemContent)
+	tokenizedItemContent := t.tokenize(itemContent)
 
 	if subListString != "" {
 		regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]`)
@@ -925,10 +926,10 @@ func (t *Tokenizer) tokenizeListItem(content string, itemPrefix string) string {
 
 		listTokenString := t.getListTokenString(subItemPrefix)
 		subListToken, _ := t.tokenizeList(subListItemLines, 0, subItemPrefix, listTokenString)
-		tokenContent += " " + subListToken
+		tokenizedItemContent += " " + subListToken
 	}
 
-	t.setToken(token, tokenContent)
+	t.setRawToken(token, tokenizedItemContent)
 	return token
 }
 
