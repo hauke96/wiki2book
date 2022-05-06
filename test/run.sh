@@ -30,18 +30,20 @@ function run()
 {
 	# $1 - Test title (e.g. "foo" for "test-foo.mediawiki" test file)
 
+	OUT="results/test-$1"
+
 	START=`date +%s`
 	echo "$1: Start"
 
 	# TODO create own style and cover files for these integration tests
-	./wiki2book standalone -o "test-$1" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
+	./wiki2book standalone -o "$OUT" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
 
-	diff -q "test-$1/test-$1.html" "test-$1.html" > /dev/null
+	diff -q "$OUT/test-$1.html" "test-$1.html" > /dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "$1: FAIL"
 		echo "$1: HTML differs:"
-		git diff --no-index "test-$1/test-$1.html" "test-$1.html"
+		git diff --no-index --no-pager "$OUT/test-$1.html" "test-$1.html"
 	else
 		echo "$1: Success"
 	fi
