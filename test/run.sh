@@ -43,7 +43,7 @@ function run()
 	then
 		echo "$1: FAIL"
 		echo "$1: HTML differs:"
-		git diff --no-index --no-pager "$OUT/test-$1.html" "test-$1.html"
+		git --no-pager diff --no-index "$OUT/test-$1.html" "test-$1.html"
 	else
 		echo "$1: Success"
 	fi
