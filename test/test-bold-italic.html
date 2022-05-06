@@ -6,12 +6,18 @@
 </head>
 <body xmlns:epub="http://www.idpf.org/2007/ops">
 
-<h1>test-bold-italic</h1>1 <i>italic</i>
+<h1>test-bold-italic</h1>Each test gets a number at the beginning of the line. Makes handling of diffs etc. more easy.
+
+1 <i>italic</i>
 2 <b>bold</b>
 3 <b><i>italic and bold</i> only bold</b>
 4 <i><b>italic and bold</b> only italic</i>
 5 <i>italic <b>italic and bold</b></i> nothing
 6 <b>bold <i>italic and bold</i></b> nothing
 7 <b>bold ' </b> nothing
+8 <i>italic ' </i> nothing
+9a <i>italic<b> bold and italic
+9b </b> italic </i> nothing
+10 <i>italic <b>bold and italic </b></i><b> just bold </b> nothing 
 </body>
 </html>

@@ -1,3 +1,5 @@
+Each test gets a number at the beginning of the line. Makes handling of diffs etc. more easy.
+
 1 ''italic''
 2 '''bold'''
 3 '''''italic and bold'' only bold'''
@@ -5,3 +7,7 @@
 5 ''italic '''italic and bold''''' nothing
 6 '''bold ''italic and bold''''' nothing
 7 '''bold ' ''' nothing
+8 ''italic ' '' nothing
+9a ''italic''' bold and italic
+9b ''' italic '' nothing
+10 ''italic '''bold and italic '' just bold ''' nothing 
