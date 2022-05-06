@@ -20,8 +20,10 @@ src/profiling.prof
 .idea
 .run
 
-# Test binary, built with `go test -c`
+# Test stuff
 *.test
+test/wiki2book
+test/logs
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
