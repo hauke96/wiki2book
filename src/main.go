@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/alecthomas/kong"
 	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/generator/epub"
@@ -13,11 +14,29 @@ import (
 	"time"
 )
 
-func main() {
-	generateEbook()
+var cli struct {
+	Standalone struct {
+		File      string `help:"A mediawiki file tha should be rendered to an eBook." type:"existingfile:" arg:""`
+		OutputDir string `help:"The directory where all the files should be put into." short:"o" type:"path:"`
+	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
+	Project struct {
+		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
+	} `cmd:"" help:"Uses a project file to create the eBook."`
 }
 
-func generateEbook() {
+func main() {
+	ctx := kong.Parse(&cli)
+
+	switch ctx.Command() {
+	case "standalone":
+	case "project <project-file>":
+		generateEbook(cli.Project.ProjectFile)
+	default:
+		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
+	}
+}
+
+func generateEbook(projectFile string) {
 	var err error
 	start := time.Now()
 
@@ -28,8 +47,6 @@ func generateEbook() {
 	//err = pprof.StartCPUProfile(f)
 	//sigolo.FatalCheck(err)
 	//defer pprof.StopCPUProfile()
-
-	projectFile := os.Args[1]
 
 	if "test" == projectFile {
 		sigolo.Info("Use test file instead of real project file")
