@@ -1,12 +1,7 @@
-''italic''
-
-'''bold'''
-
-'''''italic and bold'' only bold'''
-
-'''''italic and bold''' only italic'''
-
-''italic '''italic and bold''''' nothing
-'''bold ''italic and bold''''' nothing
-
-'''bold ' ''' nothing
+1 ''italic''
+2 '''bold'''
+3 '''''italic and bold'' only bold'''
+4 '''''italic and bold''' only italic''
+5 ''italic '''italic and bold''''' nothing
+6 '''bold ''italic and bold''''' nothing
+7 '''bold ' ''' nothing
