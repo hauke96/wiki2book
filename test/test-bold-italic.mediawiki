@@ -1,0 +1,12 @@
+''italic''
+
+'''bold'''
+
+'''''italic and bold'' only bold'''
+
+'''''italic and bold''' only italic'''
+
+''italic '''italic and bold''''' nothing
+'''bold ''italic and bold''''' nothing
+
+'''bold ' ''' nothing

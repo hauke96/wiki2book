@@ -1,6 +1,7 @@
 #!/bin/bash
 
 LOGS="./logs"
+FAILED_TESTS=""
 
 # Build project
 echo "Build project..."
@@ -44,6 +45,7 @@ function run()
 		echo "$1: FAIL"
 		echo "$1: HTML differs:"
 		git --no-pager diff --no-index "$OUT/test-$1.html" "test-$1.html"
+		FAILED_TESTS+=" $1"
 	else
 		echo "$1: Success"
 	fi
@@ -54,6 +56,22 @@ function run()
 }
 
 # Run tests
-run generic
+PREFIX="test-"
+SUFFIX=".mediawiki"
+for f in $(find *.mediawiki)
+do
+	F=${f%"$SUFFIX"}
+	run ${F#"$PREFIX"}
+done
 
 echo "Finished all tests"
+echo
+
+if [ "$FAILED_TESTS" != "" ]
+then
+	echo "These tests FAILED:"
+	for t in "$FAILED_TESTS"
+	do
+		echo "    $t"
+	done
+fi
