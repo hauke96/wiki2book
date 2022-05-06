@@ -19,7 +19,7 @@ import (
 var cli struct {
 	Standalone struct {
 		File       string `help:"A mediawiki file tha should be rendered to an eBook." type:"existingfile" arg:""`
-		OutputDir  string `help:"The directory where all the files should be put into." short:"o" type:"path"`
+		OutputDir  string `help:"The directory where all the files should be put into." short:"o"`
 		StyleFile  string `help:"The CSS file that should be used." short:"s" type:"existingfile"`
 		CoverImage string `help:"A cover image for the front cover of the eBook." short:"c" type:"existingfile"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
