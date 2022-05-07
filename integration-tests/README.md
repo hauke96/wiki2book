@@ -15,6 +15,10 @@ The generated files are in the `results/test-<name>/` folder.
 
 Logs are in `logs/test-<name>.log`.
 
+## Reset test folder
+
+Use the `reset.sh` script to remove all files created during test execution.
+
 ## Idea
 
 Each mediawiki-file will be turned into an HTML and ePUB file.
