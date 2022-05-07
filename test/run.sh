@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LOGS="./logs"
-FAILED_TESTS=""
+LOGS="./logs"   # Folder with log files for each test
+FAILED_TESTS="" # List of test names that failed
 
 # Build project
 echo "Build project..."
@@ -10,18 +10,18 @@ cd ../src
 go build .
 mv src ../test/wiki2book
 
-# Go back into test directory
-cd ../test
-
 echo "Building project done"
 echo
 
-# Create empty directories
-echo "Prepare directories"
+# Go back into test directory
+cd ../test
+
+# Create empty log-directory
+echo "Prepare log directory"
 rm -rf $LOGS
 mkdir $LOGS
 
-echo "Preparing directories done"
+echo "Preparing log directory done"
 echo
 
 echo "Start tests:"
@@ -39,7 +39,7 @@ function run()
 	# TODO create own style and cover files for these integration tests
 	./wiki2book standalone -o "$OUT" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
 
-	# Generate file list
+	# Generate and check file list (except the .epub file which will always have a different hash value)
 	find $OUT -type f -exec sha256sum {} \; | grep -v "\.epub" > "$OUT/test-$1.filelist"
 	diff -q "$OUT/test-$1.filelist" "test-$1.filelist" > /dev/null
 	if [ $? -ne 0 ]
@@ -51,6 +51,7 @@ function run()
 		echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
 	fi
 
+	# Compare HTML files
 	diff -q "$OUT/test-$1.html" "test-$1.html" > /dev/null
 	if [ $? -ne 0 ]
 	then
@@ -77,6 +78,7 @@ done
 echo "Finished all tests"
 echo
 
+# If test failed, list them
 if [ "$FAILED_TESTS" != "" ]
 then
 	echo "These tests FAILED:"
