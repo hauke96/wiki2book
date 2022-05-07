@@ -25,6 +25,7 @@ src/profiling.prof
 integration-tests/wiki2book
 integration-tests/logs
 integration-tests/results
+integration-tests/.cache
 !integration-tests/*.html
 
 # Output of the go coverage tool, specifically when used with LiteIDE

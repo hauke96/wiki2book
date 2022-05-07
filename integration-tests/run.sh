@@ -1,5 +1,6 @@
 #!/bin/bash
 
+HOME=$PWD
 LOGS="./logs"   # Folder with log files for each test
 FAILED_TESTS="" # List of test names that failed
 
@@ -8,13 +9,13 @@ echo "Build project..."
 
 cd ../src
 go build .
-mv src ../integration-test/wiki2book
+mv src "$HOME/wiki2book"
 
 echo "Building project done"
 echo
 
 # Go back into test directory
-cd ../integration-tests
+cd $HOME
 
 # Create empty log-directory
 echo "Prepare log directory"
@@ -32,9 +33,10 @@ function run()
 	# $1 - Test title (e.g. "foo" for "test-foo.mediawiki" test file)
 
 	OUT="results/test-$1"
+	mkdir -p "$OUT"
 
-	START=`date +%s`
-	echo "$1: Start"
+	START=$(($(date +%s%N)/1000000))
+	echo "$1: Start test"
 
 	# TODO create own style and cover files for these integration tests
 	./wiki2book standalone -o "$OUT" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
@@ -61,8 +63,8 @@ function run()
 		FAILED_TESTS+=" $1"
 	fi
 
-	END=`date +%s`
-	echo "$1: Finished after `expr $END - $START` seconds"
+	END=$(($(date +%s%N)/1000000))
+	echo "$1: Finished after `expr $END - $START` milliseconds"
 	echo
 }
 

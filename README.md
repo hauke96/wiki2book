@@ -75,6 +75,12 @@ For building, running, testing, etc. do the following:
 1. Go into `src` folder
 2. Follow instructions of the README.md there
 
+## Tests
+
+Take a look into the source folders in `src` for unit tests and into the `integration-tests` folder for integration tests.
+
+You can also use the `tests.sh` script to execute all tests.
+
 # Long-term goals
 
 * Be independent of the specific Wikipedia instance (#5)
