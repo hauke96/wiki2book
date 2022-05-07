@@ -8,13 +8,13 @@ echo "Build project..."
 
 cd ../src
 go build .
-mv src ../test/wiki2book
+mv src ../integration-test/wiki2book
 
 echo "Building project done"
 echo
 
 # Go back into test directory
-cd ../test
+cd ../integration-tests
 
 # Create empty log-directory
 echo "Prepare log directory"

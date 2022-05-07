@@ -22,9 +22,9 @@ src/profiling.prof
 
 # Test stuff
 *.test
-test/wiki2book
-test/logs
-test/results
+integration-tests/wiki2book
+integration-tests/logs
+integration-tests/results
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
