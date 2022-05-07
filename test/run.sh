@@ -86,4 +86,6 @@ then
 	do
 		echo "    $t"
 	done
+else
+	echo "All tests ran SUCCESSFULLY :)"
 fi
