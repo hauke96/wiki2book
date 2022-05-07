@@ -29,9 +29,11 @@ You need the following tools and fonts:
  
 ## CLI
 
-The current CLI is pretty simple: `wiki2book ./path/to/project.json`
+The current CLI is pretty simple: `wiki2book project ./path/to/project.json`
 
-This `project.json` is a configuration for a project and may look like this:
+You can also use a single article name (`wiki2book article "The article name"`) or a local mediawiki file (`wiki2book standalone ./the/mediawiki/file.txt`).
+
+When using a project, the mentioned `project.json` is a configuration for a project and may look like this:
 
 ```json
 {
@@ -68,6 +70,8 @@ But because a lot of German template-strings are removed while parsing, the Engl
 
 # Development
 
+For building, running, testing, etc. do the following:
+
 1. Go into `src` folder
 2. Follow instructions of the README.md there
 
@@ -75,4 +79,4 @@ But because a lot of German template-strings are removed while parsing, the Engl
 
 * Be independent of the specific Wikipedia instance (#5)
 * Create a public API and web app (#7)
-* Ask Wikipedia if they want to embed/link to this tool in any way
+* Ask Wikipedia if they want to embed/link to this tool in any way (that would be super cool :D )

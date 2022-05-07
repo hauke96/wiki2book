@@ -26,6 +26,13 @@ var cli struct {
 	Project struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
+	Article struct {
+		// TODO How to deal with multiple languages? A new parameter "Language string"?
+		ArticleName string `help:"The name of the article to render." arg:""`
+		OutputDir   string `help:"The directory where all the files should be put into." short:"o"`
+		StyleFile   string `help:"The CSS file that should be used." short:"s" type:"existingfile"`
+		CoverImage  string `help:"A cover image for the front cover of the eBook." short:"c" type:"existingfile"`
+	} `cmd:"" help:"Renders a specific article into an eBook."`
 }
 
 func main() {
