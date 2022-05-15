@@ -25,29 +25,32 @@ Each mediawiki-file will be turned into an HTML and ePUB file.
 Of course the embedded images, templates and math parts are downloaded and stored to disk.
 
 The HTML file is then compared against an expected HTML file.
-All other files (except the ePUB one) will be hashed and also compared against an expected list of file hashes.
+All file names will be then be sorted, stored in a list and compared against an expected list of file names.
 
-The last step might fail when e.g. an image on Wikipedia changes and therefore results in a different hash value.
-However this probably happens not that often.
 See the below step of [updating expected files](update-expected-files) below.
 
 ## Files
 
-Every test consists of several files, the source mediawiki file, the expedted HTML and an expedted list of all files with their hashes.
+Every test consists of several files, the source mediawiki file, the expected HTML and an expected list of all files.
 The name scheme for the files is always this: `test-<name>.<ext>` (where `ext` is `mediawiki`, `html` or `filelist`).
 
 These are the required files for each test:
 
 * `test-<name>.mediawiki`: The actual mediawiki file that should be converted.
 * `test-<name>.html`: Expected HTML file.
-* `test-<name>.filelist`: Expected list of files with their SHA256 hash values. The format of this file is describes below. This file list ensures that all non-HTML-files are also matching the expected file, but without storing all the images and stuff in this repo.
+* `test-<name>.filelist`: List of expected file names. The format of this file is describes below. This file list ensures that all non-HTML-files are also downloaded/created.
 
 ### Format of the `.filelist` file
 
-Each `.filelist` file contains one or more of the following lines:
+Each `.filelist` file contains one or more file names and a blank line at the very end.
+It looks like this:
 
 ```
-<sha256-hash-of-file><space><space><file-path>
+<file-path>
+<file-path>
+...
+<file-path>
+<blank-line>
 ```
 
 The `<file-path>` is the relative path based on the `results` folder, so e.g. `results/test-bold-italic.html`.
@@ -55,8 +58,10 @@ The `<file-path>` is the relative path based on the `results` folder, so e.g. `r
 Example:
 
 ```
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  results/test-bold-italic/test-bold-italic.filelist
-a43dfb291002d12831921a28cef83987ce18f68953c691c7bff49d1b09ec7a63  results/test-bold-italic/test-bold-italic.html
+results/test-bold-italic/test-bold-italic.epub
+results/test-bold-italic/test-bold-italic.filelist
+results/test-bold-italic/test-bold-italic.html
+
 ```
 
 ### Update expected files

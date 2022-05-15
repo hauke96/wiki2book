@@ -41,25 +41,25 @@ function run()
 	# TODO create own style and cover files for these integration tests
 	./wiki2book standalone -o "$OUT" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
 
-	# Generate and check file list (except the .epub file which will always have a different hash value)
-	find $OUT -type f -exec sha256sum {} \; | grep -v "\.epub" > "$OUT/test-$1.filelist"
-	diff -q "$OUT/test-$1.filelist" "test-$1.filelist" > /dev/null
+	# Generate and check file list
+	find $OUT -type f | sort > "$OUT/test-$1.filelist"
+	diff -q "test-$1.filelist" "$OUT/test-$1.filelist" > /dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "$1: FAIL"
 		echo "$1: Files differ:"
-		git --no-pager diff --no-index "$OUT/test-$1.filelist" "test-$1.filelist"
+		git --no-pager diff --no-index "test-$1.filelist" "$OUT/test-$1.filelist"
 		FAILED_TESTS+=" $1"
 		echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
 	fi
 
 	# Compare HTML files
-	diff -q "$OUT/test-$1.html" "test-$1.html" > /dev/null
+	diff -q "test-$1.html" "$OUT/test-$1.html" > /dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "$1: FAIL"
 		echo "$1: HTML differs:"
-		git --no-pager diff --no-index "$OUT/test-$1.html" "test-$1.html"
+		git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
 		FAILED_TESTS+=" $1"
 	fi
 
