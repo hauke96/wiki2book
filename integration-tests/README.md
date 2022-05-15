@@ -19,7 +19,7 @@ Logs are in `logs/test-<name>.log`.
 
 Use the `reset.sh` script to remove all files created during test execution.
 
-## Idea
+## Architecture
 
 Each mediawiki-file will be turned into an HTML and ePUB file.
 Of course the embedded images, templates and math parts are downloaded and stored to disk.
@@ -66,15 +66,15 @@ results/test-bold-italic/test-bold-italic.html
 
 ### Update expected files
 
-Updating files is easy: Either modify them manually or -- what I recommend -- just copy the actual output file from the `results` folder and edit it if necessary.
+Updating files is easy: Either modify them manually or -- what I recommend -- use the `update.sh` script to update the files of a specific test (e.g. `./update.sh headings` for the `test-headings.mediawiki` test file).
 
 ## Create a new test
 
-Creating a new test is easy (also take a look on existing tests):
+Creating a new test is easy (also take a look at existing tests):
 
 1. Create a mediawiki file with the name scheme `test-<some-name>.mediawiki`
-2. Run the tests using `./run.sh`
-3. Copy the resulting `test-<some-name>.html` and `test-<some-name>.filelist` files from `results/test-<some-name>/` to this folder. I *can't* recommend creating the expected files yourself ... just copy and edit them :D
+2. Run the update script `./update.sh <some-name>`
+3. Take a look at the `.html` and `.filelist` file to check if everything is alright. If not, adjust these files so that they contain the expected content.
 
 That's it.
 

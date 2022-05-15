@@ -10,4 +10,4 @@ Each test gets a number at the beginning of the line. Makes handling of diffs et
 8 ''italic ' '' nothing
 9a ''italic''' bold and italic
 9b ''' italic '' nothing
-10 ''italic '''bold and italic '' just bold ''' nothing 
+10 ''italic '''bold and italic '' just bold ''' nothing

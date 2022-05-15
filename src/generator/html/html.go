@@ -22,7 +22,8 @@ const HEADER = `<?xml version="1.0" encoding="UTF-8"?>
 </head>
 <body xmlns:epub="http://www.idpf.org/2007/ops">
 `
-const FOOTER = `</body>
+const FOOTER = `
+</body>
 </html>
 `
 
@@ -76,7 +77,7 @@ const TEMPLATE_DD = `<div>
 %s
 </div>
 `
-const TEMPLATE_HEADING = "<h%d>%s</h%d>\n"
+const TEMPLATE_HEADING = "<h%d>%s</h%d>"
 const TEMPLATE_REF_DEF = "[%d] %s<br>"
 const TEMPLATE_REF_USAGE = "[%d]"
 
@@ -150,17 +151,17 @@ func expand(content string, tokenMap map[string]string) (string, error) {
 		case parser.TOKEN_MATH:
 			html, err = expandMath(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
-			html = expandHeadings(submatch[0], tokenMap, 1)
+			html, err = expandHeadings(submatch[0], tokenMap, 1)
 		case parser.TOKEN_HEADING_2:
-			html = expandHeadings(submatch[0], tokenMap, 2)
+			html, err = expandHeadings(submatch[0], tokenMap, 2)
 		case parser.TOKEN_HEADING_3:
-			html = expandHeadings(submatch[0], tokenMap, 3)
+			html, err = expandHeadings(submatch[0], tokenMap, 3)
 		case parser.TOKEN_HEADING_4:
-			html = expandHeadings(submatch[0], tokenMap, 4)
+			html, err = expandHeadings(submatch[0], tokenMap, 4)
 		case parser.TOKEN_HEADING_5:
-			html = expandHeadings(submatch[0], tokenMap, 5)
+			html, err = expandHeadings(submatch[0], tokenMap, 5)
 		case parser.TOKEN_HEADING_6:
-			html = expandHeadings(submatch[0], tokenMap, 6)
+			html, err = expandHeadings(submatch[0], tokenMap, 6)
 		case parser.TOKEN_REF_DEF:
 			html, err = expandRefDefinition(submatch[0], tokenMap)
 		case parser.TOKEN_REF_USAGE:
@@ -188,9 +189,9 @@ func expandMarker(content string) string {
 }
 
 // expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
-func expandHeadings(tokenString string, tokenMap map[string]string, level int) string {
+func expandHeadings(tokenString string, tokenMap map[string]string, level int) (string, error) {
 	title := tokenMap[tokenString]
-	return fmt.Sprintf(TEMPLATE_HEADING, level, title, level)
+	return expand(fmt.Sprintf(TEMPLATE_HEADING, level, title, level), tokenMap)
 }
 
 func expandImage(tokenString string, tokenMap map[string]string) (string, error) {

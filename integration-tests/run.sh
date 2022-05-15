@@ -1,5 +1,7 @@
 #!/bin/bash
 
+GLOBAL_START=$(($(date +%s%N)/1000000))
+
 HOME=$PWD
 LOGS="./logs"   # Folder with log files for each test
 FAILED_TESTS="" # List of test names that failed
@@ -78,8 +80,10 @@ do
 	echo "=========="
 done
 
+GLOBAL_END=$(($(date +%s%N)/1000000))
+
 echo
-echo "Finished all tests"
+echo "Finished all tests after `expr $GLOBAL_END - $GLOBAL_START` milliseconds"
 echo
 
 # If test failed, list them
