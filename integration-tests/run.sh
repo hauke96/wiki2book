@@ -65,18 +65,20 @@ function run()
 
 	END=$(($(date +%s%N)/1000000))
 	echo "$1: Finished after `expr $END - $START` milliseconds"
-	echo
 }
 
 # Run tests
 PREFIX="test-"
 SUFFIX=".mediawiki"
+echo "=========="
 for f in $(find *.mediawiki)
 do
 	F=${f%"$SUFFIX"}
 	run ${F#"$PREFIX"}
+	echo "=========="
 done
 
+echo
 echo "Finished all tests"
 echo
 

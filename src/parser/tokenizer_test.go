@@ -57,6 +57,16 @@ func TestParseHeading(t *testing.T) {
 	}
 }
 
+func TestParseHeadingWithFormatting(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseHeadings("== H2 ''with formatting'' ==")
+
+	test.AssertEqual(t, "$$TOKEN_HEADING_2_0$$", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_HEADING_2_0$$": "H2 $$MARKER_ITALIC_OPEN$$with formatting$$MARKER_ITALIC_CLOSE$$",
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseBoldAndItalic_wrongFormats(t *testing.T) {
 	var tokenizer Tokenizer
 	var content string
