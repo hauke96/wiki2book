@@ -249,10 +249,12 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 	// based on the assumption that only a small percentage of the content is actually part of an italic or bold block.
 	// Because this approach is based on recursion, this per-block parsing reduces the recursion depth.
 	for {
+		// Skip uninteresting characters
 		for index < len(content)-1 && content[index:index+2] != "''" {
 			index++
 		}
 
+		// Reached the end of text? -> break
 		if index >= len(content)-1 {
 			break
 		}
@@ -324,6 +326,7 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 		mightBelongToPrevToken := index > 0 && content[index-1:index+1] == "''"
 
 		if nextTokenMightBeItalic {
+			continueParsingAsItalicToken := true
 			itemType := ITALIC_OPEN
 			if isItalicOpen {
 				itemType = ITALIC_CLOSE
@@ -340,18 +343,25 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 					newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 2})
 					newStack = append(newStack, BoldItalicStackItem{itemType: BOLD_OPEN, index: index + 2, length: 0})
 				} else {
-					return false, stack
+					if !nextTokenMightBeBold {
+						// Return if parsing failed and continuing with parsing the current token als bold-token is
+						// useless as this token is definitely not a bold one.
+						return false, stack
+					}
+					// Parsing the current token as italic didn't work, but maybe parsing it as a bold token does work.
+					continueParsingAsItalicToken = false
 				}
 			}
 
-			success, newStack := t.tokenizeBoldAndItalic(content, index+2, newStack, repairCrossovers, isBoldOpen, !isItalicOpen)
+			if continueParsingAsItalicToken {
+				success, newStack := t.tokenizeBoldAndItalic(content, index+2, newStack, repairCrossovers, isBoldOpen, !isItalicOpen)
 
-			if success {
-				// path went well -> end recursion and return
-				return true, newStack
+				if success {
+					// path went well -> end recursion and return
+					return true, newStack
+				}
 			}
-			// don't abort on crossover, maybe a bold token would work
-
+			
 			// path went not well -> use old stack and try to match it with a bold item
 		}
 		if nextTokenMightBeBold {
@@ -371,6 +381,8 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 					newStack = append(newStack, BoldItalicStackItem{itemType: itemType, index: index, length: 3})
 					newStack = append(newStack, BoldItalicStackItem{itemType: ITALIC_OPEN, index: index + 3, length: 0})
 				} else {
+					// Characters are  '''  and parsing them as italic (happened before this part of the code) didn't
+					// work. Therefor we must abort here as this crossover cannot be resolved without dummy-items.
 					return false, stack
 				}
 			}
@@ -387,14 +399,15 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 		}
 
 		if mightBelongToPrevToken {
-			// The current character belongs to a italic/bold token but did not match the above -> wrong token chosen in
-			//previous call (e.g. an italic token was chosen when there were ''' but instead a bold token makes more sense)
+			// The current character belongs to an italic/bold token but did not match the above -> wrong token chosen
+			// in previous call (e.g. an italic token was chosen when there were ''' but instead a bold token makes more
+			// sense here).
 			return false, stack
 		}
 
 		if nextTokenMightBeItalic {
-			// We're here because the next two quotes cannot be an italic token (otherwise we would've returned earlier)
-			// but they are also not part of a bold one -> something doesn't add up -> abort
+			// When this line is reached it means parsing wasn't successful. Parsing italic and bold tokens (including
+			// return statements) happens above, so something went wrong.
 			return false, stack
 		}
 
