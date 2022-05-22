@@ -1,0 +1,476 @@
+Source:     https://de.wikipedia.org/wiki/Schwarzes_Loch
+Downloaded: 2022-05-21 23:02
+License:    Creative Commons Attribution-Share-Alike License 3.0 (CC-by-sa-3.0)
+
+{{Dieser Artikel|behandelt das Zentralgestirn unseres Sonnensystems. Zu weiteren Bedeutungen siehe [[Sonne (Begriffsklärung)]].}}
+{| class="wikitable float-right" style="width:33%; min-width:300px; max-width:400px;"
+|-
+! colspan="2" style="background-color:LemonChiffon;"| Sonne [[Datei:Sun symbol (bold).svg|24px|alt=☉]]
+|-
+! colspan="2" style="background-color:Black;"| [[Datei:Sun920607.jpg|300px]]
+|-
+| align="center" colspan="2" style="background-color:Lightgray;" |Die Sonne am 7.&nbsp;Juni&nbsp;1992
+|-
+! colspan="2" style="background-color:LemonChiffon;"| Beobachtungsdaten<ref name="daten_nasa">{{Internetquelle |werk=NASA.gov |autor=David R. Williams |url=https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html |sprache=en |titel=Sun Fact Sheet |datum=2018-02-23 |abruf=2021-08-15}}</ref>
+|-
+| Mittlere Entfernung || 149,6&thinsp;Mio.&nbsp;km = 1&nbsp;[[Astronomische Einheit|AE]]
+|-
+| Kleinster Erdabstand<br /> Größter Erdabstand || 147,1&thinsp;Mio.&nbsp;km<br /> 152,1&thinsp;Mio.&nbsp;km
+|-
+| [[Scheinbare Größe|Scheinbarer Durchmesser]] || 31,5–32,5′ ([[Winkelminute]]n)
+|-
+| [[Scheinbare Helligkeit]] (''V'') || −26,74&nbsp;mag
+|-
+! colspan="2" style="background-color:LemonChiffon;"| Physikalische Eigenschaften
+|-
+| [[Radius#Astronomie|Äquatorradius]] || 696.342&nbsp;km<ref>Marcelo Emilio et al.: ''Measuring the Solar Radius from Space during the 2003 and 2006 Mercury Transits.'' In: ''Astrophysical Journal'' Bd. 750, Nr. 2, {{Bibcode|2012ApJ...750..135E}}, {{Doi|10.1088/0004-637X/750/2/135}}</ref><br>=&nbsp;1&nbsp;[[Sonnenradius]]&nbsp;([[Astronomische Maßeinheiten#Längen|''R''<sub>☉</sub>]])
+|-
+| [[Masse (Physik)|Masse]] (''M'') || 1,9884&nbsp;·&nbsp;10<sup>30</sup>&nbsp;kg&nbsp;±&nbsp;2&nbsp;·&nbsp;10<sup>26</sup>&nbsp;kg<ref name="AstronomicalAlmanac_2012_SK7" /><br />=&nbsp;1&nbsp;[[Sonnenmasse]]&nbsp;([[Astronomische Maßeinheiten#Massen|''M''<sub>☉</sub>]])
+|-
+| Solare [[Gravitationskonstante]] (''G''&nbsp;·&nbsp;''M'') || 1,327.124.400.41&nbsp;·&nbsp;10<sup>20</sup>&nbsp;m<sup>3</sup>/s<sup>2</sup><br />±&nbsp;1,0&nbsp;·&nbsp;10<sup>10</sup>&nbsp;m<sup>3</sup>/s<sup>2</sup>&nbsp;<ref name="Luzum_2011_S296" />
+|-
+| Mittlere [[Dichte]] || 1,408&nbsp;g/cm<sup>3</sup>
+|-
+| Hauptbestandteile<br />([[Stoffmenge]] in der [[Photosphäre]]<ref name="Lod09">Katharina Lodders et&nbsp;al.: ''Abundances of the elements in the solar system.'' In: J.&nbsp;E. Trümper (Hrsg.): ''Landolt-Börnstein, New Series.'' Vol.&nbsp;VI/4B. Springer, Hamburg 2009, &nbsp;560–630. {{arXiv|0901.1149}}.</ref>)
+|
+* [[Wasserstoff]]: 92,1 %
+* [[Helium]]: 7,8 %
+* [[Sauerstoff]]: 500&nbsp;[[Parts per million|ppm]]
+* [[Kohlenstoff]]: 230&nbsp;ppm
+* [[Neon]]: 100&nbsp;ppm
+* [[Stickstoff]]: 70&nbsp;ppm
+|-
+| [[Fallbeschleunigung]] || 274&nbsp;m/s<sup>2</sup>
+|-
+| [[Kosmische Geschwindigkeiten|Fluchtgeschwindigkeit]] || 617,6&nbsp;km/s
+|-
+| [[Siderische Periode|Rotationsperiode (siderisch)]] || 25,38&nbsp;Tage
+|-
+| Neigung der [[Rotationsachse]] || 7,25°
+|-
+| [[Leuchtkraft]] || 3,828&nbsp;·&nbsp;10<sup>26</sup>&nbsp;[[Watt (Einheit)|W]]<br />=&nbsp;1&nbsp;[[Astronomische Maßeinheiten#Leistung|Sonnenleuchtkraft]]&nbsp;([[Astronomische Maßeinheiten#Leistung|''L''<sub>☉</sub>]])
+|-
+| [[Absolute Helligkeit]] (''V'') || +4,83&nbsp;mag
+|-
+| Effektive [[Sternoberfläche#Oberflächentemperatur|Oberflächentemperatur]] || 5.772&nbsp;[[Kelvin|K]]
+|-
+| [[Spektralklasse]] || G2&nbsp;V
+|-
+| Alter || 4,57 Mrd. [[Jahr|a]]<ref name="Bonanno" />
+|-
+| [[Planet]]en
+| 8
+|-
+! colspan="2" style="background:Black; color:White;"| [[Datei:Sun Earth Comparison.png]]
+|-
+| align="center" colspan="2" style="background:Lightgray;" | [[Fotomontage]] zum Größenvergleich zwischen Erde (links) und Sonne. Das Kerngebiet ([[Penumbra (Sonnenflecken)|Umbra]]) des großen [[Sonnenfleck]]s hat etwa 5-fachen Erddurchmesser.
+|}
+Die '''Sonne''' ist der [[Stern]], der der [[Erde]] am nächsten ist und das Zentrum des [[Sonnensystem]]s bildet. Sie ist ein durchschnittlich großer Stern im äußeren Drittel der [[Milchstraße]]. Die Sonne ist ein [[Zwergstern]] ([[Gelber Zwerg]]), der sich im [[Sternentwicklung|Entwicklungsstadium]] der [[Hauptreihe]] befindet. Sie enthält 99,86 % der [[Masse (Physik)|Masse]], jedoch nur ca. 0,5 % des [[Drehimpuls]]es des Sonnensystems. Ihr Durchmesser ist mit 1,4 Millionen Kilometern etwa 110-mal so groß wie der der Erde. Die [[Photosphäre|Oberfläche der Sonne]] zeigt eine wechselnde Zahl von [[Sonnenflecken]], die in Zusammenhang mit starken [[Magnetfeld]]ern stehen. Sie werden neben weiteren Phänomenen als [[Sonnenaktivität]] bezeichnet.
+
+Die [[Sonnenstrahlung]] ist eine der Grundvoraussetzungen für die Entwicklung und den Erhalt des [[Leben]]s auf der Erde. Die durch die Sonnenstrahlung freigesetzte Energie beruht auf der [[Kernfusion]] von [[Wasserstoff]] zu [[Helium]], das sogenannte [[Wasserstoffbrennen]] in der [[Proton-Proton-Reaktion]].
+
+Der [[Sonnenstand|Himmelslauf]] der Sonne gliedert den [[Tag]] und das [[Jahr]]. Sie wurde in dieser Rolle schon in der [[Urzeit]] in [[Sonnenkult]]en verehrt.
+
+Das [[Astronomisches Symbol|astronomische Symbol]] der Sonne ist ☉.
+
+== Etymologie und Name ==
+Dem [[Urgermanische Sprache|gemeingermanischen]] weiblichen Substantiv „Sonne“ ([[mittelhochdeutsch]] ''sunne'', [[althochdeutsch]] ''sunna'') liegt die [[Indogermanische Ursprache|indogermanische]] Wurzel ''sāu̯el-'' zugrunde (vgl. auch [[latein]]isch ''sol'', [[Litauische Sprache|litauisch]] ''sáulė'' und [[Griechische Sprache|griechisch]] ''hḗlios'').<ref>{{Literatur| Titel=Das Herkunftswörterbuch| Auflage=2. Auflage| Verlag=Dudenverlag| Ort=Mannheim|Datum=1989| Reihe=[[Duden#Duden in zwölf Bänden (2017)|Der Duden in zwölf Bänden]]| BandReihe=7| Seiten=681}} ''Siehe auch [[Digitales Wörterbuch der deutschen Sprache|DWDS]]'' ([https://www.dwds.de/wb/Sonne#et-1 „Sonne“]) und {{Literatur| Autor=[[Friedrich Kluge]]| Titel=[[Etymologisches Wörterbuch der deutschen Sprache]]| Auflage=7. Auflage| Verlag=Trübner| Ort=Straßburg|Datum=1910| Online=[http://daten.digitale-sammlungen.de/~db/0007/bsb00070228/images/index.html?&seite=452 S. 430]}}</ref>
+
+Der Name des Sterns ist auch in der Astronomie, wie in der Umgangssprache, einfach „Sonne“, üblicherweise mit dem bestimmten Artikel, im Englischen ''Sun'' (korrekterweise mit großem Anfangsbuchstaben, da es sich um einen Eigennamen handelt<ref>https://www.iau.org/public/themes/naming/</ref>). In [[Science-Fiction]]-Romanen und -Filmen – beispielsweise in [[Isaac Asimov]]s [[Foundation-Zyklus]] oder der [[Perry Rhodan|Perry-Rhodan-Serie]] – wird gelegentlich die lateinische Übersetzung „Sol“ (ebenfalls mit großem Anfangsbuchstaben) verwendet, wenn namentlich von der Sonne als einem Stern von vielen die Rede ist; dies soll eine Parallele zu anderen Sternnamen, die oft aus dem Lateinischen stammen, bilden. In der modernen Astronomie <!-- gibt es keine lateinischen oder spanischen Dissertationen mehr? --> wird diese Bezeichnung nicht verwendet.<ref>https://earthsky.org/space/what-is-the-suns-name</ref>
+
+== Quantitative Einordnung ==
+[[Datei:Star-sizes.jpg|mini|links|Die Sonne im Größenvergleich zu anderen Himmelskörpern (Bild 3, dritter von links, zwischen [[Wolf 359]] und [[Sirius]])]]
+Die Sonne übertrifft 700-fach die [[Masse (Physik)|Gesamtmasse]] aller acht [[Planet]]en des Sonnensystems und 330.000-fach jene der [[Erde]], die im Durchmesser 109-mal hineinpasst, im Volumen rund 1,3 Millionen Mal. Mit einer Energieabstrahlung, die pro Sekunde das 20.000-Fache der [[Primärenergie]]umwandlung seit Beginn der Industrialisierung ausmacht,<ref>http://ourfiniteworld.com/2012/03/12/world-energy-consumption-since-1820-in-charts/ Weltenergieverbrauch seit 1820 (englisch).</ref> fällt sie in die [[Leuchtkraftklasse]] V. Ein Hauptreihenstern wie die Sonne setzt damit pro Sekunde mehr Energie frei als alle im Jahr 2011 vorhandenen [[Kernkraftwerk]]e der Erde in 750.000 Jahren.<ref>Carole Stott, Robert Dinwiddie, David Hughes, Giles Sparrow: ''Space, Das Weltall.'' Dorling Kindersley Verlag, 2011, ISBN 978-3-8310-1972-4. S. 209.</ref> Auf die Erde entfällt pro Quadratmeter im Jahresmittel, als extraterrestrische Strahlung, eine Leistung von [[Solarkonstante|1,367 Kilowatt]].
+
+Die Sonne leuchtet mit einer [[Farbtemperatur]] von etwa 5800&nbsp;[[Kelvin]]. Als Stern der [[Spektralklasse]] G2V liegt sie im [[Hertzsprung-Russell-Diagramm]] in der Mitte der sogenannten [[Hauptreihe]], die alle Sterne im Strahlungsgleichgewicht repräsentiert. Mit 1,4 bis 1,5 % schwereren Elementen in der [[Konvektion]]szone<ref name="Lod09" /><ref>William J. Chaplin, Sarbani Basu: ''Perspectives in Global Helioseismology and the Road Ahead.'' In: Laurent Gizon et al. (Hrsg.): ''Helioseismology, Asteroseismology, and MHD Connections.'' Springer 2008, ISBN 978-0-387-89481-2. S. 53–75 {{Google Buch |BuchID=0KYsn7DVG34C |Seite=54 |Hervorhebung=abundance problem}}</ref> (Massenanteil, für die Stoffmengenanteile siehe die Infobox) gilt die Sonne als „[[Metallizität|metallreich]]“ und gehört damit der zahlenmäßig größten [[Population I]] an. Sie hat – wie das Sonnensystem insgesamt – ein Alter von etwa 4,57&nbsp;Milliarden Jahren.<ref name="Bonanno">{{cite journal| last=Bonanno| first=A.| coauthors= H. Schlattl, L. Patern| year= 2002| arxiv=astro-ph/0204331v2| format=PDF| title=The age of the Sun and the relativistic corrections in the EOS| journal=Astronomy and Astrophysics| volume=390| pages=1115–1118}}</ref>
+In dieser Zeit hat sie in ihrem Kern rund 14.000 Erdmassen [[Wasserstoff]] durch [[Kernfusion]] in [[Helium]] verwandelt ([[Wasserstoffbrennen]]), wobei 90 Erdmassen an Energie frei wurden. Durch Ansammlung von Helium im nichtkonvektiven Kern – im Zentrum beträgt der Massenanteil mittlerweile 60 %<ref name="hkt2004_78">C. J. Hansen et al.: ''Stellar Interiors – Physical Principles, Structure, and Evolution.'' Springer, 2004, ISBN 0-387-20089-4. S. 77&nbsp;f.</ref> – wird dieser immer kompakter und bezieht weiteres Material ein, wodurch [[Leuchtkraft]] und Durchmesser der Sonne langsam zunehmen. In etwa 7&nbsp;Milliarden Jahren wird die Sonne relativ schnell zum [[Roter Riese|Roten Riesen]].
+
+=== Wahrgenommene Farbe ===
+[[Datei:Sunset at Long Beach (South Africa).jpg|mini|Die Sonnenscheibe, die das mensch&shy;liche Auge als weißgelb wahrnimmt]]
+Das Strahlungsmaximum der Sonne liegt im sichtbaren Licht (keineswegs im [[Infrarot]]), und die Strahlung wird vom menschlichen [[Auge]] in der Summe als ''reines [[Weiß]]'' wahrgenommen. Blickt man jedoch durch einen starken [[Neutralfilter]] auf die [[Sonnenscheibe]], nimmt man sie in der Regel als weißgelb oder gelb wahr, bzw. bei horizontnaher Stellung als orange. Dies erklärt sich damit, dass durch [[Rayleigh-Streuung]] in der [[Erdatmosphäre]] überwiegend der kurzwellige (violette und blaue) Anteil der sichtbaren Sonnenstrahlung gestreut wird und das Auge diese Strahlung somit aus anderer Richtung als der der wahrgenommenen Sonnenscheibe erreicht ([[Himmelsblau]]).<ref>{{Internetquelle |url=https://www.spektrum.de/frage/sonnenlicht-die-farbe-unseres-sterns/1591134 |titel=Warum nennen Astronomen die Sonne »gelb«? |autor=Ulrich Finkenzeller |werk=[[spektrum.de]] |datum=2021-11-29 |abruf=2021-12-12}}</ref>
+
+Wenn die [[chromatische Adaption]] des Auges auf die insgesamt wahrgenommene Strahlung eingestellt ist (die dann, wenn sie – z.&nbsp;B. als [[diffuse Reflexion]] an [[Wolke]]n oder [[Schnee]] – als Mischung wahrnehmbar ist, als weiß erscheint), wird die aus der Richtung der Sonne selbst noch wahrgenommene, ungestreute sichtbare Strahlung wegen des (je nach Entfernung vom Horizont weniger oder mehr) verringerten kurzwelligen Anteils als gelb bzw. orange wahrgenommen. Außerhalb der Erdatmosphäre, wenn alles Licht tatsächlich aus der Richtung der wahrgenommenen Sonnenscheibe kommt, erscheint diese dem menschlichen Auge aus diesem Grund und unabhängig von der tatsächlichen Zusammensetzung des Sonnenlichtes im reinen Weiß.
+
+=== Lord Kelvin und das Alter von Sonne und Erde ===
+Dass sich das Alter der Sonne in Milliarden Jahren misst, ergibt sich übereinstimmend aus modernen [[Sternaufbau|Sternmodellen]] und [[Radiometrische Datierung|radiometrischer Datierung]] von Gesteinen im Sonnensystem. Zu einem drängenden physikalischen Problem wurde die Beständigkeit der Sonnenstrahlung aber schon, als [[Charles Darwin]] für den Erosionsprozess der [[Weald|südenglischen Kreide]] eine Dauer von 300 Millionen Jahren grob<ref>Charles Darwin in einem [http://www.darwinproject.ac.uk/entry-2676 Brief an Asa Gray], 1860, Fußnote 16.</ref> abschätzte. [[William Thomson, 1. Baron Kelvin|Lord Kelvin]] bezweifelte Darwins Ergebnis, denn als dauerhafteste Energiequelle für die Sonnenstrahlung machte er 1862 die von [[Hermann von Helmholtz]] vorgeschlagene [[Kelvin-Helmholtz-Kontraktion|Freisetzung gravitativer Bindungsenergie]] aus und berechnete unter der Annahme, dass die Masse der Sonne stark zum Zentrum hin konzentriert ist, ein Sonnenalter von sehr wahrscheinlich unter 100 Millionen Jahren.<ref name="kelvin">{{Cite journal | last=Thomson | first=William | title=On the Age of the Sun’s Heat | url=http://zapatopi.net/kelvin/papers/on_the_age_of_the_suns_heat.html | journal=[[:en:Macmillan's Magazine]] | year=1862 | volume=5 | pages=388–393 }}</ref> Später engte er die Abkühlungdauer des Erdmantels auf 20 bis 40 Mio. Jahre ein. Er erlebte noch, aber akzeptierte nicht öffentlich, dass [[Ernest Rutherford]] 1904 [[Radioaktivität|radioaktiven Zerfall]] als Quelle der [[Geothermie|Erdwärme]] vorschlug.<ref>{{Internetquelle |autor=L. Darden |titel=The Nature of Scientific Inquiry |url=http://www.philosophy.umd.edu/Faculty/LDarden/sciinq/ |sprache=en |datum=1998 |zugriff=2011-07-31}}</ref> Die Energieabgabe der Sonne über geologische Zeiträume hinweg konnte erst ab 1920 mit der [[Kernfusion]] erklärt werden.
+
+== Physikalischer Aufbau ==
+[[Datei:Sun parts big.jpg|mini|hochkant=1.65|Aufbau der Sonne ([[NASA]])]]
+{{Hauptartikel|Sternaufbau}}
+
+Die Sonne besteht aus schalenförmigen Zonen, die sich teilweise scharf abgrenzen lassen. Eine grobe Einteilung ist die Kernzone als Fusionsofen, die innere Atmosphäre bis zur sichtbaren Oberfläche und darüber die äußere Atmosphäre.
+
+=== Kern ===
+Die Hälfte der Sonnenmasse konzentriert sich innerhalb von 25 % des [[Sonnenradius]], d.&nbsp;h. auf ungefähr 1,5 % des Sonnenvolumens. Die [[Schwerebeschleunigung|Fallbeschleunigung]] am Rand dieser Kernzone ist 8-fach größer als an der Sonnenoberfläche und 220-fach größer als an der Erdoberfläche. Damit setzt sich das Material selbst unter [[Druck (Physik)|Druck]]: Im Zentrum liegt er bei 200 Milliarden [[Bar (Einheit)|bar]]. Da die Temperatur dort mit 15,6 Mio. [[Kelvin|K]] vergleichsweise niedrig ist, kann das [[Plasma (Physik)|Plasma]] den für die Stabilität nötigen Gegendruck nur durch seine hohe [[Dichte]] aufbringen, im Zentrum 150&nbsp;g/cm³, 13-mal die Dichte von Blei und 200-mal die mittlere Dichte der inneren Atmosphäre.
+
+Es ist nicht direkt die Dichte, die den Gegendruck bewirkt, sondern die Teilchenkonzentration, im Zentrum fast 250.000 [[mol]]/[[Liter|ℓ]]. Gut die Hälfte davon sind [[Elektron]]en, die aber aufgrund der vorliegenden Dichte-Temperatur-Bedingungen gerade noch nicht [[Entartete Materie|entartet]] sind.<ref>Sean G. Ryan, Andrew J. Norton: ''Stellar Evolution and Nucleosynthesis.'' Cambridge University Press, 2010, ISBN 978-0-521-19609-3, {{Google Buch |BuchID=V8rBIudlniAC |Seite=115 |Hervorhebung=„but only by a factor of two“}}.</ref> Auch der [[Strahlungsdruck]] hat einen geringen Anteil – in der Sonne gilt also das [[Thermische Zustandsgleichung idealer Gase|Gasgesetz]].
+
+Die Teilchendichte der [[Proton]]en ist im Zentrum etwa 1000-mal größer als in Wasser. Da die Häufigkeit der [[Kernfusion]]sreaktionen quadratisch von der Teilchendichte und exponentiell von der Temperatur abhängt, werden 99 % der Fusionsleistung von 3,9&nbsp;·&nbsp;[[Potenzschreibweise|10<sup>26</sup>]]&nbsp;W innerhalb der dichten, heißen Kernzone frei. Innerhalb eines engeren Radius ist die Leistungsdichte höher: In einem Tausendstel des Volumens der Sonne entsteht die Hälfte ihrer Leistung; das ist eine mittlere Leistungsdichte von knapp 140&nbsp;Watt pro Kubikmeter, nicht mehr als in einem Komposthaufen. Die große Gesamtleistung der Sonne ist also eher die Folge des großen Volumens und die hohe Kerntemperatur eine Folge der dicken Isolierschicht.
+
+Die Energiefreisetzung in der Sonne erfolgt durch die [[Proton-Proton-Reaktion|Proton-Proton-Kette]]. Im ersten Schritt fusionieren dabei zwei Protonen zu einem Deuteriumkern. Diese Reaktion ist sehr unwahrscheinlich, im Mittel benötigt ein Proton 10<sup>10</sup>&nbsp;Jahre, um mit einem anderen Proton zu reagieren.<ref name=Karttunen_S-235>{{Literatur | Autor=Hannu Karttunen, Pekka Kröger, Heikki Oja, Markku Poutanen, Karl Johan Donner | Titel=Fundamental Astronomy | Auflage= 5 | Verlag= Springer | Ort= Berlin / Heidelberg / New York | Datum= 2007 | Sprache=en | Kapitel= 10.3 Stellar Energy Sources | Seiten=235 | ISBN=978-3-540-34143-7 | Originaltitel=Tähtitieteen perusteet | Originaljahr=2003 | Originalort=Helsinki | Originalsprache=fi}}</ref> Dies erklärt auch die lange Lebensdauer der Sonne.
+
+Dass die stark temperaturabhängige Fusionsreaktion nicht [[Thermisches Durchgehen|thermisch durchgeht]] und die Sonne explodiert (oder abschaltet), liegt daran, dass zusätzliche Wärmeleistung das Innere von Sternen nicht heißer macht, sondern kälter, denn die normale [[Wärmeausdehnung]] des Gases wird verstärkt, indem der gravitative Druck der angehobenen Schichten nachlässt.<ref>Klaus Stierstadt: ''Thermodynamik: Von der Mikrophysik zur Makrophysik.'' Springer, 2010, ISBN 978-3-642-05097-8, {{Google Buch |BuchID=kOnbHR_MkVwC |Seite=330 |Hervorhebung=negative Wärmekapazität}}.</ref> Diese [[negative Rückkopplung]] wirkt sehr schnell, denn Kompressionswellen durchlaufen die Sonne in deutlich unter einer Stunde, siehe [[Helioseismologie]].
+
+=== Strahlungszone und Konvektionszone ===
+{{Hauptartikel|Strahlungstransport}}
+
+Knapp 2 % der Fusionsleistung werden von den dabei entstehenden [[Neutrino]]s fortgetragen. Diese nur schwach wechselwirkenden Teilchen erreichen innerhalb weniger Sekunden die Sonnenoberfläche und nach gut acht Minuten die Erde. Die Energie der anderen Reaktionsprodukte [[Thermalisierung|thermalisiert]] am Ort der Entstehung. Die [[Wärmestrahlung|thermische Strahlung]] liegt im Bereich weicher [[Röntgenstrahlung]] und dominiert die Wärmeleitfähigkeit des Materials: Im Zentrum hat sie eine Intensität von rund 3&nbsp;·&nbsp;10<sup>21</sup>&nbsp;W/m<sup>2</sup>. Die einzelnen Photonen legen aber bis zu ihrer Reabsorption jeweils nur kurze Wege zurück, nicht viel länger als einige Kernabstände. Die kurzen Wegstücke addieren sich kreuz und quer zu einem [[Random Walk]], der bis zur Oberfläche zwischen 10.000 und 170.000 Jahre dauert.<ref>{{Internetquelle | hrsg = NASA | url = http://sunearthday.nasa.gov/2007/locations/ttt_sunlight.php |sprache=en | titel = The 8-minute travel time to Earth by sunlight hides a thousand-year journey that actually began in the core. |zugriff=2008-05-30 }}</ref> Da zudem die Energie die weitaus größte Zeit in der thermischen Bewegung des Gases „parkt“, ist die Energieeinschlusszeit noch viel größer, etwa 17 Mio. Jahre.<ref>Michael Stix: ''On the time scale of energy transport in the sun.'' In: ''Solar Physics.'' Band 212, 2002, S. 3–6, {{DOI|10.1023/A:1022952621810}}.</ref>
+
+Der Strahlungstransport ist effizient: Bei 25 % des Radius beträgt die Energiestromdichte 100&nbsp;kW/cm<sup>2</sup>, der [[Temperaturgradient]] aber nur etwa 0,1&nbsp;K/m. Dass dieser Gradient, zehnfach steiler als in der Erdatmosphäre, nicht ausreicht, [[Konvektion]] anzutreiben, liegt am noch steileren Druckgradienten – eine Folge der hohen Fallbeschleunigung, siehe [[adiabatischer Temperaturgradient]].
+
+Nach außen hin ändert sich an der Stabilität der Schichtung zunächst wenig, da sich die Einflussfaktoren teilweise kompensieren: Die thermische Strahlung wird mit der abnehmenden Temperatur schwächer (siehe [[Stefan-Boltzmann-Gesetz]]), das Material wird mit sinkender Dichte optisch durchlässiger, der Leistungsfluss verteilt sich auf eine größere Kugelschalenfläche und die Fallbeschleunigung nimmt ab.
+
+Schließlich kommt aber ein Effekt hinzu: Die nicht mehr ganz so heißen Elektronen beginnen, die individuellen Kerne zu spüren, solche mit hoher Kernladung zuerst, rekombinieren sogar kurzzeitig. Das behindert die Ausbreitung der Strahlung (steigende Opazität), sodass der Temperaturgradient wieder steiler wird. Bei 71 % des Radius erreicht er den adiabatischen Wert, die Schichtung wird labil. Dies definiert die Grenze der sogenannten Strahlungszone. Oberhalb wird der Wärmestrom zunehmend konvektiv transportiert.
+
+Der weitere Verlauf der Opazität beeinflusst nicht mehr die Verläufe von Temperatur und Druck, die durch Schwerefeld und Adiabate festgelegt sind, sondern die Intensität der Konvektion. In weiten Teilen der Konvektionszone ist die Strömungsgeschwindigkeit gering, wenige 10&nbsp;m/s, und die [[Konvektionszelle]]n sind groß und beständig (Monate bis Jahre) und dadurch sowohl von der Rotation der Sonne als auch ihrem inneren Magnetfeld beeinflusst, siehe unten.
+
+Im Bereich 20.000 bis 1000&nbsp;km unter der sichtbaren Sonnenoberfläche tragen auch Frei-frei-Übergänge an He<sup>+</sup> und H<sup>+</sup> stark zur Opazität bei. Dadurch wird die Konvektion kleinräumiger und erreicht Geschwindigkeiten von über 1&nbsp;km/s. Dies ist das Brodeln, das mit einem [[Teleskop]] als [[Granulation (Astronomie)|Granulation]] erkennbar ist. Der in diesem Bereich intensivere Impulstransport macht sich im radialen Verlauf der Rotationsrate bemerkbar.
+
+=== Sonnenoberfläche und Umgebung ===
+[[Datei:Sun Atmosphere Temperature and Density SkyLab.jpg|mini|hochkant=1.5|Temperatur- und Dichtemessungen von Skylab]]
+
+==== Knapp unter der Oberfläche ====
+An der oberen Grenze des oben genannten Bereichs fällt der Ionisationsgrad von Wasserstoff steil ab. Nach der [[Saha-Gleichung]] ist er hauptsächlich von der Temperatur abhängig. Er beträgt in etwa 1000&nbsp;km Tiefe, bei einer Temperatur von 10.000&nbsp;K und einer Dichte von knapp 1&nbsp;g/m<sup>3</sup> noch fast 80 %, bei 6000&nbsp;K und etwas geringerer Dichte aber nur noch ein Hundertstel davon. Begegnungen von Elektronen mit Ionen werden dadurch um vier Größenordnungen seltener. Warum damit das Material nicht schon längst durchsichtig geworden ist (zur Ionisation von Wasserstoff reicht die Energie der Photonen nicht aus), fand [[Rupert Wildt]] im Jahre 1938 heraus: Das neutrale H-Atom kann mit einem Zwanzigstel der Bindungsenergie noch ein weiteres Elektron binden und das kommt auch bei noch geringerer Ionisationsrate des Wasserstoffs vor, da Elektronen aus der Ionisation von Metallen zur Verfügung stehen.<ref>Subrahmanyan Chandrasekhar: ''Radiative Transfer and Negative Ion of Hydrogen.'' Chicago Univ. Press, 1989, ISBN 0-226-10092-8 (Vol. 2), {{Google Buch |BuchID=S26DQk_rOh4C |Seite=PR15 |Hervorhebung=„Wildt“}}.</ref>
+
+==== Photosphäre ====
+{{Hauptartikel|Photosphäre}}
+
+Weil die Dichte immer schneller abnimmt – die [[Skalenhöhe]] sinkt mit der Temperatur –, wird das Material schließlich doch durchsichtig und die Photonen können nahezu ungehindert nach außen entweichen. Diese Zone heißt Photosphäre, griechisch für „[[Kugelschale]] des Lichts“. Die Tiefe, aus der die [[Sonnenstrahlung]] im Mittel entweicht, variiert je nach Wellenlänge und Austrittswinkel um wenige 100&nbsp;km. Am Sonnenrand sieht man unter flacherem Winkel eine höhere, kältere Schicht, wodurch der [[Randverdunkelung|Rand dunkler]] erscheint, siehe das Sonnenfoto am Anfang des Artikels. Eine eindeutige Definition des Sonnenradius ist daher problematisch, siehe [[Sternoberfläche]]. Per Übereinkunft wird als [[Sonnenradius]] jener angegeben, bei der die Gastemperatur zur Energiestromdichte (63,18&nbsp;MW/m<sup>2</sup>) passt. Diese effektive [[Strahlungstemperatur]] beträgt 5778&nbsp;Kelvin. Bedingt durch die stärker gerichtete Ausstrahlung bei kürzeren Wellenlängen liegt die [[Farbtemperatur]] der Sonnenstrahlung etwas höher, bei etwa 6000&nbsp;Kelvin.
+
+==== Chromosphäre ====
+{{Hauptartikel|Chromosphäre}}
+[[Datei:Sonne Wasserstoff-alpha-Filter.jpg|mini|Die Sonne im roten Licht der [[H-alpha]]-Spektrallinie]]
+
+Oberhalb der Photosphäre liegt die Chromosphäre. Die Konvektionszone mit ihrem negativen [[Temperaturgradient]]en durch Expansion des Gases (von knapp 1 auf 0,003&nbsp;g/m<sup>3</sup>) reicht etwa 500&nbsp;km in die Chromosphäre hinein. Oberhalb eines scharfen Minimums von 4100&nbsp;K<ref>K. D. Abhyankar: [http://prints.iiap.res.in/handle/2248/510 ''A Survey of the Solar Atmospheric Models.''] In: ''Bulletin of the Astronomical Society of India.'' Band 5, 1977, S. 40–44 ([http://prints.iiap.res.in/bitstream/2248/510/1/ABHYANKAR.pdf PDF]).</ref><!-- die NASA-Grafik zeigt 5000 K, welches ist der modernere Wert? ---> stellt sich durch Strahlungsgleichgewicht eine Temperatur von etwa 7000&nbsp;K<!-- 6000? --> ein, während die Dichte auf 10<sup>−7</sup>&nbsp;g/m<sup>3</sup> abnimmt.
+
+Strahlung aus der Photosphäre wird in der Chromosphäre zu einem kleinen Teil absorbiert und wieder abgestrahlt. Vor dem Hintergrund der Photosphäre entstehen dadurch die [[Fraunhoferlinie|Fraunhofer’schen Absorptionslinien]] im Sonnenspektrum, während bei totalen [[Sonnenfinsternis]]sen die meist knapp 2000&nbsp;km dicke Chromosphäre für wenige Sekunden als rötlich leuchtende Linie zu sehen ist, ihr griechischer Name bedeutet „Farbschicht“. Masseauswürfe von chromosphärischer Dichte, zahlreiche kleine Spikulen und weniger häufige Protuberanzen (siehe unten) leuchten in gleicher Farbe.
+
+=== Äußere Atmosphäre ===
+
+==== Korona ====
+{{Hauptartikel|Sonnenkorona}}
+[[Datei:Solar eclipse 1999 4.jpg|mini|links|Die Korona der Sonne während der Sonnenfinsternis im Jahr 1999, kurz vor dem Sonnenfleckenmaximum. Die Strahlen verlaufen nach allen Seiten.]]
+[[Datei:Sun in X-Ray.png|mini|In hartem Röntgenlicht ist die Korona auch vor der Sonnenscheibe zu beobachten, hier durch [[Yohkoh]].]]
+[[Datei:Sunspot TRACE.jpeg|mini|Die untere Korona, gesehen von [[Transition Region And Coronal Explorer|TRACE]] bei 17,1&nbsp;nm Wellenlänge.]]
+
+Oberhalb der [[Chromosphäre]] befindet sich die [[Korona (Sonne)|Korona]]. Sie geht ohne scharfe Grenze in den interplanetaren Raum über. Ihr bei jeder totalen [[Sonnenfinsternis]] sichtbarer „Strahlenkranz“ (lat. {{lang|la|''corona''|de=[[Krone]]}}, siehe Bild links) hat schon vor Jahrtausenden die Menschen erstaunt. Er erstreckt sich – abhängig von der [[Sonnenaktivität]] und der Belichtungszeit – über ein bis zwei Sonnenradien. In der Korona ist der Einfluss des Gasdrucks auf die Bewegung der Materie vernachlässigbar, es regieren Magnetfelder und die Gravitation.
+
+Die Spektrallinien der Korona konnten anfangs nicht identifiziert werden, da sie bei irdischen Bedingungen nicht auftreten. Seit erkannt wurde, dass sie von hochionisiertem Eisen mit nur noch ganz wenigen Elektronen stammen, entsprechend Temperaturen von über 10<sup>6</sup>&nbsp;K, das Zweihundert- bis Fünfhundertfache der Photosphärentemperatur, wird über den Heizmechanismus der Korona spekuliert. Sie kann überhaupt nur so heiß werden, weil sie in weiten Bereichen des elektromagnetischen Spektrums nahezu durchsichtig ist und nur schwach emittiert; eine Folge nicht nur der geringen Dichte, sondern auch der hohen Temperatur: Die freien Elektronen sind so schnell, dass sie die häufigeren, leichten Elemente, insbesondere Wasserstoff und Helium, obwohl vollständig ionisiert, kaum wahrnehmen. Weitere Verlustmechanismen (siehe unten) sind die Wärmeabgabe an die vergleichsweise kalte Chromosphäre und, insbesondere im Bereich [[Koronales Loch|koronaler Löcher]], die Bildung von [[Sonnenwind]].
+
+An den seltenen, aber vielfach geladenen schwereren Ionen entsteht ein schwaches Röntgen-Kontinuum, das die Beobachtung der Korona vor der im harten Röntgenlicht dunklen Photosphäre erlaubt, siehe Bild rechts oben. Eingegrenzt auf schmale Emissionslinien ist das auch mit weniger harter Strahlung möglich, siehe Bild rechts. Es stammt vom Satelliten [[Transition Region And Coronal Explorer|TRACE]], der auf die Beobachtung der Sonne im [[Extrem ultraviolette Strahlung|extremen UV-Bereich]] spezialisiert ist, mit hoher spektraler und räumlicher Auflösung.
+
+==== Übergangsregion ====
+XUV-Emissionslinien von weniger hoch ionisierten Spezies, wie C IV, O IV, O VI, S VI, stammen aus einer schmalen ''Übergangsregion'', der Grenze der Korona zur Chromosphäre, mit Temperaturen zwischen 10.000 und 700.000&nbsp;K. Darin befinden sich zwei scharfe Temperatursprünge (entsprechend der Ionisation von Wasserstoff und Helium), die auf absehbare Zeit nicht räumlich aufgelöst werden können. Womöglich ist dort auch die lokale Geschwindigkeitsverteilung der Elektronen nicht-thermisch.<ref>K. Muglach et al.: ''The Electron Temperature of the Solar Transition Region as Derived from EIS and SUMER'', APJ 708, 2010, S. 550, {{DOI|10.1088/0004-637X/708/1/550}}</ref> Über die wenige 100&nbsp;km dicke Übergangsregion ändert sich auch die Dichte um drei Größenordnungen, von 10<sup>−7</sup> auf 10<sup>−10</sup>&nbsp;g/m<sup>3</sup>. Die heiße Korona brennt sich gleichsam in die Chromosphäre und scheitert schließlich an den quadratisch mit der Dichte zunehmenden Strahlungsverlusten. Dabei passt sich die Übergangsregion in ihrer Form den dynamischen Vorgängen an der Sonnenoberfläche an – die wesentlichen Einflussgrößen sind die Dichte der Strukturen und die Heizleistung in der Korona.
+
+Beobachtungen mit TRACE lassen vermuten, dass der Heizmechanismus der Korona in ihrem unteren Bereich, nahe der Übergangsregion liegen muss, denn die Plasmabögen, deren Dichte nahe ihren Fußpunkten viel größer ist als im Scheitel, sind bis zu den Fußpunkten heiß und dort hell strahlend.<ref>M. Aschwanden et al. (TRACE): [http://apod.nasa.gov/apod/ap000928.html ''Heating Coronal Loops''] (Astronomy Picture of the Day 28. Sept. 2000).</ref>
+
+==== Sonnenwind ====
+{{Hauptartikel|Sonnenwind}}
+[[Datei:Son-2.jpg|mini|links|Eruptive [[Protuberanz]] im [[H-alpha]]-Licht. Außerhalb des Sonnenrandes ist die Chromosphäre zu sehen; ihr scharfer Rand entsteht durch die völlige Ionisation des bildgebenden Wasserstoffs in der Übergangsregion.]]
+
+In der Korona, wahrscheinlich in Verbindung mit dem Heizmechanismus in der unteren Korona,<ref>Mari Paz Miralles: ''The Sun, the Solar Wind, and the Heliosphere.'' Springer, 2011, ISBN 978-90-481-9786-6, {{Google Buch |BuchID=08KnQ33xed0C |Seite=89 |Hervorhebung=rapid acceleration close to the sun}}.</ref> entsteht der Sonnenwind, ein überschallschneller Strom hauptsächlich aus Protonen und Elektronen. In [[Koronales Loch|koronalen Löchern]], also insbesondere in den Polregionen, bei hoher Sonnenaktivität aber auch zahlreich in Äquatornähe, entsteht kaum weniger Sonnenwind als in den dichteren Bereichen der Korona, insbesondere ''Streamern'', aber er strömt schneller, mit 800&nbsp;km/s statt 300&nbsp;km/s. Eruptive [[Protuberanz]]en produzieren große Mengen ''und'' hohe Geschwindigkeiten und verursachen, falls sie die Erde treffen, [[Sonnensturm|geomagnetische Stürme]].
+
+== Dynamische Eigenschaften ==
+
+=== Rotation, Magnetfeld und Sonnenflecken ===
+{{Hauptartikel|Sonnenrotation|Sonnenfleck}}
+[[Datei:Sonnenfleck.jpg|mini|Eine Gruppe von Sonnenflecken]]
+
+Die Bewegung der schon im Altertum bekannten Sonnenflecken zeigt, dass die Sonne keine Scheibe ist, sondern eine rotierende Kugel: Sie wandern von Tag zu Tag, randnah scheinbar langsamer und mit perspektivisch verkürzter Form, und langlebige Flecken tauchen sogar nach zwei Wochen [[Geozentrisches äquatoriales Koordinatensystem|am Ostrand]] wieder auf. Die Sonne folgt der Hauptrotationsrichtung im Sonnensystem ([[Rechtläufig und rückläufig|rechtläufig]]). Um 1860 entdeckte [[Richard Christopher Carrington]], dass äquatornahe Flecken sich schneller bewegen als solche in höheren Breiten ([[differenzielle Rotation]]). Für die Angabe von Längengraden auf der Sonne führte er ein Bezugssystem ein, das in 25,38&nbsp;Tagen um 360° rotiert ([[Siderische Periode|siderisch]], synodisch im Mittel etwa 27,2753&nbsp;Tage).<ref>Wilcox Solar Observatory ([[Stanford University|Stanford]]): [http://wso.stanford.edu/words/Coordinates.html ''Carrington and Bartels Calendars''].</ref> Dies entspricht der Bewegung der Flecken in etwa 26° Breite.
+
+Heute wird die Rotation der Sonnenoberfläche viel genauer und auch in Breiten, in denen Flecken selten sind, über die Verschiebung von [[Spektrallinie]]n durch den [[Doppler-Effekt]] bestimmt. Der Vergleich mit der Bewegung der Sonnenflecken zeigt, dass diese sich schneller als die Oberfläche nach Westen bewegen. Das passt zu der Vorstellung, dass die Magnetfelder, welche die Flecken hervorrufen, unterhalb der Oberfläche „verankert“ sind und tiefere Schichten aufgrund der [[Drehimpulserhaltung]] schneller rotieren. Der dazu nötige radiale Impulstransport ist durch die heftige, isotrope Konvektion im oberen Teil der Konvektionszone gegeben (bis zu einer Tiefe von etwa 4 % des Sonnenradius). Für die polwärts langsamere Rotation ist die komplexere Konvektion in größerer Tiefe verantwortlich.
+
+[[Datei:Tachocline.svg|mini|Radialer Verlauf der Sonnenrotation für verschiedene heliographische Breiten. Ausgehend von der differentiell rotierenden Oberfläche steigt in den oberen 4 % die Winkelgeschwindigkeit steil an, um dann bis zur tachoklinen Region leicht abzufallen. Dort gleicht sie sich an die der nahezu starr rotierenden Strahlungszone an.]]
+Anfang der 1990er Jahre ergaben [[Helioseismologie|helioseismische]] Messungen, dass die Strahlungszone gleichförmig mit einer Periode von knapp 27&nbsp;Tagen rotiert. Der [[Tachocline-Region|Tachocline]] genannte Übergangsbereich zur differenziell rotierenden Konvektionszone ist mit wenigen Prozent des Sonnenradius sehr flach. Entsprechend steil sind dort die Gradienten der Winkelgeschwindigkeit. Die Lage und Dicke der Tachocline, die dortige [[Magnetohydrodynamischer Dynamo|Entstehung des Magnetfelds]] der Sonne und der Verlauf der differenziellen Rotation innerhalb der Konvektionszone sind theoretisch noch nicht verstanden.
+
+Die hohe [[elektrische Leitfähigkeit]] des Plasmas im Sonneninnern – sie entspricht der von [[Kupfer]] bei Zimmertemperatur – bedingt eine starke Kopplung von [[Magnetismus|Magnetfeld]] und Materie, siehe [[Magnetohydrodynamik]]. Bei hoher Dichte führt das Material das Magnetfeld, bei geringer Dichte ist es umgekehrt. In der Konvektionszone führt die differentielle Rotation dazu, dass die Feldlinien dort nicht mehr in N-S-Richtung, sondern gleichsam aufgewickelt in O-W-Richtung verlaufen, was die [[Durchflutung|magnetische Spannung]] stark erhöht. Sie wird abgebaut, indem alle 11 Jahre eine Umpolung stattfindet. In diesem Rhythmus schwankt auch die sogenannte [[Sonnenaktivität|Aktivität der Sonne]]. Bei hoher magnetischer Spannung bricht das Magnetfeld aus der Sonne aus und bildet Bögen in der Korona. Mitgerissenes Material ist in Emission als [[Protuberanz]] sichtbar, vor der hellen Scheibe erscheinen diese Bögen im sichtbaren Licht als dunkle Filamente.
+
+An der Sonnenoberfläche lässt sich das Magnetfeld spektroskopisch beobachten: [[Spektrallinie]]n von Elementen, die normalerweise bei einer einheitlichen Wellenlänge beobachtet werden, erscheinen bei Anwesenheit eines Magnetfeldes dreigeteilt (normaler [[Zeeman-Effekt]]), wobei der Abstand dieser Linien zueinander proportional zur Stärke des Feldes ist. Dort, wo in der Photosphäre die magnetische Feldstärke besonders hoch ist, behindert das Feld die Konvektion, die Oberfläche kühlt auf 3700 bis 4500&nbsp;K ab und strahlt weniger hell, was als Sonnenflecken wahrgenommen wird. Die Feldstärke im Umfeld der Sonnenflecken kann bis zu 0,4&nbsp;[[Tesla (Einheit)|Tesla]] (4000&nbsp;Gauß) betragen und ist somit bis zu zehntausendmal stärker als das irdische Magnetfeld an der Erdoberfläche. Diese lokalen Magnetfelder sind auch für die von Sonnenflecken ausgehenden [[Koronaler Massenauswurf|koronalen Masseauswürfe]] verantwortlich.
+
+In diesen Protuberanzen ist die Feldstärke aufgrund der geringen Dichte nur selten messbar und hat sich zuletzt als größer als gedacht erwiesen.<ref>David Kuridze et al.: ''Mapping the magnetic field of flare coronal loops.'' 20 Februar 2019 auf [[arxiv:1902.07514]].</ref>
+
+Das großräumige [[Magnetismus|Magnetfeld]] der ruhigen Sonne lässt sich nur grob durch ein [[Multipolentwicklung|Dipolfeld]] beschreiben. Es ist mit einem in der Sonne zirkulierenden [[Elektrischer Strom|elektrischen Strom]] in der Größenordnung von 10<sup>12</sup> [[Ampere]] verbunden. Auf der Sonnenoberfläche ist die [[Magnetische Flussdichte|Feldstärke]] dieses Dipolfeldes mit rund 100&nbsp;µT (1 [[Gauß (Einheit)|Gauß]]) nur etwa doppelt so stark wie das Magnetfeld der Erde auf der Erdoberfläche.
+
+[[Datei:72408main ACD97-0036-1.jpg|mini|Diagramm der Heliosphäre]]
+Ein ähnliches Aufwickeln mit Feldverstärkung geschieht mit dem vom [[Sonnenwind]] mitgenommenen [[interplanetares Magnetfeld|Magnetfeld im interplanetaren Raum]]. Dadurch trägt einerseits der Sonnenwind viel mehr [[Drehimpuls]] mit sich fort, als bei freier, radialer Bewegung. Dies erklärt, wie die Sonne seit ihrer Entstehung einen großen Teil ihres Drehimpulses abgeben konnte, ohne dass viel Masse abgegeben wurde – aktuell nur etwa 10<sup>9</sup>&nbsp;kg/s. Andererseits entsteht dabei die [[heliosphärische Stromschicht]] in Form der „Parker-Spirale“, wodurch die magnetische Feldstärke langsamer abnimmt als bei einem Dipolfeld zu erwarten wäre (in Erdentfernung liegt die Feldstärke bei einigen nT). Schließlich unterschreitet die [[Alfvén-Geschwindigkeit|Ausbreitungsgeschwindigkeit]] der Scherungs-[[Alfvén-Welle]]n die des Sonnenwindes, sodass der Sonnenwind sich fortan radial ausbreitet und dabei das Magnetfeld mit sich führt. Diese Grenze bei etwa zwanzig Sonnenradien gilt als der Beginn der [[Heliosphäre]], die sich bis zur [[Heliopause]] erstreckt, wo der Sonnenwind auf [[interstellare Materie]] trifft.
+
+=== Schwingungen ===
+{{Hauptartikel|Helioseismologie}}
+[[Datei:Helioseismology GOLFpmode.png|mini|Schwingungsspektrum der Sonne. Die horizontale Achse ist in m[[Hertz (Einheit)|Hz]].]]
+[[Datei:Helioseismology pmode1.png|mini|Eine von zahlreichen akustischen Schwingungsmoden der Sonne]]
+[[Datei:Highest resolution photo of Sun (NSF) as of January 20, 2020.jpg|mini|Bisher höchstaufgelöstes Bild der [[Granulation (Astronomie)|Granulation]] der Sonne durch das [[Daniel K. Inouye Solar Telescope]] (DKIST).<ref>{{Internetquelle |autor=DER SPIEGEL |url=https://www.spiegel.de/wissenschaft/weltall/astronomie-forscher-praesentieren-so-detaillierte-sonnenbilder-wie-noch-nie-a-1582e76d-6fd7-4ba5-981e-55a57b0adf16 |titel=Forscher präsentieren so detaillierte Sonnenbilder wie noch nie - DER SPIEGEL - Wissenschaft |abruf=2020-01-31}}</ref> Das Bild zeigt einen Ausschnitt von ca. 38.000 km Länge bzw. Breite.<ref>{{Internetquelle |url=https://www.nsf.gov/news/news_images.jsp?cntn_id=299908&org=NSF |titel=NSF’s newest solar telescope produces first images - All Images {{!}} NSF - National Science Foundation |abruf=2020-02-01}}</ref><ref>{{Internetquelle |url=https://www.nso.edu/telescopes/dkist/first-light-context-full-sun/ |titel=First Image from NSF's Inouye Solar Telescope in Context of the Full Sun |datum=2020-01-29 |abruf=2020-02-01 |sprache=en-US}}</ref>]]
+
+Die starke Konvektion nahe der Sonnenoberfläche verursacht Druckschwankungen. Wären die [[Frequenz]]en nicht so niedrig – 2 bis 7 mHz, entsprechend der typischen Lebensdauer der Granulation von fünf Minuten – so würde es sich wie das Rauschen des Waldes im Wind anhören. Die Druckschwankungen laufen als [[Schall]]wellen in die Sonne hinein, und weil dort mit der Temperatur auch die [[Schallgeschwindigkeit]] zunimmt, kehren sie im Bogen wieder zurück an die Oberfläche, wo der Dichtesprung sie wieder reflektiert. Die Wellen laufen auf diese Weise mehrfach um die Sonne herum und überlagern sich zu stehenden Wellen mit je nach [[Moden|Schwingungsmuster]] charakteristischer Frequenz.
+
+Mit spektroskopischen Methoden kann man diese Schwingungen sichtbar machen: Sie bewegen die Photosphäre langsam auf und ab und die in Beobachtungsrichtung liegende Komponente der Geschwindigkeit verschiebt aufgrund des [[Doppler-Effekt]]s die Absorptionslinien des Sonnenspektrums. Die Geschwindigkeitsamplituden der Schwingungen liegen allerdings bei maximal einigen Metern pro Sekunde, was aufgrund der starken [[Dopplerverbreiterung]] der Spektrallinien nicht leicht nachzuweisen ist. Durch Mittelung der Messergebnisse über viele Monate gelang es aber, zahlreiche Schwingungsmoden zu identifizieren und ihre Frequenzen bis auf μHz-Bruchteile zu bestimmen. Die verschiedenen Moden sind unterschiedlich stark abhängig von der Schallgeschwindigkeit in verschiedenen Tiefen, sodass eine gemeinsame Auswertung aller Moden die Bestimmung der Tiefenabhängigkeit der Schallgeschwindigkeit erlaubt.
+
+Beobachtet und analysiert werden die Eigenschwingungen der Sonne von der ''Helioseismologie''. Wichtige Ergebnissen betreffen
+* die Bestätigung des Sonnenmodells zu der Zeit des solaren [[Neutrinoproblem]]s,
+* die Vermessung der differentiellen Rotation in der Konvektionszone,
+* die Entdeckung der nahezu starren Rotation der Strahlungszone und
+* die Beobachtung von aktiven Regionen auf der erdabgewandten Seite der Sonne.
+
+== Optische Erscheinungen und Beobachtung ==
+[[Datei:Crepuscular rays8 - NOAA.jpg|mini|links|hochkant=1.5|[[Wolkenstrahl]]en]]
+
+=== Optische Erscheinungen ===
+[[Datei:Doppelsonne Halo Echzell Hessen 12-08-2012.jpg|mini|links|hochkant=1.5|[[Halo (Lichteffekt)|Halo]] mit Nebensonnen bei [[Echzell]] am 12. August 2012]]
+
+Betrachtet man die Sonne aus dem [[Weltraum]], erscheint sie weiß. Ihre gewohnte gelbe Farbe erklärt sich durch den Einfluss der Erdatmosphäre. Kurzwelligeres (blaues) Licht wird an den Luftmolekülen (Stickstoff, Sauerstoff, Edelgase und Kohlenstoffdioxid) wesentlich stärker [[Streuung (Physik)|gestreut]] als langwelligeres (rotes) Licht. Somit strahlt der [[Himmel (planetar)|Himmel]] diffus blau, Sonnenstrahlen, die direkt auf die Erdoberfläche auftreffen, erscheinen jedoch gelb. Je länger der Weg ist, den die Sonnenstrahlen auf ihrem Weg durch die Atmosphäre zurücklegen, desto mehr blaues Licht wird herausgestreut. Die tiefstehende Sonne erscheint deswegen stark rötlich.
+
+Mit freiem Auge kann die Sonne lediglich bei dunstigem Himmel, kurz nach [[Sonnenaufgang]] oder kurz vor [[Sonnenuntergang]] betrachtet werden. Die [[Erdatmosphäre]] schluckt den größten Teil des Lichts, insbesondere auch der UV-Strahlung. Allerdings verringert die Atmosphäre in Horizontnähe auch stark die Abbildungsqualität und bewirkt eine vertikale Stauchung des Sonnenbildes als Folge der [[Brechung (Physik)|Lichtbrechung]]. Dass die untergehende Sonne in Horizontnähe größer aussieht, ist hingegen nicht, wie oft vermutet, eine Folge der Refraktion an den Luftschichten, sondern eine optische Täuschung, die von der Wahrnehmungspsychologie unter dem Begriff [[Mondtäuschung]] untersucht und erklärt wird.
+
+Zwar sind alle Phänomene der [[Atmosphärische Optik|atmosphärischen Optik]] direkt oder indirekt an das Sonnenlicht geknüpft, viele von ihnen zeigen sich jedoch direkt neben oder mit der Sonne. Dies gilt in erster Linie für [[Sonnenaufgang|Sonnenauf-]] und [[Sonnenuntergang]], doch auch nahezu für alle [[Halo (Lichteffekt)|Halophänomene]], wie die 22°-Halo, die [[Nebensonne]]n oder [[Lichtsäule (Lichteffekt)|Lichtsäulen]]. Ein besonderes Phänomen, das den Begriff der Sonnenstrahlen geprägt hat, sind die [[Strahlenbüschel]]. Sehr selten sind [[Grüner Blitz|Grüne Blitze]].
+
+=== Beobachtung der Sonne ===
+Mit [[Teleskop]]en kann man [[Sonnenaktivität|Aktivitäten]] der Sonne in Form von [[Protuberanz]]en und [[Sonnenfleck]]en sichtbar machen. Ebenfalls zu beobachten sind dort heftige Ausbrüche, sogenannte [[Sonneneruption|Flares]], die bereits mit kleinen Instrumenten als hellere und damit heißere Gebiete erkennbar sind. Die Sonnenscheibe hat von der Erde aus betrachtet einen Durchmesser von etwa 32&nbsp;[[Bogenminute]]n, wobei die exakte Größe von der momentanen Entfernung der Erde von der Sonne abhängt. Im [[Perihel]] erscheint die Sonnenscheibe am größten, im [[Aphel]] am kleinsten. Der scheinbare Größenunterschied ihres Durchmessers zwischen Aphel und Perihel beträgt etwas mehr als drei Prozent.<ref>{{APOD|de|090703|Perihel und Aphel}} Abgerufen am 30. Dezember 2009.</ref> Die [[Sonnenbeobachtung]] geschieht am einfachsten, indem das Okularbild eines Teleskops oder Fernglases auf eine weiße Fläche (zum Beispiel eine Leinwand oder ein Stück Pappe) projiziert wird. Diese [[Optische Abbildung|Abbildung]] der Sonne kann gefahrlos betrachtet werden. Dieses Verfahren nennt man [[Okularprojektion]]. Eine direkte Beobachtung mit oder ohne Fernrohr kann aufgrund der hellen Sonnenstrahlung zu irreversibler [[Blindheit|Erblindung]] führen.
+
+Ebenfalls möglich ist eine Beobachtung mit Hilfe von speziellen [[Sonnenfilter]]n, dies sind Folien oder beschichtete Gläser, die vor das [[Auge]] gehalten oder vor dem [[Objektiv (Optik)|Objektiv]] angebracht werden. Eine detaillierte Beobachtung ist außerdem mit einem [[Herschelprisma]] möglich. Dieses funktioniert aber nur an einem [[Fernrohr|Refraktor]].
+
+Bei allen beschriebenen Beobachtungsverfahren wird das gesamte Spektrum des Sonnenlichts gedämpft, die Sonne wird im „Weißlicht“ beobachtet. Dabei werden Sonnenflecken, Flares und die Granulation sichtbar.
+
+Um Protuberanzen zu beobachten, bedarf es besonderer Bauteile oder Teleskope. Bei einem [[Protuberanzenansatz]] wird die Sonne mittels eines Scheibchens abgedeckt – es wird sozusagen eine künstliche totale Sonnenfinsternis erzeugt. Die am Sonnenrand aufsteigenden Protuberanzen werden durch einen sogenannten ''H-alpha-Filter'' beobachtet. Dies ist ein besonders schmalbandiger [[Interferenzfilter]], der nur das tiefrote Licht des [[Angeregter Zustand|angeregten]] Wasserstoffes durchlässt.
+
+Eine Beobachtung der gesamten Sonnenoberfläche in diesem Spektralbereich ermöglichen sogenannte [[H-alpha-Teleskop]]e. Damit können Protuberanzen, Filamente, Flecken und Flares beobachtet werden. Diese Teleskope sind in den letzten Jahren sehr preisgünstig geworden und werden zunehmend auch von [[Amateurastronomie#Amateurastronomen|Amateurastronomen]] eingesetzt.
+
+Die Korona kann nur bei einer totalen Sonnenfinsternis oder mittels eines speziellen Gerätes, dem [[Koronograf]]en, beobachtet werden.
+
+== Entwicklung der Sonne ==
+{| class="wikitable float-right" style="font-size: 90%;"
+|- bgcolor="LemonChiffon"
+! Phase
+! Dauer in<br /> Millionen<br /> Jahren
+! Leuchtkraft<br />(in L<sub>☉</sub>)
+! Radius<br />(in R<sub>☉</sub>)
+|-
+| align=center |Hauptreihenstern
+| align=right |11.000
+| align=center |0,7 … 2,2
+| align=center |0,9 … 1,6
+|-
+| align=center |Übergangsphase
+| align=right |700
+| align=center |2,3
+| align=center |1,6 … 2,3
+|-
+| align=center |Roter Riese
+| align=right |600
+| align=center |2,3 … 2300
+| align=center |2,3 … 166
+|-
+| align=center |Beginn des He-Brennens
+| align=right |110
+| align=center |44
+| align=center |etwa 10
+|-
+| align=center |He-Schalenbrennen
+| align=right |20
+| align=center |44 … 2000
+| align=center |10 … 130
+|-
+| align=center |Instabile Phase
+| align=right |0,4
+| align=center |500 … 5000
+| align=center |50 … 200
+|-
+| align=center |Übergang zu Weißem Zwerg<br /> mit planetarischem Nebel
+| align=right |0,1
+| align=center |3500 … 0,1
+| align=center |100 … 0,08
+|}
+Das Sonnensystem entstand vor 4,6&nbsp;Milliarden Jahren durch den [[Gravitation|gravitativen]] Kollaps einer [[Interstellare Materie|interstellaren Gaswolke]] (→ [[Sternentstehung]]). Die anschließende Entwicklungsgeschichte der Sonne führt über ihren jetzigen Zustand ([[Gelber Zwerg]]) zu dem eines [[Roter Riese|Roten Riesen]] und schließlich über eine instabile Endphase im Alter von etwa 12,5&nbsp;Milliarden Jahren zu einem [[Weißer Zwerg|Weißen Zwerg]], der von einem [[Planetarischer Nebel|planetarischen Nebel]] umgeben ist.
+
+Dieser Ablauf lässt sich anhand der Gesetze der [[Physik]] und der Kenntnis [[kernphysik]]alischer Prozesse aus Laborexperimenten im [[Computer]] modellieren. Die Kenndaten der einzelnen Phasen sind in der Tabelle von Sackmann angegeben.<ref>I.-J. Sackmann u. a. (1993): ''Our Sun.'' T 3. Present and Future. In: ''Astrophysical Journal.'' University of Chicago Press, Chicago Ill 418.1993, 11 (Nov.), 457–468, {{bibcode|1993ApJ...418..457S}}</ref> Der Index Null markiert die heutigen Zustandsgrößen der Sonne, das heißt im Alter von 4,6&nbsp;Milliarden Jahren.
+
+Möglicherweise entstand die Sonne in einem [[offener Sternhaufen|offenen Sternhaufen]] zusammen mit vielen anderen Sternen. Nach etwa 100 Mio. Jahren hat sich dieser Sternhaufen aufgelöst. Heute sind die einzelnen Mitglieder über die ganze [[Milchstraße]] verstreut. Im Jahre 2014 wurde mit [[HD 162826]] ein Stern gefunden, welcher der Sonne chemisch sehr ähnlich ist und somit ein ''[[solar sibling]]'' sein könnte aus demselben ursprünglichen Sternhaufen.<ref name="Ramirez">{{cite journal|author=I. Ramirez et al.|title=Elemental Abundances of Solar Sibling Candidates|journal=[[The Astrophysical Journal]]|arxiv=1405.1723|bibcode=2014ApJ...787..154R|doi=10.1088/0004-637X/787/2/154}}</ref>
+
+=== Protostern ===
+{{Hauptartikel|Sternentstehung}}
+
+Der Übergang von einer prästellaren Verdichtung mit planetaren Ausmaßen zu einem von der restlichen Gas- und Staubwolke deutlich abgesetzten [[Protostern]] begann mit der [[Wasserstoff#Molekularer Wasserstoff|thermischen Dissoziation des Wasserstoffs]], die bei einer Temperatur von einigen 1000&nbsp;K im Kernbereich Energie aufnahm und diesem eine schnellere Verdichtung erlaubte. Der noch leichte Protostern bezog seine schnell steigende Strahlungsleistung zunächst aus dem Einsturz weiterer Masse, dann nur noch aus seiner eigenen Kontraktion, denn die restliche Masse in seiner Umgebung hatte er weggeblasen – bis auf die daraus kondensierten [[Planetesimal]]e.
+
+Die Kontraktion der Kernzone der frühen Sonne endete nach einigen zehn Millionen Jahren durch das Einsetzen der Kernfusion.
+
+=== Hauptreihenstern ===
+{{Hauptartikel|Hauptreihenstern}}
+
+Etwa ebenso lange dauerte es, bis sich in der inneren Atmosphäre ein stationärer Verlauf der Zustandsgrößen mit der oben dargestellten Schalenstruktur eingestellt hatte. Damit einher ging die Annäherung an die [[Hauptreihe]]. Seither hat sich der Massenanteil des Wasserstoffs in der Konvektionszone um einige Prozentpunkte erhöht, indem er an der Untergrenze der Konvektionszone durch die langsam absinkenden schwereren Elemente nach oben diffundiert ist. Die relativen Häufigkeiten der ‘Metalle’ haben sich dadurch nicht geändert.<ref>{{Literatur | Autor=Katharina Lodders | Titel=Solar System Abundances and Condensation Temperatures of the Elements | Sammelwerk=The Astrophysical Journal | Band=591 | Nummer=2, Seiten=1220-1247 | bibcode=2003ApJ...591.1220L | DOI=10.1086/375492 | Datum=2003-07}}</ref><ref>Martin Asplund et al.: ''The chemical composition of the Sun.'' In: ''Annual Reviews of Astronomy and Astrophysics.'' Band 47, 2009. S. 481–522. {{arXiv|0909.0948v1}}.</ref>
+<!-- Im Folgenden das Paradoxon der angeblich schwachen jungen Sonne ergänzen -->
+Im Hauptreihenstadium verweilt die Sonne elf Milliarden Jahre. In dieser Zeit steigt die Leuchtkraft auf das Dreifache von 0,7&nbsp;[[Sonnenleuchtkraft|L<sub>☉</sub>]] auf 2,2&nbsp;L<sub>☉</sub> und der Radius auf fast das Doppelte von 0,9&nbsp;[[Sonnenradius|R<sub>☉</sub>]] auf 1,6&nbsp;R<sub>☉</sub> an. Im Alter von 5,5&nbsp;Milliarden Jahren, das heißt in 0,9 Milliarden Jahren, überschreitet die mittlere Temperatur auf der Erdoberfläche den für höhere Lebewesen kritischen Wert von 30&nbsp;°C.<ref>Ch. Bounama, W. von Bloh, S. Franck: ''Auf der Suche nach einer zweiten Erde,'' Physik in unserer Zeit, 33. Jahrgang 2002, Nr. 3, S. 122–128</ref> Eine weitere Milliarde Jahre später werden 100&nbsp;°C erreicht. Im Alter von 9,4&nbsp;Milliarden Jahren versiegt der Wasserstoff im Sonnenzentrum, und die Fusionszone verlagert sich in einen schalenförmigen Bereich um das Zentrum, der sich im Laufe der Zeit weiter nach außen bewegt. Dieser Vorgang führt jedoch vorerst nicht zu einer Veränderung der äußerlich sichtbaren Sonnenparameter.
+
+Im Alter von 11 bis 11,7&nbsp;Milliarden Jahren verdichtet sich die ausgebrannte Kernzone aus Helium. Durch den damit einhergehenden Temperaturanstieg steigt der Energieumsatz in der Wasserstoffschale. Dabei wächst der Sonnenradius auf 2,3&nbsp;R<sub>☉</sub> an. Die Sonne wird rötlicher und beginnt sich von der Hauptreihe im [[Hertzsprung-Russell-Diagramm]] zu entfernen. Bis zu diesem Zeitpunkt beträgt der gesamte Verlust an Masse durch Sonnenwind weniger als ein Promille.
+
+[[Datei:Lebenszyklus der Sonne.svg|mini|hochkant=3.3|zentriert]]
+[[Datei:Sonnenleben+.svg|mini|hochkant=3.3|zentriert|Phasen der Sonnenentwicklung. Der untere Teil zeigt stark vergrößert das letzte Prozent der etwa 12,5 Milliarden Jahre währenden Entwicklung. Die Temperaturangaben gelten für die Erdoberfläche.]]
+
+=== Roter Riese ===
+{{Hauptartikel|Roter Riese}}
+
+Bei einem Sonnenalter von 11,7 bis 12,3&nbsp;Milliarden Jahren setzt ein dramatisch beschleunigter Anstieg von Leuchtkraft und Radius ein. Gleichzeitig nimmt die [[Sternoberfläche#Oberflächentemperatur|Oberflächentemperatur]] ab und das Strahlungsspektrum verschiebt sich zum roten Bereich hin (vgl. [[Wärmestrahlung]]). In der Endphase dieser Entwicklung erreicht die Sonne eine Leuchtkraft von 2300&nbsp;L<sub>☉</sub> und einen Radius von 166&nbsp;R<sub>☉</sub>. Das entspricht etwa dem Radius der Umlaufbahn der [[Venus (Planet)|Venus]]. Venus und [[Merkur (Planet)|Merkur]] werden vernichtet. Von der Erde aus gesehen, nimmt die Sonne nun einen großen Teil des Himmels ein, und die Erdkruste wird zu einem einzigen Lava-Ozean aufgeschmolzen. Durch die geringe Gravitation an der Sonnenoberfläche verliert die Sonne in dieser Phase 28 % ihrer Masse durch Sonnenwind, ein Anteil von bis zu 1,3·10<sup>−7</sup>&nbsp;[[Sonnenmasse|M<sub>☉</sub>]] strömt pro Jahr als interstellares Gas in den Weltraum. Durch die geringere Sonnenmasse sinkt auch die Anziehungskraft auf die Planeten, so dass deren Bahnradien um jeweils 38 % zunehmen.
+
+=== Helium-Blitz und -Brennphase ===
+Da in der Kernzone der Sonne keine Fusionen mehr stattfinden und somit keine Energie mehr frei wird, gibt sie der Gravitation nach und kontrahiert, bis schließlich dort die [[Dichte]] ungefähr auf die Größenordnung 10<sup>6</sup>&nbsp;g/cm<sup>3</sup> angestiegen ist, das 10.000-Fache des heutigen Wertes. Dadurch steigt dort die Temperatur schließlich auf 10<sup>8</sup>&nbsp;K.
+
+Bei dieser Temperatur setzt die Fusion von Helium zu Kohlenstoff ein. Aufgrund der extremen Dichte im Zentrum und der damit verbundenen [[Neutrino]]-Kühlung zündet diese Fusionsreaktion zunächst innerhalb einer heißeren kugelschalenförmigen Zone um das Zentrum. Gewöhnlich würde die dabei freiwerdende Energie zu einer Expansion des Kerns führen, die die Temperatur stabilisiert. Die Kernzone befindet sich jedoch in einem besonderen [[Quantenmechanik|quantenmechanischen]] [[Entartung (Quantenmechanik)|Entartungszustand]], was zur Folge hat, dass die Energie zunächst in die Auflösung der Entartung investiert wird. Daher ist zunächst kein stabiler Zustand möglich, so dass die Heliumfusion in Form einer gigantischen Explosion einsetzt, die als [[Helium-Blitz]] (''helium flash'') bezeichnet wird. Dabei steigt für mehrere Sekunden die Sonnenleistung auf 10<sup>10</sup>&nbsp;L<sub>☉</sub>. Das entspricht etwa 10 % der Leuchtkraft der gesamten Milchstraße. Erst nach einem Umsatz von 3 % des Heliumreservoirs setzt eine Expansion ein und stoppt diese Leistungsexkursion. Diese Explosion findet nur im Zentralbereich statt und ist äußerlich zunächst nicht bemerkbar. Sie drängt jedoch die Wasserstofffusionszone weiter nach außen, deren Temperatur daher abnimmt und damit auch der Energieumsatz. Paradoxerweise sinkt damit als äußerliche Folge des Helium-Blitzes innerhalb der nächsten 10.000 Jahre die Leuchtkraft um fast einen Faktor 100 ab. Es folgt eine Phase von einer Million Jahren, in denen die Sonnenparameter oszillieren, bis sich ein stabiler Zustand der Heliumfusion im Zentrum einstellt, der anschließend 110 Millionen Jahre anhält. Gleichzeitig wandert auch die schalenförmige Wasserstofffusionszone weiter nach außen. In dieser Zeit bleibt die Leuchtkraft nahezu konstant bei 44&nbsp;L<sub>☉</sub> und der Radius bei 10&nbsp;R<sub>☉</sub>.
+
+=== Heliumschalen-Brennen ===
+Danach ist auch das Helium im Sonnenzentrum verbraucht und es beginnt eine Phase des Heliumschalen-Brennens, die 20&nbsp;Millionen Jahre andauert. Damit existieren nun zwei ineinander geschachtelte schalenförmige Fusionszonen. Im Zentrum sammelt sich Kohlenstoff und kontrahiert gravitativ. Damit ist ein erneuter enormer Anstieg der Leuchtkraft auf 2000&nbsp;L<sub>☉</sub> und eine Zunahme des Radius auf 130&nbsp;R<sub>☉</sub> verbunden. Gegen Ende verliert die Sonne dabei einen Massenanteil von 0,1&nbsp;M<sub>☉</sub>.
+
+In den letzten 500.000 Jahren dieser Phase erwartet man in Zusammenhang mit der Wechselwirkung zwischen dem kontrahierenden Kern und der Heliumfusionszone weitere instabile Situationen, bei denen kurzzeitige Leistungsexkursionen durch Heliumfusion mit etwa 10<sup>6</sup>&nbsp;L<sub>☉</sub> eintreten können. Ein wahrscheinliches Szenario wären beispielsweise vier solcher Helium-Blitze im Abstand von etwa 100.000 Jahren. Als Folge jedes dieser Helium-Blitze und der damit verbundenen Expansion der Wasserstoffschale kann die Fusion dort in den folgenden 200&nbsp;Jahren vorübergehend völlig zum Stillstand kommen. Die äußerliche Folge eines Helium-Blitzes wäre daher wiederum zunächst eine Abnahme der Leuchtkraft. Nach 400 Jahren erreicht die Energie des Helium-Blitzes die Oberfläche. Leuchtkraft und Radius steigen an und [[Relaxation (Naturwissenschaft)|relaxieren]] in den folgenden 10.000 Jahren wieder. Dabei werden Variationen der Leuchtkraft zwischen 500&nbsp;L<sub>☉</sub> und 5000&nbsp;L<sub>☉</sub> erwartet sowie Radiusvariationen zwischen 50&nbsp;R<sub>☉</sub> und 200&nbsp;R<sub>☉</sub>. In den Phasen maximaler Ausdehnung reicht die Sonnenoberfläche bis an die heutige Erdbahn heran. Nur aufgrund der Zunahme des Erdbahndurchmessers entkommt die Erde der völligen Vernichtung. Gleichzeitig stößt die Sonne in diesen Phasen insgesamt eine Masse von weiteren 0,05&nbsp;M<sub>☉</sub> ab.
+
+=== Weißer Zwerg und planetarischer Nebel ===
+{{Hauptartikel|Weißer Zwerg}}
+
+Durch die erwähnten Massenverluste verliert die Sonne die gesamte äußere Hülle, einschließlich der Wasserstoff- und Heliumfusionszone. Etwa 100.000&nbsp;Jahre nach dem letzten Helium-Blitz wird daher der heiße innere Kern freigelegt, der im Wesentlichen aus hochverdichtetem Kohlenstoff und Sauerstoff besteht. Sein Radius beträgt nur noch 0,08&nbsp;R<sub>☉</sub>, dafür aber seine Oberflächentemperatur 120.000&nbsp;K. Seine Leuchtkraft beträgt anfänglich 3500&nbsp;L<sub>☉</sub>. Aufgrund der hohen Temperatur enthält diese Strahlung einen enormen Anteil von [[Ultraviolettstrahlung|ultravioletter Strahlung]], welche die abgestoßene Gaswolke der Sonne nun zum Leuchten anregt. Da die Geschwindigkeit des Sonnenwindes ständig zunimmt, werden die früher ausgestoßenen Gase durch die späteren eingeholt und oft zu einer kugelförmigen Gasschale komprimiert. Für einen außen stehenden Beobachter erscheinen die leuchtenden Gase in diesem Fall als Ring, der als [[planetarischer Nebel]] bezeichnet wird. Durch das Verflüchtigen des Gases erlischt diese Erscheinung nach einigen 10.000&nbsp;Jahren wieder, und im Zentrum bleibt der strahlende Rest der Sonne, den man als Weißen Zwerg bezeichnet.
+
+Er hat nur etwa die Größe der Erde, aber eine Masse von 0,55&nbsp;M<sub>☉</sub>. Seine Dichte beträgt daher etwa eine Tonne pro Kubikzentimeter. Er besitzt keine innere Energiequelle, so dass seine Abstrahlung zu einem Wärmeverlust führt. Nach einer vergleichsweise raschen Abkühlung im Anfangsstadium durch die extreme Leuchtkraft sinkt die Oberflächentemperatur auf Werte, bei denen eine Strahlung aufgrund der deutlich niedrigeren Leuchtkraft über mehrere Dutzend Milliarden Jahre möglich ist, bevor die Sonne als [[Schwarzer Zwerg]] im optischen [[Lichtspektrum|Spektralbereich]] gänzlich erlischt.
+
+== Kosmische Umgebung ==
+[[Datei:Milchstrasse lokale blase 25 lj.jpg|mini|Nähere kosmische Umgebung der Sonne]]
+
+Die Sonne durchwandert derzeit ein etwa 30 [[Lichtjahr]]e großes Gebiet, das wegen seiner erhöhten Dichte „Lokale Wolke“ oder „[[Lokale Flocke]]“ genannt wird. Ebenfalls in der Lokalen Flocke befinden sich die benachbarten Sterne [[Altair]], [[Wega]], [[Arktur]], [[Fomalhaut]] und [[Alpha Centauri]]. Die Lokale Flocke ist ihrerseits eingebettet in eine weitgehend staubfreie Region mit geringerer Teilchendichte, die [[Lokale Blase]]. Die Lokale Blase hat in Richtung der [[Galaktisches Koordinatensystem|galaktischen Ebene]] eine Ausdehnung von mindestens 300 Lichtjahren. Sie befindet sich nahe dem inneren Rand des [[Orionarm]]s der Milchstraße. Bis zum benachbarten [[Milchstraße#Spiralarme|Perseusarm]] sind es etwa 6.500 Lichtjahre, bis zum Zentrum der Galaxis etwa 28.000 Lichtjahre. Ein Umlauf, mit etwa 250&nbsp;km/s, dauert 210 Mio. Jahre ([[galaktisches Jahr]]).
+
+Die Sonne durchmisst außerdem den [[Gouldscher Gürtel|Gouldschen Gürtel]], eine großräumige Anordnung von jungen [[Stern]]en (etwa 20–60 Millionen Jahre alt) und Sternentstehungsgebieten mit mehr als 2000 Lichtjahren Ausdehnung. Da diese Sterne viel jünger sind als die Sonne, kann sie nicht zu den Objekten des Gouldschen Gürtels gehören.
+
+== Erforschung der Sonne ==
+{{Hauptartikel|Sonnenforschung}}
+{{siehe auch|Zeittafel Sonnenforschung}}
+
+=== Frühe Beobachtungen ===
+Als der wichtigste Himmelskörper für irdisches [[Leben]] genoss die Sonne bereits vor der [[Geschichtsschreibung]] aufmerksame Beobachtung der Menschen. [[Kultstätte]]n wie [[Stonehenge]] wurden errichtet, um die Position und den Lauf der Sonne zu bestimmen, insbesondere die Zeitpunkte der [[Sonnenwende]]n. Es wird vermutet, dass einige noch ältere Stätten ebenfalls zur Sonnenbeobachtung benutzt wurden, gesichert ist dies aber nicht. Von unterschiedlichen Kulturen wurden sowohl der tägliche Verlauf der Sonne und seine jahreszeitlichen Schwankungen als auch Sonnenfinsternisse sehr aufmerksam beobachtet und dokumentiert. Aufzeichnungen aus dem alten [[Kaiserreich China|China]] belegen die Beobachtungen besonders heftiger Sonnenfleckentätigkeit. Sonnenflecken können mit bloßem Auge wahrgenommen werden, wenn die Sonne tief am Horizont steht und das Sonnenlicht durch die dichte Erdatmosphäre „gefiltert“ wird.
+
+=== Beobachtungen mit Teleskopen ===
+[[Datei:Son-3.jpg|mini|Ein einzelner Sonnenfleck]]
+
+Auch in Europa hatte man zu der damaligen Zeit Sonnenflecken wahrgenommen, wobei man sie allerdings für „atmosphärische Ausdünstungen“ hielt. Erst die Entwicklung des [[Teleskop]]s führte zu einer systematischen Erforschung des Phänomens. Im Jahr 1610 beobachteten [[Galileo Galilei|Galilei]] und [[Thomas Harriot]] die Flecken erstmals mittels Teleskop. [[Johann Fabricius (Astronom)|Johann Fabricius]] beschrieb sie 1611 als Erster in einer wissenschaftlichen Abhandlung. Die beobachtete Wanderung der Flecken auf der Sonnenscheibe führte er zutreffend auf die Eigenrotation der Sonne zurück. 1619 postulierte [[Johannes Kepler]] einen Sonnenwind, da der Schweif von [[Komet]]en immer von der Sonne weggerichtet ist. 1775 vermutete Christian Horrobow bereits, dass die Sonnenflecken einer gewissen Periodizität unterliegen.
+
+[[Datei:FraunhoferLinesDiagram.jpg|mini|hochkant=2.5|Das vollständige Spektrum der Sonne im sichtbaren Licht mit den dunklen Fraunhofer’schen Absorptionslinien ([[Spektrallinie]]n). Das gesamte Spektrum ist hier in mehrere untereinander angeordnete Streifen unterteilt.]]
+
+1802 wies [[William Hyde Wollaston]] erstmals dunkle Linien ([[Spektrallinie|Absorptionslinien]]) im [[Sonnenspektrum]] nach. [[Joseph von Fraunhofer]] untersuchte die Linien ab 1814 systematisch, sie werden daher auch als „[[Fraunhoferlinie]]n“ bezeichnet. 1868 fand [[Jules Janssen]] während einer Sonnenfinsternis eine Linie des damals noch unbekannten Heliums, das seinen Namen nach dem griechischen Namen der Sonne erhielt.
+
+1843 publizierte [[Samuel Heinrich Schwabe]] seine Entdeckung des Zyklus der Sonnenfleckenaktivität. 1849 wurde die [[Sonnenfleck#Sonnenflecken-Relativzahl|Sonnenfleckenrelativzahl]] eingeführt, die die Anzahl und Größe der Sonnenflecken wiedergibt. Seither werden die Flecken regelmäßig beobachtet und gezählt. 1889 entwickelte [[George Ellery Hale]] den [[Spektroheliograf]]en. [[Henry Augustus Rowland]] vollendete 1897 einen Atlas des Sonnenspektrums, der sämtliche Spektrallinien enthält. 1908 entdeckte George Ellery Hale die Aufspaltung von Spektrallinien im Bereich der Sonnenflecken durch magnetische Kräfte ([[Zeeman-Effekt]]). 1930 beobachtete [[Bernard Ferdinand Lyot]] die Sonnenkorona außerhalb einer totalen Finsternis.
+
+1960 wurde die Schwingung der Photosphäre nachgewiesen. Dies war der Beginn der [[Helioseismologie]], die die [[Eigenfrequenz|Eigenschwingungen]] der Sonne untersucht und daraus den inneren Aufbau sowie Prozesse ableitet.
+
+Im Laufe der Zeit wurden spezielle [[Sonnenteleskop|Sonnenobservatorien]] errichtet, die ausschließlich der Beobachtung der Sonne dienen.
+
+=== Andere Beobachtungsverfahren ===
+1942 wurde von [[James Stanley Hey|James Hey]] festgestellt, dass die Sonne eine [[Radioquelle]] ist.<ref>[http://www.nrao.edu/index.php/learn/radioastronomy/radioastronomyhistory Early History of Radio Astronomy] nrao.edu;(abgerufen am 30. Juni 2010).</ref> 1949 wies [[Herbert Friedman]] die solare [[Röntgenstrahlung]] nach.
+
+Zur Messung der Sonnen[[neutrino]]s wurden riesige unterirdische [[Neutrinodetektor|Detektoren]] errichtet. Die Diskrepanz zwischen dem theoretischen und tatsächlich gemessenen Neutrinofluss führte seit den 1970er Jahren zum sogenannten ''solaren Neutrinoproblem'': Es konnte nur etwa ein Drittel der erwarteten Neutrinos detektiert werden. Dies ließ zwei Möglichkeiten zu. Entweder war das Sonnenmodell falsch und der erwartete solare Neutrinofluss wurde überschätzt, oder die Neutrinos können sich auf dem Weg zur Erde in eine andere „Art“ umwandeln ([[Neutrinooszillation]]). Erste Hinweise für diese Neutrinooszillation wurden im Jahr 1998 am [[Super-Kamiokande]] gefunden und inzwischen allgemein bestätigt.
+
+=== Erforschung durch Satelliten und Raumsonden ===
+[[Datei:HI6563 fulldisk.jpg|mini|Die Chromosphäre der Sonne im Licht der [[Wasserstoff|H]]-α-Linie]]
+
+Eine Reihe von [[Satellit (Raumfahrt)|Satelliten]] wurde für die Beobachtung der Sonne in eine Erdumlaufbahn geschickt. Mittels der Satelliten können insbesondere Wellenlängenbereiche untersucht werden ([[Ultraviolettstrahlung|Ultraviolett]], Röntgenstrahlung), die sonst von der [[Erdatmosphäre]] absorbiert werden. So hatte zum Beispiel die 1973 gestartete [[Raumstation]] [[Skylab]] unter anderem zwei Röntgenteleskope an Bord.<ref>
+{{Literatur
+|Autor=John A. Eddy
+|Herausgeber=Rein Ise
+|Titel=A New Sun: The Solar Results From Skylab
+|Verlag=Scientific and Technical Information Office, National Aeronautics and Space Administration
+|Ort=Washington
+|Datum=1979
+|Sprache=en
+|OCLC=265239530
+|Kapitel=4
+|Online=https://history.nasa.gov/SP-402/ch4.htm}}</ref>
+
+Mit Hilfe von [[Raumsonde]]n versuchte man der Sonne näher zu kommen, um die Umgebung der Sonne studieren zu können. Dies war und bleibt aufgrund von sehr hohen Temperaturen und intensiver Strahlung ein technisch sehr schwieriges Unterfangen. So konnten die 1974 und 1976 gestarteten deutsch-amerikanischen [[Helios (Sonde)|Helios]]-Sonden sich der Sonne nur bis auf 43,5 Millionen Kilometer nähern.
+
+[[Datei:Ulysses spacecraft.jpg|mini|Ulysses bei der Montage]]
+Die 1990 gestartete Raumsonde [[Ulysses (Sonde)|Ulysses]] verfolgte andere Ziele. Sie sollte die Pole der Sonne studieren, die weder von der Erde, noch von Raumsonden, die sich in der Planetenebene bewegen, aus sichtbar sind. Dies war nur mit einer steil [[Bahnneigung|geneigten Bahnebene]] der Raumsonde erreichbar. Zu diesem Zweck flog Ulysses zunächst zum Riesenplaneten [[Jupiter (Planet)|Jupiter]], wo durch ein [[Swing-by]]-Manöver die Bahnebene der Sonde geändert wurde. Dadurch konnte Ulysses die Planetenebene verlassen und überflog seitdem bereits zweimal die beiden Pole der Sonne. Mit konventionellen Raketenantrieben, ohne den Vorbeiflug am Jupiter, wäre eine solche Mission viel teurer gewesen.
+
+[[Datei:SOHONearSun1.jpg|mini|Die Sonde SOHO]]
+1995 wurde die größtenteils von Europa gebaute Sonde [[Solar and Heliospheric Observatory|SOHO]] in Richtung Sonne gestartet. SOHO befindet sich nun im [[Lagrange-Punkte|Lagrangepunkt]] L1 und beobachtet die Sonne mit zwölf verschiedenen Instrumenten. Sie liefert tägliche Aufnahmen der Sonne und trägt damit wesentlich zur Vorhersage von Sonneneruptionen und -stürmen bei. 1998 folgte der Satellit [[Transition Region And Coronal Explorer|TRACE]] zur Unterstützung von SOHO.
+
+2001 startete die [[Genesis (Sonde)|Genesis]]-Raumsonde, die kurz darauf eine Position im Lagrangepunkt L1 bezog und dort 2,5&nbsp;Jahre lang Proben des [[Sonnenwind]]es sammelte, die anschließend zur Erde gebracht werden sollten. Dadurch sollte die genaue [[Isotop]]enzusammensetzung des Sonnenwindes ermittelt werden. Im September 2004 trat die Kapsel mit den Proben in die Erdatmosphäre ein, schlug jedoch aufgrund eines nicht entfalteten Fallschirms hart auf der Erde auf. Einige der Proben haben den Aufprall dennoch überstanden und werden derzeit von Wissenschaftlern studiert.
+
+Am 26. Oktober 2006 starteten die beiden [[STEREO]]-Raumsonden und liefern zum ersten Mal ein dreidimensionales Bild der Sonne und ihrer Umgebung. Dazu wurde eine Sonde im Lagrangepunkt L4 und eine im Lagrangepunkt L5 stationiert.
+
+[[Datei:Solar Dynamics Observatory 1.jpg|mini|Solar Dynamics Observatory]]
+Am 11. Februar 2010 startete die [[NASA]] das [[Solar Dynamics Observatory]] (SDO) als SOHO-Nachfolger. Es dient der Erforschung der dynamischen Vorgänge der Sonne und beinhaltet die Instrumente EVE ([[Extrem ultraviolette Strahlung|Messung der extrem-UV-Strahlung]]), HMI (Erfassung [[Helioseismologie|helioseismischer]] und [[Magnetohydrodynamik|magnetischer]] Aktivitäten) und AIA (Hochauflösende Erfassung der Sonnenatmosphäre in verschiedenen Wellenlängenbereichen).
+
+China plant den Start von insgesamt drei Raumsonden, die in der Forschungsmission [[KuaFu]] das Sonne-Erde-System genauer untersuchen sollen.
+
+Im Jahr 2018 startete die NASA die Raumsonde [[Parker Solar Probe]] erfolgreich, welche sich der Sonnenoberfläche bis auf 8,5&nbsp;Radien (etwa 6&nbsp;Millionen Kilometer) nähern soll.<ref>{{Webarchiv | url=http://solarprobe.jhuapl.edu/common/content/SolarProbePlusFactSheet.pdf | wayback=20160418160052 | text=Solar Probe Plus}}</ref> Sie soll helfen, folgende Fragen zu beantworten:
+# Wie wird die Korona auf bis zu fünf Millionen Grad aufgeheizt, obwohl die sichtbare Sonnenoberfläche nur etwa 5500&nbsp;°C heiß ist?
+# Wie werden die Teilchen des Sonnenwindes beschleunigt?
+
+Für Februar 2020 starteten die [[europäische Weltraumorganisation]] (ESA) und die NASA die Raumsonde [[Solar Orbiter]], die sich der Sonne bis auf 0,28&nbsp;Astronomische Einheiten (etwa 42&nbsp;Millionen Kilometer) nähern soll. Dabei soll vor allem die sonnennahe Heliosphäre, die Sonnenatmosphäre und die Entstehung des Magnetfeldes der Sonne untersucht werden.<ref name="dlr">{{Internetquelle |hrsg=DLR |url=http://www.dlr.de/rd/desktopdefault.aspx/tabid-2448/3635_read-38752/ |sprache=de |titel=Solar Orbiter - Erforschung der Sonne und der Heliosphäre |zugriff=2018-12-18}}</ref>
+
+== Kulturgeschichte ==
+[[Datei:Solvognen - Do 2010 1276.jpg|mini|[[Sonnenwagen von Trundholm]]]]
+
+Die Sonne ist das zentrale [[Gestirn]] am Himmel, von ihr hängt alles Leben auf der Erde ab. Diese überragende Bedeutung war den Menschen seit Alters her bewusst. Viele frühere Kulturen verehrten sie als Gottheit. Die regelmäßige tägliche und jährliche Wiederkehr der Sonne wurde teils ängstlich erwartet und mittels [[Sonnenkult|kultischer]] oder [[Magie|magischer]] [[Ritual]]e beschworen. Besonders [[Sonnenfinsternis]]se lösten große Bestürzung und Furcht aus. Im alten [[Kaiserreich China|China]] glaubte man, ein Drache verschlinge die Sonne. Durch großen Lärm versuchte man, das Untier dazu zu bewegen, die Sonne wieder freizugeben. Andererseits machte sich die Menschheit das Wissen über die für alles Leben fundamentalen Perioden [[Tag]] und [[Jahr]] schon seit frühester Zeit nutzbar. Die Sonne ist – über die Erddrehung – die natürliche [[Uhr]] der Menschen, und die Beobachtung der täglichen Bewegung der Schatten mündete in die Entwicklung der [[Sonnenuhr]]. Die Abfolge der [[Jahreszeit]]en führte zur Erfindung des [[Kalender]]s, der vor allem nach der Einführung des [[Ackerbau]]s für alle Kulturen überlebenswichtig war.
+
+Für die [[Sumerer]] verkörperte die Sonne den [[Sonnengott]] [[Utu (Gott)|Utu]]. Bei den [[Babylonier]]n entsprach er dem Gott [[Šamaš|Schamasch]], der jeden Tag den Himmel betrat und dessen Strahlen nichts verborgen blieb. Im alten [[Ägypten]] wurde [[Re (ägyptische Mythologie)|Ra]] (auch Re oder Re-Atum) als Sonnengott verehrt. Für kurze Zeit ließ der „Ketzer“- [[Pharao]] [[Echnaton]] nur noch [[Aton]], die personifizierte Sonnenscheibe, als [[Monotheismus|einzigen Gott]] zu und schaffte die Verehrung aller anderen ägyptischen Götter ab. In [[Kaiserreich China|China]] stand die Sonne als [[Chinesische Symbole|Symbol]] für Osten, Frühling, Männlichkeit ([[Yin und Yang|Yang]]) und Geburt sowie auch für den Kaiser.
+
+Im [[Antikes Griechenland|antiken Griechenland]] verehrte man den Sonnengott [[Helios]], der mit seinem Sonnenwagen täglich über das Firmament fuhr. Allerdings sind aus dem antiken Griechenland auch die ersten Überlegungen überliefert, in denen die Sonne als [[Sonnenphysik|physikalisches Objekt]] betrachtet wird. Die wohl älteste dieser Hypothesen stammt von [[Xenophanes]], der die Sonne als eine feurige Ausdünstung oder Wolke benannte. Dies stellte eine große kulturhistorische Veränderung dar, denn die Wahrnehmung der Sonne als ein natürliches Objekt lag auf einer anderen Ebene als die vorherige Auffassung der Sonne als Teil einer göttlichen Entität, die auch in den späteren Jahrhunderten noch vertreten wurde. Aus ebendiesen Gedanken ging auch die erste kritische Auseinandersetzung mit dem vermenschlichten Götterbild des antiken Griechenlands hervor („Wenn die Pferde Götter hätten, sähen sie wie Pferde aus“) und daraus folgend erste Gedanken zum [[Monotheismus]]. Mit Xenophanes tauchte die Sonne zum ersten Mal in der europäischen Geschichte als Gegenstand der Physik auf; man könnte dies als die Geburtsstunde der [[Astrophysik]] auffassen. Die Thesen des Xenophanes wurden später auch von anderen griechischen Philosophen aufgenommen. Zum Beispiel beschrieb der Vorsokratiker [[Anaxagoras]] die Sonne als glühenden Stein. Diese Auffassungen setzten sich im Folgenden nicht bei allen Denkern durch und viele spätere Schulen fielen wieder auf eher mythische Erklärungen zurück.
+
+Dem griechischen Gott Helios entsprach weitgehend der [[Römisches Reich|römische]] Gott [[Sol (römische Mythologie)|Sol invictus]], dessen Kult in der Kaiserzeit bis in die beginnende [[Spätantike]] weit verbreitet war. Aus der [[Antike]] übernommen ist die Sonne als Symbol der Vitalität in der [[Astrologie]].
+
+In der [[Nordische Mythologie|nordischen Mythologie]] formten die Götter die Sonne aus einem Funken und legten sie in einen Wagen. Die Göttin [[Sol (nordische Mythologie)|Sol]] fährt mit dem Wagen über den Himmel, gezogen von den Rössern [[Alsvidr und Arvakr]]. Das Gespann wird beständig von dem Wolf [[Skalli]] (Skoll) verfolgt. Am Tag des Weltunterganges ([[Ragnarök]]) wird der Wolf die Sonne verschlingen.
+
+Im frühen [[Mexiko]] wurde der Sonnengott [[Tonatiuh]] von den [[Azteken]] verehrt. Bei den [[Maya]] und den [[Inka]] waren [[Itzamná]] beziehungsweise [[Inti (Gottheit)|Inti]] die Hauptgottheiten.
+
+Die Beobachtung der Sonne und anderer Sterne und die Bestimmung ihrer Bahnpunkte ([[Äquinoktium|Tagundnachtgleiche]], Sommer- und Winter[[sonnenwende]]) war eine Voraussetzung für die Erstellung von Kalendern. Hierdurch konnten wichtige jahreszeitliche Ereignisse vorherbestimmt werden, wie das Eintreffen des Nilhochwassers im alten Ägypten, der günstigste Zeitpunkt der Saat oder das Eintreffen der für die Seefahrt gefährlichen Herbststürme. Vorchristliche Kultstätten wie [[Stonehenge]] wurden offensichtlich zu derartigen Beobachtungszwecken errichtet. Die Anlage von Stonehenge ist so ausgerichtet, dass am Morgen des [[Sonnenwende|Mittsommertages]], wenn die Sonne ihre höchste nördliche Position erreicht, die Sonne direkt über einem Positionsstein („Fersenstein“) aufgeht und die Sonnenstrahlen in gerader Linie ins Innere des Bauwerks eindringen. Die [[bronzezeit]]liche [[Himmelsscheibe von Nebra]] scheint ebenfalls ein Instrument zur Himmelsbeobachtung gewesen zu sein. Ihre goldenen Ränder werden u.&nbsp;a. als „Sonnenbarken“, ein religiöses Symbol der Bronzezeit, interpretiert. In die gleiche Zeit fällt auch der [[Sonnenwagen von Trundholm]], bei dem die Scheibe als [[Sonnensymbol]] mit einer Tag- und Nachtseite gedeutet wird.
+
+Das [[Geozentrisches Weltbild|geozentrische Weltbild]] der Antike, wie es von [[Claudius Ptolemäus|Ptolemäus]] überliefert ist, sah die Erde als Mittelpunkt des Universums. Sonne, Mond und die Planeten bewegten sich dabei auf Kreisbahnen um die Erde. Diese Vorstellung hielt sich fast 2000 Jahre lang. Allerdings hatte sie Schwächen: So konnte die mit bloßen Augen beobachtbare Bewegung der Planeten nur durch komplizierte Hilfskonstruktionen der [[Epizykeltheorie]] erklärt werden. Bereits [[Aristarchos von Samos]] postulierte im 2. Jahrhundert v. Chr., dass die Sonne das Zentrum der Welt darstelle. Die Gelehrten [[Nikolaus von Kues]] und [[Regiomontanus]] griffen diesen Gedanken mehr als 1500 Jahre später wieder auf. [[Nikolaus Kopernikus]] versuchte in seinem Werk ''[[De revolutionibus orbium coelestium]]'' eine mathematische Grundlage dafür zu schaffen, was ihm nicht gelang. Sein Werk regte allerdings weitere Forschungen an, unter anderem durch [[Galileo Galilei]]. In der Folge setzte sich allmählich das [[Heliozentrisches Weltbild|heliozentrische Weltbild]] durch, das die Sonne als Mittelpunkt des Universums ansieht.
+
+Die weiteren Fortschritte der [[Astronomie]] ergaben, dass auch die Sonne keine herausragende Stellung im Universum einnimmt. Vielmehr ist sie einer unter einigen hundert Milliarden Sternen der [[Milchstraße]], die wiederum Teil noch größerer [[Struktur des Kosmos|Strukturen des Kosmos]] ist.
+
+== Siehe auch ==
+* [[Sonnenschein]]
+
+== Literatur ==
+* vor 1711: [[Josef Langer (Astronom)|Josef Langer]]: ''Theoria motuum Solis et Lunae.''
+* 1990: Helmut Scheffler, [[Hans Elsässer]]: ''Physik der Sterne und der Sonne.'' BI-Wissenschaftsverlag, Mannheim 1990, ISBN 3-411-14172-7.
+* 1990: [[Rudolf Kippenhahn]]: ''Der Stern von dem wir leben.'' DVA, Stuttgart 1990, ISBN 3-421-02755-2.
+* 1993: I.-J. Sackmann u. a.: ''Our Sun.'' T 3. Present and Future. In: ''Astrophysical Journal.'' University of Chicago Press, Chicago Ill 418.1993, 11 (Nov.), 457–468, {{bibcode|1993ApJ...418..457S}}.
+* 1995: Wolfgang Mattig: ''Die Sonne.'' C. H. Beck, München 1995, ISBN 3-406-39001-3.
+* 1996: Kenneth R. Lang: ''Die Sonne – Stern unserer Erde.'' Springer, Berlin / Heidelberg / New York, NY 1996, ISBN 3-540-59437-X.
+* 1997: F. Herrmann, H. Hauptmann: ''Understanding the stability of stars by means of thought experiments with a model star''. Am. J. Phys. 65, 292–295 (1997)
+* 2002: Wolfgang Mattig: ''[http://vds-sonne.de/Archiv/Sonne/so103.pdf Bevor die Sonnenbeobachtung zur Sonnenphysik wurde – in Deutschland und Umgebung.] (PDF; 3,5&nbsp;MB)'' In: ''[http://www.vds-sonne.de/ SONNE.]'' Mitteilungsblatt der Amateursonnenbeobachter. Berlin 2002, 103, 67 (online). {{ISSN|0721-0094}}.
+* 2004: {{Literatur|Autor = C. Bounama, W. v. Bloh, S. Franck|Titel = Das Ende des Raumschiffs Erde| Sammelwerk =[[Spektrum der Wissenschaft]]| Band = Nr. 10| Verlag = Spektrum| Ort = Heidelberg|Datum=2004-10|Seiten=52–59 | ISSN = 0170-2971}}
+* 2004: Michael Stix: ''The Sun – An Introduction.'' Springer, New York, NY 2004, ISBN 3-540-20741-4.
+* 2008: Thorsten Dambeck: ''[http://www.mpg.de/905645/F002_Fokus_028_033.pdf Der Hexenkessel im Sonnenofen]'' (PDF; 2,0&nbsp;MB) in: ''MaxPlanckForschung'', 1/2008, S. 28–33, {{ISSN|1616-4172}}
+* 2013: Ulrike Feist: ''Sonne, Mond und Venus: Visualisierungen astronomischen Wissens im frühneuzeitlichen Rom'' (= ''Actus et Imago'', Band 10). Akademie-Verlag, Berlin 2013, ISBN 978-3-05-006365-2 (Dissertation Universität Augsburg 2011, 259 Seiten).
+* 2013: Elmar Schenkel, Kati Voigt (Hrsg.): ''Sonne, Mond und Ferne: der Weltraum in Philosophie, Politik und Literatur'', PL Academic Research, Frankfurt am Main 2013, ISBN 978-3-631-64081-4.
+
+== Weblinks ==
+{{Commonscat|Sun|Sonne}}
+{{Wiktionary}}
+{{Wikiquote}}
+{{Wikisource}}
+
+* [http://www.kis.uni-freiburg.de/ Internetpräsenz] des [[Kiepenheuer-Institut für Sonnenphysik|Kiepenheuer-Instituts für Sonnenphysik]], Freiburg
+* [http://www.aip.de/groups/soe/ Internetpräsenz] der optischen Sonnenphysik am [[Leibniz-Institut für Astrophysik Potsdam|Astrophysikalischen Institut Potsdam]]
+* [http://photojournal.jpl.nasa.gov/target/Sun Bilder] von der Sonne ([[NASA]], englisch)
+* [http://www.sonnenbeobachtung.de/ www.sonnenbeobachtung.de] – Informationen zur Sonnenbeobachtung mit Bildergalerie
+* [http://sohowww.nascom.nasa.gov/ Internetpräsenz] des [[Solar and Heliospheric Observatory]] (SOHO, englisch)
+* {{Webarchiv | url=http://www.weltderphysik.de/de/1163.php | wayback=20070611132117 | text=Sonne im Leistungshoch}} bei ''www.weltderphysik.de''.
+* Karl-Otto Eschrich: [http://www.rosaluxemburgstiftung.de/fileadmin/rls_uploads/pdfs/208Eschrich.pdf Das Rätsel der Magnetfelder von Sonne und Erde – Hommage à Fritz Krause] (PDF; 56&nbsp;kB), UTOPIE kreativ, Heft 208, 2008, S. 177–181.
+* [https://www.nasa.gov/feature/goddard/2018/sounds-of-the-sun Sounds of the Sun] (NASA)
+
+'''Videos'''
+* {{Alpha Centauri|21}}
+* {{Alpha Centauri|22}}
+* {{Alpha Centauri|134}}
+* {{Alpha Centauri|156}}
+
+== Einzelnachweise ==
+<references responsive>
+<ref name="AstronomicalAlmanac_2012_SK7">Steadly R.S., Robinson M.S. (Hrsg.): ''The Astronomical Almanac for the Year 2012.'' U.S. Government Printing Office, ISBN 978-0-7077-41215, S. K7
+</ref>
+<ref name="Luzum_2011_S296">Luzum B. et al.: ''The IAU 2009 system of astronomical constants: the report of the IAU working group on numerical standards for Fundamental Astronomy.'' Celestial Mechanics and Dynamical Astronomy, Bd. 110, Heft 4 (August 2011), S. 293–304, {{doi|10.1007/s10569-011-9352-4}}, S. 296 (Heliocentric gravitational constant, [[Baryzentrische Dynamische Zeit|TDB]]-compatible)
+</ref>
+</references>
+
+{{Navigationsleiste Sonnensystem}}
+
+{{Lesenswert|10. April 2005|5271677}}
+
+[[Kategorie:Sonne als Stern]]
+[[Kategorie:Sonne in der Kultur]]
+[[Kategorie:Gelber Zwerg]]
+[[Kategorie:Namensgeber für ein chemisches Element]]
