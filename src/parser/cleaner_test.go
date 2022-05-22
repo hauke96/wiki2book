@@ -28,3 +28,103 @@ func TestClean(t *testing.T) {
 	content = clean(content)
 	test.AssertEqual(t, "Some wikitext", content)
 }
+
+func TestGetTrimmedLine(t *testing.T) {
+	lines := make([]string, 10)
+	lines[0] = "abc"
+	lines[1] = " abc"
+	lines[2] = "abc "
+	lines[3] = "	abc "
+	lines[4] = "	abc\n "
+	lines[5] = " "
+	lines[6] = "	"
+	lines[7] = "\n"
+
+	test.AssertEqual(t, "abc", getTrimmedLine(lines, 0))
+	test.AssertEqual(t, "abc", getTrimmedLine(lines, 1))
+	test.AssertEqual(t, "abc", getTrimmedLine(lines, 2))
+	test.AssertEqual(t, "abc", getTrimmedLine(lines, 3))
+	test.AssertEqual(t, "abc", getTrimmedLine(lines, 4))
+	test.AssertEqual(t, "", getTrimmedLine(lines, 5))
+	test.AssertEqual(t, "", getTrimmedLine(lines, 6))
+	test.AssertEqual(t, "", getTrimmedLine(lines, 7))
+}
+
+func TestIsHeading(t *testing.T) {
+	test.AssertTrue(t, isHeading("= abc ="))
+	test.AssertTrue(t, isHeading("== abc =="))
+	test.AssertTrue(t, isHeading("=== abc ==="))
+	test.AssertTrue(t, isHeading("==== abc ===="))
+	test.AssertTrue(t, isHeading("===== abc ====="))
+	test.AssertTrue(t, isHeading("====== abc ======"))
+	test.AssertTrue(t, isHeading("======= abc ======="))
+
+	test.AssertFalse(t, isHeading("== abc "))
+	test.AssertFalse(t, isHeading("abc =="))
+	test.AssertFalse(t, isHeading("abc"))
+	test.AssertFalse(t, isHeading(""))
+}
+
+func TestRemoveEmptySection_normal(t *testing.T) {
+	content := `foo
+
+== heading ==
+foo
+
+bar
+`
+
+	test.AssertEqual(t, content, removeEmptySections(content))
+}
+
+func TestRemoveEmptySection_withEmptySections(t *testing.T) {
+	content := `foo
+
+== heading ==
+foo
+
+bar
+
+== heading==
+
+
+== heading ==`
+	expectedResult := `foo
+
+== heading ==
+foo
+
+bar
+`
+
+	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+}
+
+func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
+	content := `foo
+== heading==
+
+
+== heading ==
+ 
+	
+				
+`
+	expectedResult := "foo"
+
+	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+}
+
+func TestRemoveEmptySection_superSectionNotRemoved(t *testing.T) {
+	content := `foo
+== heading ==
+
+=== sub heading ===
+ 
+==== sub sub heading ===
+	
+				
+`
+
+	test.AssertEqual(t, content, removeEmptySections(content))
+}

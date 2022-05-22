@@ -106,7 +106,7 @@ var (
 	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
 	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
 	headingRegexes                   = []*regexp.Regexp{
-		regexp.MustCompile(`(?m)^= (.*) =$`),
+		regexp.MustCompile(`(?m)^= (.*) =$`), // (?m) = enable multi-line matches
 		regexp.MustCompile(`(?m)^== (.*) ==$`),
 		regexp.MustCompile(`(?m)^=== (.*) ===$`),
 		regexp.MustCompile(`(?m)^==== (.*) ====$`),
@@ -361,7 +361,7 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 					return true, newStack
 				}
 			}
-			
+
 			// path went not well -> use old stack and try to match it with a bold item
 		}
 		if nextTokenMightBeBold {
