@@ -17,6 +17,7 @@ import (
 )
 
 var cli struct {
+	Debug      bool `help:"Enable debug mode." short:"d"`
 	Standalone struct {
 		File       string `help:"A mediawiki file tha should be rendered to an eBook." type:"existingfile" arg:""`
 		OutputDir  string `help:"The directory where all the files should be put into." short:"o"`
@@ -37,6 +38,10 @@ var cli struct {
 
 func main() {
 	ctx := kong.Parse(&cli)
+
+	if cli.Debug {
+		sigolo.LogLevel = sigolo.LOG_DEBUG
+	}
 
 	start := time.Now()
 

@@ -214,6 +214,7 @@ func download(url string, filename string) (io.ReadCloser, error) {
 	var err error
 
 	for {
+		sigolo.Debug(fmt.Sprintf("Make GET request to %s", url))
 		response, err = httpClient.Get(url)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
@@ -327,6 +328,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 
 	sigolo.Debug("Rendering math %s", util.TruncString(mathString))
 
+	sigolo.Debug(fmt.Sprintf("Make GET request to %s", urlString))
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
