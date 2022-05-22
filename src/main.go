@@ -85,7 +85,7 @@ func generateProjectEbook(projectFile string) {
 		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
 		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
 
-		outputFile, err := html.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math)
+		outputFile, err := html.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math, project.Caches.Articles)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
@@ -104,6 +104,7 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	imageFolder := path.Join(outputFolder, "images")
 	mathFolder := path.Join(outputFolder, "math")
 	templateFolder := path.Join(outputFolder, "templates")
+	articleFolder := path.Join(outputFolder, "articles")
 
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
@@ -114,10 +115,10 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
 	article := parser.Parse(string(fileContent), title, &tokenizer)
 
-	err = api.DownloadImages(article.Images, imageFolder)
+	err = api.DownloadImages(article.Images, imageFolder, articleFolder)
 	sigolo.FatalCheck(err)
 
-	_, err = html.Generate(article, outputFolder, styleFile, imageFolder, mathFolder)
+	_, err = html.Generate(article, outputFolder, styleFile, imageFolder, mathFolder, articleFolder)
 	sigolo.FatalCheck(err)
 
 	sigolo.Info("Start generating EPUB file")

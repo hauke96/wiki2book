@@ -85,12 +85,14 @@ const TEMPLATE_REF_USAGE = "[%d]"
 // TODO create generator struct and put it in there
 var imageCacheFolder = ""
 var mathCacheFolder = ""
+var articleCacheFolder = ""
 
-func Generate(wikiArticle parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string) (string, error) {
+func Generate(wikiArticle parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string, articleFolder string) (string, error) {
 	imageCacheFolder = imgFolder
 	mathCacheFolder = mathFolder
+	articleCacheFolder = articleFolder
 
-	err := api.DownloadImages(wikiArticle.Images, imageCacheFolder)
+	err := api.DownloadImages(wikiArticle.Images, imageCacheFolder, articleCacheFolder)
 	sigolo.FatalCheck(err)
 
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)

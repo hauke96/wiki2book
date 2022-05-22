@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -76,6 +77,7 @@ func MockHttp(response string, statusCode int) *MockHttpClient {
 
 var imageSources = []string{"commons", "de"}
 var httpClient = GetDefaultHttpClient()
+var redirectRegex = regexp.MustCompile(`#REDIRECT \[\[(.*)]]`)
 
 func DownloadArticle(language string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
@@ -102,13 +104,16 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 	return wikiArticleDto, nil
 }
 
-func DownloadImages(images []string, outputFolder string) error {
+// DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
+// downloaded images will bein the output folder. Some images might be redirects, so the redirect must be resolved,
+// that's why the article cache folder is needed as well.
+func DownloadImages(images []string, outputFolder string, articleFolder string) error {
 	for _, image := range images {
 		var err error = nil
 		var outputFilepath string
 
 		for _, source := range imageSources {
-			outputFilepath, err = downloadImage(image, outputFolder, source)
+			outputFilepath, err = downloadImage(image, outputFolder, articleFolder, source)
 			if err != nil {
 				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.\n%+v", image, source, err.Error(), err)
 				continue
@@ -135,19 +140,45 @@ func DownloadImages(images []string, outputFolder string) error {
 	return nil
 }
 
-// downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder.
-// When the file already exists, nothing is done and "", nil will be returned.
-// When the file has been downloaded "filename", nil will be returned.
-func downloadImage(fileDescriptor string, outputFolder string, source string) (string, error) {
-	filename := strings.Split(fileDescriptor, ":")[1]
-	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(filename)))
-	sigolo.Debug(filename)
+// downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder. When the file already exists,
+// nothing is done and "", nil will be returned. When the file has been downloaded "filename", nil will be returned.
+// The article cache folder is needed as some files might be redirects and such a redirect counts as article.
+func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, source string) (string, error) {
+	// TODO handle colons in file names
+	imageName := strings.Split(imageNameWithPrefix, ":")[1]
+	imageNameWithPrefix, err := followRedirectIfNeeded(source, "File:"+imageName, articleFolder)
+	if err != nil {
+		return "", err
+	}
+	imageName = strings.Split(imageNameWithPrefix, ":")[1]
+
+	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(imageName)))
+	sigolo.Debug(imageName)
 	sigolo.Debug(md5sum)
 
-	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], filename)
+	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], imageName)
 	sigolo.Debug(url)
 
-	return downloadAndCache(url, outputFolder, filename)
+	return downloadAndCache(url, outputFolder, imageName)
+}
+
+// followRedirectIfNeeded returns the page name behind a redirect. If the article page with the given title (which can
+// also be an image like "File:foo.jpg") is a redirect, the article/file name pointed to is returned. Spaces are
+// replaced by underscores. So if "File:foo.jpg" redirects to "File:bar with spaces.jpg", then
+// "File:bar_with_spaces.jpg" is returned. If there's no redirect, the original title parameter will be returned.
+func followRedirectIfNeeded(source string, title string, cacheFolder string) (string, error) {
+	article, err := DownloadArticle(source, title, cacheFolder)
+	if err != nil {
+		return title, err
+	}
+
+	regexMatch := redirectRegex.FindStringSubmatch(article.Parse.Wikitext.Content)
+	if regexMatch != nil && regexMatch[1] != "" {
+		// Replace spaces by string as the Wikipedia API only handles file names with underscore instead of spaces
+		return strings.ReplaceAll(regexMatch[1], " ", "_"), nil
+	}
+
+	return title, nil
 }
 
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
@@ -162,25 +193,11 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	}
 
 	// Get the data
-	var response *http.Response
-	for {
-		response, err = httpClient.Get(url)
-		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
-		}
-
-		// Handle 429 (too many requests): wait a bit and retry
-		if response.StatusCode == 429 {
-			time.Sleep(2 * time.Second)
-			continue
-		} else if response.StatusCode != 200 {
-			return "", errors.Errorf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url)
-		}
-
-		break
+	reader, err := download(url, filename)
+	defer reader.Close()
+	if err != nil {
+		return "", err
 	}
-	defer response.Body.Close()
-	reader := response.Body
 
 	err = cacheToFile(cacheFolder, filename, reader)
 	if err != nil {
@@ -188,6 +205,31 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	}
 
 	return outputFilepath, nil
+}
+
+// download returns the open response body of the GET request for the given URL. The article name is just there for
+// logging purposes.
+func download(url string, filename string) (io.ReadCloser, error) {
+	var response *http.Response
+	var err error
+
+	for {
+		response, err = httpClient.Get(url)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
+		}
+
+		// Handle 429 (too many requests): wait a bit and retry
+		if response.StatusCode == 429 {
+			time.Sleep(2 * time.Second)
+			continue
+		} else if response.StatusCode != 200 {
+			return response.Body, errors.Errorf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url)
+		}
+
+		break
+	}
+	return response.Body, nil
 }
 
 func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
