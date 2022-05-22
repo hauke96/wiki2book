@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$1" == "" ]
+if [ "$1" == "" ] || [ "$1" == "--help" ]
 then
 	echo "Please provide a test name."
 	echo
@@ -10,7 +10,7 @@ then
 fi
 
 echo "Run run.sh to generate files"
-./run.sh > /dev/null 2>&1
+./run.sh
 
 NAME="$1"
 
