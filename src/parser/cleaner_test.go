@@ -115,6 +115,7 @@ func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
 	test.AssertEqual(t, expectedResult, removeEmptySections(content))
 }
 
+// TODO
 func TestRemoveEmptySection_superSectionNotRemoved(t *testing.T) {
 	content := `foo
 == heading ==
