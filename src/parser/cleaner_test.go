@@ -51,18 +51,20 @@ func TestGetTrimmedLine(t *testing.T) {
 }
 
 func TestIsHeading(t *testing.T) {
-	test.AssertTrue(t, isHeading("= abc ="))
-	test.AssertTrue(t, isHeading("== abc =="))
-	test.AssertTrue(t, isHeading("=== abc ==="))
-	test.AssertTrue(t, isHeading("==== abc ===="))
-	test.AssertTrue(t, isHeading("===== abc ====="))
-	test.AssertTrue(t, isHeading("====== abc ======"))
-	test.AssertTrue(t, isHeading("======= abc ======="))
+	test.AssertEqual(t, 1, isHeading("= abc ="))
+	test.AssertEqual(t, 2, isHeading("== abc =="))
+	test.AssertEqual(t, 3, isHeading("=== abc ==="))
+	test.AssertEqual(t, 4, isHeading("==== abc ===="))
+	test.AssertEqual(t, 5, isHeading("===== abc ====="))
+	test.AssertEqual(t, 6, isHeading("====== abc ======"))
+	test.AssertEqual(t, 7, isHeading("======= abc ======="))
 
-	test.AssertFalse(t, isHeading("== abc "))
-	test.AssertFalse(t, isHeading("abc =="))
-	test.AssertFalse(t, isHeading("abc"))
-	test.AssertFalse(t, isHeading(""))
+	test.AssertEqual(t, 0, isHeading("== abc "))
+	test.AssertEqual(t, 0, isHeading("=== abc =="))
+	test.AssertEqual(t, 0, isHeading("== abc ==="))
+	test.AssertEqual(t, 0, isHeading("abc =="))
+	test.AssertEqual(t, 0, isHeading("abc"))
+	test.AssertEqual(t, 0, isHeading(""))
 }
 
 func TestRemoveEmptySection_normal(t *testing.T) {
@@ -81,20 +83,16 @@ func TestRemoveEmptySection_withEmptySections(t *testing.T) {
 	content := `foo
 
 == heading ==
-foo
+should remain
 
-bar
-
-== heading==
+== should be removed==
 
 
-== heading ==`
+== should be removed as well ==`
 	expectedResult := `foo
 
 == heading ==
-foo
-
-bar
+should remain
 `
 
 	test.AssertEqual(t, expectedResult, removeEmptySections(content))
@@ -115,17 +113,34 @@ func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
 	test.AssertEqual(t, expectedResult, removeEmptySections(content))
 }
 
-// TODO
 func TestRemoveEmptySection_superSectionNotRemoved(t *testing.T) {
 	content := `foo
 == heading ==
 
+=== sub heading to be removed ===
+
+=== sub heading ===
+bar
+
 === sub heading ===
  
 ==== sub sub heading ===
-	
+blubb
+
+= heading to be removed =
 				
 `
+	expected := `foo
+== heading ==
 
-	test.AssertEqual(t, content, removeEmptySections(content))
+=== sub heading ===
+bar
+
+=== sub heading ===
+ 
+==== sub sub heading ===
+blubb
+`
+
+	test.AssertEqual(t, expected, removeEmptySections(content))
 }
