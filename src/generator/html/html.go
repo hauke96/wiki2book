@@ -445,14 +445,14 @@ func write(title string, outputFolder string, content string) (string, error) {
 	sigolo.Info("Write to %s", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create LaTeX output file %s", outputFilepath))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))
 	}
 	defer outputFile.Close()
 
 	// Write data to file
 	_, err = outputFile.WriteString(content)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable write LaTeX data to file %s", outputFilepath))
+		return "", errors.Wrap(err, fmt.Sprintf("Unable write data to file %s", outputFilepath))
 	}
 
 	return outputFilepath, nil

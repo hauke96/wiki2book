@@ -107,7 +107,7 @@ I think the best way to describe the process is to produce HTML for the image-to
 Remember: We tokenized the wikitext `[[Datei:img.jpg|100px|My caption]]`.
 
 The code for this is the `expandImage` function in `html.go`.
-It receives the token (so `$$TOKEN_IMAGE_3$$` in out example) and the token map and returns the HTML for this image.
+It receives the token (so `$$TOKEN_IMAGE_3$$` in our example) and the token map and returns the HTML for this image.
 
 1. Expand the image token: Find all sub-tokens (for the filename, size and caption) in the token map entry for out image token.
 2. For each sub-token: Determine its type (e.g. the sub-token for the caption) and expand the token to get the actual content (e.g. the caption text).
