@@ -51,20 +51,20 @@ func TestGetTrimmedLine(t *testing.T) {
 }
 
 func TestIsHeading(t *testing.T) {
-	test.AssertEqual(t, 1, isHeading("= abc ="))
-	test.AssertEqual(t, 2, isHeading("== abc =="))
-	test.AssertEqual(t, 3, isHeading("=== abc ==="))
-	test.AssertEqual(t, 4, isHeading("==== abc ===="))
-	test.AssertEqual(t, 5, isHeading("===== abc ====="))
-	test.AssertEqual(t, 6, isHeading("====== abc ======"))
-	test.AssertEqual(t, 7, isHeading("======= abc ======="))
+	test.AssertEqual(t, 1, headingDepth("= abc ="))
+	test.AssertEqual(t, 2, headingDepth("== abc =="))
+	test.AssertEqual(t, 3, headingDepth("=== abc ==="))
+	test.AssertEqual(t, 4, headingDepth("==== abc ===="))
+	test.AssertEqual(t, 5, headingDepth("===== abc ====="))
+	test.AssertEqual(t, 6, headingDepth("====== abc ======"))
+	test.AssertEqual(t, 7, headingDepth("======= abc ======="))
 
-	test.AssertEqual(t, 0, isHeading("== abc "))
-	test.AssertEqual(t, 0, isHeading("=== abc =="))
-	test.AssertEqual(t, 0, isHeading("== abc ==="))
-	test.AssertEqual(t, 0, isHeading("abc =="))
-	test.AssertEqual(t, 0, isHeading("abc"))
-	test.AssertEqual(t, 0, isHeading(""))
+	test.AssertEqual(t, 0, headingDepth("== abc "))
+	test.AssertEqual(t, 0, headingDepth("=== abc =="))
+	test.AssertEqual(t, 0, headingDepth("== abc ==="))
+	test.AssertEqual(t, 0, headingDepth("abc =="))
+	test.AssertEqual(t, 0, headingDepth("abc"))
+	test.AssertEqual(t, 0, headingDepth(""))
 }
 
 func TestRemoveEmptySection_normal(t *testing.T) {
@@ -143,4 +143,29 @@ blubb
 `
 
 	test.AssertEqual(t, expected, removeEmptySections(content))
+}
+
+func TestRemoveEmptySection_withSemiSection(t *testing.T) {
+	content := `foo
+
+= heading =
+foo
+
+''' semi heading ''''
+
+== some other heading ==
+
+== some other non empty heading ==
+bar
+`
+	expectedResult := `foo
+
+= heading =
+foo
+
+== some other non empty heading ==
+bar
+`
+
+	test.AssertEqual(t, expectedResult, removeEmptySections(content))
 }
