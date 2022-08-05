@@ -90,7 +90,8 @@ func generateProjectEbook(projectFile string) {
 		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
 		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
 
-		outputFile, err := html.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math, project.Caches.Articles)
+		htmlGenerator := &html.HtmlGenerator{}
+		outputFile, err := htmlGenerator.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math, project.Caches.Articles)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
@@ -104,7 +105,6 @@ func generateProjectEbook(projectFile string) {
 	sigolo.Info("Successfully created EPUB file")
 }
 
-// TODO just create an instance of type "Project" and create an eBook using that faked project.
 func generateStandaloneEbook(inputFile string, outputFolder string, styleFile string, coverImage string) {
 	imageFolder := path.Join(outputFolder, "images")
 	mathFolder := path.Join(outputFolder, "math")
@@ -123,7 +123,8 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	err = api.DownloadImages(article.Images, imageFolder, articleFolder)
 	sigolo.FatalCheck(err)
 
-	_, err = html.Generate(article, outputFolder, styleFile, imageFolder, mathFolder, articleFolder)
+	htmlGenerator := &html.HtmlGenerator{}
+	_, err = htmlGenerator.Generate(article, outputFolder, styleFile, imageFolder, mathFolder, articleFolder)
 	sigolo.FatalCheck(err)
 
 	sigolo.Info("Start generating EPUB file")

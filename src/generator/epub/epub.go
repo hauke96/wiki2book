@@ -13,23 +13,27 @@ func Generate(sourceFiles []string, outputFile string, styleFile string, coverFi
 		"-f", "html",
 		"-t", "epub2",
 		"-o", outputFile,
-		"--css", styleFile,
 		"--toc",
 		"--epub-embed-font=/usr/share/fonts/TTF/DejaVuSans.ttf",
 		"--epub-embed-font=/usr/share/fonts/TTF/DejaVuSansMono*.ttf",
 		"--epub-embed-font=/usr/share/fonts/TTF/DejaVuSans-B*.ttf",
 		"--epub-embed-font=/usr/share/fonts/TTF/DejaVuSans-O*.ttf",
-		"--epub-cover-image=" + coverFile,
 		"--metadata", "title=" + metadata.Title,
 		"--metadata", "author=" + metadata.Author,
 		"--metadata", "rights=" + metadata.License,
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
 	}
+	if styleFile != "" {
+		args = append(args, "--css", styleFile)
+	}
+	if coverFile != "" {
+		args = append(args, "--epub-cover-image="+coverFile)
+	}
+
 	args = append(args, sourceFiles...)
 
-	err := util.Execute("pandoc",
-		args...)
+	err := util.Execute("pandoc", args...)
 	if err != nil {
 		return errors.Wrap(err, "Error generating EPUB file using pandoc")
 	}
