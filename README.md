@@ -70,16 +70,7 @@ But because a lot of German template-strings are removed while parsing, the Engl
 
 # Development
 
-For building, running, testing, etc. do the following:
-
-1. Go into `src` folder
-2. Follow instructions of the README.md there
-
-## Tests
-
-Take a look into the source folders in `src` for unit tests and into the `integration-tests` folder for integration tests.
-
-You can also use the `tests.sh` script to execute all tests.
+For building, running, testing, etc. take a look at the `src` folder and `src/README.md`.
 
 # Long-term goals
 
