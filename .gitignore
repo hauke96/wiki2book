@@ -13,7 +13,7 @@ images
 templates
 articles
 math
-src/test/
+src/.test-cache
 src/profiling.prof
 
 # IDE stuff

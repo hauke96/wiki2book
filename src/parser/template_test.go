@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hauke96/sigolo"
 	"github.com/hauke96/wiki2book/src/api"
 	"github.com/hauke96/wiki2book/src/test"
 	"github.com/pkg/errors"
@@ -12,16 +13,22 @@ import (
 	"testing"
 )
 
-const templateFolder = "../test/templates"
+const cacheSubFolder = "templates"
 
-// Cleanup from previous runs
-func cleanup(t *testing.T, key string) {
-	err := os.Remove(templateFolder + "/" + key)
-	test.AssertTrue(t, err == nil || os.IsNotExist(err))
+var templateFolder = test.GetCacheFolder(cacheSubFolder)
+
+func TestMain(m *testing.M) {
+	test.CleanRun(m, cacheSubFolder)
 }
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
 	mockHttpClient := api.MockHttp("", 200)
+
+	templateFile, err := os.Create(templateFolder + "/c740539f1a69d048c70ac185407dd5244b56632d")
+	sigolo.FatalCheck(err)
+	_, err = templateFile.WriteString("{\"expandtemplates\":{\"wikitext\":\"blubb\"}}")
+	sigolo.FatalCheck(err)
+	templateFile.Close()
 
 	content := evaluateTemplates("Wikitext with {{my-template}}.", templateFolder)
 	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
@@ -35,7 +42,6 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
 
-	cleanup(t, key)
 	mockHttpClient := api.MockHttp(expectedTemplateFileContent, 200)
 
 	// Eevaluate content

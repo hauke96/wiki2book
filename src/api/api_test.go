@@ -2,23 +2,21 @@ package api
 
 import (
 	"github.com/hauke96/wiki2book/src/test"
-	"os"
 	"testing"
 )
 
-const apiCacheFolder = "../test/api-cache"
+const cacheSubFolder = "api-cache"
 
-// Cleanup from previous runs
-func cleanup(t *testing.T, key string) {
-	err := os.Remove(apiCacheFolder + "/" + key)
-	test.AssertTrue(t, err == nil || os.IsNotExist(err))
+var apiCacheFolder = test.GetCacheFolder(cacheSubFolder)
+
+func TestMain(m *testing.M) {
+	test.CleanRun(m, cacheSubFolder)
 }
 
 func TestDownloadAndCache(t *testing.T) {
 	key := "foobar"
 	content := "some interesting stuff"
 
-	cleanup(t, key)
 	mockHttpClient := MockHttp(content, 200)
 
 	// First request -> cache file should ve created
@@ -44,7 +42,6 @@ func TestFollowRedirectIfNeeded(t *testing.T) {
 	article := "TestFollowRedirectIfNeeded"
 	content := "{\"parse\":{\"title\":\"foobar\",\"pageid\":123,\"wikitext\":{\"*\":\"blubb #REDIRECT [[other article]] whatever\"}}}"
 
-	cleanup(t, article+".json")
 	mockHttpClient := MockHttp(content, 200)
 
 	redirectedArticle, err := followRedirectIfNeeded("commons", article, apiCacheFolder)
@@ -58,8 +55,6 @@ func TestFollowRedirectIfNeeded_noRedirect(t *testing.T) {
 	article := "TestFollowRedirectIfNeeded_noRedirect"
 	content := "{\"parse\":{\"title\":\"foobar\",\"pageid\":123,\"wikitext\":{\"*\":\"blubb #NO-REDIRECT [[other-article]] whatever\"}}}"
 
-	cleanup(t, article+".json")
-	cleanup(t, article+".json")
 	mockHttpClient := MockHttp(content, 200)
 
 	redirectedArticle, err := followRedirectIfNeeded("commons", article, apiCacheFolder)

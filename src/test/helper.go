@@ -3,12 +3,35 @@ package test
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
+	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"sort"
 	"strings"
 	"testing"
 )
+
+const CacheFolder = "../.test-cache"
+
+func CleanRun(m *testing.M, subFolderName string) {
+	Cleanup()
+	err := os.MkdirAll(GetCacheFolder(subFolderName), os.ModePerm)
+	sigolo.FatalCheck(err)
+
+	m.Run()
+}
+
+func Cleanup() {
+	err := os.RemoveAll(CacheFolder)
+	if err != nil && !os.IsNotExist(err) {
+		sigolo.Fatal("Removing %s failed: %s", CacheFolder, err.Error())
+	}
+}
+
+func GetCacheFolder(subFolderName string) string {
+	return path.Join(CacheFolder, subFolderName)
+}
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	switch expected.(type) {
