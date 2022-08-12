@@ -1,0 +1,7 @@
+.tmp
+*.pdf
+*.aux
+*.toc
+*.log
+*.synctex.gz
+cover.png
