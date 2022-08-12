@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"os"
 )
 
 type Project struct {
@@ -33,7 +33,7 @@ type Caches struct {
 }
 
 func LoadProject(file string) (*Project, error) {
-	projectString, err := ioutil.ReadFile(file)
+	projectString, err := os.ReadFile(file)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error reading project file %s", file))
 	}

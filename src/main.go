@@ -72,7 +72,8 @@ func generateProjectEbook(projectFile string) {
 
 	sigolo.Info("Use project file: %s", projectFile)
 
-	directory, _ := filepath.Split(projectFile)
+	directory, projectFile := filepath.Split(projectFile)
+	sigolo.Debug("Go into folder %s", directory)
 	err = os.Chdir(directory)
 	sigolo.FatalCheck(err)
 
