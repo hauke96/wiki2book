@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "Wikipedia: Astronomie",
+    "title": "Das schreibt Wikipedia über ... Astronomie",
     "author": "Wikipedia contributors",
     "license": "Creative Commons Non-Commercial Share Alike 3.0",
     "language": "de-DE",
@@ -15,7 +15,7 @@
   "wikipedia-domain": "de",
   "output-file": "astronomie.epub",
   "cover": "wikipedia-astronomie-cover.png",
-  "style": "style.css",
+  "style": "../../style.css",
   "articles": [
     "Astronomie",
     "Universum",

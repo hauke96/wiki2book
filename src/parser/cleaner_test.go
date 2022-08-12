@@ -17,6 +17,12 @@ func TestRemoveUnwantedTemplates(t *testing.T) {
 	test.AssertEqual(t, "{{let this template stay}}", content)
 }
 
+func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
+	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem\n}}\nbar"
+	content = removeUnwantedTemplates(content)
+	test.AssertEqual(t, "foo\nbar", content)
+}
+
 func TestRemoveUnwantedHtml(t *testing.T) {
 	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
 	content = removeUnwantedHtml(content)

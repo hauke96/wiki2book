@@ -36,6 +36,7 @@ func removeUnwantedTemplates(content string) string {
 		"linkbox",
 		"manueller rahmen",
 		"navigationsleiste",
+		"naviblock",
 		"normdaten",
 		"panorama",
 		"siehe auch",
