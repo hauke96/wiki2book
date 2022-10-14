@@ -111,3 +111,69 @@ func TestExpandExternalLink(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<a href=\""+url+"\">b<b>a</b>r</a>", link)
 }
+
+func TestExpandTable(t *testing.T) {
+	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 0)
+	tokenRow := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_ROW, 1)
+	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 2)
+	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_CAPTION, 3)
+	tokenMap := map[string]string{
+		tokenTable:   tokenRow + "" + tokenCaption,
+		tokenRow:     tokenCol,
+		tokenCol:     "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		tokenCaption: "caption",
+	}
+
+	row, err := generator.expandTable(tokenTable, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<div class="figure">
+<table>
+<tr>
+<td>
+b<b>a</b>r
+</td>
+
+</tr>
+
+</table>
+<div class="caption">
+caption
+</div>
+</div>`, row)
+}
+
+func TestExpandTableRow(t *testing.T) {
+	tokenRow := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_ROW, 0)
+	tokenMap := map[string]string{
+		tokenRow: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+	}
+
+	row, err := generator.expandTableRow(tokenRow, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "<tr>\nb<b>a</b>r\n</tr>\n", row)
+}
+
+func TestExpandTableColumn(t *testing.T) {
+	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 0)
+	tokenMap := map[string]string{
+		tokenCol: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+	}
+
+	row, err := generator.expandTableColumn(tokenCol, tokenMap, TABLE_TEMPLATE_COL)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "<td>\nb<b>a</b>r\n</td>\n", row)
+}
+
+func TestExpandTableColumnWithAttributes(t *testing.T) {
+	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 0)
+	tokenAttrib := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL_ATTRIBUTES, 1)
+
+	tokenMap := map[string]string{
+		tokenCol:    tokenAttrib + "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		tokenAttrib: "style=\"width: infinity lol\"",
+	}
+
+	row, err := generator.expandTableColumn(tokenCol, tokenMap, TABLE_TEMPLATE_COL)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "<td style=\"width: infinity lol\">\nb<b>a</b>r\n</td>\n", row)
+}
