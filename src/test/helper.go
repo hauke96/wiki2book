@@ -80,6 +80,13 @@ func AssertNil(t *testing.T, value interface{}) {
 	}
 }
 
+func AssertNotNil(t *testing.T, value interface{}) {
+	if nil == value {
+		sigolo.Errorb(1, "Expect NOT to be 'nil'", value)
+		t.Fail()
+	}
+}
+
 func AssertError(t *testing.T, expectedMessage string, err error) {
 	if expectedMessage != err.Error() {
 		sigolo.Errorb(1, "Expected message: %s\nActual error message: %s", expectedMessage, err.Error())

@@ -127,7 +127,7 @@ func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (stri
 		case parser.TOKEN_EXTERNAL_LINK:
 			html, err = g.expandExternalLink(submatch[0], tokenMap)
 		case parser.TOKEN_INTERNAL_LINK:
-			html, err = g.expandInternalLint(submatch[0], tokenMap)
+			html, err = g.expandInternalLink(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE:
 			html, err = g.expandTable(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_HEAD:
@@ -247,7 +247,7 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 	return fmt.Sprintf(IMAGE_TEMPLATE, filename, sizeTemplate, caption), nil
 }
 
-func (g *HtmlGenerator) expandInternalLint(tokenString string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandInternalLink(tokenString string, tokenMap map[string]string) (string, error) {
 	splittedToken := strings.Split(tokenMap[tokenString], " ")
 	// Yeah, let's not add an link to the article in an eBook. Maybe make it configurable some day...
 	return g.expand(tokenMap[splittedToken[1]], tokenMap)
