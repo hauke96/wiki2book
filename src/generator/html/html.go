@@ -58,17 +58,11 @@ const TABLE_TEMPLATE_COL = `<td%s>
 </td>
 `
 const TEMPLATE_UL = `<ul>
-%s
-</ul>
-`
+%s</ul>`
 const TEMPLATE_OL = `<ol>
-%s
-</ol>
-`
+%s</ol>`
 const TEMPLATE_DL = `<div class="list">
-%s
-</div>
-`
+%s</div>`
 const TEMPLATE_LI = `<li>
 %s
 </li>
@@ -399,6 +393,7 @@ func (g *HtmlGenerator) expandRefUsage(tokenString string, tokenMap map[string]s
 	return fmt.Sprintf(TEMPLATE_REF_USAGE, refIndex), nil
 }
 
+// TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(tokenString string, tokenMap map[string]string) (string, error) {
 	svgFilename, pngFilename, err := api.RenderMath(tokenMap[tokenString], g.imageCacheFolder, g.mathCacheFolder)
 	if err != nil {

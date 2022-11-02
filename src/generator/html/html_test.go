@@ -177,3 +177,96 @@ func TestExpandTableColumnWithAttributes(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<td style=\"width: infinity lol\">\nb<b>a</b>r\n</td>\n", row)
 }
+
+func TestExpandUnorderedList(t *testing.T) {
+	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 0)
+	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
+	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_UNORDERED_LIST, 2)
+
+	tokenMap := map[string]string{
+		tokenList: tokenLi1 + tokenLi2,
+		tokenLi1:  "foo",
+		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+	}
+
+	row, err := generator.expandUnorderedList(tokenList, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ul>
+<li>
+foo
+</li>
+<li>
+b<b>a</b>r
+</li>
+</ul>`, row)
+}
+
+func TestExpandOrderedList(t *testing.T) {
+	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 0)
+	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
+	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_ORDERED_LIST, 2)
+
+	tokenMap := map[string]string{
+		tokenList: tokenLi1 + tokenLi2,
+		tokenLi1:  "foo",
+		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+	}
+
+	row, err := generator.expandOrderedList(tokenList, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ol>
+<li>
+foo
+</li>
+<li>
+b<b>a</b>r
+</li>
+</ol>`, row)
+}
+
+func TestExpandDescriptionList(t *testing.T) {
+	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 0)
+	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 1)
+	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST, 2)
+
+	tokenMap := map[string]string{
+		tokenList: tokenLi1 + tokenLi2,
+		tokenLi1:  "foo",
+		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+	}
+
+	row, err := generator.expandDescriptionList(tokenList, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<div class="list">
+<div>
+foo
+</div>
+<div>
+b<b>a</b>r
+</div>
+</div>`, row)
+}
+
+func TestExpandRefDefinition(t *testing.T) {
+	tokenRef := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
+
+	tokenMap := map[string]string{
+		tokenRef: "42 f" + parser.MARKER_BOLD_OPEN + "o" + parser.MARKER_BOLD_CLOSE + "o",
+	}
+
+	row, err := generator.expandRefDefinition(tokenRef, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `[42] f<b>o</b>o<br>`, row)
+}
+
+func TestExpandRefUsage(t *testing.T) {
+	tokenRef := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
+
+	tokenMap := map[string]string{
+		tokenRef: "42 f" + parser.MARKER_BOLD_OPEN + "o" + parser.MARKER_BOLD_CLOSE + "o",
+	}
+
+	row, err := generator.expandRefUsage(tokenRef, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `[42]`, row)
+}
