@@ -79,7 +79,7 @@ func removeEmptySections(content string) string {
 	var resultLines []string
 
 	for i := 0; i < len(lines); i++ {
-		line := getTrimmedLine(lines, i)
+		line := lines[i]
 
 		// Is heading? -> Check if section is empty
 		if currentHeadingDepth := headingDepth(line); currentHeadingDepth > 0 {

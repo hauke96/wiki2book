@@ -33,6 +33,10 @@ func TestClean(t *testing.T) {
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"
 	content = clean(content)
 	test.AssertEqual(t, "Some wikitext", content)
+
+	boldText := " '''test'''"
+	content = clean(boldText)
+	test.AssertEqual(t, boldText, content)
 }
 
 func TestGetTrimmedLine(t *testing.T) {
@@ -71,6 +75,7 @@ func TestIsHeading(t *testing.T) {
 	test.AssertEqual(t, 0, headingDepth("abc =="))
 	test.AssertEqual(t, 0, headingDepth("abc"))
 	test.AssertEqual(t, 0, headingDepth(""))
+	test.AssertEqual(t, 0, headingDepth(" '''test'''"))
 }
 
 func TestRemoveEmptySection_normal(t *testing.T) {
@@ -102,6 +107,11 @@ should remain
 `
 
 	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+}
+
+func TestRemoveEmptySection_noSection(t *testing.T) {
+	content := " '''test'''"
+	test.AssertEqual(t, content, removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
