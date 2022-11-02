@@ -19,10 +19,10 @@ import (
 var cli struct {
 	Debug      bool `help:"Enable debug mode." short:"d"`
 	Standalone struct {
-		File       string `help:"A mediawiki file tha should be rendered to an eBook." type:"existingfile" arg:""`
+		File       string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputDir  string `help:"The directory where all the files should be put into." short:"o"`
-		StyleFile  string `help:"The CSS file that should be used." short:"s" type:"existingfile"`
-		CoverImage string `help:"A cover image for the front cover of the eBook." short:"c" type:"existingfile"`
+		StyleFile  string `help:"The CSS file that should be used." short:"s"`
+		CoverImage string `help:"A cover image for the front cover of the eBook." short:"c"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
@@ -31,8 +31,8 @@ var cli struct {
 		// TODO How to deal with multiple languages? A new parameter "Language string"?
 		ArticleName string `help:"The name of the article to render." arg:""`
 		OutputDir   string `help:"The directory where all the files should be put into." short:"o"`
-		StyleFile   string `help:"The CSS file that should be used." short:"s" type:"existingfile"`
-		CoverImage  string `help:"A cover image for the front cover of the eBook." short:"c" type:"existingfile"`
+		StyleFile   string `help:"The CSS file that should be used." short:"s"`
+		CoverImage  string `help:"A cover image for the front cover of the eBook." short:"c"`
 	} `cmd:"" help:"Renders a specific article into an eBook."`
 }
 
@@ -47,6 +47,8 @@ func main() {
 
 	switch ctx.Command() {
 	case "standalone <file>":
+		assertFileExists(cli.Standalone.StyleFile)
+		assertFileExists(cli.Standalone.CoverImage)
 		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage)
 	case "project <project-file>":
 		generateProjectEbook(cli.Project.ProjectFile)
@@ -139,4 +141,10 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	err = epub.Generate([]string{htmlFile}, epubFile, styleFile, coverImage, metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
+}
+
+func assertFileExists(path string) {
+	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
+		sigolo.Fatal("File path '%s' does not exist", path)
+	}
 }

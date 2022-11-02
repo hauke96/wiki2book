@@ -30,6 +30,7 @@ func removeUnwantedTemplates(content string) string {
 		"dieser artikel",
 		"exzellent",
 		"gesprochener",
+		"gesprochene version",
 		"graph:chart",
 		"hauptartikel",
 		"lesenswert",

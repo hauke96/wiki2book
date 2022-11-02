@@ -18,7 +18,7 @@ func TestRemoveUnwantedTemplates(t *testing.T) {
 }
 
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
-	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem\n}}\nbar"
+	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem}}\nbar"
 	content = removeUnwantedTemplates(content)
 	test.AssertEqual(t, "foo\nbar", content)
 }
@@ -34,9 +34,37 @@ func TestClean(t *testing.T) {
 	content = clean(content)
 	test.AssertEqual(t, "Some wikitext", content)
 
-	boldText := " '''test'''"
-	content = clean(boldText)
-	test.AssertEqual(t, boldText, content)
+	content = " '''test'''"
+	content = clean(content)
+	test.AssertEqual(t, content, content)
+
+	content = `
+== Einzelnachweise ==
+<references />
+
+{{Gesprochene Version
+|artikel    = Erde
+|datei      = De-Erde-article.ogg
+|länge      = 41:43 min
+|größe      = 20,4 MB
+|sprecher   = Ahoek
+|geschlecht = Männlich
+|dialekt    = Hochdeutsch
+|version    = 121631898
+|datum      = 2013-08-25}}
+
+{{NaviBlock
+|Navigationsleiste Sonnensystem
+|Navigationsleiste Monde
+}}
+foo`
+	content = clean(content)
+	test.AssertEqual(t, `
+== Einzelnachweise ==
+<references />
+
+
+foo`, content)
 }
 
 func TestGetTrimmedLine(t *testing.T) {
