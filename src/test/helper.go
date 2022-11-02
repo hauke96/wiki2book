@@ -82,7 +82,7 @@ func AssertNil(t *testing.T, value interface{}) {
 
 func AssertNotNil(t *testing.T, value interface{}) {
 	if nil == value {
-		sigolo.Errorb(1, "Expect NOT to be 'nil'", value)
+		sigolo.Errorb(1, "Expect NOT to be 'nil' but was: %+v", value)
 		t.Fail()
 	}
 }
