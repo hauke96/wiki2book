@@ -673,7 +673,7 @@ func (t *Tokenizer) parseTables(content string) string {
 
 			length := newIndex - i
 
-			newLines := []string{}
+			var newLines []string
 			newLines = append(newLines, lines[:i]...)
 			newLines = append(newLines, listPrefix+token)
 			if i+length+1 < len(lines) {
@@ -689,7 +689,7 @@ func (t *Tokenizer) parseTables(content string) string {
 
 // tokenizeTable returns the token of the table and the index of the row where this table ended.
 func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
-	tableLines := []string{}
+	var tableLines []string
 	tableLines = append(tableLines, lines[i])
 	i++
 
@@ -723,7 +723,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	content = strings.ReplaceAll(content, "!!", "\n!")
 	lines := strings.Split(content, "\n")
 
-	tableTokens := []string{}
+	var tableTokens []string
 	captionToken := ""
 
 	for i := 0; i < len(lines); i++ {
@@ -760,7 +760,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 // function expects that each column starts in a new line starting with "| " (or whatever "sep" is). The returned index
 // points to the last text line of this table row.
 func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string, int) {
-	rowLineTokens := []string{}
+	var rowLineTokens []string
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
@@ -818,7 +818,7 @@ func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
 	attributeString := splittedContent[0]
 	columnText := t.tokenize(splittedContent[1])
 
-	relevantTags := []string{}
+	var relevantTags []string
 
 	colspanMatch := tableColspanRegex.FindStringSubmatch(attributeString)
 	if len(colspanMatch) > 1 {
@@ -849,7 +849,7 @@ func (t *Tokenizer) parseLists(content string) string {
 
 			length := newIndex - i
 
-			newLines := []string{}
+			var newLines []string
 			newLines = append(newLines, lines[:i]...)
 			newLines = append(newLines, token)
 			if i+length < len(lines) {
@@ -864,7 +864,7 @@ func (t *Tokenizer) parseLists(content string) string {
 }
 
 func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, tokenString string) (string, int) {
-	listLines := []string{}
+	var listLines []string
 	for ; i < len(lines); i++ {
 		line := lines[i]
 

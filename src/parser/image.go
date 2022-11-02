@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var images = []string{}
+var images []string
 
 // Remove videos and gifs
 var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
