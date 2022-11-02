@@ -1,4 +1,5 @@
 # wiki2book
+
 **wiki2book** is a tool to create good-looking EPUB-eBooks from one or more Wikipedia articles.
 
 The goal of this converter is to create nearly print-ready eBooks from a couple of Wikipedia articles.
@@ -26,7 +27,7 @@ You need the following tools and fonts:
 1. ImageMagick (to have the `convert` command)
 2. Pandoc (to have the `pandoc` command)
 3. DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (currently hard-coded, s. TODOs below)
- 
+
 ## CLI
 
 The current CLI is pretty simple: `wiki2book project ./path/to/project.json`
@@ -63,10 +64,23 @@ When using a project, the mentioned `project.json` is a configuration for a proj
 ```
 
 The `caches` object is completely optional and in this example the default values are shown.
+All values are folders, which don't need to exist, they will be created.
 
 **Notice:** Currently only the German Wikipedia is supported.
 However, you can specify `en` as `wikipedia-domain` to download articles from the English Wikipedia.
 But because a lot of German template-strings are removed while parsing, the English strings remain and result in unwanted stuff in the eBook.
+
+### Example
+
+Use the following command to build the German project about astronomy:
+
+`./wiki2book project ./projects/de/astronomie/astronomie.json`
+
+Or this command to build one file from the integration tests. The `-s` parameter specifies an existing style sheet
+file, `-o` the output folder (will be created if it doesn't exist) and the last value specifies the mediawiki file that
+should be turned into an eBook.
+
+`./wiki2book standalone -s ./integration-tests/style.css -o ./another-example-book ./integration-tests/test-real-article-Erde.mediawiki`
 
 # Development
 
