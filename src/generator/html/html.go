@@ -415,24 +415,6 @@ func (g *HtmlGenerator) expandMath(tokenString string, tokenMap map[string]strin
 	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
 }
 
-func (g *HtmlGenerator) escapeSpecialCharacters(content string) string {
-	content = strings.ReplaceAll(content, " < ", " &lt; ")
-	content = strings.ReplaceAll(content, " > ", " &gt; ")
-	return content
-}
-
-func (g *HtmlGenerator) removeEmptyLines(content string) string {
-	regex := regexp.MustCompile("\\n\\n\\n")
-	for {
-		if !regex.MatchString(content) {
-			break
-		}
-		content = regex.ReplaceAllString(content, "\n\n")
-	}
-
-	return content
-}
-
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
