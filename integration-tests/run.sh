@@ -33,6 +33,7 @@ echo
 function run()
 {
 	# $1 - Test title (e.g. "foo" for "test-foo.mediawiki" test file)
+	TEST_FAILED=0
 
 	OUT="results/test-$1"
 	mkdir -p "$OUT"
@@ -41,27 +42,42 @@ function run()
 	echo "$1: Start test"
 
 	# TODO create own style and cover files for these integration tests
-	./wiki2book standalone -o "$OUT" -s ../example/style.css -c ../example/wikipedia-astronomie-cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
+	./wiki2book standalone -o "$OUT" -s ./style.css -c ./cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
 
-	# Generate and check file list
-	find $OUT -type f | sort > "$OUT/test-$1.filelist"
-	diff -q "test-$1.filelist" "$OUT/test-$1.filelist" > /dev/null
-	if [ $? -ne 0 ]
+	EXIT_CODE=$?
+	if [ $EXIT_CODE -ne 0 ]
 	then
 		echo "$1: FAIL"
-		echo "$1: Files differ:"
-		git --no-pager diff --no-index "test-$1.filelist" "$OUT/test-$1.filelist"
-		FAILED_TESTS+=" $1"
-		echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
+		echo "$1: wiki2book exited with code $EXIT_CODE"
+		TEST_FAILED=1
+	else
+		# Generate and check file list
+		find $OUT -type f | sort > "$OUT/test-$1.filelist"
+		diff -q "test-$1.filelist" "$OUT/test-$1.filelist" > /dev/null
+		if [ $? -ne 0 ]
+		then
+			echo "$1: FAIL"
+			echo "$1: Files differ:"
+			git --no-pager diff --no-index "test-$1.filelist" "$OUT/test-$1.filelist"
+			FAILED_TESTS+=" $1"
+			TEST_FAILED=1
+			echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
+		fi
+
+		# Compare HTML files
+		diff -q "test-$1.html" "$OUT/test-$1.html" > /dev/null
+		if [ $? -ne 0 ]
+		then
+			echo "$1: FAIL"
+			echo "$1: HTML differs:"
+			git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
+			FAILED_TESTS+=" $1"
+			TEST_FAILED=1
+		fi
 	fi
 
-	# Compare HTML files
-	diff -q "test-$1.html" "$OUT/test-$1.html" > /dev/null
-	if [ $? -ne 0 ]
+	if [ $TEST_FAILED -ne 0 ]
 	then
-		echo "$1: FAIL"
-		echo "$1: HTML differs:"
-		git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
 		FAILED_TESTS+=" $1"
 	fi
 
@@ -83,17 +99,18 @@ done
 GLOBAL_END=$(($(date +%s%N)/1000000))
 
 echo
-echo "Finished all tests after `expr $GLOBAL_END - $GLOBAL_START` milliseconds"
+echo "Finished all integration-tests after `expr $GLOBAL_END - $GLOBAL_START` milliseconds"
 echo
 
 # If test failed, list them
 if [ "$FAILED_TESTS" != "" ]
 then
-	echo "These tests FAILED:"
+	echo "These integration-tests FAILED:"
 	for t in "$FAILED_TESTS"
 	do
-		echo "    $t"
+		echo -n "    "
+		echo $t | sed "s/\s/\n    /g"
 	done
 else
-	echo "All tests ran SUCCESSFULLY :)"
+	echo "Integration-tests ran SUCCESSFULLY :)"
 fi
