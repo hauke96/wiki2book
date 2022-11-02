@@ -191,6 +191,11 @@ Custom classes
     margin: 0 auto
 }
 
+.inline {
+    height: 1em;
+    vertical-align: middle;
+}
+
 ol, ul {
     padding-left: 0.75rem;
 }
