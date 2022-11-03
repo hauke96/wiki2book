@@ -3,19 +3,24 @@
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{anyfontsize}
-\usepackage[sfdefault]{FiraSans}
-\usepackage[left=2cm, right=2cm, top=2.5cm]{geometry}
+\usepackage{libertinus}
+%\usepackage{FiraSans}
+%\usepackage{lmodern}
+%((FONT))
+\renewcommand*\familydefault{\sfdefault}
+\usepackage{microtype}
+\usepackage[left=2cm, right=2cm, top=2cm, bottom=2cm]{geometry}
 
 \thispagestyle{empty}
 
 \begin{document}
 	{
 		\begin{center}
-			\includegraphics[width=0.8\textwidth]{./logo}
-			\vspace{1.5cm}\\
-			\fontsize{22pt}{60}\selectfont ((PRE))\vspace{0.5cm}~\\
-			\fontsize{50pt}{60}\selectfont ((TITLE))\\
-			\fontsize{22pt}{60}\selectfont ((POST))
+			\includegraphics[width=0.7\textwidth]{./logo}
+			\vspace{1cm}\\
+			\fontsize{20pt}{60}\selectfont ((PRE))\vspace{1.25cm}~\\
+			\fontsize{60pt}{60}\selectfont ((TITLE))\vspace{0.5cm}~\\
+			\fontsize{20pt}{60}\selectfont ((POST))
 		\end{center}
 	}
 \end{document}
