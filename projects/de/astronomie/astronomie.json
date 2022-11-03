@@ -14,7 +14,7 @@
   },
   "wikipedia-domain": "de",
   "output-file": "astronomie.epub",
-  "cover": "wikipedia-astronomie-cover.png",
+  "cover": "cover.png",
   "style": "../../style.css",
   "articles": [
     "Astronomie",
