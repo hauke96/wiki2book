@@ -1,5 +1,6 @@
 # Binaries for programs and plugins
 src/src
+wiki2book
 *.exe
 *.exe~
 *.dll
