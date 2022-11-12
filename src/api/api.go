@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -109,13 +108,13 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 // that's why the article cache folder is needed as well.
 func DownloadImages(images []string, outputFolder string, articleFolder string) error {
 	for _, image := range images {
-		var err error = nil
+		var downloadErr error = nil
 		var outputFilepath string
 
 		for _, source := range imageSources {
-			outputFilepath, err = downloadImage(image, outputFolder, articleFolder, source)
-			if err != nil {
-				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.\n%+v", image, source, err.Error(), err)
+			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source)
+			if downloadErr != nil {
+				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.\n%+v", image, source, downloadErr.Error(), downloadErr)
 				continue
 			}
 
@@ -123,25 +122,19 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 			if outputFilepath != "" && !strings.HasSuffix(outputFilepath, ".svg") {
 				const imgSize = 600
 
-				cmd := exec.Command("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
+				err := util.Execute("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
 					"-define", "PNG:compression-level=9", "-define", "PNG:compression-filter=0", outputFilepath)
-
-				var errbuf strings.Builder
-				cmd.Stderr = &errbuf
-
-				sigolo.Debug("Run 'convert' command. %s", cmd.String())
-				err = cmd.Run()
 				if err != nil {
-					sigolo.Error("Command %s failed and produced following error messages:\n%s", cmd.String(), errbuf.String())
-					return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))
+					sigolo.Error("Converting image %s failed", outputFilepath)
+					return err
 				}
 			}
 
 			break
 		}
 
-		if err != nil {
-			return err
+		if downloadErr != nil {
+			return downloadErr
 		}
 	}
 	return nil
