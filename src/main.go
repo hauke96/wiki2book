@@ -136,11 +136,15 @@ func generateArticleEbook(articleName string, outputFile string, styleFile strin
 	absoluteOutputFile, err := filepath.Abs(outputFile)
 	sigolo.FatalCheck(err)
 
-	absoluteStyleFile, err := filepath.Abs(styleFile)
-	sigolo.FatalCheck(err)
+	if styleFile != "" {
+		styleFile, err = filepath.Abs(styleFile)
+		sigolo.FatalCheck(err)
+	}
 
-	absoluteCoverImageFile, err := filepath.Abs(coverImageFile)
-	sigolo.FatalCheck(err)
+	if coverImageFile != "" {
+		coverImageFile, err = filepath.Abs(coverImageFile)
+		sigolo.FatalCheck(err)
+	}
 
 	err = os.Chdir(".wiki2book")
 	sigolo.FatalCheck(err)
@@ -154,10 +158,10 @@ func generateArticleEbook(articleName string, outputFile string, styleFile strin
 		"articles",
 		"images",
 		"templates",
-		absoluteStyleFile,
+		styleFile,
 		"math",
 		absoluteOutputFile,
-		absoluteCoverImageFile,
+		coverImageFile,
 		project.Metadata{})
 }
 
