@@ -86,9 +86,6 @@ func (g *HtmlGenerator) Generate(wikiArticle parser.Article, outputFolder string
 	g.mathCacheFolder = mathFolder
 	g.articleCacheFolder = articleFolder
 
-	err := api.DownloadImages(wikiArticle.Images, g.imageCacheFolder, g.articleCacheFolder)
-	sigolo.FatalCheck(err)
-
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>"
 	expandedContent, err := g.expand(wikiArticle.Content, wikiArticle.TokenMap)
