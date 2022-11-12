@@ -122,10 +122,17 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 			// If the file is new, rescale it using ImageMagick.
 			if outputFilepath != "" && !strings.HasSuffix(outputFilepath, ".svg") {
 				const imgSize = 600
+
 				cmd := exec.Command("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
 					"-define", "PNG:compression-level=9", "-define", "PNG:compression-filter=0", outputFilepath)
+
+				var errbuf strings.Builder
+				cmd.Stderr = &errbuf
+
+				sigolo.Debug("Run 'convert' command. %s", cmd.String())
 				err = cmd.Run()
 				if err != nil {
+					sigolo.Error("Command %s failed and produced following error messages:\n%s", cmd.String(), errbuf.String())
 					return errors.Wrap(err, fmt.Sprintf("Error rescaling image %s", outputFilepath))
 				}
 			}
