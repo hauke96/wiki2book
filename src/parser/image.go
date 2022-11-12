@@ -28,8 +28,9 @@ func escapeImages(content string) string {
 		filename = strings.ReplaceAll(filename, " ", "_")
 		filename = strings.ReplaceAll(filename, "%20", "_")
 
-		// Make first letter upper case as wikimedia want's it this way:
-		filename = strings.ToUpper(string(filename[0])) + filename[1:]
+		// Make first letter upper case as wikimedia wants it this way:
+		filenameRunes := []rune(filename)
+		filename = strings.ToUpper(string(filenameRunes[0])) + string(filenameRunes[1:])
 
 		// Attach prefix like "File:" to reconstruct the wikitext entry:
 		filename = filePrefix + ":" + filename
