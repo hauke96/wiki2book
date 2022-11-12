@@ -42,7 +42,7 @@ function run()
 	echo "$1: Start test"
 
 	# TODO create own style and cover files for these integration tests
-	./wiki2book standalone -o "$OUT" -s ./style.css -c ./cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
+	./wiki2book -d standalone -o "$OUT" -s ./style.css -c ./cover.png "test-$1.mediawiki" > "$LOGS/$1.log" 2>&1
 
 	EXIT_CODE=$?
 	if [ $EXIT_CODE -ne 0 ]
