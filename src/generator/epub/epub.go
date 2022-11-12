@@ -1,6 +1,7 @@
 package epub
 
 import (
+	"fmt"
 	"github.com/hauke96/wiki2book/src/project"
 	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
@@ -35,7 +36,7 @@ func Generate(sourceFiles []string, outputFile string, styleFile string, coverFi
 
 	err := util.Execute("pandoc", args...)
 	if err != nil {
-		return errors.Wrap(err, "Error generating EPUB file using pandoc")
+		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
 	}
 
 	return nil
