@@ -52,6 +52,8 @@ func main() {
 		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage)
 	case "project <project-file>":
 		generateProjectEbook(cli.Project.ProjectFile)
+	case "article <article-name>":
+		generateArticleEbook(cli.Article.ArticleName)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
 	}
@@ -82,30 +84,18 @@ func generateProjectEbook(projectFile string) {
 	project, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
 
-	var articleFiles []string
+	articles := project.Articles
+	wikipediaDomain := project.Domain
+	articleCache := project.Caches.Articles
+	imageCache := project.Caches.Images
+	templateCache := project.Caches.Templates
+	mathCache := project.Caches.Math
+	styleFile := project.Style
+	coverFile := project.Cover
+	metadata := project.Metadata
+	outputFile := project.OutputFile
 
-	for _, articleName := range project.Articles {
-		sigolo.Info("Start processing articleName %s", articleName)
-
-		wikiArticleDto, err := api.DownloadArticle(project.Domain, articleName, project.Caches.Articles)
-		sigolo.FatalCheck(err)
-
-		tokenizer := parser.NewTokenizer(project.Caches.Images, project.Caches.Templates)
-		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
-
-		htmlGenerator := &html.HtmlGenerator{}
-		outputFile, err := htmlGenerator.Generate(article, "./", project.Style, project.Caches.Images, project.Caches.Math, project.Caches.Articles)
-		sigolo.FatalCheck(err)
-
-		articleFiles = append(articleFiles, outputFile)
-
-		sigolo.Info("Succeesfully created HTML for articleName %s", articleName)
-	}
-
-	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, project.OutputFile, project.Style, project.Cover, project.Metadata)
-	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file")
+	generateEpubFromArticles(articles, wikipediaDomain, articleCache, imageCache, templateCache, styleFile, mathCache, outputFile, coverFile, metadata)
 }
 
 func generateStandaloneEbook(inputFile string, outputFolder string, styleFile string, coverImage string) {
@@ -139,6 +129,53 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	epubFile := path.Join(outputFolder, title+".epub")
 
 	err = epub.Generate([]string{htmlFile}, epubFile, styleFile, coverImage, metadata)
+	sigolo.FatalCheck(err)
+	sigolo.Info("Successfully created EPUB file")
+}
+
+func generateArticleEbook(articleName string) {
+	err := os.Chdir(".wiki2book")
+	sigolo.FatalCheck(err)
+
+	var articles []string
+	articles = append(articles, articleName)
+
+	// TODO Parameterize all of these fixed strings
+	generateEpubFromArticles(articles,
+		"de",
+		"articles",
+		"images",
+		"templates",
+		"",
+		"math",
+		"../ebook.epub",
+		"",
+		project.Metadata{})
+}
+
+func generateEpubFromArticles(articles []string, wikipediaDomain string, articleCache string, imageCache string, templateCache string, styleFile string, mathCache string, outputFile string, coverFile string, metadata project.Metadata) {
+	var articleFiles []string
+
+	for _, articleName := range articles {
+		sigolo.Info("Start processing articleName %s", articleName)
+
+		wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
+		sigolo.FatalCheck(err)
+
+		tokenizer := parser.NewTokenizer(imageCache, templateCache)
+		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
+
+		htmlGenerator := &html.HtmlGenerator{}
+		outputFile, err := htmlGenerator.Generate(article, "./", styleFile, imageCache, mathCache, articleCache)
+		sigolo.FatalCheck(err)
+
+		articleFiles = append(articleFiles, outputFile)
+
+		sigolo.Info("Succeesfully created HTML for articleName %s", articleName)
+	}
+
+	sigolo.Info("Start generating EPUB file")
+	err := epub.Generate(articleFiles, outputFile, styleFile, coverFile, metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
 }
