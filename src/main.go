@@ -28,9 +28,8 @@ var cli struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		// TODO How to deal with multiple languages? A new parameter "Language string"?
 		ArticleName string `help:"The name of the article to render." arg:""`
-		OutputDir   string `help:"The directory where all the files should be put into." short:"o"`
+		OutputFile  string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
 		StyleFile   string `help:"The CSS file that should be used." short:"s"`
 		CoverImage  string `help:"A cover image for the front cover of the eBook." short:"c"`
 	} `cmd:"" help:"Renders a specific article into an eBook."`
@@ -53,7 +52,7 @@ func main() {
 	case "project <project-file>":
 		generateProjectEbook(cli.Project.ProjectFile)
 	case "article <article-name>":
-		generateArticleEbook(cli.Article.ArticleName)
+		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.StyleFile, cli.Article.CoverImage)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
 	}
@@ -133,8 +132,17 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	sigolo.Info("Successfully created EPUB file")
 }
 
-func generateArticleEbook(articleName string) {
-	err := os.Chdir(".wiki2book")
+func generateArticleEbook(articleName string, outputFile string, styleFile string, coverImageFile string) {
+	absoluteOutputFile, err := filepath.Abs(outputFile)
+	sigolo.FatalCheck(err)
+
+	absoluteStyleFile, err := filepath.Abs(styleFile)
+	sigolo.FatalCheck(err)
+
+	absoluteCoverImageFile, err := filepath.Abs(coverImageFile)
+	sigolo.FatalCheck(err)
+
+	err = os.Chdir(".wiki2book")
 	sigolo.FatalCheck(err)
 
 	var articles []string
@@ -146,10 +154,10 @@ func generateArticleEbook(articleName string) {
 		"articles",
 		"images",
 		"templates",
-		"",
+		absoluteStyleFile,
 		"math",
-		"../ebook.epub",
-		"",
+		absoluteOutputFile,
+		absoluteCoverImageFile,
 		project.Metadata{})
 }
 
