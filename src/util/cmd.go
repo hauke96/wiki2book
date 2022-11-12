@@ -1,21 +1,19 @@
 package util
 
 import (
-	"bytes"
+	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
-	"io"
-	"os"
 	"os/exec"
+	"strings"
 )
 
 func Execute(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 
-	var stderrBuffer bytes.Buffer
-	errLog := io.MultiWriter(os.Stdout, &stderrBuffer)
+	var stderrBuffer strings.Builder
+	cmd.Stderr = &stderrBuffer
 
-	cmd.Stderr = errLog
-
+	sigolo.Debug("Execute command %s", cmd.String())
 	err := cmd.Run()
 
 	if err != nil {
