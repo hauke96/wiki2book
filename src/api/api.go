@@ -156,7 +156,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	sigolo.Debug(imageName)
 	sigolo.Debug(md5sum)
 
-	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], imageName)
+	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(imageName))
 	sigolo.Debug(url)
 
 	return downloadAndCache(url, outputFolder, imageName)
