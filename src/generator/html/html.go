@@ -7,6 +7,7 @@ import (
 	"github.com/hauke96/wiki2book/src/parser"
 	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
+	"html"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -212,7 +213,7 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 
 		switch submatch[1] {
 		case parser.TOKEN_IMAGE_FILENAME:
-			filename = tokenMap[subTokenString]
+			filename = html.EscapeString(tokenMap[subTokenString])
 		case parser.TOKEN_IMAGE_CAPTION:
 			caption, err = g.expand(tokenMap[subTokenString], tokenMap)
 		case parser.TOKEN_IMAGE_SIZE:
@@ -235,6 +236,7 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, sizeTemplate), nil
 	}
 
+	caption = html.EscapeString(caption)
 	return fmt.Sprintf(IMAGE_TEMPLATE, filename, sizeTemplate, caption), nil
 }
 

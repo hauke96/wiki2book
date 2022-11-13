@@ -26,11 +26,21 @@ func TestEscapeImages_escapeFileNames(t *testing.T) {
 	images = make([]string, 0)
 }
 
-func TestEscapeImages_leadingUnicode(t *testing.T) {
+func TestEscapeImages_leadingNonAscii(t *testing.T) {
 	content := "[[Datei:öäü.png|with|properties]]"
 	content = escapeImages(content)
 	test.AssertEqual(t, "[[Datei:Öäü.png|with|properties]]", content)
 	test.AssertEqual(t, []string{"Datei:Öäü.png"}, images)
+
+	// cleanup
+	images = make([]string, 0)
+}
+
+func TestEscapeImages_leadingSpecialChar(t *testing.T) {
+	content := "[[Datei:\"öäü\".png|with|properties]]"
+	content = escapeImages(content)
+	test.AssertEqual(t, "[[Datei:\"öäü\".png|with|properties]]", content)
+	test.AssertEqual(t, []string{"Datei:\"öäü\".png"}, images)
 
 	// cleanup
 	images = make([]string, 0)
