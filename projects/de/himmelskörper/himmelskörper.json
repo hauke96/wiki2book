@@ -16,6 +16,7 @@
   "output-file": "himmelskörper.epub",
   "cover": "cover.png",
   "style": "../../style.css",
+  "pandoc-data-dir": "../../../pandoc/data",
   "articles": [
     "Satellit (Astronomie)",
 	"Asteroid",

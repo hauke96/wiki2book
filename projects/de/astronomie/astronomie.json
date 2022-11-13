@@ -16,6 +16,7 @@
   "output-file": "astronomie.epub",
   "cover": "cover.png",
   "style": "../../style.css",
+  "pandoc-data-dir": "../../../pandoc/data",
   "articles": [
     "Astronomie",
     "Universum",

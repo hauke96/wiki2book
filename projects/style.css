@@ -64,7 +64,7 @@ Standard HTML elements
 body {
     margin: 2rem;
     font-family: DejaVuSans, sans-serif;
-    font-size: .925em;
+    font-size: .7em;
     line-height: 1.65em;
 }
 
@@ -163,7 +163,7 @@ table {
     max-height: 100%;
     margin: 0 auto;
     border-collapse: collapse;
-    font-size: .9em;
+    font-size: .6em;
     word-break: break-all;
 }
 
