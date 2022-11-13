@@ -236,7 +236,6 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, sizeTemplate), nil
 	}
 
-	caption = html.EscapeString(caption)
 	return fmt.Sprintf(IMAGE_TEMPLATE, filename, sizeTemplate, caption), nil
 }
 
