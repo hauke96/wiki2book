@@ -194,10 +194,10 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 
 	// Get the data
 	reader, err := download(url, filename)
-	defer reader.Close()
 	if err != nil {
 		return "", err
 	}
+	defer reader.Close()
 
 	err = cacheToFile(cacheFolder, filename, reader)
 	if err != nil {
