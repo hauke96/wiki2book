@@ -146,6 +146,9 @@ func generateArticleEbook(articleName string, outputFile string, styleFile strin
 		sigolo.FatalCheck(err)
 	}
 
+	err = os.MkdirAll(".wiki2book", os.ModePerm)
+	sigolo.FatalCheck(err)
+
 	err = os.Chdir(".wiki2book")
 	sigolo.FatalCheck(err)
 
