@@ -26,6 +26,7 @@ func removeUnwantedTemplates(content string) string {
 	ignoreTemplates := []string{
 		"alpha centauri",
 		"begriffsklärungshinweis",
+		"belege fehlen",
 		"commons",
 		"dieser artikel",
 		"exzellent",
@@ -40,7 +41,9 @@ func removeUnwantedTemplates(content string) string {
 		"naviblock",
 		"normdaten",
 		"panorama",
+		"redundanztext",
 		"siehe auch",
+		"überarbeiten",
 		"weiterleitungshinweis",
 		"wikibooks",
 		"wikiquote",
