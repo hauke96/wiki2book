@@ -52,7 +52,7 @@ function run()
 		TEST_FAILED=1
 	else
 		# Generate and check file list
-		find $OUT -type f | sort > "$OUT/test-$1.filelist"
+		find $OUT -type f | LC_ALL=C sort > "$OUT/test-$1.filelist"
 		diff -q "test-$1.filelist" "$OUT/test-$1.filelist" > /dev/null
 		if [ $? -ne 0 ]
 		then
