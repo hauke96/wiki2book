@@ -3,15 +3,16 @@ Some basic stuff to work with this project.
 # Preliminaries
 
 Make sure `go` is installed and then just import the project to your IDE.
-You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `convert` command) to turn HTML into ePub files.
+You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `convert` command) to turn HTML into EPUB files.
 
 # Build project
 
 `go build -o wiki2book .`
 
-# Run project
+# Run
 
-Build project (s.o.) and then `./wiki2book project your/project.json`.
+To test if everything works, it's easiest to run `./wiki2book article Erde` (it builds an eBook from the German "Erde" article).
+
 Use `./wiki2book --help` for all available options.
 
 # Run tests
@@ -28,7 +29,9 @@ Normal (without creating a coverage file) go into the `src` folder and execute `
 
 With coverage: Go into `src` folder, use `go test -coverprofile test.out ./...` to run tests and `go tool cover -html=test.out` to view the coverage result.
 
+Of course IDEs like Goland provide direct possibility to run the unit tests with and without coverage.
+
 ## Integration tests
 
-In the root of the repo there's an ` integration-test` folder, it contains several standalone `.json`  files.
+In the root of the repo there's an ` integration-test` folder, it contains several standalone `.json` files.
 Take a look at the `README.md` there.

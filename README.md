@@ -1,22 +1,25 @@
 # wiki2book
 
-**wiki2book** is a tool to create good-looking EPUB-eBooks from one or more Wikipedia articles.
+**wiki2book** is a tool to create beautiful EPUB-eBooks from one or more Wikipedia articles.
 
-The goal of this converter is to create nearly print-ready eBooks from a couple of Wikipedia articles.
+The goal is to create eBooks as beautiful as real books from a couple of Wikipedia articles.
 This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge. 
 
 <p align="center">
-<img src="photo.JPG" alt="eBook of the German article about astronomy."/>
+<img src="photo.JPG" alt="eBook of the German article about astronomy on a Tolino eBook-reader."/>
 </p>
 
 ### Why not simply using pandoc?
 
 Good question.
-Pandoc (and a lot of other tools as well) is great and yes, it can convert mediawiki to ePUB.
-In fact, this converter relies heavily on pandoc because turning HTML into ePUB works perfectly.
-However, there are a lot of things missing, for example rendering math but more importantly downloading images and evaluating templates.
-Also pandoc doesn't do any eBook specific assumptions, e.g. ignoring ebook-unsuitable styles or not evaluating Wikipedia oriented templates.
-A lot of existing tools are furthermore tied to their implementation as non-specific but rather general purpose tool, which is not beneficial when converting Wikipedia articles to eBooks. 
+
+[Pandoc](https://pandoc.org/epub.html) and others like [wb2pdf](https://mediawiki2latex.wmflabs.org/) or [percollate](https://github.com/danburzo/percollate) as well) are great and yes, they can convert mediawiki to EPUB.
+In fact, this converter relies heavily on pandoc because turning HTML into EPUB works perfectly.
+
+However, there are always things missing in these tools, for example rendering math, downloading images, evaluating templates or a proper handling of tables.
+They also don't do any eBook specific assumptions, e.g. ignoring ebook-unsuitable styles or not evaluating Wikipedia oriented templates.
+
+Most existing tools are furthermore rather general purpose tools, which is not beneficial for the very specific task of converting Wikipedia articles to beautiful offline eBooks. 
 
 # Usage
 
@@ -30,9 +33,15 @@ You need the following tools and fonts:
 
 ## CLI
 
-The current CLI is pretty simple: `wiki2book project ./path/to/project.json`
+The current CLI is pretty simple and has three sub-commands:
 
-You can also use a single article name (`wiki2book article "The article name"`) or a local mediawiki file (`wiki2book standalone ./the/mediawiki/file.txt`).
+1. Project: `wiki2book project ./path/to/project.json`
+2. Article: `wiki2book article Erde`
+3. Standalone: `wiki2book standalone ./path/to/file.mediawiki`
+
+Use `wiki2book -h` for more information and `wiki2book <command> -h` for information on a specific command.
+
+### Project file
 
 When using a project, the mentioned `project.json` is a configuration for a project and may look like this:
 
@@ -55,6 +64,7 @@ When using a project, the mentioned `project.json` is a configuration for a proj
   "output-file": "my-book.epub",
   "cover": "cover.png",
   "style": "style.css",
+  "pandoc-data-dir": "./pandoc/data",
   "articles": [
     "Hamburg",
     "Hamburger",
@@ -70,11 +80,15 @@ All values are folders, which don't need to exist, they will be created.
 However, you can specify `en` as `wikipedia-domain` to download articles from the English Wikipedia.
 But because a lot of German template-strings are removed while parsing, the English strings remain and result in unwanted stuff in the eBook.
 
-### Example
+### Examples
+
+#### Project
 
 Use the following command to build the German project about astronomy:
 
 `./wiki2book project ./projects/de/astronomie/astronomie.json`
+
+#### Standalone
 
 Or this command to build one file from the integration tests. The `-s` parameter specifies an existing style sheet
 file, `-o` the output folder (will be created if it doesn't exist) and the last value specifies the mediawiki file that

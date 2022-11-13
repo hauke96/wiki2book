@@ -9,19 +9,31 @@ It basically takes all `.mediawiki` files and tests if their HTML outcome matche
 Of a test fails, its HTML outcome and the expected HTML outcome are compared and the difference is shown. 
 Also a list of failed tests is given.
 
+### Tests failed, what now?
+
+This can have several reasons:
+
+* The caches contain old data not matching the latest test files (clear/reset caches as described below)
+* Wikipedia changed something (most likely the way of rendering templates) and HTML files do not match anymore. In this case the test files here are outdated, just update the passages in the HTML files.
+* You did something wrong when coding. Best solution is to fix your code ;)
+* Bugs in the integration test framework might exist as well, please [open a GitHub issue](https://github.com/hauke96/wiki2book/issues/new) when none of the above helped.
+
+For more information on what went wrong, take a look into the logs (s. below).
+
 ### Output and logs
 
-The generated files are in the `results/test-<name>/` folder.
+The generated files (HTML, rendered math, images, ...) are in the `results/test-<name>/` folder.
 
 Logs are in `logs/test-<name>.log`.
 
 ## Reset test folder
 
-Use the `reset.sh` script to remove all files created during test execution.
+Use the `reset.sh` script to remove all cached files created during test execution.
+This can solve failing tests because Wikipedia as well as the test files change over time.
 
 ## Architecture
 
-Each mediawiki-file will be turned into an HTML and ePUB file.
+Each mediawiki-file will be turned into an HTML and EPUB file.
 Of course the embedded images, templates and math parts are downloaded and stored to disk.
 
 The HTML file is then compared against an expected HTML file.
