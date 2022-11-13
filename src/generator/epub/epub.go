@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Generate(sourceFiles []string, outputFile string, styleFile string, coverFile string, metadata project.Metadata) error {
+func Generate(sourceFiles []string, outputFile string, styleFile string, coverFile string, pandocDataDir string, metadata project.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
@@ -24,6 +24,7 @@ func Generate(sourceFiles []string, outputFile string, styleFile string, coverFi
 		"--metadata", "rights=" + metadata.License,
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
+		"--data-dir", pandocDataDir,
 	}
 	if styleFile != "" {
 		args = append(args, "--css", styleFile)

@@ -8,13 +8,14 @@ import (
 )
 
 type Project struct {
-	Metadata   Metadata `json:"metadata"`
-	Domain     string   `json:"wikipedia-domain"`
-	OutputFile string   `json:"output-file"`
-	Caches     Caches   `json:"caches"`
-	Cover      string   `json:"cover"`
-	Style      string   `json:"style"`
-	Articles   []string `json:"articles"`
+	Metadata      Metadata `json:"metadata"`
+	Domain        string   `json:"wikipedia-domain"`
+	OutputFile    string   `json:"output-file"`
+	Caches        Caches   `json:"caches"`
+	Cover         string   `json:"cover"`
+	Style         string   `json:"style"`
+	PandocDataDir string   `json:"pandoc-data-dir"`
+	Articles      []string `json:"articles"`
 }
 
 type Metadata struct {
