@@ -44,7 +44,7 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 
 	mockHttpClient := api.MockHttp(expectedTemplateFileContent, 200)
 
-	// Eevaluate content
+	// Evaluate content
 	content := evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.", templateFolder)
 	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
