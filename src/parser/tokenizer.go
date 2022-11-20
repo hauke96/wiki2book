@@ -42,7 +42,7 @@ const TOKEN_ORDERED_LIST = "ORDERED_LIST"
 const TOKEN_LIST_ITEM = "LIST_ITEM"
 
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_DESCRIPTION_LIST_HEAD = "DESCRIPTION_LIST_ITEM" // Head of each description list
+const TOKEN_DESCRIPTION_LIST_HEAD = "DESCRIPTION_LIST_HEAD" // Head of each description list
 const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM" // Item of a description list (the things with indentation)
 
 const TOKEN_IMAGE = "IMAGE"
@@ -876,7 +876,14 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 
 		// Store relevant line without the prefix. We know the prefix here (due to the "HasPrefix" call) and don't want
 		// the prefix for further line processing.
-		listLines = append(listLines, removeListPrefix(line, itemPrefix))
+		listLines = append(listLines, strings.TrimPrefix(line, itemPrefix))
+
+		if itemPrefix == ":" {
+			// We're parsing items of a description list. They kind of behave like normal list items, but they don't
+			// start a new list. Each description list item behaves rather like a one-line list.
+			i++
+			break
+		}
 	}
 
 	lineIndex := 0
@@ -884,17 +891,28 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 
 	for ; lineIndex < len(listLines); lineIndex++ {
 		line := listLines[lineIndex]
+		if line == "" {
+			continue
+		}
+
+		linePrefix := string(line[0])
 		token := ""
 
-		// Does this line has a line prefix? Or in other words: Does this line start a new sub-list?
-		if listPrefixRegex.MatchString(line) {
+		// Does this line has a line prefix? Or in other words: Does this line start a new sub-list? The ":" (colon)
+		// marks a description list item and is handled as list item, not as list beginning.
+		// TODO Better handling of description list item with mixed list types: Handling description list items not as separate list, results in unwanted behavior when list types are mixed as seen here: https://www.mediawiki.org/wiki/Help:Lists
+		if listPrefixRegex.MatchString(line) && linePrefix != ":" {
 			// Yes: Parse this sub-list recursively
-			lineSubListPrefix := string(line[0])
-			token, lineIndex = t.tokenizeList(listLines, lineIndex, lineSubListPrefix, t.getListTokenString(lineSubListPrefix))
+			token, lineIndex = t.tokenizeList(listLines, lineIndex, linePrefix, t.getListTokenString(linePrefix))
 		} else {
 			// No: Easy, just create a list item token for this line
-			token = t.getToken(t.getListItemTokenString(itemPrefix))
+			prefix := itemPrefix
+			if linePrefix == ":" {
+				prefix = linePrefix
+				line = line[1:]
+			}
 			line = t.tokenize(line)
+			token = t.getToken(t.getListItemTokenString(prefix))
 			t.setRawToken(token, line)
 		}
 
@@ -951,6 +969,8 @@ func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
 		return TOKEN_ORDERED_LIST
 	case ";":
 		return TOKEN_DESCRIPTION_LIST
+	case ":":
+		return TOKEN_DESCRIPTION_LIST_ITEM
 	}
 	return ""
 }

@@ -520,20 +520,18 @@ func TestTokenizeDescriptionList(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ":", TOKEN_DESCRIPTION_LIST)
+	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
 
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 6), token)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2), token)
 	test.AssertMapEqual(t, map[string]string{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): fmt.Sprintf(" \n "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): "\n",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): " bar\n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
 	}, tokenizer.getTokenMap())
 }
 
-func TestTokenizeEmptyDescriptionListItems(t *testing.T) {
+func TestTokenizeDescriptionList_withEmptyItem(t *testing.T) {
 	content := `foo
 ; list
 :
@@ -541,16 +539,43 @@ func TestTokenizeEmptyDescriptionListItems(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ":", TOKEN_DESCRIPTION_LIST)
+	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
 
-	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 6), token)
+	test.AssertEqual(t, 4, i)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3), token)
 	test.AssertMapEqual(t, map[string]string{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): fmt.Sprintf(" \n "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): "\n",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): " bar\n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): "",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): " bar",
+	}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeDescriptionList_withOtherSubList(t *testing.T) {
+	content := `foo
+; list
+: foo1
+:* bar1
+:* bar2
+: foo2
+blubb`
+
+	tokenizer := NewTokenizer("foo", "bar")
+	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+
+	test.AssertEqual(t, 6, i)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9), token)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 4, TOKEN_DESCRIPTION_LIST_ITEM, 7, TOKEN_DESCRIPTION_LIST_ITEM, 8),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " foo1",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 4): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3):        fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):             " bar1",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 7): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6):        fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 5),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 5):             " bar2",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 8): " foo2",
 	}, tokenizer.getTokenMap())
 }
 
