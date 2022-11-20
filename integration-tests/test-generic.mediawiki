@@ -54,6 +54,17 @@ Mostly used for indention without bullet-points or numbers:
 : first line
 : second line
 
+A more complex example:
+
+* Mixed lists
+*# and nest them
+*#* like this
+*#*; definitions
+*#*: work:
+*#*; apple
+*#*; banana
+*#*: fruits
+
 == Images ==
 
 We can embed images:
