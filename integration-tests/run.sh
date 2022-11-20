@@ -49,6 +49,7 @@ function run()
 	then
 		echo "$1: FAIL"
 		echo "$1: wiki2book exited with code $EXIT_CODE"
+		FAILED_TESTS+="$1 [exit-code-$EXIT_CODE]"$'\n'
 		TEST_FAILED=1
 	else
 		# Generate and check file list
@@ -59,7 +60,7 @@ function run()
 			echo "$1: FAIL"
 			echo "$1: Files differ:"
 			git --no-pager diff --no-index "test-$1.filelist" "$OUT/test-$1.filelist"
-			FAILED_TESTS+=" $1"
+			FAILED_TESTS+="$1 [filelist]"$'\n'
 			TEST_FAILED=1
 			echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
 		fi
@@ -71,15 +72,15 @@ function run()
 			echo "$1: FAIL"
 			echo "$1: HTML differs:"
 			git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
-			FAILED_TESTS+=" $1"
+			FAILED_TESTS+="$1 [HTML]"$'\n'
 			TEST_FAILED=1
 		fi
 	fi
 
-	if [ $TEST_FAILED -ne 0 ]
-	then
-		FAILED_TESTS+=" $1"
-	fi
+#	if [ $TEST_FAILED -ne 0 ]
+#	then
+#		FAILED_TESTS+="\n"
+#	fi
 
 	END=$(($(date +%s%N)/1000000))
 	echo "$1: Finished after `expr $END - $START` milliseconds"
@@ -106,10 +107,12 @@ echo
 if [ "$FAILED_TESTS" != "" ]
 then
 	echo "These integration-tests FAILED:"
-	for t in "$FAILED_TESTS"
+	IFS=$'\n'
+	for t in $FAILED_TESTS
 	do
 		echo -n "    "
-		echo $t | sed "s/\s/\n    /g"
+#		echo $t | sed "s/\n/\n    /g"
+		echo $t
 	done
 else
 	echo "Integration-tests ran SUCCESSFULLY :)"
