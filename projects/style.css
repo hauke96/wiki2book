@@ -200,6 +200,10 @@ ol, ul {
     padding-left: 0.75rem;
 }
 
-.list {
-    margin-left: 1.25rem;
+.description-list .dt {
+    font-weight: bold;
+}
+
+.description-list .dd {
+    padding-left: 0.75rem;
 }

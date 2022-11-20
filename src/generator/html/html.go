@@ -62,13 +62,17 @@ const TEMPLATE_UL = `<ul>
 %s</ul>`
 const TEMPLATE_OL = `<ol>
 %s</ol>`
-const TEMPLATE_DL = `<div class="list">
+const TEMPLATE_DL = `<div class="description-list">
 %s</div>`
 const TEMPLATE_LI = `<li>
 %s
 </li>
 `
-const TEMPLATE_DD = `<div>
+const TEMPLATE_DT = `<div class="dt">
+%s
+</div>
+`
+const TEMPLATE_DD = `<div class="dd">
 %s
 </div>
 `
@@ -136,6 +140,8 @@ func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (stri
 			html, err = g.expandDescriptionList(submatch[0], tokenMap)
 		case parser.TOKEN_LIST_ITEM:
 			html, err = g.expandListItem(submatch[0], tokenMap)
+		case parser.TOKEN_DESCRIPTION_LIST_HEAD:
+			html, err = g.expandDescriptionHead(submatch[0], tokenMap)
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html, err = g.expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE_INLINE:
@@ -352,6 +358,16 @@ func (g *HtmlGenerator) expandListItem(tokenString string, tokenMap map[string]s
 	}
 
 	return fmt.Sprintf(TEMPLATE_LI, tokenizedContent), nil
+}
+
+func (g *HtmlGenerator) expandDescriptionHead(tokenString string, tokenMap map[string]string) (string, error) {
+	tokenContent := tokenMap[tokenString]
+	tokenizedContent, err := g.expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TEMPLATE_DT, tokenizedContent), nil
 }
 
 func (g *HtmlGenerator) expandDescriptionItem(tokenString string, tokenMap map[string]string) (string, error) {

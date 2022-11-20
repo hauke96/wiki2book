@@ -225,7 +225,7 @@ b<b>a</b>r
 }
 
 func TestExpandDescriptionList(t *testing.T) {
-	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 0)
+	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_HEAD, 0)
 	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 1)
 	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST, 2)
 
@@ -238,10 +238,10 @@ func TestExpandDescriptionList(t *testing.T) {
 	row, err := generator.expandDescriptionList(tokenList, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<div class="list">
-<div>
+<div class="dt">
 foo
 </div>
-<div>
+<div class="dd">
 b<b>a</b>r
 </div>
 </div>`, row)
