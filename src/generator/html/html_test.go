@@ -237,7 +237,7 @@ func TestExpandDescriptionList(t *testing.T) {
 
 	row, err := generator.expandDescriptionList(tokenList, tokenMap)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, `<div class="list">
+	test.AssertEqual(t, `<div class="description-list">
 <div class="dt">
 foo
 </div>
