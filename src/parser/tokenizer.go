@@ -42,7 +42,8 @@ const TOKEN_ORDERED_LIST = "ORDERED_LIST"
 const TOKEN_LIST_ITEM = "LIST_ITEM"
 
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"
+const TOKEN_DESCRIPTION_LIST_HEAD = "DESCRIPTION_LIST_ITEM" // Head of each description list
+const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM" // Item of a description list (the things with indentation)
 
 const TOKEN_IMAGE = "IMAGE"
 const TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
@@ -98,7 +99,7 @@ var (
 	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
 	tableColspanRegex                = regexp.MustCompile(`colspan="(\d+)"`)
 	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
-	listPrefixRegex                  = regexp.MustCompile(`^([*#:])`)
+	listPrefixRegex                  = regexp.MustCompile(`^([*#:;])`)
 	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
 	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
 	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
@@ -868,39 +869,36 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 	for ; i < len(lines); i++ {
 		line := lines[i]
 
-		if !strings.HasPrefix(line, itemPrefix) && line != "" {
+		// TODO check " && line != "" "
+		if !belongsToListPrefix(line, itemPrefix) && line != "" {
 			break
 		}
 
-		listLines = append(listLines, line)
+		// Store relevant line without the prefix. We know the prefix here (due to the "HasPrefix" call) and don't want
+		// the prefix for further line processing.
+		listLines = append(listLines, removeListPrefix(line, itemPrefix))
 	}
 
-	// lines may start directly with higher level is nesting, like "*** item one" as first item
-	// To be able to parse such list beginning, we here add some dummy list items
-	for {
-		regex := regexp.MustCompile(`^[` + itemPrefix + `]([` + itemPrefix + `]+)`)
-		submatch := regex.FindStringSubmatch(listLines[0])
-		if len(submatch) == 2 {
-			newLine := submatch[1] + " "
-			listLines = append([]string{newLine}, listLines...)
+	lineIndex := 0
+	var allListItemTokens []string
+
+	for ; lineIndex < len(listLines); lineIndex++ {
+		line := listLines[lineIndex]
+		token := ""
+
+		// Does this line has a line prefix? Or in other words: Does this line start a new sub-list?
+		if listPrefixRegex.MatchString(line) {
+			// Yes: Parse this sub-list recursively
+			lineSubListPrefix := string(line[0])
+			token, lineIndex = t.tokenizeList(listLines, lineIndex, lineSubListPrefix, t.getListTokenString(lineSubListPrefix))
 		} else {
-			break
+			// No: Easy, just create a list item token for this line
+			token = t.getToken(t.getListItemTokenString(itemPrefix))
+			line = t.tokenize(line)
+			t.setRawToken(token, line)
 		}
-	}
 
-	content := strings.Join(listLines, "\n")
-
-	regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]([^*^#^:])`)
-	submatches := regex.FindAllStringSubmatch(content, -1)
-	// Ignore first item as it's always empty
-	// Each element contains the whole item including all sub-lists and everything
-	allListItemTokens := regex.Split(content, -1)[1:]
-
-	for itemIndex, item := range allListItemTokens {
-		// re-add the non-prefix characters which was removed by .Split() above
-		item = submatches[itemIndex][2] + item
-		token := t.tokenizeListItem(item, itemPrefix)
-		allListItemTokens[itemIndex] = token
+		allListItemTokens = append(allListItemTokens, token)
 	}
 
 	tokenContent := strings.Join(allListItemTokens, " ")
@@ -910,40 +908,39 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 	return token, i
 }
 
-func (t *Tokenizer) tokenizeListItem(content string, itemPrefix string) string {
-	content = strings.TrimPrefix(content, itemPrefix+" ")
-	lines := strings.Split(content, "\n")
+func belongsToListPrefix(line string, itemPrefix string) bool {
+	if len(line) == 0 {
+		return false
+	}
 
-	itemContent := ""
-	subListString := ""
+	linePrefix := string(line[0])
 
-	// collect all lines of this list item which do not belong to a nested item
-	for i, line := range lines {
-		if t.hasListItemPrefix(line) {
-			// a sub-item starts
-			subListString = strings.Join(lines[i:], "\n")
-			break
+	// Special case for description lists: They have two separate prefixes: ";" and ":" for the heading and items themselves
+	if itemPrefix == ";" {
+		return linePrefix == ":" || linePrefix == ";"
+	}
+
+	return linePrefix == itemPrefix
+}
+
+func removeListPrefix(line string, itemPrefix string) string {
+	if len(line) == 0 {
+		return line
+	}
+
+	linePrefix := string(line[0])
+
+	// Special case for description lists: They have two separate prefixes: ";" and ":" for the heading and items themselves
+	if itemPrefix == ";" {
+		if linePrefix == ";" {
+			return strings.TrimPrefix(line, linePrefix)
+		} else if linePrefix == ":" {
+			return strings.TrimPrefix(line, linePrefix)
 		}
-		itemContent += line + "\n"
+		return line
 	}
 
-	token := t.getToken(t.getListItemTokenString(itemPrefix))
-	tokenizedItemContent := t.tokenize(itemContent)
-
-	if subListString != "" {
-		regex := regexp.MustCompile(`(^|\n)[` + itemPrefix + `]`)
-
-		subListItemLines := regex.Split(subListString, -1)[1:]
-		// Ignore first item as it's always empty (due to newline from replacement)
-		subItemPrefix := subListItemLines[0][0:1]
-
-		listTokenString := t.getListTokenString(subItemPrefix)
-		subListToken, _ := t.tokenizeList(subListItemLines, 0, subItemPrefix, listTokenString)
-		tokenizedItemContent += " " + subListToken
-	}
-
-	t.setRawToken(token, tokenizedItemContent)
-	return token
+	return strings.TrimPrefix(line, itemPrefix)
 }
 
 func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
@@ -952,7 +949,7 @@ func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
 		return TOKEN_UNORDERED_LIST
 	case "#":
 		return TOKEN_ORDERED_LIST
-	case ":":
+	case ";":
 		return TOKEN_DESCRIPTION_LIST
 	}
 	return ""
@@ -964,14 +961,12 @@ func (t *Tokenizer) getListItemTokenString(listItemPrefix string) string {
 		return TOKEN_LIST_ITEM
 	case "#":
 		return TOKEN_LIST_ITEM
+	case ";":
+		return TOKEN_DESCRIPTION_LIST_HEAD
 	case ":":
 		return TOKEN_DESCRIPTION_LIST_ITEM
 	}
 	return ""
-}
-
-func (t *Tokenizer) hasListItemPrefix(line string) bool {
-	return listPrefixRegex.MatchString(line)
 }
 
 func (t *Tokenizer) parseReferences(content string) string {
