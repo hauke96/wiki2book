@@ -63,7 +63,7 @@ const TEMPLATE_UL = `<ul>
 const TEMPLATE_OL = `<ol>
 %s</ol>`
 const TEMPLATE_DL = `<div class="description-list">
-%s</div>`
+%s</div>` // Use bare div-tags instead of <dl> due to eBook-reader incompatibilities :(
 const TEMPLATE_LI = `<li>
 %s
 </li>
