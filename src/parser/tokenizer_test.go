@@ -281,7 +281,6 @@ func TestParseTable(t *testing.T) {
 {| class="wikitable"
 |+  style="text-align:left;"| capti0n
 foo
-|-
 ! head1 !! '''head2'''
 |-
 | foo [[internal]] || bar

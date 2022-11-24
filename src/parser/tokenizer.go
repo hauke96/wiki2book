@@ -728,14 +728,17 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
-		if strings.HasPrefix(line, "|+") {
-			captionToken := ""
-			captionToken, i = t.tokenizeTableCaption(lines, i)
-			//captionToken = t.getToken(TOKEN_TABLE_CAPTION)
-			//t.setToken(captionToken, caption)
-			tableTokens = append(tableTokens, captionToken)
-		} else if strings.HasPrefix(line, "|-") {
-			rowToken := ""
+
+		isCaptionStart := strings.HasPrefix(line, "|+")
+		isRowStart := strings.HasPrefix(line, "|-")
+		isHeadingStart := strings.HasPrefix(line, "!")
+
+		rowToken := ""
+		if isCaptionStart {
+			rowToken, i = t.tokenizeTableCaption(lines, i)
+		} else if isHeadingStart {
+			rowToken, i = t.tokenizeTableRow(lines, i, "!")
+		} else if isRowStart {
 			if strings.HasPrefix(lines[i+1], "!") {
 				// this table row is a heading
 				rowToken, i = t.tokenizeTableRow(lines, i+1, "!")
@@ -744,10 +747,13 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 				rowToken, i = t.tokenizeTableRow(lines, i+1, "|")
 			}
 
-			tableTokens = append(tableTokens, rowToken)
 		} else if strings.HasPrefix(line, "|}") {
 			// table ends with this line
 			break
+		}
+
+		if rowToken != "" {
+			tableTokens = append(tableTokens, rowToken)
 		}
 	}
 
@@ -809,7 +815,7 @@ func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
 	i++
 
 	// collect all lines from this caption
-	for ; i < len(lines) && !strings.HasPrefix(lines[i], "|-"); i++ {
+	for ; i < len(lines) && !strings.HasPrefix(lines[i], "|-") && !strings.HasPrefix(lines[i], "!"); i++ {
 		captionLines += "\n" + lines[i]
 	}
 
