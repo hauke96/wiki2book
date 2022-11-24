@@ -4,7 +4,8 @@ GLOBAL_START=$(($(date +%s%N)/1000000))
 
 HOME=$PWD
 LOGS="./logs"   # Folder with log files for each test
-FAILED_TESTS="" # List of test names that failed
+FAILED_TESTS_WITH_CAUSE="" # List of test names with the fail-cause (e.g. "[HTML]")
+FAILED_TESTS="" # List of failed test names only
 
 # Build project
 echo "Build project..."
@@ -49,7 +50,7 @@ function run()
 	then
 		echo "$1: FAIL"
 		echo "$1: wiki2book exited with code $EXIT_CODE"
-		FAILED_TESTS+="$1 [exit-code-$EXIT_CODE]"$'\n'
+		FAILED_TESTS_WITH_CAUSE+="$1 [exit-code-$EXIT_CODE]"$'\n'
 		TEST_FAILED=1
 	else
 		# Generate and check file list
@@ -60,7 +61,7 @@ function run()
 			echo "$1: FAIL"
 			echo "$1: Files differ:"
 			git --no-pager diff --no-index "test-$1.filelist" "$OUT/test-$1.filelist"
-			FAILED_TESTS+="$1 [filelist]"$'\n'
+			FAILED_TESTS_WITH_CAUSE+="$1 [filelist]"$'\n'
 			TEST_FAILED=1
 			echo "$1: Some of the file differences might have been caused by Wikipedia (e.g. when the math rendering changes slightly)"
 		fi
@@ -72,15 +73,16 @@ function run()
 			echo "$1: FAIL"
 			echo "$1: HTML differs:"
 			git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
-			FAILED_TESTS+="$1 [HTML]"$'\n'
+			FAILED_TESTS_WITH_CAUSE+="$1 [HTML]"$'\n'
 			TEST_FAILED=1
 		fi
 	fi
 
-#	if [ $TEST_FAILED -ne 0 ]
-#	then
-#		FAILED_TESTS+="\n"
-#	fi
+	if [ $TEST_FAILED -ne 0 ]
+	then
+#		FAILED_TESTS_WITH_CAUSE+="\n"
+		FAILED_TESTS+="$1 "
+	fi
 
 	END=$(($(date +%s%N)/1000000))
 	echo "$1: Finished after `expr $END - $START` milliseconds"
@@ -104,16 +106,19 @@ echo "Finished all integration-tests after `expr $GLOBAL_END - $GLOBAL_START` mi
 echo
 
 # If test failed, list them
-if [ "$FAILED_TESTS" != "" ]
+if [ "$FAILED_TESTS_WITH_CAUSE" != "" ]
 then
 	echo "These integration-tests FAILED:"
 	IFS=$'\n'
-	for t in $FAILED_TESTS
+	for t in $FAILED_TESTS_WITH_CAUSE
 	do
 		echo -n "    "
 #		echo $t | sed "s/\n/\n    /g"
 		echo $t
 	done
+
+	echo "To update all failed test, run the update script with the following parameters:"
+	echo "    $FAILED_TESTS"
 else
 	echo "Integration-tests ran SUCCESSFULLY :)"
 fi
