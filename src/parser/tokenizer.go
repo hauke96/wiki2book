@@ -97,7 +97,7 @@ var (
 	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
 	externalLinkRegex                = regexp.MustCompile(`([^\[])?\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
 	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
-	tableColspanRegex                = regexp.MustCompile(`colspan="(\d+)"`)
+	tableRowAndColspanRegex          = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
 	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
 	listPrefixRegex                  = regexp.MustCompile(`^([*#:;])`)
 	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
@@ -843,9 +843,9 @@ func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
 
 	var relevantTags []string
 
-	colspanMatch := tableColspanRegex.FindStringSubmatch(attributeString)
-	if len(colspanMatch) > 1 {
-		relevantTags = append(relevantTags, colspanMatch[0])
+	rowAndColspanMatch := tableRowAndColspanRegex.FindStringSubmatch(attributeString)
+	if len(rowAndColspanMatch) > 1 {
+		relevantTags = append(relevantTags, rowAndColspanMatch[0])
 	}
 
 	alignmentMatch := tableTextAlignRegex.FindStringSubmatch(attributeString)
@@ -1237,15 +1237,26 @@ func (t *Tokenizer) parseMath(content string) string {
 // assume a token to be self-contained without the need ot extra space below it.
 func (t *Tokenizer) parseParagraphs(content string) string {
 	lines := strings.Split(content, "\n")
+	resultLines := []string{lines[0]}
 	tokenLineRegex := regexp.MustCompile(`^\$\$TOKEN_[A-Z_]+_\d+\$\$$`)
 
 	for i := 1; i < len(lines); i++ {
 		lineBefore1 := lines[i-1]
 		line := lines[i]
 
+		if line == "" && lineBefore1 == MARKER_PARAGRAPH {
+			// Empty lines after a paragraph marker will be ignored. To do that, we have to mark them in the original
+			// lines but will not write the marker into the result lines.
+			lines[i] = MARKER_PARAGRAPH
+			continue
+		}
+
 		if line == "" && !tokenLineRegex.MatchString(lineBefore1) {
 			lines[i] = MARKER_PARAGRAPH
+			resultLines = append(resultLines, MARKER_PARAGRAPH)
+		} else {
+			resultLines = append(resultLines, line)
 		}
 	}
-	return strings.Join(lines, "\n")
+	return strings.Join(resultLines, "\n")
 }

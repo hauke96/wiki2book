@@ -279,7 +279,7 @@ func TestParseTable(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `before
 {| class="wikitable"
-|+  style="text-align:left;"| capti0n
+|+ rowspan="2" style="text-align:left;"| capti0n
 foo
 ! head1 !! '''head2'''
 |-
@@ -300,7 +300,7 @@ after`
 			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
 			TOKEN_TABLE_CAPTION, 1, TOKEN_TABLE_ROW, 4, TOKEN_TABLE_ROW, 10, TOKEN_TABLE_ROW, 13, TOKEN_TABLE_ROW, 18,
 		),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): "style=\"text-align:left;\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): "rowspan=\"2\" style=\"text-align:left;\"",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 1):        fmt.Sprintf(TOKEN_TEMPLATE+" capti0n\nfoo", TOKEN_TABLE_COL_ATTRIBUTES, 0),
 		// row 0: heading
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2, TOKEN_TABLE_HEAD, 3),
@@ -830,6 +830,8 @@ func TestParseParagraph_afterLists(t *testing.T) {
 	content := `* foo
 
 bar
+
+
 
 blubb`
 
