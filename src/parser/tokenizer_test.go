@@ -799,7 +799,7 @@ some
 \multiline{math}
 </math>
 end`
-	tokenizedContent := tokenizer.parseMath(content)
+	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
 
 	test.AssertEqual(t, "abc"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 0)+"def\nsome\n"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 1)+"\nend", tokenizedContent)
 }
@@ -812,11 +812,28 @@ bar
  
 blubb`
 
-	tokenizedContent := tokenizer.parseParagraphs(content)
+	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
 
 	test.AssertEqual(t, fmt.Sprintf(`foo
 %s
 bar
  
 blubb`, MARKER_PARAGRAPH), tokenizedContent)
+}
+
+func TestParseParagraph_afterLists(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `* foo
+
+bar
+
+blubb`
+
+	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
+
+	test.AssertEqual(t, fmt.Sprintf(`%s
+
+bar
+%s
+blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), MARKER_PARAGRAPH), tokenizedContent)
 }

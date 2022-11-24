@@ -199,9 +199,9 @@ func tokenizeContent(t *Tokenizer, content string) string {
 		content = t.parseImages(content)
 		content = t.parseExternalLinks(content)
 		content = t.parseMath(content)
-		//content = t.parseParagraphs(content)
-		content = t.parseTables(content)
 		content = t.parseLists(content)
+		content = t.parseParagraphs(content)
+		content = t.parseTables(content)
 
 		if content == originalContent {
 			break
@@ -1203,6 +1203,20 @@ func (t *Tokenizer) parseMath(content string) string {
 	return content
 }
 
+// parseParagraphs replaces two directly following newlines by a `MARKER_PARAGRAPH` marker. When the line before the two
+// newlines is a line containing a token, the two consecutive newlines do NOT count as a paragraph. This is because we
+// assume a token to be self-contained without the need ot extra space below it.
 func (t *Tokenizer) parseParagraphs(content string) string {
-	return strings.ReplaceAll(content, "\n\n", "\n"+MARKER_PARAGRAPH+"\n")
+	lines := strings.Split(content, "\n")
+	tokenLineRegex := regexp.MustCompile(`^\$\$TOKEN_[A-Z_]+_\d+\$\$$`)
+
+	for i := 1; i < len(lines); i++ {
+		lineBefore1 := lines[i-1]
+		line := lines[i]
+
+		if line == "" && !tokenLineRegex.MatchString(lineBefore1) {
+			lines[i] = MARKER_PARAGRAPH
+		}
+	}
+	return strings.Join(lines, "\n")
 }
