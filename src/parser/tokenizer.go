@@ -719,20 +719,20 @@ func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 
 // tokenizeTable expects content to be all lines of a table.
 func (t *Tokenizer) tokenizeTable(content string) string {
-	// ensure that each columns starts in a new row
+	// ensure that each entry starts in a new row
 	content = strings.ReplaceAll(content, "||", "\n|")
 	content = strings.ReplaceAll(content, "!!", "\n!")
 	lines := strings.Split(content, "\n")
 
 	var tableTokens []string
-	captionToken := ""
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		if strings.HasPrefix(line, "|+") {
-			caption := strings.TrimPrefix(line, "|+")
-			captionToken = t.getToken(TOKEN_TABLE_CAPTION)
-			t.setToken(captionToken, caption)
+			captionToken := ""
+			captionToken, i = t.tokenizeTableCaption(lines, i)
+			//captionToken = t.getToken(TOKEN_TABLE_CAPTION)
+			//t.setToken(captionToken, caption)
 			tableTokens = append(tableTokens, captionToken)
 		} else if strings.HasPrefix(line, "|-") {
 			rowToken := ""
@@ -782,14 +782,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string,
 		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
 		i -= 1
 
-		attributes := ""
-		tokenizedLine, attributes = t.tokenizeTableColumn(tokenizedLine)
-
-		attributeToken := ""
-		if attributes != "" {
-			attributeToken = t.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
-			t.setRawToken(attributeToken, attributes)
-		}
+		tokenizedLine, attributeToken := t.tokenizeTableEntry(tokenizedLine)
 
 		token := ""
 		if sep == "!" {
@@ -809,15 +802,38 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int, sep string) (string,
 	return token, i - 1
 }
 
-// tokenizeTableColumn returns the tokenized text of the column and as second return value relevant CSS attributes (might be empty).
-func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
+// tokenizeTableCaption expects i to be the line in which the caption starts (i.e. the line after |+ ). The return
+// values are the tokenized caption and the index pointing to the last text line of the caption.
+func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
+	captionLines := lines[i]
+	i++
+
+	// collect all lines from this caption
+	for ; i < len(lines) && !strings.HasPrefix(lines[i], "|-"); i++ {
+		captionLines += "\n" + lines[i]
+	}
+
+	captionLines = strings.TrimPrefix(captionLines, "|+")
+
+	tokenizedCaption, styleAttributeToken := t.tokenizeTableEntry(captionLines)
+
+	token := t.getToken(TOKEN_TABLE_CAPTION)
+	t.setRawToken(token, styleAttributeToken+tokenizedCaption)
+
+	// return i-1 so that i is on the last line of the caption when returning
+	return token, i - 1
+}
+
+// tokenizeTableEntry returns the tokenized text of the entry (for example a column or caption) and a token containing
+// the style attributes (might be empty when no style was found).
+func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
 	splittedContent := strings.Split(content, "|")
 	if len(splittedContent) < 2 {
 		return t.tokenize(content), ""
 	}
 
 	attributeString := splittedContent[0]
-	columnText := t.tokenize(splittedContent[1])
+	entryText := t.tokenize(splittedContent[1])
 
 	var relevantTags []string
 
@@ -831,7 +847,14 @@ func (t *Tokenizer) tokenizeTableColumn(content string) (string, string) {
 		relevantTags = append(relevantTags, `style="`+alignmentMatch[0]+`"`)
 	}
 
-	return columnText, strings.Join(relevantTags, " ")
+	attributeToken := ""
+	if len(relevantTags) > 0 {
+		attributes := strings.Join(relevantTags, " ")
+		attributeToken = t.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
+		t.setRawToken(attributeToken, attributes)
+	}
+
+	return entryText, attributeToken
 }
 
 func (t *Tokenizer) parseLists(content string) string {

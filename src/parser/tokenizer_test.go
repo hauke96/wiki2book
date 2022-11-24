@@ -279,7 +279,8 @@ func TestParseTable(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `before
 {| class="wikitable"
-|+ capti0n
+|+  style="text-align:left;"| capti0n
+foo
 |-
 ! head1 !! '''head2'''
 |-
@@ -294,34 +295,35 @@ is
 after`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 18), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 19), tokenizedTable)
 	test.AssertMapEqual(t, map[string]string{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 18): fmt.Sprintf(
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 19): fmt.Sprintf(
 			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
-			TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 3, TOKEN_TABLE_ROW, 9, TOKEN_TABLE_ROW, 12, TOKEN_TABLE_ROW, 17,
+			TOKEN_TABLE_CAPTION, 1, TOKEN_TABLE_ROW, 4, TOKEN_TABLE_ROW, 10, TOKEN_TABLE_ROW, 13, TOKEN_TABLE_ROW, 18,
 		),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0): " capti0n",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): "style=\"text-align:left;\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 1):        fmt.Sprintf(TOKEN_TEMPLATE+" capti0n\nfoo", TOKEN_TABLE_COL_ATTRIBUTES, 0),
 		// row 0: heading
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1, TOKEN_TABLE_HEAD, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): " head1 ",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2): " " + MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2, TOKEN_TABLE_HEAD, 3),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2): " head1 ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 3): " " + MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
 		// row 1: internal link
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 9):             fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7, TOKEN_TABLE_COL, 8),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7):             fmt.Sprintf(" foo "+TOKEN_TEMPLATE+" ", TOKEN_INTERNAL_LINK, 6),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 6):         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 4, TOKEN_INTERNAL_LINK_TEXT, 5),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 4): "internal",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_TEXT, 5):    "internal",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8):             " bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 10):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8, TOKEN_TABLE_COL, 9),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8):             fmt.Sprintf(" foo "+TOKEN_TEMPLATE+" ", TOKEN_INTERNAL_LINK, 7),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 7):         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 5, TOKEN_INTERNAL_LINK_TEXT, 6),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 5): "internal",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_TEXT, 6):    "internal",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9):             " bar",
 		// row 2: multi-line
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 12): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10, TOKEN_TABLE_COL, 11),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10): " This row\nis",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11): " multi-line wikitext",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 13): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11, TOKEN_TABLE_COL, 12),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11): " This row\nis",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 12): " multi-line wikitext",
 		// row 3: attributes
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 17):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 14, TOKEN_TABLE_COL, 16),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 14):            fmt.Sprintf(TOKEN_TEMPLATE+" some ", TOKEN_TABLE_COL_ATTRIBUTES, 13),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 13): "colspan=\"42\" style=\"text-align:right;\"",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 16):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes ", TOKEN_TABLE_COL_ATTRIBUTES, 15),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 15): "colspan=\"1\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 18):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15, TOKEN_TABLE_COL, 17),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15):            fmt.Sprintf(TOKEN_TEMPLATE+" some ", TOKEN_TABLE_COL_ATTRIBUTES, 14),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 14): "colspan=\"42\" style=\"text-align:right;\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 17):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes ", TOKEN_TABLE_COL_ATTRIBUTES, 16),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 16): "colspan=\"1\"",
 	}, tokenizer.getTokenMap())
 }
 
@@ -394,9 +396,12 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 func TestTokenizeTableColumn(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `colspan="2" style="text-align:center; background:Lightgray;" | ''foo'' bar`
-	tokenizedColumn, css := tokenizer.tokenizeTableColumn(content)
+	tokenizedColumn, attributeToken := tokenizer.tokenizeTableEntry(content)
 	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
-	test.AssertEqual(t, `colspan="2" style="text-align:center;"`, css)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0), attributeToken)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): `colspan="2" style="text-align:center;"`,
+	}, tokenizer.getTokenMap())
 }
 
 func TestParseList(t *testing.T) {
