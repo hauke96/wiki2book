@@ -7,7 +7,6 @@ import (
 	"path"
 	"reflect"
 	"regexp"
-	"sort"
 	"strings"
 	"testing"
 )
@@ -50,27 +49,72 @@ func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 
 func AssertMapEqual(t *testing.T, expected map[string]string, actual map[string]string) {
 	if !reflect.DeepEqual(expected, actual) {
-		var expectedMapLines []string
-		for k, v := range expected {
-			s := fmt.Sprintf("> '%s' -> '%s'", k, v)
+		expectedMapString := compareMaps(expected, "E", actual, "A")
+
+		var notExpectedValues []string
+		for k, v := range actual {
+			valueInOtherMap, otherMapHasKey := expected[k]
+			valueIsNotInExpectedMap := !otherMapHasKey || valueInOtherMap != expected[k]
+
+			if valueIsNotInExpectedMap {
+				v = strings.ReplaceAll(v, "\n", "\n  ")
+				s := fmt.Sprintf("  '%s' -> '%s'", k, v)
+				s = strings.ReplaceAll(s, "\n", "\\n\n")
+				notExpectedValues = append(notExpectedValues, s)
+			}
+		}
+		notExpectedValuesString := strings.Join(notExpectedValues, "\n")
+
+		sigolo.Errorb(1, `Expect to be equal.
+
+Prefix meanings:
+  A: Actual value
+  E: Expected value
+
+Expected values:
+%s
+
+Values not expected but still found:
+%s`, expectedMapString, notExpectedValuesString)
+		t.Fail()
+	}
+}
+
+// compareMaps lists all rows of the values-map and marks rows with the valuePrefix if they are not or in different form
+// in the other map
+func compareMaps(values map[string]string, valuePrefix string, otherValues map[string]string, otherValuePrefix string) string {
+	var expectedMapLines []string
+	for k, v := range values {
+		linePrefix, valueIsNotInOtherMap := getLinePrefix(otherValues, k, v, valuePrefix)
+
+		v = strings.ReplaceAll(v, "\n", "\n  ")
+		s := fmt.Sprintf("%s '%s' -> '%s'", linePrefix, k, v)
+		s = strings.ReplaceAll(s, "\n", "\\n\n")
+		expectedMapLines = append(expectedMapLines, s)
+
+		if valueIsNotInOtherMap {
+			v = otherValues[k]
+			v = strings.ReplaceAll(v, "\n", "\n  ")
+			s := fmt.Sprintf("%s '%s' -> '%s'", otherValuePrefix, k, v)
 			s = strings.ReplaceAll(s, "\n", "\\n\n")
 			expectedMapLines = append(expectedMapLines, s)
 		}
-		sort.Strings(expectedMapLines)
-		expectedMapString := strings.Join(expectedMapLines, "\n")
-
-		var actualMapLines []string
-		for k, v := range actual {
-			s := fmt.Sprintf("> '%s' -> '%s'", k, v)
-			s = strings.ReplaceAll(s, "\n", "\\n\n")
-			actualMapLines = append(actualMapLines, s)
-		}
-		sort.Strings(actualMapLines)
-		actualMapString := strings.Join(actualMapLines, "\n")
-
-		sigolo.Errorb(1, "Expect to be equal.\nExpected:\n%s\n----------\nActual:\n%s", expectedMapString, actualMapString)
-		t.Fail()
 	}
+	//sort.Strings(expectedMapLines)
+	expectedMapString := strings.Join(expectedMapLines, "\n")
+	return expectedMapString
+}
+
+// getLinePrefix returns the prefix for map comparison lines. It can be used to mark lines not contains in the
+// expected/actual result map.
+func getLinePrefix(otherMap map[string]string, key string, expectedValue string, prefixIfNotInOtherMap string) (string, bool) {
+	valueInOtherMap, otherMapHasKey := otherMap[key]
+	valueIsNotInOtherMap := !otherMapHasKey || valueInOtherMap != expectedValue
+
+	if valueIsNotInOtherMap {
+		return prefixIfNotInOtherMap, valueIsNotInOtherMap
+	}
+	return " ", valueIsNotInOtherMap
 }
 
 func AssertNil(t *testing.T, value interface{}) {
