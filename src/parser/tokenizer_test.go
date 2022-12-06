@@ -843,3 +843,43 @@ bar
 %s
 blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), MARKER_PARAGRAPH), tokenizedContent)
 }
+
+func TestParseParagraph_afterHeading(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `== foo ==
+
+bar
+
+
+
+blubb`
+
+	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
+
+	test.AssertEqual(t, fmt.Sprintf(`%s
+
+bar
+%s
+blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0), MARKER_PARAGRAPH), tokenizedContent)
+}
+
+func TestParseParagraph_beforeToken(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `bar
+
+
+
+blubb
+
+== hi ==
+cool`
+
+	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
+
+	test.AssertEqual(t, fmt.Sprintf(`bar
+%s
+blubb
+
+%s
+cool`, MARKER_PARAGRAPH, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0)), tokenizedContent)
+}

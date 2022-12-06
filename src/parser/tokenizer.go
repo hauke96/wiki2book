@@ -12,6 +12,7 @@ import (
 )
 
 const TOKEN_REGEX = `\$\$TOKEN_([A-Z_0-9]*)_\d+\$\$`
+const TOKEN_LINE_REGEX = "^" + TOKEN_REGEX + "$"
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
 
 const TOKEN_HEADING_TEMPLATE = "HEADING_%d"
@@ -200,8 +201,8 @@ func tokenizeContent(t *Tokenizer, content string) string {
 		content = t.parseExternalLinks(content)
 		content = t.parseMath(content)
 		content = t.parseLists(content)
-		content = t.parseParagraphs(content)
 		content = t.parseTables(content)
+		content = t.parseParagraphs(content)
 
 		if content == originalContent {
 			break
@@ -1236,27 +1237,34 @@ func (t *Tokenizer) parseMath(content string) string {
 // newlines is a line containing a token, the two consecutive newlines do NOT count as a paragraph. This is because we
 // assume a token to be self-contained without the need ot extra space below it.
 func (t *Tokenizer) parseParagraphs(content string) string {
-	lines := strings.Split(content, "\n")
-	resultLines := []string{lines[0]}
-	tokenLineRegex := regexp.MustCompile(`^\$\$TOKEN_[A-Z_]+_\d+\$\$$`)
+	oldLines := strings.Split(content, "\n")
+	resultLines := []string{oldLines[0]}
+	tokenLineRegex := regexp.MustCompile(TOKEN_LINE_REGEX)
 
-	for i := 1; i < len(lines); i++ {
-		lineBefore1 := lines[i-1]
-		line := lines[i]
+	for i := 1; i < len(oldLines)-1; i++ {
+		lineBefore := oldLines[i-1]
+		line := oldLines[i]
+		lineNext := oldLines[i+1]
 
-		if line == "" && lineBefore1 == MARKER_PARAGRAPH {
+		if line == "" && lineBefore == MARKER_PARAGRAPH {
 			// Empty lines after a paragraph marker will be ignored. To do that, we have to mark them in the original
 			// lines but will not write the marker into the result lines.
-			lines[i] = MARKER_PARAGRAPH
+			oldLines[i] = MARKER_PARAGRAPH
 			continue
 		}
 
-		if line == "" && !tokenLineRegex.MatchString(lineBefore1) {
-			lines[i] = MARKER_PARAGRAPH
+		if line == "" && !tokenLineRegex.MatchString(lineBefore) && !tokenLineRegex.MatchString(lineNext) {
+			oldLines[i] = MARKER_PARAGRAPH
 			resultLines = append(resultLines, MARKER_PARAGRAPH)
 		} else {
 			resultLines = append(resultLines, line)
 		}
 	}
+
+	// Add the last line if it's not also the first line.
+	if len(oldLines) >= 2 {
+		resultLines = append(resultLines, oldLines[len(oldLines)-1])
+	}
+
 	return strings.Join(resultLines, "\n")
 }
