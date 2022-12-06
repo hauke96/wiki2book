@@ -353,6 +353,27 @@ func TestParseTable_tableInTable(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseTable_withoutExplicitRowStart(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `{| class="wikitable"
+|
+| foo
+|-
+| bar
+|}`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4), tokenizedTable)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1, TOKEN_TABLE_ROW, 3),
+		// outer table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2): " bar",
+	}, tokenizer.getTokenMap())
+}
+
 func TestTokenizeTableRow_withHead(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	lines := []string{
@@ -360,7 +381,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 		"!bar",
 		"|-",
 	}
-	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "!")
+	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2), tokenizedColumn)
 	test.AssertEqual(t, 1, i)
 	test.AssertMapEqual(t, map[string]string{
@@ -380,7 +401,7 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 		"|-",
 		"| this row should be ignored",
 	}
-	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0, "|")
+	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4), tokenizedColumn)
 	test.AssertEqual(t, 3, i)
 	test.AssertMapEqual(t, map[string]string{
