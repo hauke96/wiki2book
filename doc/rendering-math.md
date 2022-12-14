@@ -1,5 +1,5 @@
 TeX snippets embedded with the `<math>...</math>` tags are rendered using the Wikipedia API.
-The rendering takes place in `api.go` and is called by `html.go` when expanding the math-token.
+The rendering takes place in `wikipedia.go` and is called by `html.go` when expanding the math-token.
 
 # The Wikipedia API
 
