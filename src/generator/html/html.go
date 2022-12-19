@@ -252,9 +252,9 @@ func (g *HtmlGenerator) expandInternalLink(tokenString string, tokenMap map[stri
 }
 
 func (g *HtmlGenerator) expandExternalLink(tokenString string, tokenMap map[string]string) (string, error) {
-	splittedToken := strings.Split(tokenMap[tokenString], " ")
-	url := tokenMap[splittedToken[0]]
-	text, err := g.expand(tokenMap[splittedToken[1]], tokenMap)
+	splitToken := strings.Split(tokenMap[tokenString], " ")
+	url := tokenMap[splitToken[0]]
+	text, err := g.expand(tokenMap[splitToken[1]], tokenMap)
 	if err != nil {
 		return "", err
 	}
