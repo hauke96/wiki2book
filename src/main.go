@@ -21,6 +21,7 @@ var cli struct {
 	Standalone struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputDir     string `help:"The directory where all the files should be put into." short:"o"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"` // TODO add this to the other commands as well
 		StyleFile     string `help:"The CSS file that should be used." short:"s"`
 		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
 		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
@@ -50,7 +51,7 @@ func main() {
 	case "standalone <file>":
 		assertFileExists(cli.Standalone.StyleFile)
 		assertFileExists(cli.Standalone.CoverImage)
-		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir)
+		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputDir, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir)
 	case "project <project-file>":
 		generateProjectEbook(cli.Project.ProjectFile)
 	case "article <article-name>":
@@ -100,16 +101,21 @@ func generateProjectEbook(projectFile string) {
 	generateEpubFromArticles(articles, wikipediaDomain, articleCache, imageCache, templateCache, styleFile, mathCache, outputFile, coverFile, pandocDataDir, metadata)
 }
 
-func generateStandaloneEbook(inputFile string, outputFolder string, styleFile string, coverImage string, pandocDataDir string) {
-	imageFolder := path.Join(outputFolder, "images")
-	mathFolder := path.Join(outputFolder, "math")
-	templateFolder := path.Join(outputFolder, "templates")
-	articleFolder := path.Join(outputFolder, "articles")
+func generateStandaloneEbook(inputFile string, outputFolder string, cacheFolder string, styleFile string, coverImageFile string, pandocDataDir string) {
+	var err error
+
+	imageFolder := path.Join(cacheFolder, "images")
+	mathFolder := path.Join(cacheFolder, "math")
+	templateFolder := path.Join(cacheFolder, "templates")
+	articleFolder := path.Join(cacheFolder, "articles")
 
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
 	fileContent, err := ioutil.ReadFile(inputFile)
+	sigolo.FatalCheck(err)
+
+	err = os.MkdirAll(cacheFolder, os.ModePerm)
 	sigolo.FatalCheck(err)
 
 	tokenizer := parser.NewTokenizer(imageFolder, templateFolder)
@@ -130,29 +136,22 @@ func generateStandaloneEbook(inputFile string, outputFolder string, styleFile st
 	htmlFile := path.Join(outputFolder, title+".html")
 	epubFile := path.Join(outputFolder, title+".epub")
 
-	err = epub.Generate([]string{htmlFile}, epubFile, styleFile, coverImage, pandocDataDir, metadata)
+	err = epub.Generate([]string{htmlFile}, epubFile, styleFile, coverImageFile, pandocDataDir, metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
 }
 
 func generateArticleEbook(articleName string, outputFile string, styleFile string, coverImageFile string, pandocDataDir string) {
-	absoluteOutputFile, err := filepath.Abs(outputFile)
-	sigolo.FatalCheck(err)
+	var err error
 
-	if styleFile != "" {
-		styleFile, err = filepath.Abs(styleFile)
-		sigolo.FatalCheck(err)
-	}
+	// Make ".wiki2book" a parameter
+	cacheFolder := ".wiki2book"
+	imageFolder := path.Join(cacheFolder, "images")
+	mathFolder := path.Join(cacheFolder, "math")
+	templateFolder := path.Join(cacheFolder, "templates")
+	articleFolder := path.Join(cacheFolder, "articles")
 
-	if coverImageFile != "" {
-		coverImageFile, err = filepath.Abs(coverImageFile)
-		sigolo.FatalCheck(err)
-	}
-
-	err = os.MkdirAll(".wiki2book", os.ModePerm)
-	sigolo.FatalCheck(err)
-
-	err = os.Chdir(".wiki2book")
+	err = os.MkdirAll(cacheFolder, os.ModePerm)
 	sigolo.FatalCheck(err)
 
 	var articles []string
@@ -161,12 +160,12 @@ func generateArticleEbook(articleName string, outputFile string, styleFile strin
 	// TODO Parameterize all of these fixed strings
 	generateEpubFromArticles(articles,
 		"de",
-		"articles",
-		"images",
-		"templates",
+		articleFolder,
+		imageFolder,
+		templateFolder,
 		styleFile,
-		"math",
-		absoluteOutputFile,
+		mathFolder,
+		outputFile,
 		coverImageFile,
 		pandocDataDir,
 		project.Metadata{})

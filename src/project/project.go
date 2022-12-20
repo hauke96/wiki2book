@@ -40,6 +40,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	project := &Project{
+		// TODO change to one cache location (like the one passable to the "standalone" CLI command)
 		Caches: Caches{
 			Articles:  "articles",
 			Templates: "templates",
