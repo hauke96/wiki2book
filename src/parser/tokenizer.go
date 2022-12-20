@@ -102,9 +102,9 @@ var (
 	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
 	listPrefixRegex                  = regexp.MustCompile(`^([*#:;])`)
 	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
-	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There might me more parameters than "name=..." so we have to consider them as well.
-	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name=[^>^/]*?>.*?</ref>`)
-	namedReferenceUsageRegex         = regexp.MustCompile(`<ref name="(.*?)"\s?/>`)
+	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>^/]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There may be more parameters than "name=..." so we have to consider them as well.
+	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name="?([^"^>^/]*)"?>.*?</ref>`)
+	namedReferenceUsageRegex         = regexp.MustCompile(`<ref name="?([^"^>^/]*)"?\s?/>`)
 	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
 	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
 	headingRegexes                   = []*regexp.Regexp{
