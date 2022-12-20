@@ -185,18 +185,15 @@ func tokenizeContent(t *Tokenizer, content string) string {
 	content = clean(content)
 	content = evaluateTemplates(content, t.templateFolder)
 
-	content = t.parseBoldAndItalic(content)
-	content = t.parseHeadings(content)
-	content = t.parseReferences(content)
-
 	for {
 		originalContent := content
 
 		content = clean(content)
-		content = evaluateTemplates(content, t.templateFolder)
 		content = escapeImages(content)
 
 		content = t.parseBoldAndItalic(content)
+		content = t.parseHeadings(content)
+		content = t.parseReferences(content)
 		content = t.parseInternalLinks(content)
 		content = t.parseGalleries(content)
 		content = t.parseImageMaps(content)
