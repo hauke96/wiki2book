@@ -483,6 +483,13 @@ func (t *Tokenizer) parseGalleries(content string) string {
 		// We're within a gallery -> turn each line into separate wikitext image
 		if withinGallery {
 			line = strings.TrimSpace(line)
+
+			hasNonInlineParameterRegex := regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
+			if !hasNonInlineParameterRegex.MatchString(line) {
+				// Line has no non-inline parameter -> Add one to make it a non-inline image
+				line = strings.Replace(line, "|", "|mini|", 1)
+			}
+
 			lines[i] = escapeImages(fmt.Sprintf("[[File:%s]]", line))
 		}
 	}
