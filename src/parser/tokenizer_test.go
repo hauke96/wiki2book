@@ -143,11 +143,11 @@ file 3.jpg
 blubb`)
 
 	test.AssertEqual(t, `foo
-[[File:File0.jpg]]
-[[File:File1.jpg|captiion]]
+[[File:File0.jpg|mini]]
+[[File:File1.jpg|mini|captiion]]
 bar
-[[File:File2.jpg|test123]]
-[[File:File_3.jpg]]
+[[File:File2.jpg|mini|test123]]
+[[File:File_3.jpg|mini]]
 blubb`, content)
 
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())

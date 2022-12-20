@@ -487,7 +487,9 @@ func (t *Tokenizer) parseGalleries(content string) string {
 			hasNonInlineParameterRegex := regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
 			if !hasNonInlineParameterRegex.MatchString(line) {
 				// Line has no non-inline parameter -> Add one to make it a non-inline image
-				line = strings.Replace(line, "|", "|mini|", 1)
+				lineSegments := strings.Split(line, "|")
+				lineSegments[0] += "|mini"
+				line = strings.Join(lineSegments, "|")
 			}
 
 			lines[i] = escapeImages(fmt.Sprintf("[[File:%s]]", line))
