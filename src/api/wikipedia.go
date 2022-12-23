@@ -61,7 +61,7 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 }
 
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
-// downloaded images will bein the output folder. Some images might be redirects, so the redirect must be resolved,
+// downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
 func DownloadImages(images []string, outputFolder string, articleFolder string) error {
 	for _, image := range images {
@@ -104,13 +104,14 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	if err != nil {
 		return "", err
 	}
-	imageName = strings.Split(imageNameWithPrefix, ":")[1]
+	redirectedImageName := strings.Split(imageNameWithPrefix, ":")[1]
 
-	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(imageName)))
-	sigolo.Debug(imageName)
-	sigolo.Debug(md5sum)
+	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(redirectedImageName)))
+	sigolo.Debug("Original image name: %s", imageName)
+	sigolo.Debug("Redirected image name: %s", redirectedImageName)
+	sigolo.Debug("MD5 of redirected image name: %s", md5sum)
 
-	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(imageName))
+	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(redirectedImageName))
 	sigolo.Debug(url)
 
 	return downloadAndCache(url, outputFolder, imageName)

@@ -11,7 +11,7 @@ type Project struct {
 	Metadata      Metadata `json:"metadata"`
 	Domain        string   `json:"wikipedia-domain"`
 	OutputFile    string   `json:"output-file"`
-	Caches        Caches   `json:"caches"`
+	CacheDir      string   `json:"cache-dir"`
 	Cover         string   `json:"cover"`
 	Style         string   `json:"style"`
 	PandocDataDir string   `json:"pandoc-data-dir"`
@@ -26,13 +26,6 @@ type Metadata struct {
 	Date     string `json:"date"`
 }
 
-type Caches struct {
-	Articles  string `json:"articles"`
-	Templates string `json:"templates"`
-	Images    string `json:"images"`
-	Math      string `json:"math"`
-}
-
 func LoadProject(file string) (*Project, error) {
 	projectString, err := os.ReadFile(file)
 	if err != nil {
@@ -40,13 +33,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	project := &Project{
-		// TODO change to one cache location (like the one passable to the "standalone" CLI command)
-		Caches: Caches{
-			Articles:  "articles",
-			Templates: "templates",
-			Images:    "images",
-			Math:      "math",
-		},
+		CacheDir: ".wiki2book",
 	}
 	err = json.Unmarshal(projectString, project)
 	if err != nil {

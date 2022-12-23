@@ -86,6 +86,7 @@ type HtmlGenerator struct {
 	articleCacheFolder string
 }
 
+// Generate creates the HTML for the given article and returns either the HTML file path or an error.
 func (g *HtmlGenerator) Generate(wikiArticle parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string, articleFolder string) (string, error) {
 	g.imageCacheFolder = imgFolder
 	g.mathCacheFolder = mathFolder
