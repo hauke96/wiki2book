@@ -45,13 +45,15 @@ func removeUnwantedTemplates(content string) string {
 		"portal",
 		"redundanztext",
 		"siehe auch",
+		"toc",
+		"toter link",
 		"überarbeiten",
+		"veraltet",
 		"weiterleitungshinweis",
 		"wikibooks",
 		"wikiquote",
 		"wikisource",
 		"wiktionary",
-		"toter link",
 	}
 
 	// Find all templates that actually appear in the text
