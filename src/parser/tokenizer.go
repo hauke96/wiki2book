@@ -189,15 +189,17 @@ func tokenizeContent(t *Tokenizer, content string) string {
 		originalContent := content
 
 		content = clean(content)
-		content = escapeImages(content)
 
 		content = t.parseBoldAndItalic(content)
 		content = t.parseHeadings(content)
 		content = t.parseReferences(content)
 		content = t.parseInternalLinks(content)
+
+		content = escapeImages(content)
 		content = t.parseGalleries(content)
 		content = t.parseImageMaps(content)
 		content = t.parseImages(content)
+
 		content = t.parseExternalLinks(content)
 		content = t.parseMath(content)
 		content = t.parseLists(content)
