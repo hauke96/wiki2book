@@ -6,12 +6,6 @@
     "language": "de-DE",
     "date": "2022-08-12"
   },
-  "caches": {
-    "images": "images",
-    "templates": "templates",
-    "math": "math",
-    "articles": "articles"
-  },
   "wikipedia-domain": "de",
   "output-file": "himmelskörper.epub",
   "cover": "cover.png",

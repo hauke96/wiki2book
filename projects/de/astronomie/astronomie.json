@@ -6,12 +6,6 @@
     "language": "de-DE",
     "date": "2021-12-27"
   },
-  "caches": {
-    "images": "images",
-    "templates": "templates",
-    "math": "math",
-    "articles": "articles"
-  },
   "wikipedia-domain": "de",
   "output-file": "astronomie.epub",
   "cover": "cover.png",

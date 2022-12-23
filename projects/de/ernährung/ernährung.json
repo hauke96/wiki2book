@@ -6,12 +6,6 @@
     "language": "de-DE",
     "date": "2022-11-13"
   },
-  "caches": {
-    "images": "images",
-    "templates": "templates",
-    "math": "math",
-    "articles": "articles"
-  },
   "wikipedia-domain": "de",
   "output-file": "ernährung.epub",
   "cover": "cover.png",
