@@ -71,7 +71,8 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 		for _, source := range imageSources {
 			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source)
 			if downloadErr != nil {
-				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.\n%+v", image, source, downloadErr.Error(), downloadErr)
+				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.", image, source, downloadErr.Error())
+				sigolo.Debug("%+v", downloadErr)
 				continue
 			}
 
