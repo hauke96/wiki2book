@@ -780,9 +780,10 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	return token
 }
 
-// tokenizeTableRow expects i to be the line with the first text item (i.e. the line after |- ). Furthermore this
-// function expects that each column of this row starts in a new line starting with  |  or  !  . The returned index
-// points to the last text line of this table row.
+// tokenizeTableRow expects i to be the line with the first text item (i.e. the line after |- ). Furthermore, this
+// function expects that each column of this row starts in a new line starting with  |  or  !  . The returned string is
+// never nil and an empty string represents an empty row, that can be ignored. The index points to the last text line of
+// this table row.
 func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 	var rowLineTokens []string
 
@@ -817,6 +818,10 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 		t.setRawToken(token, attributeToken+tokenizedLine)
 
 		rowLineTokens = append(rowLineTokens, token)
+	}
+
+	if len(rowLineTokens) == 0 {
+		return "", i - 1
 	}
 
 	token := t.getToken(TOKEN_TABLE_ROW)
