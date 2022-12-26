@@ -451,6 +451,10 @@ func hasOddNumberOfItems(stack []BoldItalicStackItem) bool {
 }
 
 func (t *Tokenizer) parseGalleries(content string) string {
+	// It may happen that a gallery is surrounded by text within the same line. Use line breaks to make parsing easier.
+	content = strings.ReplaceAll(content, "<gallery", "\n<gallery")
+	content = strings.ReplaceAll(content, "</gallery>", "</gallery>\n")
+
 	lines := strings.Split(content, "\n")
 
 	withinGallery := false
