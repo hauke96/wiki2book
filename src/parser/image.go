@@ -24,6 +24,7 @@ func escapeImages(content string) string {
 	for _, submatch := range submatches {
 		filePrefix := submatch[2]
 		filename := submatch[3]
+		filename = strings.TrimSpace(filename)
 
 		// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
 		filename = strings.ReplaceAll(filename, " ", "_")
