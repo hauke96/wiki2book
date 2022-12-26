@@ -183,11 +183,11 @@ func (t *Tokenizer) tokenize(content string) string {
 
 func tokenizeContent(t *Tokenizer, content string) string {
 	content = clean(content)
-	content = evaluateTemplates(content, t.templateFolder)
 
 	for {
 		originalContent := content
 
+		content = evaluateTemplates(content, t.templateFolder)
 		content = clean(content)
 
 		content = t.parseBoldAndItalic(content)
