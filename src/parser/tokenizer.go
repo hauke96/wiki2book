@@ -451,63 +451,67 @@ func hasOddNumberOfItems(stack []BoldItalicStackItem) bool {
 }
 
 func (t *Tokenizer) parseGalleries(content string) string {
-	// It may happen that a gallery is surrounded by text within the same line. Use line breaks to make parsing easier.
-	content = strings.ReplaceAll(content, "<gallery", "\n<gallery")
-	content = strings.ReplaceAll(content, "</gallery>", "</gallery>\n")
-
 	lines := strings.Split(content, "\n")
-
+	hasNonInlineParameterRegex := regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
 	withinGallery := false
+	var resultLines []string
 
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
+		trimmedLine := strings.TrimSpace(line)
 
 		// Gallery ends -> Simply remove line and end "withinGallery" mode
-		if line == "</gallery>" {
+		if strings.HasPrefix(trimmedLine, "</gallery>") {
 			withinGallery = false
-			// delete this line i
-			lines = append(lines[:i], lines[i+1:]...)
-			i--
-			continue
-		}
 
-		// Gallery starts -> Remove line, maybe parse first image and start "withinGallery" mode
-		if galleryStartRegex.MatchString(line) {
-			line = strings.TrimSpace(galleryStartRegex.ReplaceAllString(line, ""))
-			if line == "" {
-				// if empty -> delete this line i, the next line contains the first image
-				lines = append(lines[:i], lines[i+1:]...)
-			} else {
-				// otherwise -> process this line again as it now contains the first image
-				lines[i] = line
+			if trimmedLine == "</gallery>" {
+				// This line just contains the tag -> ignore it and proceed with parsing
+				continue
 			}
-			i--
+
+			// If the line contains more than the closing tag -> Keep it and proceed with the processing
+			line = strings.ReplaceAll(line, "</gallery>", "")
+		} else if galleryStartRegex.MatchString(trimmedLine) {
 			withinGallery = true
+
+			// Gallery starts -> Remove tag and see if the line also contains the first image
+			line = galleryStartRegex.ReplaceAllString(trimmedLine, "")
+			if line != "" {
+				// This line contained more than just the start tag -> handle line again
+				lines[i] = line
+				i--
+			}
+
 			continue
-		}
+		} else if withinGallery {
+			// We're within a gallery -> turn each line into a correct wikitext image with "[[File:...]]"
 
-		// We're within a gallery -> turn each line into separate wikitext image
-		if withinGallery {
-			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
 
-			hasNonInlineParameterRegex := regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
 			if !hasNonInlineParameterRegex.MatchString(line) {
-				// Line has no non-inline parameter -> Add one to make it a non-inline image
+				// Line has no non-inline parameter -> Add one to make it a non-inline image in further image parsing/escaping
 				lineSegments := strings.Split(line, "|")
+				// The last parameter is the caption, so the non-inline parameter is added right behind the file name
 				lineSegments[0] += "|mini"
 				line = strings.Join(lineSegments, "|")
 			}
 
 			if !imagePrefixRegex.MatchString(line) {
+				// Files with and without "File:" prefixes are allowed. This line has no such prefix -> add valid prefix
 				line = "File:" + line
 			}
 
 			line = fmt.Sprintf("[[%s]]", line)
-			lines[i] = escapeImages(line)
+			line = escapeImages(line)
 		}
+
+		// Normal line or line has been processed -> anyway, add it to the result list
+		resultLines = append(resultLines, line)
 	}
 
-	content = strings.Join(lines, "\n")
+	content = strings.Join(resultLines, "\n")
 	return content
 }
 

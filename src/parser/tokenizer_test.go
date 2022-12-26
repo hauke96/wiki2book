@@ -136,11 +136,10 @@ func TestParseGalleries(t *testing.T) {
 file1.jpg|captiion
 </gallery>
 bar
-<gallery some="parameter">
+ <gallery some="parameter">
 file2.jpg|test123
-file 3.jpg
-</gallery>
-blubb`)
+  file 3.jpg
+</gallery>blubb`)
 
 	test.AssertEqual(t, `foo
 [[File:File0.jpg|mini]]
@@ -149,6 +148,19 @@ bar
 [[File:File2.jpg|mini|test123]]
 [[File:File_3.jpg|mini]]
 blubb`, content)
+
+	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
+}
+
+func TestParseGalleries_emptyGallery(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseGalleries(`foo
+<gallery>
+</gallery>
+bar`)
+
+	test.AssertEqual(t, `foo
+bar`, content)
 
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
 }
