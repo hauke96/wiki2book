@@ -79,7 +79,7 @@ All (raster) images will be scaled down and turned into grayscale images. SVGs s
 
 <gallery>
 Wikimedia_Servers-0051_19.jpg|With some caption.
-Wikipedia-logo-v2.svg
+Datei:Wikipedia-logo-v2.svg
 </gallery>
 
 === Image maps ===

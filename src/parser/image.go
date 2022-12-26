@@ -11,6 +11,7 @@ var images []string
 
 // Remove videos and gifs
 var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
+var imagePrefixRegex = regexp.MustCompile("^(" + FILE_PREFIXES + ")")
 var imageRegex = regexp.MustCompile(IMAGE_REGEX_PATTERN)
 
 // escapeImages escapes the image names in the content and returns the updated content.

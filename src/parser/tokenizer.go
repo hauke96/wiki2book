@@ -494,7 +494,12 @@ func (t *Tokenizer) parseGalleries(content string) string {
 				line = strings.Join(lineSegments, "|")
 			}
 
-			lines[i] = escapeImages(fmt.Sprintf("[[File:%s]]", line))
+			if !imagePrefixRegex.MatchString(line) {
+				line = "File:" + line
+			}
+
+			line = fmt.Sprintf("[[%s]]", line)
+			lines[i] = escapeImages(line)
 		}
 	}
 
