@@ -45,6 +45,7 @@ func removeUnwantedTemplates(content string) string {
 		"portal",
 		"redundanztext",
 		"siehe auch",
+		"staatslastig",
 		"toc",
 		"toter link",
 		"überarbeiten",
