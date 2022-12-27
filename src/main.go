@@ -126,7 +126,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	}
 
 	// Make all relevant paths absolute
-	styleFile, outputFile, coverImageFile, err = toAbsolute(styleFile, outputFile, coverImageFile)
+	styleFile, outputFile, coverImageFile, pandocDataDir, err = toAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
 
 	// Create cache dir and go into it
 	err = os.MkdirAll(cacheDir, os.ModePerm)
@@ -191,7 +191,7 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	var err error
 
 	// Make all relevant paths absolute
-	styleFile, outputFile, coverFile, err = toAbsolute(styleFile, outputFile, coverFile)
+	styleFile, outputFile, coverFile, pandocDataDir, err = toAbsolute(styleFile, outputFile, coverFile, pandocDataDir)
 
 	// Create cache dir and go into it
 	err = os.MkdirAll(cacheDir, os.ModePerm)
@@ -251,7 +251,7 @@ func toRelative(styleFile string, outputFile string, coverFile string) (string, 
 	return styleFile, outputFile, coverFile, err
 }
 
-func toAbsolute(styleFile string, outputFile string, coverFile string) (string, string, string, error) {
+func toAbsolute(styleFile string, outputFile string, coverFile string, pandocDir string) (string, string, string, string, error) {
 	var err error
 
 	styleFile, err = util.MakePathAbsolute(styleFile, err)
@@ -263,5 +263,8 @@ func toAbsolute(styleFile string, outputFile string, coverFile string) (string, 
 	coverFile, err = util.MakePathAbsolute(coverFile, err)
 	sigolo.FatalCheck(err)
 
-	return styleFile, outputFile, coverFile, err
+	pandocDir, err = util.MakePathAbsolute(pandocDir, err)
+	sigolo.FatalCheck(err)
+
+	return styleFile, outputFile, coverFile, pandocDir, err
 }
