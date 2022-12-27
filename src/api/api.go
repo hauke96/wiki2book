@@ -38,7 +38,7 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
-		sigolo.Info("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debug("File %s does already exist. Skip.", outputFilepath)
 		return outputFilepath, nil
 	}
 
@@ -105,7 +105,7 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file '%s'", outputFilepath))
 	}
 
-	sigolo.Info("Cached file to '%s'", outputFilepath)
+	sigolo.Debug("Cached file to '%s'", outputFilepath)
 
 	return nil
 }

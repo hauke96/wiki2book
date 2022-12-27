@@ -436,7 +436,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 
 	// Create output file
 	outputFilepath := filepath.Join(outputFolder, title+".html")
-	sigolo.Info("Write to %s", outputFilepath)
+	sigolo.Debug("Write to %s", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))

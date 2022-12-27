@@ -11,7 +11,7 @@ const IMAGE_REGEX_PATTERN = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*)
 func Parse(content string, title string, tokenizer ITokenizer) Article {
 	content = tokenizer.tokenize(content)
 
-	sigolo.Info("Token map length: %d", len(tokenizer.getTokenMap()))
+	sigolo.Debug("Token map length: %d", len(tokenizer.getTokenMap()))
 
 	// print some debug information if wanted
 	if sigolo.LogLevel >= sigolo.LOG_DEBUG {

@@ -137,7 +137,7 @@ func followRedirectIfNeeded(source string, title string, cacheFolder string) (st
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
-	sigolo.Info("Evaluate template %s", util.TruncString(template))
+	sigolo.Debug("Evaluate template %s", util.TruncString(template))
 
 	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
 	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
@@ -160,7 +160,7 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 }
 
 func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
-	sigolo.Info("Render math %s", mathString)
+	sigolo.Debug("Render math %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
 
@@ -198,7 +198,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		if err != nil {
 			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
 		}
-		sigolo.Info("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debug("File %s does already exist. Skip.", outputFilepath)
 		return mathSvgFilename, nil
 	}
 
