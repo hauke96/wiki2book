@@ -160,6 +160,15 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 }
 
 func generateArticleEbook(articleName string, outputFile string, styleFile string, coverImageFile string, pandocDataDir string) {
+	//var err error
+	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
+	//f, err := os.Create("profiling.prof")
+	//sigolo.FatalCheck(err)
+	//
+	//err = pprof.StartCPUProfile(f)
+	//sigolo.FatalCheck(err)
+	//defer pprof.StopCPUProfile()
+
 	// TODO Make ".wiki2book" a parameter
 	cacheDir := ".wiki2book"
 
