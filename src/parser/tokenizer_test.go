@@ -67,6 +67,35 @@ func TestParseHeadingWithFormatting(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseHeadingWithTextAround(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseHeadings(`foo
+== heading2 ==
+2
+=== heading3 ===
+3
+= heading1 =
+1
+=== heading3-2 ===
+3-2`)
+
+	test.AssertEqual(t, `foo
+$$TOKEN_HEADING_2_2$$
+2
+$$TOKEN_HEADING_3_0$$
+3
+$$TOKEN_HEADING_1_3$$
+1
+$$TOKEN_HEADING_3_1$$
+3-2`, content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_HEADING_3_0$$": "heading3",
+		"$$TOKEN_HEADING_3_1$$": "heading3-2",
+		"$$TOKEN_HEADING_2_2$$": "heading2",
+		"$$TOKEN_HEADING_1_3$$": "heading1",
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseBoldAndItalic_wrongFormats(t *testing.T) {
 	var tokenizer Tokenizer
 	var content string

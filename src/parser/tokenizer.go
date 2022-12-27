@@ -232,16 +232,27 @@ func (t *Tokenizer) tokenizeInline(content string) string {
 }
 
 func (t *Tokenizer) parseHeadings(content string) string {
-	for i := 0; i < 7; i++ {
-		matches := headingRegexes[i].FindAllStringSubmatch(content, -1)
-		for _, match := range matches {
-			token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i+1))
-			t.setToken(token, match[1])
-			content = strings.Replace(content, match[0], token, 1)
+	lines := strings.Split(content, "\n")
+
+	// Start with large headings to only match them and then go down in size to match smaller ones.
+	for headingDepth := 7; headingDepth > 0; headingDepth-- {
+		headingMediawikiMarker := strings.Repeat("=", headingDepth)
+
+		for i := 0; i < len(lines); i++ {
+			line := lines[i]
+
+			if strings.HasPrefix(line, headingMediawikiMarker) && strings.HasSuffix(line, headingMediawikiMarker) {
+				headingText := strings.ReplaceAll(line, headingMediawikiMarker, "")
+				headingText = strings.TrimSpace(headingText)
+
+				token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, headingDepth))
+				t.setToken(token, headingText)
+				lines[i] = token
+			}
 		}
 	}
 
-	return content
+	return strings.Join(lines, "\n")
 }
 
 func (t *Tokenizer) parseBoldAndItalic(content string) string {
@@ -812,7 +823,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 		tokenizedLine = strings.TrimPrefix(tokenizedLine, "|")
 		tokenizedLine = strings.TrimPrefix(tokenizedLine, "!")
 
-		// Collect al normal text rows until the next row or column starts.
+		// Collect all normal text rows until the next row or column starts.
 		i++
 		for ; !strings.HasPrefix(lines[i], "|") && !strings.HasPrefix(lines[i], "!"); i++ {
 			tokenizedLine += "\n" + lines[i]
