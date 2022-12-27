@@ -13,6 +13,7 @@ func clean(content string) string {
 	content = removeUnwantedCategories(content)
 	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
+	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
 	return content
 }
@@ -97,6 +98,19 @@ func removeUnwantedTemplates(content string) string {
 func removeUnwantedHtml(content string) string {
 	regex := regexp.MustCompile(`</?(div|span)[^>]*>`)
 	return regex.ReplaceAllString(content, "")
+}
+
+func removeEmptyListEntries(content string) string {
+	// Use multi-line matches (?m) to also match on \n
+	// TODO Edge case: Empty list item at the end of the content (with no trailing newline)
+	emptyListItemRegex := regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
+
+	emptyListItemMatches := emptyListItemRegex.FindAllStringSubmatch(content, -1)
+	for _, match := range emptyListItemMatches {
+		content = strings.Replace(content, match[1], "", 1)
+	}
+
+	return content
 }
 
 func removeEmptySections(content string) string {

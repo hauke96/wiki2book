@@ -110,6 +110,18 @@ func TestIsHeading(t *testing.T) {
 	test.AssertEqual(t, 0, headingDepth(" '''test'''"))
 }
 
+func TestRemoveEmptyListEntries(t *testing.T) {
+	content := `foo
+*
+* 
+* bar
+*  
+blubb`
+	test.AssertEqual(t, `foo
+* bar
+blubb`, removeEmptyListEntries(content))
+}
+
 func TestRemoveEmptySection_normal(t *testing.T) {
 	content := `foo
 
