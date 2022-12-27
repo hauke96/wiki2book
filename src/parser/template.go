@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func evaluateTemplates(content string, templateFolder string) string {
+func evaluateTemplates(t *Tokenizer, content string, templateFolder string) string {
 	lastOpeningTemplateIndex := -1
 
 	for i := 0; i < len(content)-1; i++ {
@@ -24,6 +24,8 @@ func evaluateTemplates(content string, templateFolder string) string {
 				sigolo.Stack(err)
 				return ""
 			}
+
+			evaluatedTemplate = t.tokenize(evaluatedTemplate)
 
 			// Replace the template by its evaluated form. Only do this for the first occurrence to not alter templates
 			// that will be handled by this loop anyway.
