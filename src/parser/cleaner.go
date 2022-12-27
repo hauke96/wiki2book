@@ -70,33 +70,41 @@ func removeUnwantedTemplates(content string) string {
 
 	lastOpeningTemplateIndex := -1
 
-	for i := 0; i < len(content)-1; i++ {
-		cursor := content[i : i+2]
+	for {
+		originalContent := content
 
-		if cursor == "{{" {
-			lastOpeningTemplateIndex = i
-		} else if lastOpeningTemplateIndex != -1 && cursor == "}}" {
-			templateText := content[lastOpeningTemplateIndex : i+2]
+		for i := 0; i < len(content)-1; i++ {
+			cursor := content[i : i+2]
 
-			matches := templateNameRegex.FindStringSubmatch(templateText)
-			if matches == nil {
-				// No match found
+			if cursor == "{{" {
+				lastOpeningTemplateIndex = i
+			} else if lastOpeningTemplateIndex != -1 && cursor == "}}" {
+				templateText := content[lastOpeningTemplateIndex : i+2]
+
+				matches := templateNameRegex.FindStringSubmatch(templateText)
+				if matches == nil {
+					// No match found
+					lastOpeningTemplateIndex = -1
+					continue
+				}
+
+				templateName := strings.ToLower(matches[1])
+				templateName = strings.TrimSpace(templateName)
+
+				if util.Contains(ignoreTemplates, templateName) {
+					// Replace the template with an empty string, since it should be ignored.
+					content = strings.Replace(content, templateText, "", 1)
+
+					// Continue from the original template position (-1 because of the i++ of the loop)
+					i = lastOpeningTemplateIndex - 1
+				}
+
 				lastOpeningTemplateIndex = -1
-				continue
 			}
+		}
 
-			templateName := strings.ToLower(matches[1])
-			templateName = strings.TrimSpace(templateName)
-
-			if util.Contains(ignoreTemplates, templateName) {
-				// Replace the template with an empty string, since it should be ignored.
-				content = strings.Replace(content, templateText, "", 1)
-
-				// Continue from the original template position (-1 because of the i++ of the loop)
-				i = lastOpeningTemplateIndex - 1
-			}
-
-			lastOpeningTemplateIndex = -1
+		if content == originalContent {
+			break
 		}
 	}
 
