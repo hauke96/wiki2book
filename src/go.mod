@@ -1,6 +1,6 @@
 module github.com/hauke96/wiki2book/src
 
-go 1.17
+go 1.18
 
 require (
 	github.com/hauke96/sigolo v1.0.1

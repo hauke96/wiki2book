@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/hauke96/wiki2book/src/util"
 	"regexp"
 	"strings"
 )
@@ -57,22 +58,37 @@ func removeUnwantedTemplates(content string) string {
 		"wiktionary",
 	}
 
-	// Find all templates that actually appear in the text
-	lowerCaseContent := strings.ToLower(content)
-	var ignoreRegexes []*regexp.Regexp
-	for _, template := range ignoreTemplates {
-		if strings.Contains(lowerCaseContent, template) {
-			ignoreRegexes = append(ignoreRegexes, regexp.MustCompile(`(?i)(\* )?\{\{`+template+`[^}]*?}}\n?`))
+	templateNameRegex := regexp.MustCompile(`{{\s*([^\n|}]+)`)
+	lastOpeningTemplateIndex := -1
+
+	for i := 0; i < len(content)-1; i++ {
+		cursor := content[i : i+2]
+
+		if cursor == "{{" {
+			lastOpeningTemplateIndex = i
+		} else if lastOpeningTemplateIndex != -1 && cursor == "}}" {
+			templateText := content[lastOpeningTemplateIndex : i+2]
+
+			matches := templateNameRegex.FindStringSubmatch(templateText)
+			if matches == nil {
+				// No match found
+				lastOpeningTemplateIndex = -1
+				continue
+			}
+
+			templateName := strings.ToLower(matches[1])
+			templateName = strings.TrimSpace(templateName)
+
+			if util.Contains(ignoreTemplates, templateName) {
+				// Replace the template with an empty string, since it should be ignored.
+				content = strings.Replace(content, templateText, "", 1)
+
+				// Continue from the original template position (-1 because of the i++ of the loop)
+				i = lastOpeningTemplateIndex - 1
+			}
+
+			lastOpeningTemplateIndex = -1
 		}
-	}
-
-	var matches []string
-	for _, regex := range ignoreRegexes {
-		matches = append(matches, regex.FindAllString(content, -1)...)
-	}
-
-	for _, match := range matches {
-		content = strings.ReplaceAll(content, match, "")
 	}
 
 	return content

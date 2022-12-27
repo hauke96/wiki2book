@@ -12,7 +12,9 @@ func TestRemoveUnwantedCategories(t *testing.T) {
 }
 
 func TestRemoveUnwantedTemplates(t *testing.T) {
-	content := "{{siehe auch}}{{GRAPH:CHART\n$ome+µeird-string}}{{let this template stay}}"
+	content := `{{siehe auch}}{{GRAPH:CHART
+|$ome+µeird-string}}{{let this template stay}}{{
+toc }}`
 	content = removeUnwantedTemplates(content)
 	test.AssertEqual(t, "{{let this template stay}}", content)
 }
@@ -20,7 +22,7 @@ func TestRemoveUnwantedTemplates(t *testing.T) {
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
 	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem}}\nbar"
 	content = removeUnwantedTemplates(content)
-	test.AssertEqual(t, "foo\nbar", content)
+	test.AssertEqual(t, "foo\n\nbar", content)
 }
 
 func TestRemoveUnwantedHtml(t *testing.T) {
@@ -62,6 +64,8 @@ foo`
 	test.AssertEqual(t, `
 == Einzelnachweise ==
 <references />
+
+
 
 
 foo`, content)
