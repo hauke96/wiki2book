@@ -214,30 +214,29 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 		sigolo.Info("Start processing article %s", articleName)
 
 		// TODO make check configurable
-		outputFilepath := filepath.Join(htmlOutputFolder, articleName+".html")
-		_, err := os.Stat(outputFilepath)
+		htmlFileName := articleName + ".html"
+		htmlFilePath := filepath.Join(htmlOutputFolder, htmlFileName)
+		_, err := os.Stat(htmlFilePath)
 		if err == nil {
-			sigolo.Info("HTML for article %s does already exist. Skip parsing.", articleName)
-			articleFiles = append(articleFiles, outputFile)
-			continue
+			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
+		} else {
+			wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
+			sigolo.FatalCheck(err)
+
+			tokenizer := parser.NewTokenizer(imageCache, templateCache)
+			article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
+
+			err = api.DownloadImages(article.Images, imageCache, articleCache)
+			sigolo.FatalCheck(err)
+
+			htmlGenerator := &html.HtmlGenerator{}
+			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
+			sigolo.FatalCheck(err)
+
+			sigolo.Info("Succeesfully created HTML for article %s", articleName)
 		}
 
-		wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
-		sigolo.FatalCheck(err)
-
-		tokenizer := parser.NewTokenizer(imageCache, templateCache)
-		article := parser.Parse(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title, &tokenizer)
-
-		err = api.DownloadImages(article.Images, imageCache, articleCache)
-		sigolo.FatalCheck(err)
-
-		htmlGenerator := &html.HtmlGenerator{}
-		outputFile, err := htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
-		sigolo.FatalCheck(err)
-
-		articleFiles = append(articleFiles, outputFile)
-
-		sigolo.Info("Succeesfully created HTML for article %s", articleName)
+		articleFiles = append(articleFiles, htmlFileName)
 	}
 
 	sigolo.Info("Start generating EPUB file")
