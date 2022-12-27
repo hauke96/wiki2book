@@ -166,8 +166,8 @@ file1.jpg|captiion
 </gallery>
 bar
  <gallery some="parameter">
-file2.jpg|test123
-  file 3.jpg
+File:file2.jpg|test123
+  File:file 3.jpg
 </gallery>blubb`)
 
 	test.AssertEqual(t, `foo

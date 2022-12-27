@@ -486,10 +486,10 @@ func (t *Tokenizer) parseGalleries(content string) string {
 			withinGallery = true
 
 			// Gallery starts -> Remove tag and see if the line also contains the first image
-			line = galleryStartRegex.ReplaceAllString(trimmedLine, "")
-			if line != "" {
+			trimmedLine = galleryStartRegex.ReplaceAllString(trimmedLine, "")
+			if trimmedLine != "" {
 				// This line contained more than just the start tag -> handle line again
-				lines[i] = line
+				lines[i] = trimmedLine
 				i--
 			}
 
@@ -497,25 +497,25 @@ func (t *Tokenizer) parseGalleries(content string) string {
 		} else if withinGallery {
 			// We're within a gallery -> turn each line into a correct wikitext image with "[[File:...]]"
 
-			if line == "" {
+			if trimmedLine == "" {
 				continue
 			}
 
-			if !hasNonInlineParameterRegex.MatchString(line) {
+			if !hasNonInlineParameterRegex.MatchString(trimmedLine) {
 				// Line has no non-inline parameter -> Add one to make it a non-inline image in further image parsing/escaping
-				lineSegments := strings.Split(line, "|")
+				lineSegments := strings.Split(trimmedLine, "|")
 				// The last parameter is the caption, so the non-inline parameter is added right behind the file name
 				lineSegments[0] += "|mini"
-				line = strings.Join(lineSegments, "|")
+				trimmedLine = strings.Join(lineSegments, "|")
 			}
 
-			if !imagePrefixRegex.MatchString(line) {
+			if !imagePrefixRegex.MatchString(trimmedLine) {
 				// Files with and without "File:" prefixes are allowed. This line has no such prefix -> add valid prefix
-				line = "File:" + line
+				trimmedLine = "File:" + trimmedLine
 			}
 
-			line = fmt.Sprintf("[[%s]]", line)
-			line = escapeImages(line)
+			trimmedLine = fmt.Sprintf("[[%s]]", trimmedLine)
+			line = escapeImages(trimmedLine)
 		}
 
 		// Normal line or line has been processed -> anyway, add it to the result list
