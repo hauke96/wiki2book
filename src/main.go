@@ -209,8 +209,18 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	templateCache := "templates"
 	articleCache := "articles"
 
+	htmlOutputFolder := "./"
 	for _, articleName := range articles {
-		sigolo.Info("Start processing articleName %s", articleName)
+		sigolo.Info("Start processing article %s", articleName)
+
+		// TODO make check configurable
+		outputFilepath := filepath.Join(htmlOutputFolder, articleName+".html")
+		_, err := os.Stat(outputFilepath)
+		if err == nil {
+			sigolo.Info("HTML for article %s does already exist. Skip parsing.", articleName)
+			articleFiles = append(articleFiles, outputFile)
+			continue
+		}
 
 		wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
 		sigolo.FatalCheck(err)
@@ -222,12 +232,12 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 		sigolo.FatalCheck(err)
 
 		htmlGenerator := &html.HtmlGenerator{}
-		outputFile, err := htmlGenerator.Generate(article, "./", styleFile, imageCache, mathCache, articleCache)
+		outputFile, err := htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
 		sigolo.FatalCheck(err)
 
 		articleFiles = append(articleFiles, outputFile)
 
-		sigolo.Info("Succeesfully created HTML for articleName %s", articleName)
+		sigolo.Info("Succeesfully created HTML for article %s", articleName)
 	}
 
 	sigolo.Info("Start generating EPUB file")
