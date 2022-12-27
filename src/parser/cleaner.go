@@ -43,6 +43,7 @@ func removeUnwantedTemplates(content string) string {
 		"gesprochene version",
 		"graph:chart",
 		"hauptartikel",
+		"klade",
 		"lesenswert",
 		"linkbox",
 		"lückenhaft",
