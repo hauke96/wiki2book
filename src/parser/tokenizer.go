@@ -1284,32 +1284,53 @@ func (t *Tokenizer) parseMath(content string) string {
 // assume a token to be self-contained without the need ot extra space below it.
 func (t *Tokenizer) parseParagraphs(content string) string {
 	oldLines := strings.Split(content, "\n")
-	resultLines := []string{oldLines[0]}
+	var resultLines []string
 	tokenLineRegex := regexp.MustCompile(TOKEN_LINE_REGEX)
 
-	for i := 1; i < len(oldLines)-1; i++ {
-		lineBefore := oldLines[i-1]
-		line := oldLines[i]
-		lineNext := oldLines[i+1]
+	ignoreEmptyLinesMode := true
 
-		if line == "" && lineBefore == MARKER_PARAGRAPH {
-			// Empty lines after a paragraph marker will be ignored. To do that, we have to mark them in the original
-			// lines but will not write the marker into the result lines.
-			oldLines[i] = MARKER_PARAGRAPH
+	// Setting this to "true" marks a wish to create a marker. If a marker is created depends on the surrounding
+	// lines. No paragraphs are added before and after a token line.
+	createParagraphWhenAllowed := false
+
+	for i := 0; i < len(oldLines); i++ {
+		line := oldLines[i]
+		lineBefore := ""
+		if i-1 >= 0 {
+			lineBefore = oldLines[i-1]
+		}
+
+		if tokenLineRegex.MatchString(line) {
+			ignoreEmptyLinesMode = true
+			createParagraphWhenAllowed = false
+			resultLines = append(resultLines, line)
 			continue
 		}
 
-		if line == "" && !tokenLineRegex.MatchString(lineBefore) && !tokenLineRegex.MatchString(lineNext) {
-			oldLines[i] = MARKER_PARAGRAPH
-			resultLines = append(resultLines, MARKER_PARAGRAPH)
-		} else {
-			resultLines = append(resultLines, line)
-		}
-	}
+		if ignoreEmptyLinesMode {
+			if line != "" {
+				// End mode of ignoring blank lines, because we reached a non-blank and non-token line
+				ignoreEmptyLinesMode = false
 
-	// Add the last line if it's not also the first line.
-	if len(oldLines) >= 2 {
-		resultLines = append(resultLines, oldLines[len(oldLines)-1])
+				if createParagraphWhenAllowed {
+					// If there was a normal line before (and not a token-line), then create a paragraph marker
+					resultLines = append(resultLines, MARKER_PARAGRAPH)
+				}
+
+				createParagraphWhenAllowed = false
+				resultLines = append(resultLines, line)
+			}
+		} else {
+			if line == "" && lineBefore != "" {
+				// Previous line was not blank & line before was not a token line & we're not in blank-ignore-mode
+				// -> start blank-ignore-mode and make a wish to add a marker
+				ignoreEmptyLinesMode = true
+				createParagraphWhenAllowed = true
+			} else {
+				// Handling of normal lines
+				resultLines = append(resultLines, line)
+			}
+		}
 	}
 
 	return strings.Join(resultLines, "\n")

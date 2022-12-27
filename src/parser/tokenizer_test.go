@@ -385,7 +385,7 @@ func TestParseTable_tableInTable(t *testing.T) {
 		// outer table
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4, TOKEN_TABLE_COL, 5),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): " foo ",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 5): fmt.Sprintf("\n"+TOKEN_TEMPLATE, TOKEN_TABLE, 3),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 5): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3),
 		// inner table
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3):     fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
@@ -923,7 +923,6 @@ blubb`
 	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
 
 	test.AssertEqual(t, fmt.Sprintf(`%s
-
 bar
 %s
 blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), MARKER_PARAGRAPH), tokenizedContent)
@@ -934,18 +933,21 @@ func TestParseParagraph_afterHeading(t *testing.T) {
 	content := `== foo ==
 
 bar
+== hi ==
 
 
+blubb
 
-blubb`
+par`
 
 	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
 
 	test.AssertEqual(t, fmt.Sprintf(`%s
-
 bar
 %s
-blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0), MARKER_PARAGRAPH), tokenizedContent)
+blubb
+%s
+par`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 1), MARKER_PARAGRAPH), tokenizedContent)
 }
 
 func TestParseParagraph_beforeToken(t *testing.T) {
@@ -964,7 +966,6 @@ cool`
 	test.AssertEqual(t, fmt.Sprintf(`bar
 %s
 blubb
-
 %s
 cool`, MARKER_PARAGRAPH, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0)), tokenizedContent)
 }
