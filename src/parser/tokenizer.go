@@ -96,6 +96,7 @@ var (
 	filePrefixRegex                  = regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
 	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
+	hasNonInlineParameterRegex       = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
 	externalLinkRegex                = regexp.MustCompile(`([^\[])?\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
 	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
 	tableRowAndColspanRegex          = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
@@ -107,6 +108,7 @@ var (
 	namedReferenceUsageRegex         = regexp.MustCompile(`<ref name="?([^"^>^/]*)"?\s?/>`)
 	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
 	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
+	tokenLineRegex                   = regexp.MustCompile(TOKEN_LINE_REGEX)
 	headingRegexes                   = []*regexp.Regexp{
 		regexp.MustCompile(`(?m)^= (.*) =$`), // (?m) = enable multi-line matches
 		regexp.MustCompile(`(?m)^== (.*) ==$`),
@@ -463,7 +465,6 @@ func hasOddNumberOfItems(stack []BoldItalicStackItem) bool {
 
 func (t *Tokenizer) parseGalleries(content string) string {
 	lines := strings.Split(content, "\n")
-	hasNonInlineParameterRegex := regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
 	withinGallery := false
 	var resultLines []string
 
@@ -1285,7 +1286,6 @@ func (t *Tokenizer) parseMath(content string) string {
 func (t *Tokenizer) parseParagraphs(content string) string {
 	oldLines := strings.Split(content, "\n")
 	var resultLines []string
-	tokenLineRegex := regexp.MustCompile(TOKEN_LINE_REGEX)
 
 	ignoreEmptyLinesMode := true
 

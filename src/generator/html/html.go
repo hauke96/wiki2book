@@ -80,6 +80,11 @@ const TEMPLATE_HEADING = "<h%d>%s</h%d>"
 const TEMPLATE_REF_DEF = "[%d] %s<br>"
 const TEMPLATE_REF_USAGE = "[%d]"
 
+var (
+	tokenRegex                  = regexp.MustCompile(parser.TOKEN_REGEX)
+	tableColAttributeTokenRegex = regexp.MustCompile(`\$\$TOKEN_` + parser.TOKEN_TABLE_COL_ATTRIBUTES + `_\d+\$\$`)
+)
+
 type HtmlGenerator struct {
 	imageCacheFolder   string
 	mathCacheFolder    string
@@ -106,8 +111,7 @@ func (g *HtmlGenerator) Generate(wikiArticle parser.Article, outputFolder string
 func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (string, error) {
 	content = g.expandMarker(content)
 
-	regex := regexp.MustCompile(parser.TOKEN_REGEX)
-	submatches := regex.FindAllStringSubmatch(content, -1)
+	submatches := tokenRegex.FindAllStringSubmatch(content, -1)
 
 	if len(submatches) == 0 {
 		// no token in content
@@ -203,11 +207,10 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 	caption := ""
 	var err error = nil
 
-	regex := regexp.MustCompile(parser.TOKEN_REGEX)
-	tokenName := regex.FindStringSubmatch(tokenString)[1]
+	tokenName := tokenRegex.FindStringSubmatch(tokenString)[1]
 	inline := tokenName == parser.TOKEN_IMAGE_INLINE
 
-	submatches := regex.FindAllStringSubmatch(tokenMap[tokenString], -1)
+	submatches := tokenRegex.FindAllStringSubmatch(tokenMap[tokenString], -1)
 
 	if len(submatches) == 0 {
 		return "", errors.New("No token found in image token: " + tokenString)
@@ -270,10 +273,9 @@ func (g *HtmlGenerator) expandTable(tokenString string, tokenMap map[string]stri
 		return "", err
 	}
 
-	regex := regexp.MustCompile(parser.TOKEN_REGEX)
 	caption := ""
 	for _, subToken := range strings.Split(tokenizedContent, " ") {
-		match := regex.FindStringSubmatch(subToken)
+		match := tokenRegex.FindStringSubmatch(subToken)
 		if len(match) < 2 {
 			continue
 		}
@@ -307,8 +309,7 @@ func (g *HtmlGenerator) expandTableColumn(tokenString string, tokenMap map[strin
 
 	attributes := ""
 	if strings.Contains(tokenContent, parser.TOKEN_TABLE_COL_ATTRIBUTES) {
-		regex := regexp.MustCompile(`\$\$TOKEN_` + parser.TOKEN_TABLE_COL_ATTRIBUTES + `_\d+\$\$`)
-		attributeToken := regex.FindString(tokenContent)
+		attributeToken := tableColAttributeTokenRegex.FindString(tokenContent)
 		attributes = " " + tokenMap[attributeToken]
 		tokenContent = strings.Replace(tokenContent, attributeToken, "", 1)
 	}

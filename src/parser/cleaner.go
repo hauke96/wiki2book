@@ -8,6 +8,13 @@ import (
 
 var headingRegex = regexp.MustCompile(`^(=*)[^=]+(=*)$`)
 var semiHeadingRegex = regexp.MustCompile(`^'''.+'''$`)
+var categoryRegex = regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`)
+var templateNameRegex = regexp.MustCompile(`{{\s*([^\n|}]+)`)
+var unwantedHtmlRegex = regexp.MustCompile(`</?(div|span)[^>]*>`)
+
+// Use multi-line matches (?m) to also match on \n
+// TODO Edge case: Empty list item at the end of the content (with no trailing newline)
+var emptyListItemRegex = regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
 
 func clean(content string) string {
 	content = removeUnwantedCategories(content)
@@ -19,8 +26,7 @@ func clean(content string) string {
 }
 
 func removeUnwantedCategories(content string) string {
-	regex := regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`)
-	return regex.ReplaceAllString(content, "")
+	return categoryRegex.ReplaceAllString(content, "")
 }
 
 func removeUnwantedTemplates(content string) string {
@@ -61,7 +67,6 @@ func removeUnwantedTemplates(content string) string {
 		"wiktionary",
 	}
 
-	templateNameRegex := regexp.MustCompile(`{{\s*([^\n|}]+)`)
 	lastOpeningTemplateIndex := -1
 
 	for i := 0; i < len(content)-1; i++ {
@@ -98,15 +103,10 @@ func removeUnwantedTemplates(content string) string {
 }
 
 func removeUnwantedHtml(content string) string {
-	regex := regexp.MustCompile(`</?(div|span)[^>]*>`)
-	return regex.ReplaceAllString(content, "")
+	return unwantedHtmlRegex.ReplaceAllString(content, "")
 }
 
 func removeEmptyListEntries(content string) string {
-	// Use multi-line matches (?m) to also match on \n
-	// TODO Edge case: Empty list item at the end of the content (with no trailing newline)
-	emptyListItemRegex := regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
-
 	emptyListItemMatches := emptyListItemRegex.FindAllStringSubmatch(content, -1)
 	for _, match := range emptyListItemMatches {
 		content = strings.Replace(content, match[1], "", 1)
