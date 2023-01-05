@@ -1,6 +1,9 @@
 package util
 
-import "math"
+import (
+	"math"
+	"unicode/utf8"
+)
 
 func TruncString(content string) string {
 	firstPartOfContent := content[:int(math.Min(float64(len(content)), 50))]
@@ -8,4 +11,9 @@ func TruncString(content string) string {
 		firstPartOfContent += "..."
 	}
 	return firstPartOfContent
+}
+
+func RemoveLastChar(s string) string {
+	_, sizeOfLastChar := utf8.DecodeLastRuneInString(s)
+	return s[:len(s)-sizeOfLastChar]
 }

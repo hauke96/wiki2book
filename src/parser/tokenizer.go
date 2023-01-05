@@ -687,7 +687,7 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 		// Remove last characters as it's the first character after the closing  ]  of the file tag.
 		totalMatch := submatch[0]
 		if totalMatch[len(totalMatch)-1] != ']' {
-			totalMatch = totalMatch[:len(totalMatch)-1]
+			totalMatch = util.RemoveLastChar(totalMatch)
 		}
 		content = strings.Replace(content, totalMatch, submatch[1]+token, 1)
 	}
