@@ -98,7 +98,7 @@ func (g *HtmlGenerator) Generate(wikiArticle parser.Article, outputFolder string
 	g.articleCacheFolder = articleFolder
 
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
-	content += "\n<h1>" + wikiArticle.Title + "</h1>"
+	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
 	expandedContent, err := g.expand(wikiArticle.Content, wikiArticle.TokenMap)
 	if err != nil {
 		return "", err
