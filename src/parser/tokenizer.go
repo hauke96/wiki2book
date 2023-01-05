@@ -1032,9 +1032,31 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 				// ensures that no new dummy-list item is needed to store the token of the sub-list.
 				tokenContent += " " + subListToken
 			}
+			
+			tokenString := t.getListItemTokenString(tokenItemPrefix)
+			if tokenString == TOKEN_DESCRIPTION_LIST_HEAD {
+				// A description list may contain content within the line of a heading. Something like this: "; foo: bar"
 
-			token = t.getToken(t.getListItemTokenString(tokenItemPrefix))
-			t.setRawToken(token, tokenContent)
+				// Split the heading-part from potential content
+				lineParts := strings.Split(tokenContent, ":")
+
+				headPart := lineParts[0]
+				token = t.getToken(tokenString)
+				t.setRawToken(token, headPart)
+
+				if len(lineParts) > 1 {
+					// Add heading token to that the variable can be overridden without losing the heading token
+					allListItemTokens = append(allListItemTokens, token)
+
+					// There's content after the heading -> Create separate token for that
+					contentPart := strings.Join(lineParts[1:], ":")
+					token = t.getToken(TOKEN_DESCRIPTION_LIST_ITEM)
+					t.setRawToken(token, contentPart)
+				}
+			} else {
+				token = t.getToken(tokenString)
+				t.setRawToken(token, tokenContent)
+			}
 		}
 
 		allListItemTokens = append(allListItemTokens, token)
