@@ -21,8 +21,8 @@ var cli struct {
 	Debug      bool `help:"Enable debug mode." short:"d"`
 	Standalone struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		Output        string `help:"The EPUB file." short:"o"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"` // TODO add this to the other commands as well
+		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
 		StyleFile     string `help:"The CSS file that should be used." short:"s"`
 		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
 		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
@@ -31,12 +31,14 @@ var cli struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName   string `help:"The name of the article to render." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-	} `cmd:"" help:"Renders a specific article into an eBook."`
+		ArticleName       string `help:"The name of the article to render." arg:""`
+		OutputFile        string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir          string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile         string `help:"The CSS file that should be used." short:"s"`
+		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"c"`
+		PandocDataDir     string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
+	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
 func main() {
@@ -52,11 +54,11 @@ func main() {
 	case "standalone <file>":
 		util.AssertFileExists(cli.Standalone.StyleFile)
 		util.AssertFileExists(cli.Standalone.CoverImage)
-		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.Output, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir)
+		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputFile, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir)
 	case "project <project-file>":
 		generateProjectEbook(cli.Project.ProjectFile)
 	case "article <article-name>":
-		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.StyleFile, cli.Article.CoverImage, cli.Article.PandocDataDir)
+		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.CacheDir, cli.Article.StyleFile, cli.Article.CoverImage, cli.Article.PandocDataDir, cli.Article.WikipediaInstance)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
 	}
@@ -120,7 +122,6 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	fileInfo, err := file.Stat()
 	sigolo.FatalCheck(err)
 
-	// IsDir is short for fileInfo.Mode().IsDir()
 	if fileInfo.IsDir() {
 		outputFile = path.Join(outputFile, "standalone.epub")
 	}
@@ -159,7 +160,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file")
 }
 
-func generateArticleEbook(articleName string, outputFile string, styleFile string, coverImageFile string, pandocDataDir string) {
+func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string) {
 	//var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -169,15 +170,12 @@ func generateArticleEbook(articleName string, outputFile string, styleFile strin
 	//sigolo.FatalCheck(err)
 	//defer pprof.StopCPUProfile()
 
-	// TODO Make ".wiki2book" a parameter
-	cacheDir := ".wiki2book"
-
 	var articles []string
 	articles = append(articles, articleName)
 
 	// TODO Parameterize all fixed strings
 	generateEpubFromArticles(articles,
-		"de",
+		instance,
 		cacheDir,
 		styleFile,
 		outputFile,
