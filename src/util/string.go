@@ -2,6 +2,7 @@ package util
 
 import (
 	"math"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -16,4 +17,13 @@ func TruncString(content string) string {
 func RemoveLastChar(s string) string {
 	_, sizeOfLastChar := utf8.DecodeLastRuneInString(s)
 	return s[:len(s)-sizeOfLastChar]
+}
+
+func ElementHasPrefix(element string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(element, prefix) {
+			return true
+		}
+	}
+	return false
 }
