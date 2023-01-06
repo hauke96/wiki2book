@@ -11,6 +11,9 @@ import (
 	"strings"
 )
 
+const FILE_PREFIXES = "Datei|File|Bild|Image|Media"
+const IMAGE_REGEX_PATTERN = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`
+
 const TOKEN_REGEX = `\$\$TOKEN_([A-Z_0-9]*)_\d+\$\$`
 const TOKEN_LINE_REGEX = "^" + TOKEN_REGEX + "$"
 const TOKEN_TEMPLATE = "$$TOKEN_%s_%d$$"
