@@ -20,24 +20,27 @@ import (
 var cli struct {
 	Debug      bool `help:"Enable debug mode." short:"d"`
 	Standalone struct {
-		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		File                string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
+		OutputFile          string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir            string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile           string `help:"The CSS file that should be used." short:"s"`
+		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
+		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
+		ProjectFile         string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName       string `help:"The name of the article to render." arg:""`
-		OutputFile        string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir          string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile         string `help:"The CSS file that should be used." short:"s"`
-		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"c"`
-		PandocDataDir     string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
+		ArticleName         string `help:"The name of the article to render." arg:""`
+		OutputFile          string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir            string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile           string `help:"The CSS file that should be used." short:"s"`
+		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
+		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		WikipediaInstance   string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -54,11 +57,11 @@ func main() {
 	case "standalone <file>":
 		util.AssertFileExists(cli.Standalone.StyleFile)
 		util.AssertFileExists(cli.Standalone.CoverImage)
-		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputFile, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir)
+		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputFile, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir, cli.Standalone.ForceRegenerateHtml)
 	case "project <project-file>":
-		generateProjectEbook(cli.Project.ProjectFile)
+		generateProjectEbook(cli.Project.ProjectFile, cli.Project.ForceRegenerateHtml)
 	case "article <article-name>":
-		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.CacheDir, cli.Article.StyleFile, cli.Article.CoverImage, cli.Article.PandocDataDir, cli.Article.WikipediaInstance)
+		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.CacheDir, cli.Article.StyleFile, cli.Article.CoverImage, cli.Article.PandocDataDir, cli.Article.WikipediaInstance, cli.Article.ForceRegenerateHtml)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
 	}
@@ -69,7 +72,7 @@ func main() {
 	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
-func generateProjectEbook(projectFile string) {
+func generateProjectEbook(projectFile string, forceHtmlRecreate bool) {
 	var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -98,16 +101,17 @@ func generateProjectEbook(projectFile string) {
 	outputFile := project.OutputFile
 	pandocDataDir := project.PandocDataDir
 
-	generateEpubFromArticles(articles, wikipediaDomain, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata)
+	generateEpubFromArticles(articles, wikipediaDomain, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string) {
+func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool) {
 	var err error
 
 	imageCache := "images"
 	mathCache := "math"
 	templateCache := "templates"
 	articleCache := "articles"
+	htmlOutputFolder := "./"
 
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
@@ -146,9 +150,13 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	err = api.DownloadImages(article.Images, imageCache, articleCache)
 	sigolo.FatalCheck(err)
 
-	htmlGenerator := &html.HtmlGenerator{}
-	htmlFile, err := htmlGenerator.Generate(article, "./", styleFile, imageCache, mathCache, articleCache)
-	sigolo.FatalCheck(err)
+	htmlFileName := article.Title + ".html"
+	htmlFile := path.Join(htmlOutputFolder, htmlFileName)
+	if shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
+		htmlGenerator := &html.HtmlGenerator{}
+		htmlFile, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
+		sigolo.FatalCheck(err)
+	}
 
 	sigolo.Info("Start generating EPUB file")
 	metadata := project.Metadata{
@@ -160,7 +168,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file")
 }
 
-func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string) {
+func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool) {
 	//var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -173,7 +181,6 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 	var articles []string
 	articles = append(articles, articleName)
 
-	// TODO Parameterize all fixed strings
 	generateEpubFromArticles(articles,
 		instance,
 		cacheDir,
@@ -181,10 +188,11 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 		outputFile,
 		coverImageFile,
 		pandocDataDir,
-		project.Metadata{})
+		project.Metadata{},
+		forceHtmlRecreate)
 }
 
-func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverFile string, pandocDataDir string, metadata project.Metadata) {
+func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool) {
 	var articleFiles []string
 	var err error
 
@@ -211,11 +219,8 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	for _, articleName := range articles {
 		sigolo.Info("Start processing article %s", articleName)
 
-		// TODO make check configurable
 		htmlFileName := articleName + ".html"
-		htmlFilePath := filepath.Join(htmlOutputFolder, htmlFileName)
-		_, err := os.Stat(htmlFilePath)
-		if err == nil {
+		if !shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
 			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
 			wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
@@ -241,6 +246,19 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	err = epub.Generate(articleFiles, outputFile, styleFile, coverFile, pandocDataDir, metadata)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file")
+}
+
+func shouldRecreateHtml(htmlOutputFolder string, htmlFileName string, forceHtmlRecreate bool) bool {
+	if forceHtmlRecreate {
+		return true
+	}
+
+	// Check if HTML file already exists. If so, no recreate is wanted.
+	htmlFilePath := filepath.Join(htmlOutputFolder, htmlFileName)
+	_, err := os.Stat(htmlFilePath)
+	htmlFileExists := err == nil
+
+	return !htmlFileExists
 }
 
 func toRelative(styleFile string, outputFile string, coverFile string) (string, string, string, error) {
