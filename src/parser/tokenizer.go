@@ -147,8 +147,8 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	}
 }
 
-func (t *Tokenizer) Parse(content string, title string) Article {
-	content = t.tokenize(content)
+func (t *Tokenizer) Tokenize(content string, title string) Article {
+	content = t.tokenizeContent(t, content)
 
 	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
 
@@ -186,25 +186,21 @@ func (t *Tokenizer) getToken(tokenType string) string {
 }
 
 func (t *Tokenizer) setToken(key string, tokenContent string) {
-	t.setRawToken(key, t.tokenize(tokenContent))
+	t.setRawToken(key, t.tokenizeContent(t, tokenContent))
 }
 
 func (t *Tokenizer) setRawToken(key string, tokenContent string) {
 	t.tokenMap[key] = tokenContent
 }
 
-// https://www.mediawiki.org/wiki/Markup_spec
-func (t *Tokenizer) tokenize(content string) string {
-	return t.tokenizeContent(t, content)
-}
-
+// tokenizeContent takes a string and tokenizes it. After this call, the Tokenizer.tokenMap will be filled and parts
+// of the input will be replaced by token strings.
 func tokenizeContent(t *Tokenizer, content string) string {
-
 	for {
 		originalContent := content
 
 		content = clean(content)
-		content = evaluateTemplates(content, t.templateFolder)
+		content = t.evaluateTemplates(content)
 		content = clean(content)
 
 		content = t.parseBoldAndItalic(content)

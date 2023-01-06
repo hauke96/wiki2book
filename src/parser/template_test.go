@@ -22,6 +22,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
+	tokenizer := NewTokenizer("foo", templateFolder)
 	mockHttpClient := api.MockHttp("", 200)
 
 	templateFile, err := os.Create(templateFolder + "/c740539f1a69d048c70ac185407dd5244b56632d")
@@ -30,13 +31,14 @@ func TestEvaluateTemplate_existingFile(t *testing.T) {
 	sigolo.FatalCheck(err)
 	templateFile.Close()
 
-	content := evaluateTemplates("Wikitext with {{my-template}}.", templateFolder)
+	content := tokenizer.evaluateTemplates("Wikitext with {{my-template}}.")
 	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, "Wikitext with blubb.", content)
 }
 
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
+	tokenizer := NewTokenizer("foo", templateFolder)
 	key := "7499ae1f1f8e45a9a95bdeb610ebf13cc4157667"
 	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
 	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
@@ -45,7 +47,7 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	mockHttpClient := api.MockHttp(expectedTemplateFileContent, 200)
 
 	// Evaluate content
-	content := evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.", templateFolder)
+	content := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
 	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, "Siehe "+expectedTemplateContent+".", content)

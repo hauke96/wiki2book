@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func evaluateTemplates(content string, templateFolder string) string {
+func (t *Tokenizer) evaluateTemplates(content string) string {
 	lastOpeningTemplateIndex := -1
 
 	for i := 0; i < len(content)-1; i++ {
@@ -19,7 +19,7 @@ func evaluateTemplates(content string, templateFolder string) string {
 			templateText := content[lastOpeningTemplateIndex : i+2]
 			key := util.Hash(templateText)
 
-			evaluatedTemplate, err := api.EvaluateTemplate(templateText, templateFolder, key)
+			evaluatedTemplate, err := api.EvaluateTemplate(templateText, t.templateFolder, key)
 			if err != nil {
 				sigolo.Stack(err)
 				return ""

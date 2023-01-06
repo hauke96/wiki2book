@@ -1,6 +1,10 @@
 package parser
 
-import "testing"
+import (
+	"fmt"
+	"github.com/hauke96/wiki2book/src/test"
+	"testing"
+)
 
 func TestParseMath(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")

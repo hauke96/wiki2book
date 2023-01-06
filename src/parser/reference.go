@@ -56,7 +56,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 	for _, name := range sortedRefNames {
 		ref := referenceDefinitions[name]
 		token := t.getToken(TOKEN_REF_DEF)
-		t.setToken(token, fmt.Sprintf("%d %s", refNameToIndex[name], t.tokenize(ref)))
+		t.setToken(token, fmt.Sprintf("%d %s", refNameToIndex[name], t.tokenizeContent(t, ref)))
 		head += token + "\n"
 	}
 

@@ -120,7 +120,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 				line = line[1:]
 			}
 
-			tokenContent := t.tokenize(line)
+			tokenContent := t.tokenizeContent(t, line)
 
 			if subListToken != "" {
 				// Store the token of the sub list, that was found above, in the token of the current list item. This

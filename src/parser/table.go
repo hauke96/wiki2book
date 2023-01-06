@@ -189,11 +189,11 @@ func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
 func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
 	splittedContent := strings.Split(content, "|")
 	if len(splittedContent) < 2 {
-		return t.tokenize(content), ""
+		return t.tokenizeContent(t, content), ""
 	}
 
 	attributeString := splittedContent[0]
-	entryText := t.tokenize(splittedContent[1])
+	entryText := t.tokenizeContent(t, splittedContent[1])
 
 	var relevantTags []string
 
