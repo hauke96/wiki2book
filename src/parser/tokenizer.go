@@ -120,11 +120,6 @@ var (
 	}
 )
 
-type ITokenizer interface {
-	tokenize(content string) string
-	getTokenMap() map[string]string
-}
-
 type Tokenizer struct {
 	tokenMap       map[string]string
 	tokenCounter   int
@@ -157,6 +152,34 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 		templateFolder: templateFolder,
 
 		tokenizeContent: tokenizeContent,
+	}
+}
+
+func (t *Tokenizer) Parse(content string, title string) Article {
+	content = t.tokenize(content)
+
+	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
+
+	// print some debug information if wanted
+	if sigolo.LogLevel >= sigolo.LOG_DEBUG {
+		sigolo.Debug(content)
+
+		keys := make([]string, 0, len(t.getTokenMap()))
+		for k := range t.getTokenMap() {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, k := range keys {
+			sigolo.Debug("%s : %s", k, t.getTokenMap()[k])
+		}
+	}
+
+	return Article{
+		Title:    title,
+		TokenMap: t.getTokenMap(),
+		Images:   images,
+		Content:  content,
 	}
 }
 
@@ -1032,7 +1055,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 				// ensures that no new dummy-list item is needed to store the token of the sub-list.
 				tokenContent += " " + subListToken
 			}
-			
+
 			tokenString := t.getListItemTokenString(tokenItemPrefix)
 			if tokenString == TOKEN_DESCRIPTION_LIST_HEAD {
 				// A description list may contain content within the line of a heading. Something like this: "; foo: bar"

@@ -5,36 +5,6 @@ import (
 	"testing"
 )
 
-type MockTokenizer struct {
-}
-
-func (m *MockTokenizer) tokenize(content string) string {
-	images = []string{"Datei:foo.png"}
-	return "foobar"
-}
-
-func (m *MockTokenizer) getTokenMap() map[string]string {
-	return map[string]string{
-		"foo": "bar",
-	}
-}
-
-func TestParse(t *testing.T) {
-	tokenizer := MockTokenizer{}
-	title := "tiiitle"
-
-	article := Parse("Test content", title, &tokenizer)
-
-	test.AssertEqual(t,
-		Article{
-			Title:    title,
-			Content:  "foobar",
-			TokenMap: map[string]string{"foo": "bar"},
-			Images:   []string{"Datei:foo.png"},
-		},
-		article)
-}
-
 func TestImageRegex(t *testing.T) {
 	valid := []string{
 		"[[Datei:foo]]",
