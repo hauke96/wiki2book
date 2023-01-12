@@ -26,11 +26,11 @@ var cli struct {
 		StyleFile           string `help:"The CSS file that should be used." short:"s"`
 		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
 		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
 		ProjectFile         string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
 		ArticleName         string `help:"The name of the article to render." arg:""`
@@ -40,7 +40,7 @@ var cli struct {
 		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
 		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
 		WikipediaInstance   string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run."`
+		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
