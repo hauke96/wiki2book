@@ -35,7 +35,7 @@ func TestParseHeadingWithTextAround(t *testing.T) {
 	content := tokenizer.parseHeadings(`foo
 == heading2 ==
 2
-=== heading3 ===
+=== heading3 === <!-- comment -->
 3
 = heading1 =
 1
