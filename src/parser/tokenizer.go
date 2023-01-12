@@ -9,7 +9,6 @@ import (
 )
 
 const FILE_PREFIXES = "Datei|File|Bild|Image|Media"
-const IMAGE_REGEX_PATTERN = `\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`
 
 const TOKEN_REGEX = `\$\$TOKEN_([A-Z_0-9]*)_\d+\$\$`
 const TOKEN_LINE_REGEX = "^" + TOKEN_REGEX + "$"
@@ -93,7 +92,7 @@ var imageNonInlineParameters = []string{
 
 var (
 	internalLinkRegex                = regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
-	filePrefixRegex                  = regexp.MustCompile(`^\[\[(` + FILE_PREFIXES + `):`)
+	filePrefixRegex                  = regexp.MustCompile(`(?i)^\[\[(` + FILE_PREFIXES + `):`)
 	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
 	hasNonInlineParameterRegex       = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")

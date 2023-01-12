@@ -6,6 +6,39 @@ import (
 	"testing"
 )
 
+func TestImageRegex(t *testing.T) {
+	valid := []string{
+		"[[Datei:foo]]",
+		"[[Datei:foo.png]]",
+		"[[Datei:foo.png|mini]]",
+		"[[Datei:foo|mini]]",
+		"[[Datei:foo.jpg|mini|16px]]",
+		"[[File:foo.png]]",
+		"[[datei:foo]]",
+		"[[dATEI:foo.png]]",
+		"[[datei:foo.png|mini]]",
+		"[[dATEi:foo|mini]]",
+		"[[DateI:foo.jpg|mini|16px]]",
+		"[[file:foo.png]]",
+	}
+
+	for _, s := range valid {
+		test.AssertTrue(t, imageRegex.MatchString(s))
+	}
+
+	invalid := []string{
+		"",
+		"Datei.foo.png",
+		"[Datei:foo.png]",
+		"[[Fiel:foo.png]]",
+		"[[foo.png]]",
+	}
+
+	for _, s := range invalid {
+		test.AssertFalse(t, imageRegex.MatchString(s))
+	}
+}
+
 func TestEscapeImages_removeVideos(t *testing.T) {
 	unwantedMedia := []string{"webm", "gif", "ogv", "mp3", "mp4", "ogg", "wav"}
 
@@ -51,17 +84,17 @@ func TestParseGalleries(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseGalleries(`foo
 <gallery>file0.jpg
-file1.jpg|captiion
+Datei:file1.jpg|captiion
 </gallery>
 bar
  <gallery some="parameter">
 File:file2.jpg|test123
-  File:file 3.jpg
+  file 3.jpg
 </gallery>blubb`)
 
 	test.AssertEqual(t, `foo
 [[File:File0.jpg|mini]]
-[[File:File1.jpg|mini|captiion]]
+[[Datei:File1.jpg|mini|captiion]]
 bar
 [[File:File2.jpg|mini|test123]]
 [[File:File_3.jpg|mini]]

@@ -14,8 +14,8 @@ var images []string
 
 // Remove videos and gifs
 var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
-var imagePrefixRegex = regexp.MustCompile("^(" + FILE_PREFIXES + ")")
-var imageRegex = regexp.MustCompile(IMAGE_REGEX_PATTERN)
+var imagePrefixRegex = regexp.MustCompile("(?i)^(" + FILE_PREFIXES + "):")
+var imageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`)
 
 // escapeImages escapes the image names in the content and returns the updated content.
 func escapeImages(content string) string {
