@@ -68,11 +68,16 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 		var downloadErr error = nil
 		var outputFilepath string
 
-		for _, source := range imageSources {
+		for i, source := range imageSources {
+			isLastSource := i == len(imageSources)-1
 			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source)
 			if downloadErr != nil {
-				sigolo.Error("Error downloading image %s from source %s: %s. Try next source.", image, source, downloadErr.Error())
-				sigolo.Debug("%+v", downloadErr)
+				if isLastSource {
+					sigolo.Error("Could not downloading image %s from last source %s: %s\n", image, source, downloadErr.Error())
+				} else {
+					// That an image is not available at one source is a common situation and not an error that needs to be handled.
+					sigolo.Debug("Could not downloading image %s from source %s: %s", image, source, downloadErr.Error())
+				}
 				continue
 			}
 
