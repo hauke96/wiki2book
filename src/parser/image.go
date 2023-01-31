@@ -17,6 +17,46 @@ var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|
 var imagePrefixRegex = regexp.MustCompile("(?i)^(" + FILE_PREFIXES + "):")
 var imageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`)
 
+var imageIgnoreParameters = []string{
+	"alt",
+	"alternativtext",
+	"baseline",
+	"border",
+	"bottom",
+	"center",
+	"class",
+	"framed",
+	"frameless",
+	"gerahmt",
+	"hochkant",
+	"lang",
+	"left",
+	"link",
+	"links",
+	"middle",
+	"none",
+	"ohne",
+	"page",
+	"rahmenlos",
+	"rand",
+	"rechts",
+	"right",
+	"seite",
+	"sprache",
+	"sub",
+	"super",
+	"text-bottom",
+	"text-top",
+	"top",
+	"upright",
+	"verweis",
+	"zentriert",
+}
+var imageNonInlineParameters = []string{
+	"mini",
+	"thumb",
+}
+
 // escapeImages escapes the image names in the content and returns the updated content.
 func escapeImages(content string) string {
 	var result []string
@@ -171,14 +211,21 @@ func (t *Tokenizer) parseImages(content string) string {
 		tokenString := TOKEN_IMAGE_INLINE
 		imageSizeToken := ""
 		captionToken := ""
+
 		if len(submatch) >= 4 {
 			options := strings.Split(submatch[5], "|")
 
-			for i, option := range options {
+			// Do some cleanup: Remove definitely uninteresting options.
+			var filteredOptions []string
+			for _, option := range options {
+				if !util.ElementHasPrefix(option, imageIgnoreParameters) {
+					filteredOptions = append(filteredOptions, option)
+				}
+			}
+
+			for i, option := range filteredOptions {
 				if util.ElementHasPrefix(option, imageNonInlineParameters) {
 					tokenString = TOKEN_IMAGE
-				} else if util.ElementHasPrefix(option, imageIgnoreParameters) {
-					continue
 				} else if strings.HasSuffix(option, "px") && tokenString != TOKEN_IMAGE {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
@@ -199,8 +246,8 @@ func (t *Tokenizer) parseImages(content string) string {
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
 					imageSizeToken = t.getToken(TOKEN_IMAGE_SIZE)
 					t.setRawToken(imageSizeToken, imageSizeString)
-				} else if i == len(options)-1 && tokenString == TOKEN_IMAGE {
-					// last remaining option is caption as long as we do NOT have an inline image
+				} else if i == len(filteredOptions)-1 && tokenString == TOKEN_IMAGE {
+					// Last remaining option is the caption. We ignore captions on inline images.
 					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
 					t.setToken(captionToken, option)
 				}

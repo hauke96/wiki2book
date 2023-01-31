@@ -139,33 +139,55 @@ blubb`, content)
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
 }
 
-func TestParseImages(t *testing.T) {
+func TestParseImages_inlineHappyPath(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[Datei:image.jpg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
+}
 
+func TestParseImages_ignoreParameters(t *testing.T) {
 	for _, param := range imageNonInlineParameters {
-		tokenizer = NewTokenizer("foo", "bar")
-		content = tokenizer.parseImages(fmt.Sprintf("foo [[Datei:image.jpg|%s]] bar", param))
+		tokenizer := NewTokenizer("foo", "bar")
+		content := tokenizer.parseImages(fmt.Sprintf("foo [[Datei:image.jpg|%s]] bar", param))
 		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
 	}
+}
 
+func TestParseImages_ignoreParametersOnInlineImage(t *testing.T) {
 	for _, param := range imageIgnoreParameters {
 		tokenizer := NewTokenizer("foo", "bar")
-		content = tokenizer.parseImages(fmt.Sprintf("foo [[Datei:image.jpg|%s]] bar", param))
+		content := tokenizer.parseImages(fmt.Sprintf("foo [[Datei:image.jpg|%s]] bar", param))
 		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
 	}
+}
 
-	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseImages("foo [[Datei:image.jpg|100x50px]] bar")
+func TestParseImages_withParameters(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseImages("foo [[Datei:image.jpg|100x50px]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[Datei:image.jpg|101x51px]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+}
 
-	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseImages("foo [[Datei:image.jpg|10x20px|mini|some caption]] bar")
+func TestParseImages_withCaption(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
+	content := tokenizer.parseImages("foo [[Datei:image.jpg|10x20px|mini|some caption]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_3$$ bar", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_IMAGE + "_3$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_CAPTION, 2, TOKEN_IMAGE_SIZE, 1),
+		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_2$$":  "some caption",
+		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "10x20",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseImages_withCaptionAndTrailingParameter(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
+	content := tokenizer.parseImages("foo [[Datei:image.jpg|10x20px|mini|some caption|verweis=]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_3$$ bar", content)
 	test.AssertEqual(t, map[string]string{
 		"$$TOKEN_" + TOKEN_IMAGE + "_3$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_CAPTION, 2, TOKEN_IMAGE_SIZE, 1),

@@ -64,32 +64,6 @@ const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
 const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
-var imageIgnoreParameters = []string{
-	"left",
-	"right",
-	"top",
-	"text-top",
-	"bottom",
-	"text-bottom",
-	"center",
-	"none",
-	"upright",
-	"baseline",
-	"sub",
-	"super",
-	"middle",
-	"link",
-	"alt",
-	"page",
-	"class",
-	"lang",
-	"zentriert",
-}
-var imageNonInlineParameters = []string{
-	"mini",
-	"thumb",
-}
-
 var (
 	internalLinkRegex                = regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
 	filePrefixRegex                  = regexp.MustCompile(`(?i)^\[\[(` + FILE_PREFIXES + `):`)
