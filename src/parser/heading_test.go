@@ -30,12 +30,12 @@ func TestParseHeadingWithFormatting(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
-func TestParseHeadingWithTextAround(t *testing.T) {
+func TestParseMultipleHeadings(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseHeadings(`foo
 == heading2 ==
 2
-=== heading3 === <!-- comment -->
+=== heading3 ===
 3
 = heading1 =
 1

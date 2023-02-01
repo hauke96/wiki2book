@@ -5,6 +5,40 @@ import (
 	"testing"
 )
 
+func TestRemoveComments(t *testing.T) {
+	content := "foo bar\nblubb hi"
+	content = removeComments(content)
+	test.AssertEqual(t, "foo bar\nblubb hi", content)
+
+	content = "foo"
+	content = removeComments(content)
+	test.AssertEqual(t, "foo", content)
+
+	content = ""
+	content = removeComments(content)
+	test.AssertEqual(t, "", content)
+
+	content = "foo <!-- bar --> blubb"
+	content = removeComments(content)
+	test.AssertEqual(t, "foo  blubb", content)
+
+	content = "foo <!-- bar -->"
+	content = removeComments(content)
+	test.AssertEqual(t, "foo ", content)
+
+	content = "<!-- bar --> foo"
+	content = removeComments(content)
+	test.AssertEqual(t, " foo", content)
+
+	content = "<!-- bar -->"
+	content = removeComments(content)
+	test.AssertEqual(t, "", content)
+
+	content = "<!---->"
+	content = removeComments(content)
+	test.AssertEqual(t, "", content)
+}
+
 func TestRemoveUnwantedCategories(t *testing.T) {
 	content := "[[Kategorie:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
 	content = removeUnwantedCategories(content)

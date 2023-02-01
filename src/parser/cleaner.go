@@ -17,12 +17,42 @@ var unwantedHtmlRegex = regexp.MustCompile(`</?(div|span)[^>]*>`)
 var emptyListItemRegex = regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
 
 func clean(content string) string {
+	content = removeComments(content)
 	content = removeUnwantedCategories(content)
 	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
 	return content
+}
+
+func removeComments(content string) string {
+	result := ""
+	i := 0
+
+	// Only until i=length-7 (so i<length-6) because the start and end token "<!--" and "-->" are together 7 characters long.
+	for ; i < len(content)-6; i++ {
+		cursor := content[i : i+4]
+
+		if cursor == "<!--" {
+			// Skip comment
+			for cursor != "-->" && i+3 < len(content) {
+				i++
+				cursor = content[i : i+3]
+			}
+
+			// Skip other two characters of closing comment tag and continue main loop
+			i += 2
+			continue
+		}
+
+		result += string(content[i])
+	}
+
+	// Add remaining characters that cannot form a new comment
+	result += content[i:]
+
+	return result
 }
 
 func removeUnwantedCategories(content string) string {
