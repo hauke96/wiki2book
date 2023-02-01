@@ -204,9 +204,10 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 func (t *Tokenizer) parseImages(content string) string {
 	submatches := imageRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
-		filename := filepath.Join(t.imageFolder, submatch[3])
+		filename := submatch[3]
+		filepath := filepath.Join(t.imageFolder, filename)
 		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
-		t.setRawToken(filenameToken, filename)
+		t.setRawToken(filenameToken, filepath)
 
 		tokenString := TOKEN_IMAGE_INLINE
 		imageSizeToken := ""
@@ -230,16 +231,23 @@ func (t *Tokenizer) parseImages(content string) string {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
 
-					xSize := sizes[0]
+					// Valid formats:
+					//   {width}px
+					//   x{height}px
+					//   {width}x{height}px
+					xSize := strings.TrimSpace(sizes[0])
 					ySize := ""
+
 					if len(sizes) == 2 {
-						ySize = sizes[1]
+						ySize = strings.TrimSpace(sizes[1])
+					} else if len(sizes) > 2 {
+						sigolo.Error("Invalid size specification %spx of image %s", option, filename)
 					}
 
 					xSizeInt, _ := strconv.Atoi(xSize)
 					ySizeInt, _ := strconv.Atoi(ySize)
 					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
-					if ySizeInt > 50 && xSizeInt > 100 {
+					if ySizeInt >= 50 || xSizeInt >= 100 {
 						tokenString = TOKEN_IMAGE
 					}
 
@@ -255,7 +263,17 @@ func (t *Tokenizer) parseImages(content string) string {
 		}
 
 		token := t.getToken(tokenString)
-		t.setRawToken(token, filenameToken+" "+captionToken+" "+imageSizeToken)
+		resultTokenString := filenameToken
+
+		if captionToken != "" {
+			resultTokenString += " " + captionToken
+		}
+
+		if imageSizeToken != "" {
+			resultTokenString += " " + imageSizeToken
+		}
+
+		t.setRawToken(token, resultTokenString)
 
 		content = strings.Replace(content, submatch[0], token, 1)
 	}

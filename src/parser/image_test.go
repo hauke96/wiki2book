@@ -161,14 +161,43 @@ func TestParseImages_ignoreParametersOnInlineImage(t *testing.T) {
 	}
 }
 
-func TestParseImages_withParameters(t *testing.T) {
+func TestParseImages_smallSizesProduceInlineImage(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	content := tokenizer.parseImages("foo [[Datei:image.jpg|100x50px]] bar")
+	content := tokenizer.parseImages("foo [[Datei:image.jpg|99x49px]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[Datei:image.jpg|101x51px]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+}
+
+func TestParseImages_withSizes(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseImages("foo [[Datei:image.jpg|100x200px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
+		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
+		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "100x200",
+	}, tokenizer.getTokenMap())
+
+	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseImages("foo [[Datei:image.jpg|x200px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
+		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
+		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "x200",
+	}, tokenizer.getTokenMap())
+
+	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseImages("foo [[Datei:image.jpg|200px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
+		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
+		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "200x",
+	}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_withCaption(t *testing.T) {
