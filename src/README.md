@@ -44,4 +44,7 @@ Take a look at the `README.md` there.
 
 * Run wiki2book with the `--profiling` flag to generate a `profiling.prof` file.
 * Run `go tool pprof <wiki2book-executable> ./profiling.prof` so that the `pprof` console comes up.
-* Enter `web` for a browser or `evince` for a PDF visualization 
+* Enter `web` for a browser or `evince` for a PDF visualization
+
+You can also pass all arguments to the CLI directly.
+For me `go tool pprof -nodecount=1000 -call_tree -pdf wiki2book ./profiling.prof` works quite well.
