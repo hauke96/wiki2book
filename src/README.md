@@ -35,3 +35,13 @@ Of course IDEs like Goland provide direct possibility to run the unit tests with
 
 In the root of the repo there's an ` integration-test` folder, it contains several standalone `.json` files.
 Take a look at the `README.md` there.
+
+# Profiling
+
+**Method 1:** Use your IDE.
+
+**Method 2:**
+
+* Run wiki2book with the `--profiling` flag to generate a `profiling.prof` file.
+* Run `go tool pprof <wiki2book-executable> ./profiling.prof` so that the `pprof` console comes up.
+* Enter `web` for a browser or `evince` for a PDF visualization 

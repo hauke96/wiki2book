@@ -13,12 +13,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime/pprof"
 	"strings"
 	"time"
 )
 
 var cli struct {
 	Debug      bool `help:"Enable debug mode." short:"d"`
+	Profiling  bool `help:"Enable profiling and write results to ./profiling.prof."`
 	Standalone struct {
 		File                string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile          string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
@@ -51,6 +53,15 @@ func main() {
 		sigolo.LogLevel = sigolo.LOG_DEBUG
 	}
 
+	if cli.Profiling {
+		f, err := os.Create("profiling.prof")
+		sigolo.FatalCheck(err)
+
+		err = pprof.StartCPUProfile(f)
+		sigolo.FatalCheck(err)
+		defer pprof.StopCPUProfile()
+	}
+
 	start := time.Now()
 
 	switch ctx.Command() {
@@ -74,13 +85,6 @@ func main() {
 
 func generateProjectEbook(projectFile string, forceHtmlRecreate bool) {
 	var err error
-	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
-	//f, err := os.Create("profiling.prof")
-	//sigolo.FatalCheck(err)
-	//
-	//err = pprof.StartCPUProfile(f)
-	//sigolo.FatalCheck(err)
-	//defer pprof.StopCPUProfile()
 
 	sigolo.Info("Use project file: %s", projectFile)
 

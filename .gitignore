@@ -6,6 +6,7 @@ wiki2book
 *.dll
 *.so
 *.dylib
+*.prof
 
 # Rendered eBook files
 *.html
@@ -28,6 +29,7 @@ integration-tests/logs
 integration-tests/results
 integration-tests/.cache
 !integration-tests/*.html
+standalone.mediawiki
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
