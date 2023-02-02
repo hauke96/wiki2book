@@ -27,32 +27,46 @@ func clean(content string) string {
 }
 
 func removeComments(content string) string {
-	result := ""
+	runes := []rune(content)
+	var result []rune
+	inComment := false
 	i := 0
 
 	// Only until i=length-7 (so i<length-6) because the start and end token "<!--" and "-->" are together 7 characters long.
-	for ; i < len(content)-6; i++ {
-		cursor := content[i : i+4]
+	for ; i < len(runes)-3; i++ {
+		cursor := string(runes[i : i+4])
 
 		if cursor == "<!--" {
-			// Skip comment
-			for cursor != "-->" && i+3 < len(content) {
-				i++
-				cursor = content[i : i+3]
+			inComment = true
+
+			// Skip comment with new counter. In case the comment starts but doesn't end, the content, which is skipped
+			// here, is still relevant and will be added after the main loop.
+			j := i
+			for ; j < len(runes)-2; j++ {
+				cursor = string(runes[j : j+3])
+				if cursor == "-->" {
+					inComment = false
+					break
+				}
+			}
+
+			if inComment {
+				// Reached the end without finding a new close-tag.
+				break
 			}
 
 			// Skip other two characters of closing comment tag and continue main loop
-			i += 2
+			i = j + 2
 			continue
 		}
 
-		result += string(content[i])
+		result = append(result, runes[i])
 	}
 
 	// Add remaining characters that cannot form a new comment
-	result += content[i:]
+	result = append(result, runes[i:]...)
 
-	return result
+	return string(result)
 }
 
 func removeUnwantedCategories(content string) string {
