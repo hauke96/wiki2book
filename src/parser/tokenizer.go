@@ -65,12 +65,10 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 var (
-	internalLinkRegex                = regexp.MustCompile(`\[\[([^|^\]^\[]*)(\|([^|^\]^\[]*))?]]`)
-	filePrefixRegex                  = regexp.MustCompile(`(?i)^\[\[(` + FILE_PREFIXES + `):`)
+	imagePrefixRegex                 = regexp.MustCompile("(?i)^(" + FILE_PREFIXES + "):")
 	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
 	hasNonInlineParameterRegex       = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
-	externalLinkRegex                = regexp.MustCompile(`([^\[])?\[(http[^]]*?)( ([^]]*?))?](([^]])|$)`)
 	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
 	tableRowAndColspanRegex          = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
 	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
@@ -82,15 +80,6 @@ var (
 	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
 	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
 	tokenLineRegex                   = regexp.MustCompile(TOKEN_LINE_REGEX)
-	headingRegexes                   = []*regexp.Regexp{
-		regexp.MustCompile(`(?m)^= (.*) =$`), // (?m) = enable multi-line matches
-		regexp.MustCompile(`(?m)^== (.*) ==$`),
-		regexp.MustCompile(`(?m)^=== (.*) ===$`),
-		regexp.MustCompile(`(?m)^==== (.*) ====$`),
-		regexp.MustCompile(`(?m)^===== (.*) =====$`),
-		regexp.MustCompile(`(?m)^====== (.*) ======$`),
-		regexp.MustCompile(`(?m)^======= (.*) =======$`),
-	}
 )
 
 type Tokenizer struct {

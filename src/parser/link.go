@@ -1,68 +1,73 @@
 package parser
 
 import (
-	"github.com/hauke96/wiki2book/src/util"
 	"strings"
 )
 
 func (t *Tokenizer) parseInternalLinks(content string) string {
-	submatches := internalLinkRegex.FindAllStringSubmatch(content, -1)
-
-	for _, submatch := range submatches {
-		// Ignore all kind of files, they are parsed elsewhere
-		if filePrefixRegex.MatchString(submatch[0]) {
-			continue
-		}
-
-		articleName := submatch[1]
-		linkText := submatch[3]
-
-		tokenArticle := t.getToken(TOKEN_INTERNAL_LINK_ARTICLE)
-		t.setRawToken(tokenArticle, articleName)
-
-		if linkText != "" {
-			// Use article as text
-			linkText = t.tokenizeInline(linkText)
-		} else {
-			linkText = articleName
-		}
-
-		tokenText := t.getToken(TOKEN_INTERNAL_LINK_TEXT)
-		t.setRawToken(tokenText, linkText)
-
-		token := t.getToken(TOKEN_INTERNAL_LINK)
-		t.setRawToken(token, tokenArticle+" "+tokenText)
-
-		content = strings.Replace(content, submatch[0], token, 1)
-	}
-
-	return content
+	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK)
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	submatches := externalLinkRegex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		tokenUrl := t.getToken(TOKEN_EXTERNAL_LINK_URL)
-		t.setRawToken(tokenUrl, submatch[2])
+	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK)
+}
 
-		linkText := submatch[2]
-		if len(submatch) >= 5 {
-			linkText = submatch[4]
+func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string) string {
+	splitContent := strings.Split(content, openingBrackets)
+	var resultSegments []string
+
+	// The following steps are performed for INTERNAL links (same steps for EXTERNAL links but of course with different
+	// brackets and delimiters):
+	//   1. Split by  [[  since it's the start of an internal link.
+	//   2. Split each element (except the first one, see below) at  ]]  since it's the end of an internal link. The
+	//      first slice element is now the link content between the brackets and the rest is just text after the link.
+	//   3. Split the link content by  |  since it's the delimiter for target page and link text.
+	//   4. Create the token for the link target, link content and overall internal link.
+	//   5. Continue with step 2 until all elements have been processed.
+
+	for i, splitItem := range splitContent {
+		if i == 0 {
+			// The first string is never the start of a link. It's either an empty string (in case the content directly
+			// starts with a link) or it's the text before the first link.
+			resultSegments = append(resultSegments, splitItem)
+			continue
 		}
 
-		tokenText := t.getToken(TOKEN_EXTERNAL_LINK_TEXT)
-		t.setToken(tokenText, linkText)
-
-		token := t.getToken(TOKEN_EXTERNAL_LINK)
-		t.setRawToken(token, tokenUrl+" "+tokenText)
-
-		// Remove last characters as it's the first character after the closing  ]  of the file tag.
-		totalMatch := submatch[0]
-		if totalMatch[len(totalMatch)-1] != ']' {
-			totalMatch = util.RemoveLastChar(totalMatch)
+		// Ignore all kind of files, they are parsed elsewhere
+		if imagePrefixRegex.MatchString(splitItem) {
+			resultSegments = append(resultSegments, openingBrackets)
+			resultSegments = append(resultSegments, splitItem)
+			continue
 		}
-		content = strings.Replace(content, totalMatch, submatch[1]+token, 1)
+
+		segments := strings.Split(splitItem, closingBrackets)
+
+		possibleLinkWikitext := segments[0]
+
+		wikitextElements := strings.Split(possibleLinkWikitext, linkDelimiter)
+		linkTarget := wikitextElements[0]
+
+		linkText := linkTarget
+		if len(wikitextElements) > 1 {
+			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
+		}
+
+		tokenTarget := t.getToken(targetTokenString)
+		t.setRawToken(tokenTarget, linkTarget)
+
+		tokenLinkText := t.getToken(linkTextTokenString)
+		t.setRawToken(tokenLinkText, linkText)
+
+		token := t.getToken(linkTokenString)
+		t.setRawToken(token, tokenTarget+" "+tokenLinkText)
+
+		resultSegments = append(resultSegments, token)
+
+		if len(segments) > 1 {
+			// Add all uninteresting segments behind the link
+			resultSegments = append(resultSegments, segments[1:]...)
+		}
 	}
 
-	return content
+	return strings.Join(resultSegments, "")
 }
