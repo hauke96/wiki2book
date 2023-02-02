@@ -27,46 +27,32 @@ func clean(content string) string {
 }
 
 func removeComments(content string) string {
-	runes := []rune(content)
-	var result []rune
-	inComment := false
-	i := 0
+	// The following steps are performed:
+	//   1. Split by the end token "-->" of comments
+	//   2. For each element in that slice, split by start token "<!--" of comments
+	//   3. Only append the non-comment parts of the splits to the result segments
 
-	// Only until i=length-7 (so i<length-6) because the start and end token "<!--" and "-->" are together 7 characters long.
-	for ; i < len(runes)-3; i++ {
-		cursor := string(runes[i : i+4])
+	splitContent := strings.Split(content, "-->")
+	var resultSegments []string
 
-		if cursor == "<!--" {
-			inComment = true
-
-			// Skip comment with new counter. In case the comment starts but doesn't end, the content, which is skipped
-			// here, is still relevant and will be added after the main loop.
-			j := i
-			for ; j < len(runes)-2; j++ {
-				cursor = string(runes[j : j+3])
-				if cursor == "-->" {
-					inComment = false
-					break
-				}
-			}
-
-			if inComment {
-				// Reached the end without finding a new close-tag.
-				break
-			}
-
-			// Skip other two characters of closing comment tag and continue main loop
-			i = j + 2
+	for i, splitItem := range splitContent {
+		if i == len(splitContent)-1 {
+			// The last string is never the end of a comment. It's either an empty string (in case the content directly
+			// ends with a comment) or it's the text after the last comment.
+			resultSegments = append(resultSegments, splitItem)
 			continue
 		}
 
-		result = append(result, runes[i])
+		segments := strings.Split(splitItem, "<!--")
+		if len(segments) == 1 {
+			resultSegments = append(resultSegments, segments...)
+			resultSegments = append(resultSegments, "-->")
+		} else {
+			resultSegments = append(resultSegments, segments[0])
+		}
 	}
 
-	// Add remaining characters that cannot form a new comment
-	result = append(result, runes[i:]...)
-
-	return string(result)
+	return strings.Join(resultSegments, "")
 }
 
 func removeUnwantedCategories(content string) string {

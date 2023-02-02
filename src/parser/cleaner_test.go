@@ -22,6 +22,10 @@ func TestRemoveComments(t *testing.T) {
 	content = removeComments(content)
 	test.AssertEqual(t, "foo  blubb", content)
 
+	content = "foo <!-- <!-- bar --> --> blubb"
+	content = removeComments(content)
+	test.AssertEqual(t, "foo  --> blubb", content)
+
 	content = "foo <!-- bar -->"
 	content = removeComments(content)
 	test.AssertEqual(t, "foo ", content)
