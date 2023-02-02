@@ -126,7 +126,7 @@ func (t *Tokenizer) Tokenize(content string, title string) Article {
 	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
 
 	// print some debug information if wanted
-	if sigolo.LogLevel >= sigolo.LOG_DEBUG {
+	if sigolo.LogLevel <= sigolo.LOG_DEBUG {
 		sigolo.Debug(content)
 
 		keys := make([]string, 0, len(t.getTokenMap()))
