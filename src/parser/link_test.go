@@ -34,7 +34,18 @@ func TestParseInternalLinks_withFile(t *testing.T) {
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseInternalLinks("foo [http://bar.com website]")
+	content = tokenizer.parseInternalLinks("foo [[Datei:external-link.jpg|foo [[bar]]]]")
+	test.AssertEqual(t, "foo [[Datei:external-link.jpg|foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_2$$]]", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$":         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 0, TOKEN_INTERNAL_LINK_TEXT, 1),
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK_ARTICLE + "_0$$": "bar",
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK_TEXT + "_1$$":    "bar",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseInternalLinks_externalLinkWillNotBeTouched(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseInternalLinks("foo [http://bar.com website]")
 	test.AssertEqual(t, "foo [http://bar.com website]", content)
 	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
 }

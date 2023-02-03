@@ -65,7 +65,7 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 
 		if len(segments) > 1 {
 			// Add all uninteresting segments behind the link
-			resultSegments = append(resultSegments, segments[1:]...)
+			resultSegments = append(resultSegments, strings.Join(segments[1:], closingBrackets))
 		}
 	}
 
