@@ -50,6 +50,27 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 	}
 }
 
+func TestEscapeImages_removeVideoWithMultilineCaption(t *testing.T) {
+	content := `foo [[Datei:foo.webm|this caption<br>
+is<br>
+important!]] bar`
+	content = escapeImages(content)
+	test.AssertEqual(t, "foo  bar", content)
+	test.AssertEqual(t, 0, len(images))
+
+	content = `foo [[Datei:foo.jpg|this caption<br>
+is<br>
+important!]] bar`
+	content = escapeImages(content)
+	test.AssertEqual(t, `foo [[Datei:Foo.jpg|this caption<br>
+is<br>
+important!]] bar`, content)
+	test.AssertEqual(t, []string{"Datei:Foo.jpg"}, images)
+
+	// cleanup
+	images = make([]string, 0)
+}
+
 func TestEscapeImages_escapeFileNames(t *testing.T) {
 	content := "[[Datei:some photo.png|with|properties]]"
 	content = escapeImages(content)

@@ -12,8 +12,7 @@ import (
 
 var images []string
 
-// Remove videos and gifs
-var nonImageRegex = regexp.MustCompile(`\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav)).*(]]|\|)`)
+var nonImageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav))(\|([^\]]*))?]]`)
 var imageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`)
 
 var imageIgnoreParameters = []string{
