@@ -65,6 +65,7 @@ func removeUnwantedTemplates(content string) string {
 		"alpha centauri",
 		"begriffsklärungshinweis",
 		"belege fehlen",
+		"belege",
 		"commons",
 		"commonscat",
 		"dieser artikel",
