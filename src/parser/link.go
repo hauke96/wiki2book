@@ -5,14 +5,14 @@ import (
 )
 
 func (t *Tokenizer) parseInternalLinks(content string) string {
-	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK)
+	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK, false)
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK)
+	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK, true)
 }
 
-func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string) string {
+func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string, delimiterRequired bool) string {
 	splitContent := strings.Split(content, openingBrackets)
 	var resultSegments []string
 
@@ -48,6 +48,14 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		linkTarget := wikitextElements[0]
 
 		linkText := linkTarget
+
+		if delimiterRequired && len(wikitextElements) == 1 {
+			// We need at least one delimiter in this link but found none -> Abort parsing this link.
+			resultSegments = append(resultSegments, openingBrackets)
+			resultSegments = append(resultSegments, splitItem)
+			continue
+		}
+
 		if len(wikitextElements) > 1 {
 			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
 		}

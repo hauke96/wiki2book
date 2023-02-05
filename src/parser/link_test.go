@@ -80,3 +80,10 @@ func TestParseExternalLinks(t *testing.T) {
 		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_TEXT + "_1$$": "website",
 	}, tokenizer.getTokenMap())
 }
+
+func TestParseExternalLinks_simpleBracketsNotRegisteredAsLinks(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseExternalLinks("Simple [brackets] will stay as is.")
+	test.AssertEqual(t, "Simple [brackets] will stay as is.", content)
+	test.AssertEqual(t, map[string]string{}, tokenizer.getTokenMap())
+}
