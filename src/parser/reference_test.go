@@ -40,15 +40,29 @@ func TestGetSortedReferenceNames(t *testing.T) {
 
 func TestReplaceNamedReferences(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref> some other <ref>foo</ref>`
+	head := `some<ref>foo</ref> text with refs<ref name="barbar">bar</ref> some <ref name=other-name>other</ref> <ref>foo</ref>`
 	content := head + ` and even more<ref>blubb</ref>text`
 	referenceDefinitions := map[string]string{}
 	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
 
 	test.AssertMapEqual(t, map[string]string{
-		"barbar": `<ref name="barbar">bar</ref>`,
+		"barbar":     `<ref name="barbar">bar</ref>`,
+		"other-name": `<ref name=other-name>other</ref>`,
 	}, referenceDefinitions)
-	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" /> some other <ref>foo</ref>`, newHead)
+	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" /> some <ref name="other-name" /> <ref>foo</ref>`, newHead)
+}
+
+func TestReplaceNamedReferences_withSpecialCharacters(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	head := `Refs can contain special chars <ref name="foo/bar.blubb">bar</ref>.`
+	content := head + ` and even more<ref>blubb</ref>text`
+	referenceDefinitions := map[string]string{}
+	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
+
+	test.AssertMapEqual(t, map[string]string{
+		"foo/bar.blubb": `<ref name="foo/bar.blubb">bar</ref>`,
+	}, referenceDefinitions)
+	test.AssertEqual(t, `Refs can contain special chars <ref name="foo/bar.blubb" />.`, newHead)
 }
 
 func TestReplaceUnnamedReferences(t *testing.T) {

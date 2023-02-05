@@ -65,21 +65,20 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 var (
-	imagePrefixRegex                 = regexp.MustCompile("(?i)^(" + FILE_PREFIXES + "):")
-	galleryStartRegex                = regexp.MustCompile(`^<gallery.*?>`)
-	imagemapStartRegex               = regexp.MustCompile(`^<imagemap.*?>`)
-	hasNonInlineParameterRegex       = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
-	tableStartRegex                  = regexp.MustCompile(`^(:*)(\{\|.*)`)
-	tableRowAndColspanRegex          = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
-	tableTextAlignRegex              = regexp.MustCompile(`text-align:.+?;`)
-	listPrefixRegex                  = regexp.MustCompile(`^([*#:;])`)
-	referenceBlockStartRegex         = regexp.MustCompile(`</?references.*?/?>\n?`)
-	namedReferenceRegex              = regexp.MustCompile(`<ref[^>]*?name="?([^"^>^/]*)"?([^>]*?=[^>]*?)* ?>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There may be more parameters than "name=..." so we have to consider them as well.
-	namedReferenceWithoutGroupsRegex = regexp.MustCompile(`<ref[^>]*?name="?([^"^>^/]*)"?>.*?</ref>`)
-	namedReferenceUsageRegex         = regexp.MustCompile(`<ref name="?([^"^>^/]*)"?\s?/>`)
-	unnamedReferenceRegex            = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
-	mathRegex                        = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
-	tokenLineRegex                   = regexp.MustCompile(TOKEN_LINE_REGEX)
+	imagePrefixRegex           = regexp.MustCompile("(?i)^(" + FILE_PREFIXES + "):")
+	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
+	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
+	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
+	tableStartRegex            = regexp.MustCompile(`^(:*)(\{\|.*)`)
+	tableRowAndColspanRegex    = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
+	tableTextAlignRegex        = regexp.MustCompile(`text-align:.+?;`)
+	listPrefixRegex            = regexp.MustCompile(`^([*#:;])`)
+	referenceBlockStartRegex   = regexp.MustCompile(`</?references.*?/?>\n?`)
+	namedReferenceRegex        = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?\s*>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There may be more parameters than "name=..." so we have to consider them as well.
+	namedReferenceUsageRegex   = regexp.MustCompile(`<ref name="?([^"^>^/]*)"?\s*/>`)
+	unnamedReferenceRegex      = regexp.MustCompile(`<ref[^>^/]*?>((.|\n)*?)</ref>`)
+	mathRegex                  = regexp.MustCompile(`<math.*?>((.|\n|\r)*?)</math>`)
+	tokenLineRegex             = regexp.MustCompile(TOKEN_LINE_REGEX)
 )
 
 type Tokenizer struct {

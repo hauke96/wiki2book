@@ -134,7 +134,7 @@ func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[st
 		totalRef := submatch[0]
 
 		// Ignore named references, we're just interested in UNnamed ones
-		if namedReferenceWithoutGroupsRegex.MatchString(totalRef) {
+		if namedReferenceRegex.MatchString(totalRef) {
 			continue
 		}
 
