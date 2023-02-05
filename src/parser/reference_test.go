@@ -67,16 +67,29 @@ func TestReplaceNamedReferences_withSpecialCharacters(t *testing.T) {
 
 func TestReplaceUnnamedReferences(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	head := `some<ref some="param">foo</ref> text with refs<ref name="barbar">bar</ref>`
+	head := `some<ref some="param">foo</ref> text with refs<ref name="barbar">bar</ref> and <ref some="sla/shes">slashes</ref>`
 	content := head + ` and even more<ref>blubb</ref>text`
 	referenceDefinitions := map[string]string{}
 	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, head)
 
 	test.AssertMapEqual(t, map[string]string{
 		"2ae457b665ef5955b2fc685cdaaa879c96c14801": `<ref some="param">foo</ref>`,
-		"2839c654c615b6833625f76f38b609c71b74ada4": "<ref>blubb</ref>",
+		"eeada6edccd48f48f3d8c8968c1878a994cbf23e": `<ref some="sla/shes">slashes</ref>`,
+		"74e7903564d066a6c4c76d9c0b9835938d0ae829": "<ref>blubb</ref>",
 	}, referenceDefinitions)
-	test.AssertEqual(t, `some<ref name="2ae457b665ef5955b2fc685cdaaa879c96c14801" /> text with refs<ref name="barbar">bar</ref>`, newHead)
+	test.AssertEqual(t, `some<ref name="2ae457b665ef5955b2fc685cdaaa879c96c14801" /> text with refs<ref name="barbar">bar</ref> and <ref name="eeada6edccd48f48f3d8c8968c1878a994cbf23e" />`, newHead)
+}
+
+func TestReplaceUnnamedReferences_ignoreReferenceUsages(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `foo <ref name="refname" /> bar <ref some="barbar">bar</ref>`
+	referenceDefinitions := map[string]string{}
+	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, content)
+
+	test.AssertMapEqual(t, map[string]string{
+		"c8d3521ed18935eb577600c6c0e9fd278b296264": `<ref some="barbar">bar</ref>`,
+	}, referenceDefinitions)
+	test.AssertEqual(t, `foo <ref name="refname" /> bar <ref name="c8d3521ed18935eb577600c6c0e9fd278b296264" />`, newHead)
 }
 
 func TestGetReferenceUsages(t *testing.T) {

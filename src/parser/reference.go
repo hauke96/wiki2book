@@ -128,13 +128,13 @@ func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[stri
 
 // replaceNamedReferences replaces all occurrences of unnamed reference definitions by a named reference usage with a random reference name.
 func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[string]string, head string) string {
-	// Go throught "content" to also parse the definitions in the reference section below "head"
-	submatches := unnamedReferenceRegex.FindAllStringSubmatch(content, -1)
+	// Go through "content" to also parse the definitions in the reference section below "head"
+	submatches := generalReferenceRegex.FindAllStringSubmatch(content, -1)
 	for i, submatch := range submatches {
 		totalRef := submatch[0]
 
-		// Ignore named references, we're just interested in UNnamed ones
-		if namedReferenceRegex.MatchString(totalRef) {
+		// Ignore named references and usages, we're just interested in UNnamed ones
+		if namedReferenceRegex.MatchString(totalRef) || namedReferenceUsageRegex.MatchString(totalRef) {
 			continue
 		}
 
