@@ -70,12 +70,16 @@ func download(url string, filename string) (io.ReadCloser, error) {
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
 
+		responseErrorHeader := response.Header.Get("mediawiki-api-error")
+
 		// Handle 429 (too many requests): wait a bit and retry
 		if response.StatusCode == 429 {
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != 200 {
 			return response.Body, errors.Errorf("Downloading file %s failed with status code %d for url %s", filename, response.StatusCode, url)
+		} else if responseErrorHeader != "" {
+			return response.Body, errors.Errorf("Downloading file %s failed with error header %s for url %s", filename, responseErrorHeader, url)
 		}
 
 		break
