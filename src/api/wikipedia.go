@@ -21,6 +21,8 @@ type WikiArticleDto struct {
 type WikiParseArticleDto struct {
 	Title    string              `json:"title"`
 	Wikitext WikiWildcardTextDto `json:"wikitext"`
+
+	OriginalTitle string // Not set by Wikipedia but by wiki2book to remember the original title in case of redirects.
 }
 
 type WikiWildcardTextDto struct {
@@ -59,7 +61,7 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 
 	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
 	// for a caller of this function.
-	wikiArticleDto.Parse.Title = title
+	wikiArticleDto.Parse.OriginalTitle = title
 
 	return wikiArticleDto, nil
 }
@@ -109,40 +111,30 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, source string) (string, error) {
 	// TODO handle colons in file names
 	imageName := strings.Split(imageNameWithPrefix, ":")[1]
-	imageNameWithPrefix, err := followRedirectIfNeeded(source, "File:"+imageName, articleFolder)
+	imageArticle, err := DownloadArticle(source, "File:"+imageName, articleFolder)
 	if err != nil {
 		return "", err
 	}
-	redirectedImageName := strings.Split(imageNameWithPrefix, ":")[1]
 
-	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(redirectedImageName)))
-	sigolo.Debug("Original image name: %s", imageName)
-	sigolo.Debug("Redirected image name: %s", redirectedImageName)
+	// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
+
+	originalImageNameWithPrefix := imageArticle.Parse.OriginalTitle
+	originalImageName := strings.Split(originalImageNameWithPrefix, ":")[1]
+	originalImageName = strings.ReplaceAll(originalImageName, " ", "_")
+
+	actualImageNameWithPrefix := imageArticle.Parse.Title
+	actualImageName := strings.Split(actualImageNameWithPrefix, ":")[1]
+	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
+
+	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
+	sigolo.Debug("Original image name: %s", originalImageName)
+	sigolo.Debug("Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Debug("MD5 of redirected image name: %s", md5sum)
 
-	url := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(redirectedImageName))
-	sigolo.Debug(url)
+	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	sigolo.Debug(imageUrl)
 
-	return downloadAndCache(url, outputFolder, imageName)
-}
-
-// followRedirectIfNeeded returns the page name behind a redirect. If the article page with the given title (which can
-// also be an image like "File:foo.jpg") is a redirect, the article/file name pointed to is returned. Spaces are
-// replaced by underscores. So if "File:foo.jpg" redirects to "File:bar with spaces.jpg", then
-// "File:bar_with_spaces.jpg" is returned. If there's no redirect, the original title parameter will be returned.
-func followRedirectIfNeeded(source string, title string, cacheFolder string) (string, error) {
-	article, err := DownloadArticle(source, title, cacheFolder)
-	if err != nil {
-		return title, err
-	}
-
-	regexMatch := redirectRegex.FindStringSubmatch(article.Parse.Wikitext.Content)
-	if regexMatch != nil && regexMatch[1] != "" {
-		// Replace spaces by string as the Wikipedia API only handles file names with underscore instead of spaces
-		return strings.ReplaceAll(regexMatch[1], " ", "_"), nil
-	}
-
-	return title, nil
+	return downloadAndCache(imageUrl, outputFolder, originalImageName)
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {

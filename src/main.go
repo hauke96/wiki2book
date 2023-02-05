@@ -231,7 +231,7 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 			sigolo.FatalCheck(err)
 
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
-			article := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.Title)
+			article := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 
 			err = api.DownloadImages(article.Images, imageCache, articleCache)
 			sigolo.FatalCheck(err)
