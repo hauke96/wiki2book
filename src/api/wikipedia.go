@@ -38,7 +38,7 @@ type WikitextDto struct {
 func DownloadArticle(language string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&page=%s", language, escapedTitle)
+	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", language, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, err := downloadAndCache(urlString, cacheFolder, cachedFile)
@@ -56,6 +56,10 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", language, title))
 	}
+
+	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
+	// for a caller of this function.
+	wikiArticleDto.Parse.Title = title
 
 	return wikiArticleDto, nil
 }
