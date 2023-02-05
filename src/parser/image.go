@@ -12,7 +12,8 @@ import (
 
 var images []string
 
-var nonImageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav))(\|([^\]]*))?]]`)
+// TODO Regarding PDFs: This is temporary, solve issue #33 to handle them properly.
+var nonImageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav|pdf))(\|([^\]]*))?]]`)
 var imageRegex = regexp.MustCompile(`(?i)\[\[((` + FILE_PREFIXES + `):([^|^\]]*))(\|([^\]]*))?]]`)
 
 var imageIgnoreParameters = []string{
