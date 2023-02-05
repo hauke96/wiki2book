@@ -13,7 +13,7 @@ func (t *Tokenizer) parseHeadings(content string) string {
 		headingMediawikiMarker := strings.Repeat("=", headingDepth)
 
 		for i := 0; i < len(lines); i++ {
-			line := lines[i]
+			line := strings.TrimSpace(lines[i])
 
 			if strings.HasPrefix(line, headingMediawikiMarker) && strings.HasSuffix(line, headingMediawikiMarker) {
 				headingText := strings.ReplaceAll(line, headingMediawikiMarker, "")
