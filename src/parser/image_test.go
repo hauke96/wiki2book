@@ -219,6 +219,14 @@ func TestParseImages_withSizes(t *testing.T) {
 		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
 		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "200x",
 	}, tokenizer.getTokenMap())
+
+	tokenizer = NewTokenizer("foo", "bar")
+	content = tokenizer.parseImages("foo [[Datei:image.jpg|mini|200px]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_IMAGE + "_1$$":          fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0),
+		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/image.jpg",
+	}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_withCaption(t *testing.T) {

@@ -226,7 +226,12 @@ func (t *Tokenizer) parseImages(content string) string {
 			for i, option := range filteredOptions {
 				if util.ElementHasPrefix(option, imageNonInlineParameters) {
 					tokenString = TOKEN_IMAGE
-				} else if strings.HasSuffix(option, "px") && tokenString != TOKEN_IMAGE {
+				} else if strings.HasSuffix(option, "px") {
+					if tokenString == TOKEN_IMAGE {
+						// We're parsing a normal image -> don't care about size, because the generator will apply its own styles
+						continue
+					}
+
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
 
