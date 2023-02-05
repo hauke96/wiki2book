@@ -87,6 +87,7 @@ func removeUnwantedTemplates(content string) string {
 		"normdaten",
 		"panorama",
 		"portal",
+		"quellen",
 		"redundanztext",
 		"siehe auch",
 		"staatslastig",
