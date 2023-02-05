@@ -116,9 +116,18 @@ then
 #		echo $t | sed "s/\n/\n    /g"
 		echo $t
 	done
+	echo
 
-	echo "To update all failed test, run the update script with the following parameters:"
-	echo "    $FAILED_TESTS"
+	echo "If this is unexpected, please try the following:"
+	echo "  1. Make sure your internet connection is good so that all Wikipedia APIs are reachable."
+	echo "  2. Remove the ./integration-tests/results/ folder to force wiki2book to download all files again"
+	echo
+
+	echo "In case of changed .filelist and .html files:"
+	echo "If you're sure that the new filelist and HTML files are correct, update the files of the respective tests. Run the following command with (some of) the following parameters to update them:"
+	echo "  ./update.sh $FAILED_TESTS"
+
+	exit 1
 else
-	echo "Integration-tests ran SUCCESSFULLY :)"
+	echo "Integration-tests were SUCCESSFULL!"
 fi
