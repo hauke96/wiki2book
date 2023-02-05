@@ -63,6 +63,7 @@ func removeUnwantedTemplates(content string) string {
 	// All lower case. Makes things easier below.
 	ignoreTemplates := []string{
 		"alpha centauri",
+		"begriffsklärung",
 		"begriffsklärungshinweis",
 		"belege fehlen",
 		"belege",
