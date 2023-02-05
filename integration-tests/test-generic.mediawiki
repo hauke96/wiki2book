@@ -8,6 +8,13 @@ As you can see, ''headings'' work and '''formatting''' as well. Even '''com''ple
 
 You found something smart? Better but a <ref>Reference to a source</ref> on it.
 
+Named <ref name="refname">That's true!</ref> references are allowed, too.
+They even can be reused<ref name="refname" />.
+
+A refname can have arbitrary characters as well<ref name=".,-+3/Ü´_">That's cool!</ref>.
+
+Refs with some other attributes are okay, too<ref some="other/attributes">No name, no problem.</ref>.
+
 == Templates ==
 
 Some get ignored (due to layout reasons or low significance for an ebook) but some work like the ''grcS'' template used in the German [https://de.wikipedia.org/wiki/Stern Stern] article: {{grcS|ἀστήρ, ἄστρον|astēr, astron}}.

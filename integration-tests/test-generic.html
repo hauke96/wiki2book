@@ -12,6 +12,13 @@ This is a file to test the transpiler from WikiText to HTML.
 As you can see, <i>headings</i> work and <b>formatting</b> as well. Even <b>com<i>plex</i></b><i> struc</i>tures work:
 <h2>References</h2>
 You found something smart? Better but a [1] on it.
+<br><br>
+Named [2] references are allowed, too.
+They even can be reused[2].
+<br><br>
+A refname can have arbitrary characters as well[3].
+<br><br>
+Refs with some other attributes are okay, too[4].
 <h2>Templates</h2>
 Some get ignored (due to layout reasons or low significance for an ebook) but some work like the <i>grcS</i> template used in the German <a href="https://de.wikipedia.org/wiki/Stern">Stern</a> article: altgriechisch ἀστήρ, ἄστρον <templatestyles src="Latn/styles.css"></templatestyles>astēr, astron.
 <h2>Links</h2>
@@ -205,6 +212,9 @@ Images in tables work as well
 <h2>References</h2>
 They will be collected and are visible at the end of the document:<br>
 [1] <ref>Reference to a source</ref><br>
+[2] <ref name="refname">That's true!</ref><br>
+[3] <ref name=".,-+3/Ü´_">That's cool!</ref><br>
+[4] <ref some="other/attributes">No name, no problem.</ref><br>
 <h2>Mixing stuff</h2>
 1. Mixing stuff also works:
 2. Planemo = <i><b>plane</b>tary <a href="https://object.de"><b>m</b>ass</a> <b>o</b>bject</i>
