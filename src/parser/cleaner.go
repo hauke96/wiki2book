@@ -21,6 +21,7 @@ func clean(content string) string {
 	content = removeUnwantedCategories(content)
 	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
+	content = removeUnwantedWikitext(content)
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
 	return content
@@ -145,6 +146,10 @@ func removeUnwantedTemplates(content string) string {
 
 func removeUnwantedHtml(content string) string {
 	return unwantedHtmlRegex.ReplaceAllString(content, "")
+}
+
+func removeUnwantedWikitext(content string) string {
+	return strings.ReplaceAll(content, "__NOTOC__", "")
 }
 
 func removeEmptyListEntries(content string) string {
