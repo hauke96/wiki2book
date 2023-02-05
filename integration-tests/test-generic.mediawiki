@@ -84,9 +84,10 @@ Datei:Wikipedia-logo-v2.svg
 
 === Image maps ===
 
-<imagemap>Wikimedia_Servers-0051_19.jpg|With some caption.
-some imagemap stuff
-which will be ignored
+<imagemap>
+Image:Wikimedia_Servers-0051_19.jpg|With some caption
+rect 1 1 741 445 [[Oregon|Oregon]]
+desc none
 </imagemap>
 
 == Tables ==

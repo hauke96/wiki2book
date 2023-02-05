@@ -203,9 +203,9 @@ func (t *Tokenizer) parseImages(content string) string {
 	submatches := imageRegex.FindAllStringSubmatch(content, -1)
 	for _, submatch := range submatches {
 		filename := submatch[3]
-		filepath := filepath.Join(t.imageFolder, filename)
+		imageFilepath := filepath.Join(t.imageFolder, filename)
 		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
-		t.setRawToken(filenameToken, filepath)
+		t.setRawToken(filenameToken, imageFilepath)
 
 		tokenString := TOKEN_IMAGE_INLINE
 		imageSizeToken := ""
