@@ -28,7 +28,7 @@ Most existing tools are furthermore rather general purpose tools, which is not b
 You need the following tools and fonts:
 
 1. ImageMagick (to have the `convert` command)
-2. Pandoc (to have the `pandoc` command)
+2. Pandoc (to have the `pandoc` command). See notes on pandoc versions 2 and 3 below.
 3. DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (currently hard-coded, s. TODOs below)
 
 ## CLI
@@ -79,6 +79,14 @@ All values are folders, which don't need to exist, they will be created.
 **Notice:** Currently only the German Wikipedia is supported.
 However, you can specify `en` as `wikipedia-domain` to download articles from the English Wikipedia.
 But because a lot of German template-strings are removed while parsing, the English strings remain and result in unwanted stuff in the eBook.
+
+### Pandoc version 2 and 3
+
+Pandoc version 2 might internally use CSS3 parameters by default, such as the `gap` property.
+This might cause problems on certain eBook readers.
+To overcome this, pass the argument `--pandoc-data-dir ./pandoc/data` to wiki2book, which uses a template from this repo without such parameter.
+
+Alternatively install pandoc 3, which [avoids CSS3 parameters](https://github.com/jgm/pandoc/blob/3.0/data/epub.css#L166:L169).
 
 ### Examples
 
