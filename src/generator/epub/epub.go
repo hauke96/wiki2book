@@ -24,7 +24,9 @@ func Generate(sourceFiles []string, outputFile string, styleFile string, coverFi
 		"--metadata", "rights=" + metadata.License,
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
-		"--data-dir", pandocDataDir,
+	}
+	if pandocDataDir != "" {
+		args = append(args, "--data-dir", pandocDataDir)
 	}
 	if styleFile != "" {
 		args = append(args, "--css", styleFile)
