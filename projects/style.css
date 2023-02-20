@@ -207,3 +207,7 @@ ol, ul {
 .description-list .dd {
     padding-left: 0.75rem;
 }
+
+.error {
+    display: none;
+}
