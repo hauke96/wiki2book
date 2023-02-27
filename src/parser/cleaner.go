@@ -2,19 +2,8 @@ package parser
 
 import (
 	"github.com/hauke96/wiki2book/src/util"
-	"regexp"
 	"strings"
 )
-
-var headingRegex = regexp.MustCompile(`^(=*)[^=]+(=*)$`)
-var semiHeadingRegex = regexp.MustCompile(`^'''.+'''$`)
-var categoryRegex = regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`)
-var templateNameRegex = regexp.MustCompile(`{{\s*([^\n|}]+)`)
-var unwantedHtmlRegex = regexp.MustCompile(`</?(div|span)[^>]*>`)
-
-// Use multi-line matches (?m) to also match on \n
-// TODO Edge case: Empty list item at the end of the content (with no trailing newline)
-var emptyListItemRegex = regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
 
 func clean(content string) string {
 	content = removeComments(content)
