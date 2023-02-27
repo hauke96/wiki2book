@@ -227,22 +227,26 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 		if !shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
 			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
+			sigolo.Info("Download article %s", articleName)
 			wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
+			sigolo.Info("Tokenize article %s", articleName)
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
 			article := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 
+			sigolo.Info("Download images from article %s", articleName)
 			err = api.DownloadImages(article.Images, imageCache, articleCache)
 			sigolo.FatalCheck(err)
 
+			sigolo.Info("Generate HTML for article %s", articleName)
 			htmlGenerator := &html.HtmlGenerator{}
 			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
 			sigolo.FatalCheck(err)
 
-			sigolo.Info("Succeesfully created HTML for article %s", articleName)
 		}
 
+		sigolo.Info("Finished processing article %s", articleName)
 		articleFiles = append(articleFiles, htmlFileName)
 	}
 
