@@ -23,6 +23,10 @@ Some get ignored (due to layout reasons or low significance for an ebook) but so
 
 [https://en.wikipedia.org/wiki/As As] [https://en.wikipedia.org/wiki/you you] [https://en.wikipedia.org/wiki/can can] [https://en.wikipedia.org/wiki/see see], links work as well.
 
+=== Interwiki links ===
+
+Some links lead to other [[de:Wikipedia|Wikipedia]] instances.
+
 == Math ==
 Let us do some <math>m \cdot a + t - \mathbb{H}</math> stuff:
 

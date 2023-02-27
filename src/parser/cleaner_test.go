@@ -57,6 +57,25 @@ func TestRemoveUnwantedCategories(t *testing.T) {
 	test.AssertEmptyString(t, content)
 }
 
+func TestRemoveUnwantedLinks(t *testing.T) {
+	content := `[[de:foo]][[arxiv:whatever]][[DE:FOO]][[EN:FOO:BAR
+$ome+µeird-string]]
+before[[de:foo:bar]]after
+before[[internal]]after
+before image [[iMAge:this-should:stay.jpg]] after image`
+	content = removeUnwantedInterwikiLinks(content)
+	test.AssertEqual(t, `[[arxiv:whatever]]
+beforeafter
+before[[internal]]after
+before image [[iMAge:this-should:stay.jpg]] after image`, content)
+}
+
+func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
+	content := `foo[[Image:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
+	cleanedContent := removeUnwantedInterwikiLinks(content)
+	test.AssertEqual(t, content, cleanedContent)
+}
+
 func TestRemoveUnwantedTemplates(t *testing.T) {
 	content := `{{siehe auch}}{{GRAPH:CHART
 |$ome+µeird-string}}{{let this template stay}}{{
