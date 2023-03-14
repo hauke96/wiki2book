@@ -253,7 +253,10 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	sigolo.Info("Start generating EPUB file")
 	err = epub.Generate(articleFiles, outputFile, styleFile, coverFile, pandocDataDir, metadata)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file")
+
+	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
+	sigolo.FatalCheck(err)
+	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
 func shouldRecreateHtml(htmlOutputFolder string, htmlFileName string, forceHtmlRecreate bool) bool {
@@ -287,16 +290,16 @@ func toRelative(styleFile string, outputFile string, coverFile string) (string, 
 func toAbsolute(styleFile string, outputFile string, coverFile string, pandocDir string) (string, string, string, string, error) {
 	var err error
 
-	styleFile, err = util.MakePathAbsolute(styleFile, err)
+	styleFile, err = util.MakePathAbsolute(styleFile)
 	sigolo.FatalCheck(err)
 
-	outputFile, err = util.MakePathAbsolute(outputFile, err)
+	outputFile, err = util.MakePathAbsolute(outputFile)
 	sigolo.FatalCheck(err)
 
-	coverFile, err = util.MakePathAbsolute(coverFile, err)
+	coverFile, err = util.MakePathAbsolute(coverFile)
 	sigolo.FatalCheck(err)
 
-	pandocDir, err = util.MakePathAbsolute(pandocDir, err)
+	pandocDir, err = util.MakePathAbsolute(pandocDir)
 	sigolo.FatalCheck(err)
 
 	return styleFile, outputFile, coverFile, pandocDir, err

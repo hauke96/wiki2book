@@ -20,7 +20,8 @@ func MakePathRelative(styleFile string) (string, error) {
 	return styleFile, err
 }
 
-func MakePathAbsolute(styleFile string, err error) (string, error) {
+func MakePathAbsolute(styleFile string) (string, error) {
+	var err error
 	if styleFile != "" {
 		styleFile, err = filepath.Abs(styleFile)
 		sigolo.FatalCheck(errors.Wrap(err, "Unable to make style file path relative"))
