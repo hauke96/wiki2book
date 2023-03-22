@@ -169,7 +169,10 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 
 	err = epub.Generate([]string{htmlFile}, outputFile, styleFile, coverImageFile, pandocDataDir, metadata)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file")
+
+	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
+	sigolo.FatalCheck(err)
+	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool) {
