@@ -49,6 +49,16 @@ func TestRemoveComments(t *testing.T) {
 	content = "foo -->"
 	content = removeComments(content)
 	test.AssertEqual(t, "foo -->", content)
+
+	content = `* foo
+<!--
+-->
+* bar
+`
+	content = removeComments(content)
+	test.AssertEqual(t, `* foo
+* bar
+`, content)
 }
 
 func TestRemoveUnwantedCategories(t *testing.T) {

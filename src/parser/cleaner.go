@@ -29,6 +29,12 @@ func removeComments(content string) string {
 	var resultSegments []string
 
 	for i, splitItem := range splitContent {
+		if i > 0 {
+			// Remove newlines, which might be behind the end of a comment. Otherwise, there will be additional blank
+			// lines, that can cause problems (e.g. when they are in the middle of a list).
+			splitItem = strings.TrimLeft(splitItem, "\n")
+		}
+
 		if i == len(splitContent)-1 {
 			// The last string is never the end of a comment. It's either an empty string (in case the content directly
 			// ends with a comment) or it's the text after the last comment.
