@@ -294,3 +294,9 @@ bar
 
 	test.AssertEqual(t, expectedResult, removeEmptySections(content))
 }
+
+func TestRemoveEmptySection_pureBoldTextShouldNotBeChanged(t *testing.T) {
+	content := `'''foo'''`
+	expectedResult := `'''foo'''`
+	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+}

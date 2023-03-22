@@ -6,11 +6,10 @@ func (t *Tokenizer) parseTables(content string) string {
 	lines := strings.Split(content, "\n")
 
 	for i := 0; i < len(lines); i++ {
-		line := lines[i]
+		line := strings.TrimSpace(lines[i])
 		submatch := tableStartRegex.FindStringSubmatch(line)
 		if submatch != nil {
 			listPrefix := submatch[1]
-			line = submatch[2]
 
 			// table starts in this line.
 			token, newIndex := t.tokenizeTables(lines, i)
@@ -39,7 +38,7 @@ func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 
 	// collect all lines from this table
 	for ; i < len(lines); i++ {
-		line := lines[i]
+		line := strings.TrimSpace(lines[i])
 
 		if strings.HasPrefix(line, "{|") || strings.HasPrefix(line, ":{|") {
 			// another table starts
@@ -51,7 +50,7 @@ func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 			tableLines = append(tableLines, lines[i])
 			break
 		} else {
-			tableLines = append(tableLines, line)
+			tableLines = append(tableLines, lines[i])
 		}
 	}
 
@@ -70,7 +69,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 	var tableTokens []string
 
 	for i := 0; i < len(lines); i++ {
-		line := lines[i]
+		line := strings.TrimSpace(lines[i])
 
 		isCaptionStart := strings.HasPrefix(line, "|+")
 		isRowStart := strings.HasPrefix(line, "|-")
@@ -120,7 +119,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
-		line := lines[i]
+		line := strings.TrimSpace(lines[i])
 
 		if strings.HasPrefix(line, "|-") || strings.HasPrefix(line, "|}") {
 			// Row or whole table ended.
@@ -129,11 +128,15 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 
 		line = strings.TrimPrefix(line, "|")
 		line = strings.TrimPrefix(line, "!")
+		line = strings.TrimSpace(line)
 
 		// Collect all normal text rows until the next row or column starts.
 		i++
-		for ; !strings.HasPrefix(lines[i], "|") && !strings.HasPrefix(lines[i], "!"); i++ {
-			line += "\n" + lines[i]
+		for l := strings.TrimSpace(lines[i]); !strings.HasPrefix(l, "|") && !strings.HasPrefix(l, "!"); {
+			line += "\n" + l
+
+			i++
+			l = lines[i]
 		}
 		// Now the index is at the start of the next column/row -> reduce by 1 for later parsing.
 		i -= 1
@@ -141,7 +144,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 		line, attributeToken := t.tokenizeTableEntry(line)
 
 		token := ""
-		if strings.HasPrefix(lines[i], "!") {
+		if strings.HasPrefix(strings.TrimSpace(lines[i]), "!") {
 			token = t.getToken(TOKEN_TABLE_HEAD)
 		} else {
 			token = t.getToken(TOKEN_TABLE_COL)
@@ -165,20 +168,27 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 // tokenizeTableCaption expects i to be the line in which the caption starts (i.e. the line after |+ ). The return
 // values are the tokenized caption and the index pointing to the last text line of the caption.
 func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
-	captionLines := lines[i]
-	i++
+	captionLines := strings.TrimSpace(lines[i])
 
 	// collect all lines from this caption
-	for ; i < len(lines) && !strings.HasPrefix(lines[i], "|-") && !strings.HasPrefix(lines[i], "!"); i++ {
-		captionLines += "\n" + lines[i]
+	i++
+	for l := strings.TrimSpace(lines[i]); !strings.HasPrefix(l, "|") && !strings.HasPrefix(l, "!"); {
+		captionLines += "\n" + l
+
+		i++
+		l = strings.TrimSpace(lines[i])
 	}
 
 	captionLines = strings.TrimPrefix(captionLines, "|+")
 
 	tokenizedCaption, styleAttributeToken := t.tokenizeTableEntry(captionLines)
+	captionTokenContent := strings.TrimSpace(tokenizedCaption)
+	if styleAttributeToken != "" {
+		captionTokenContent = styleAttributeToken + " " + captionTokenContent
+	}
 
 	token := t.getToken(TOKEN_TABLE_CAPTION)
-	t.setRawToken(token, styleAttributeToken+tokenizedCaption)
+	t.setRawToken(token, captionTokenContent)
 
 	// return i-1 so that i is on the last line of the caption when returning
 	return token, i - 1

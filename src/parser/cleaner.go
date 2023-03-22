@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const semiHeadingDepth = 10
+
 func clean(content string) string {
 	content = removeComments(content)
 	content = removeUnwantedCategories(content)
@@ -198,6 +200,12 @@ func removeEmptySections(content string) string {
 			// Get next line after "current heading"
 			i++
 			if i >= len(lines) {
+				// This line is considered to be a heading. But: If this is only a semi-heading we leave it. It's
+				// possible that the whole content is e.g. just a table cell or link text and therefore not a multi-row
+				// article.
+				if currentHeadingDepth == semiHeadingDepth {
+					resultLines = append(resultLines, line)
+				}
 				break
 			}
 
@@ -272,10 +280,10 @@ func headingDepth(line string) int {
 		}
 	}
 
-	matcheSemiHeading := semiHeadingRegex.MatchString(line)
-	if matcheSemiHeading {
+	lineIsSemiHeading := semiHeadingRegex.MatchString(line)
+	if lineIsSemiHeading {
 		// This is a semi heading: Just bold text in this line -> Interpret this as most insignificant heading
-		return 10
+		return semiHeadingDepth
 	}
 
 	return 0
