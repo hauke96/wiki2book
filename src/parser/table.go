@@ -97,7 +97,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 		} else if isDataCell {
 			// A data cell/row is usually part of a normal row or heading. Here we found a data row but without an
 			// explicit start of a new table row. So we just assume that here one or more normal table rows start.
-			rowToken, i = t.tokenizeTableRow(lines, i+1)
+			rowToken, i = t.tokenizeTableRow(lines, i)
 		}
 
 		if rowToken != "" {
@@ -120,25 +120,25 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
-		tokenizedLine := lines[i]
+		line := lines[i]
 
-		if strings.HasPrefix(tokenizedLine, "|-") || strings.HasPrefix(tokenizedLine, "|}") {
-			// table row ended
+		if strings.HasPrefix(line, "|-") || strings.HasPrefix(line, "|}") {
+			// Row or whole table ended.
 			break
 		}
 
-		tokenizedLine = strings.TrimPrefix(tokenizedLine, "|")
-		tokenizedLine = strings.TrimPrefix(tokenizedLine, "!")
+		line = strings.TrimPrefix(line, "|")
+		line = strings.TrimPrefix(line, "!")
 
 		// Collect all normal text rows until the next row or column starts.
 		i++
 		for ; !strings.HasPrefix(lines[i], "|") && !strings.HasPrefix(lines[i], "!"); i++ {
-			tokenizedLine += "\n" + lines[i]
+			line += "\n" + lines[i]
 		}
-		// now the index is at the start of the next column/row -> reduce by 1 for later parsing
+		// Now the index is at the start of the next column/row -> reduce by 1 for later parsing.
 		i -= 1
 
-		tokenizedLine, attributeToken := t.tokenizeTableEntry(tokenizedLine)
+		line, attributeToken := t.tokenizeTableEntry(line)
 
 		token := ""
 		if strings.HasPrefix(lines[i], "!") {
@@ -146,7 +146,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 		} else {
 			token = t.getToken(TOKEN_TABLE_COL)
 		}
-		t.setRawToken(token, attributeToken+tokenizedLine)
+		t.setRawToken(token, attributeToken+line)
 
 		rowLineTokens = append(rowLineTokens, token)
 	}

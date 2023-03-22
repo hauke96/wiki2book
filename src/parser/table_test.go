@@ -6,7 +6,29 @@ import (
 	"testing"
 )
 
-func TestParseTable(t *testing.T) {
+func TestParseTable_simple(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `{|
+| foo || bar
+|-
+| blubb || moin
+|}`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
+		// outer table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " foo ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): " bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): " blubb ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): " moin",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseTable_complex(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `before
 {| class="wikitable"
@@ -91,17 +113,20 @@ func TestParseTable_withoutExplicitRowStart(t *testing.T) {
 | foo
 |-
 | bar
+|
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
 	test.AssertMapEqual(t, map[string]string{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1, TOKEN_TABLE_ROW, 3),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
 		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2): " bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): " foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): " bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "",
 	}, tokenizer.getTokenMap())
 }
 
@@ -125,6 +150,28 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2): " bar",
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseTable_withEmptyColumn(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `{|
+| foo || bar
+|-
+|  || moin
+|}`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
+		// outer table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): " foo ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): " bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): "  ",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): " moin",
 	}, tokenizer.getTokenMap())
 }
 
