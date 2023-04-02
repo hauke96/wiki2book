@@ -84,6 +84,12 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 }
 
 func (t *Tokenizer) Tokenize(content string, title string) Article {
+	sigolo.Info("Tokenize article %s [1/2]: Evaluate templates", title)
+	content = clean(content)
+	content = t.evaluateTemplates(content)
+	content = clean(content)
+
+	sigolo.Info("Tokenize article %s [2/2]: Tokenize content", title)
 	content = t.tokenizeContent(t, content)
 
 	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
@@ -134,10 +140,6 @@ func (t *Tokenizer) setRawToken(key string, tokenContent string) {
 func tokenizeContent(t *Tokenizer, content string) string {
 	for {
 		originalContent := content
-
-		content = clean(content)
-		content = t.evaluateTemplates(content)
-		content = clean(content)
 
 		content = t.parseBoldAndItalic(content)
 		content = t.parseHeadings(content)
