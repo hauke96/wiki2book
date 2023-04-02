@@ -36,7 +36,9 @@ Of course IDEs like Goland provide direct possibility to run the unit tests with
 In the root of the repo there's an ` integration-test` folder, it contains several standalone `.json` files.
 Take a look at the `README.md` there.
 
-# Profiling
+# Performance measurement
+
+## Profiling
 
 **Method 1:** Use your IDE.
 
@@ -48,3 +50,12 @@ Take a look at the `README.md` there.
 
 You can also pass all arguments to the CLI directly.
 For me `go tool pprof -nodecount=1000 -call_tree -pdf wiki2book ./profiling.prof` works quite well.
+
+## `time` command tricks
+
+The following command uses the `time` command to print the complete execution time, takes the `real` time and prints the number in milliseconds.
+This can easily be used in a loop to do some semi-professional performance measurement.
+
+```
+{ time ./wiki2book article --profiling --cache-dir=.wiki2book-aids -r AIDS; } |& grep real | sed -E 's/[^0-9\.]+//g' | bc
+```
