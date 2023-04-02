@@ -121,7 +121,7 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 	for ; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
 
-		if strings.HasPrefix(line, "|-") || strings.HasPrefix(line, "|}") {
+		if strings.HasPrefix(line, "|-") || strings.HasPrefix(line, "|+") || strings.HasPrefix(line, "|}") {
 			// Row or whole table ended.
 			break
 		}

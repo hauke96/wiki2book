@@ -211,6 +211,25 @@ func TestParseTable_withEmptyColumn(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseTable_captionInsideRow(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `{|
+|-
+|+ cap
+| foo
+|}`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3), tokenizedTable)
+	test.AssertMapEqual(t, map[string]string{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 2),
+		// outer table
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):     fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1):     "foo",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0): "cap",
+	}, tokenizer.getTokenMap())
+}
+
 func TestTokenizeTableRow_withHead(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	lines := []string{
