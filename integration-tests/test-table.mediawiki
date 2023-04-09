@@ -1,0 +1,70 @@
+== Test 1: Simple table ==
+
+{|
+|-
+| foo || bar
+|-
+| other foo
+| other bar
+|}
+
+{| class="wikitable"
+|-
+! head1 !! head2
+|-
+| foo || bar
+|}
+
+
+== Test 2: Captions ==
+
+With formatting:
+
+{| class="wikitable"
+|+ Some ''italic'' caption.
+|-
+| foo || bar
+|}
+
+With links:
+
+{| class="wikitable"
+|+ Some caption with [[link|internal link]] and [http://website.com external link].
+|-
+| foo || bar
+|}
+
+With table:
+
+{| class="wikitable"
+|+ Here's another table:
+{|
+! head
+|-
+| foo
+|}
+|-
+| foo || bar
+|}
+
+== Test 3: Nested tables ==
+
+{| class="wikitable"
+|-
+! head1 !! head2
+|-
+|
+{|
+|+ Caption: blubb
+|-
+| foo
+|}
+| Another table:
+{|
+! head1 !! head2
+|-
+| col1
+| col2
+|}
+|}
+
