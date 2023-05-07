@@ -131,13 +131,6 @@ func TestClean(t *testing.T) {
 
 {{Gesprochene Version
 |artikel    = Erde
-|datei      = De-Erde-article.ogg
-|länge      = 41:43 min
-|größe      = 20,4 MB
-|sprecher   = Ahoek
-|geschlecht = Männlich
-|dialekt    = Hochdeutsch
-|version    = 121631898
 |datum      = 2013-08-25}}
 
 {{NaviBlock
@@ -154,6 +147,21 @@ foo`
 
 
 foo`, content)
+	content = `
+== Foo ==
+{{Hauptartikel}}<!-- This comment should not cause problems -->
+{{Positionskarte+ |Title | foo {{should_be_removed_as_well}} |places=
+{{Positionskarte~ |foobar}}
+}}
+
+bar`
+	content = clean(content)
+	test.AssertEqual(t, `
+== Foo ==
+
+
+
+bar`, content)
 }
 
 func TestGetTrimmedLine(t *testing.T) {
