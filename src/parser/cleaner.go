@@ -120,6 +120,8 @@ func removeUnwantedTemplates(content string) string {
 		"normdaten",
 		"panorama",
 		"portal",
+		"positionskarte+",
+		"positionskarte~",
 		"quellen",
 		"rechtshinweis",
 		"redundanztext",
