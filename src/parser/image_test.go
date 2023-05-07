@@ -40,7 +40,7 @@ func TestImageRegex(t *testing.T) {
 }
 
 func TestEscapeImages_removeVideos(t *testing.T) {
-	unwantedMedia := []string{"webm", "gif", "ogv", "mp3", "mp4", "ogg", "wav"}
+	unwantedMedia := []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"}
 
 	for _, extension := range unwantedMedia {
 		content := "[[Datei:foo." + extension + "]][[File:bar." + extension + "|some|further|settings]]"

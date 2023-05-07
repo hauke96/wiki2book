@@ -67,7 +67,7 @@ var (
 		"media",
 	}
 	filePrefixes               = strings.Join(imageTypes, "|")
-	nonImageRegex              = regexp.MustCompile(`(?i)\[\[((` + filePrefixes + `):.*?\.(webm|gif|ogv|mp3|mp4|ogg|wav|pdf))(\|([^\]]*))?]]`) // TODO Regarding PDFs: This is temporary, solve issue #33 to handle them properly.
+	nonImageRegex              = regexp.MustCompile(`(?i)\[\[((` + filePrefixes + `):.*?\.(gif|mp3|mp4|pdf|oga|ogg|ogv|wav|webm))(\|([^\]]*))?]]`) // TODO Regarding PDFs: This is temporary, solve issue #33 to handle them properly.
 	imageRegex                 = regexp.MustCompile(`(?i)\[\[((` + filePrefixes + `):([^|^\]]*))(\|([^\]]*))?]]`)
 	imagePrefixRegex           = regexp.MustCompile("(?i)^(" + filePrefixes + "):")
 	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
