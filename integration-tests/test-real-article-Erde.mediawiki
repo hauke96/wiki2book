@@ -1,52 +1,9 @@
-Source:     https://de.wikipedia.org/wiki/Schwarzes_Loch
+Source:     https://de.wikipedia.org/wiki/Erde
 Downloaded: 2022-12-19 23:22
 License:    Creative Commons Attribution-Share-Alike License 3.0 (CC-by-sa-3.0)
 
-{{Begriffsklärungshinweis}}
-{{Infobox Planet
-| Name = Erde&nbsp;&nbsp;[[Datei:Earth symbol (small, bold).svg|24px|🜨]]
-| Bild = [[Datei:The Blue Marble (remastered).jpg|290px|zentriert]]
-| Bildtext = [[Blue Marble]], eine Aufnahme der Erde von [[Apollo&nbsp;17]] am 7.&nbsp;Dezember&nbsp;1972
-| Farbe = #B0C4DE
-| Große_Halbachse = 1
-| Perihel = 0,983
-| Aphel = 1,017
-| Exzentrizität = 0,0167
-| Bahnneigung = 0,0001
-| ref-o = <ref name="daten_nasa">{{Internetquelle |autor=David R. Williams |url=https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html |titel=Earth Fact Sheet |werk=NASA.gov |datum=2020-04-20 |abruf=2020-05-09 |sprache=en}}</ref>
-| Umlaufdauer = 365,256 [[Tag|d]]
-| Umlaufgeschwindigkeit = 29,78
-| Äquatordurchmesser = 12&#8239;756,27
-| Poldurchmesser = 12&#8239;713,50
-| Masse = 5,9722 · 10<sup>24</sup>
-| Dichte = 5,514
-| Fallbeschleunigung = (9,790–9,832)
-| Fluchtgeschwindigkeit = 11,186
-| Rotationsperiode = 23 h 56 min 4 s
-| Achsenneigung = 23,44
-| Albedo = 0,434
-| Druck = 1,014
-| Temperatur = 184 [[Kelvin|K]]&nbsp;(−89 [[Celsius|°C]])<br />288 K&nbsp;(+15&nbsp;°C)<br />330 K&nbsp;(+57&nbsp;°C)
-| Atmosphärenhauptbestandteile = * [[Stickstoff]]: 78,08 %
-* [[Sauerstoff]]: 20,95 %
-* [[Argon]]: 0,93 %
-* [[Kohlenstoffdioxid]]: 0,042 %<ref>{{Internetquelle |url=https://www.esrl.noaa.gov/gmd/ccgg/trends/monthly.html |titel=Trends in Atmospheric Carbon Dioxide |werk=esrl.noaa.gov |hrsg=[[NOAA]] |abruf=2020-05-10 |sprache=en}}</ref>
-* [[Neon]]: 0,002 %
-| ref-p = <ref name="daten_nasa" /><ref name="daten_nasa2">{{Internetquelle |url=https://solarsystem.nasa.gov/planet-compare/ |titel=Solar System Exploration: Planet Compare |werk=NASA.gov |abruf=2020-05-10 |sprache=en}}</ref>
-| Monde = 1
-| Mond1 = [[Mond]]
-| Vergleichbild = [[Datei:Solar system scale-2.jpg|400px]]
-| Vergleichtext = v. l. n. r.: Größenvergleich zwischen [[Sonne]]nrand, [[Merkur (Planet)|Merkur]], [[Venus (Planet)|Venus]], Erde, [[Mars (Planet)|Mars]], [[Jupiter (Planet)|Jupiter]], [[Saturn (Planet)|Saturn]], [[Uranus (Planet)|Uranus]] und [[Neptun (Planet)|Neptun]] (maßstabsgerechte Fotomontage der Größen, jedoch nicht der Abstände)
-}}
-
-Die '''Erde''' ist der [[dichte]]ste, fünftgrößte und der [[Sonne]] drittnächste [[Planet]] des [[Sonnensystem]]s. Sie ist Ursprungsort und Heimat aller bekannten [[Lebewesen]]. Ihr Durchmesser beträgt mehr als {{formatnum:12700}} Kilometer und ihr Alter etwa 4,6 Milliarden Jahre. Nach ihrer vorherrschenden [[Geochemie|geochemischen]] Beschaffenheit wurde der Begriff der „[[Erdähnlicher Planet|erdähnlichen Planeten]]“ geprägt. Das [[Astronomisches Symbol|astronomische Symbol]] der Erde ist [[Datei:Globus cruciger (fixed width).svg|16px|♁]]<!--PROBLEME MIT DER DARSTELLUNG DES ZEICHENS?: Bitte nicht ohne Diskussion austauschen, sondern [[Wikipedia:UTF-8-Probleme]] lesen!--> oder [[Datei:Earth symbol (fixed width).svg|16px|🜨]].<ref>{{Literatur |Autor=Hans-Ulrich Keller |Titel=Kompendium der Astronomie: Einführung in die Wissenschaft vom Universum |Verlag=Franckh-Kosmos Verlags-GmbH & Co. KG |Ort=Stuttgart |Datum=2016 |ISBN=978-3-440-15215-7 |Seiten=379 |Online={{Google Buch |BuchID=qppVDAAAQBAJ |Seite=379}}}}</ref>
-
-Da die [[Erdoberfläche]] zu etwa zwei Dritteln aus [[Wasser]] besteht und daher die Erde vom [[Weltraum|All]] betrachtet vorwiegend blau erscheint, wird sie auch '''Blauer Planet''' genannt. Sie wird [[Metapher|metaphorisch]] auch als „[[Raumschiff Erde]]“ bezeichnet.
-
-Die Erde spielt als Lebensgrundlage des [[Mensch]]en in allen [[Religion]]en eine herausragende Rolle als [[heilig]]e [[Ganzheit]]; in etlichen [[Ethnische Religionen|ethnischen]], [[Volksfrömmigkeit|Volks-]] und [[Historische Religion|historischen Religionen]] entweder als [[Gott|Vergöttlichung]] einer „[[Mutter Erde]]“ oder personifiziert als [[Erdgöttin]].<ref>[[Wilhelm Kühlmann]]: ''Pantheismus I,'' erschienen in: Horst Balz et al. (Hrsg.): ''[[Theologische Realenzyklopädie]], Band 25: „Ochino – Parapsychologie“.'' Walter de Gruyter, Berlin, New York 1995/2000, ISBN 978-3-11-019098-4. S. 628.</ref>
-
-== Etymologie ==
-Das [[Urgermanische Sprache|gemeingermanische]] [[Substantiv]] ''erde'' in [[Mittelhochdeutsch]], in [[Althochdeutsch]] ''erda'' beruht mit verwandten Wörtern anderer [[Indogermanische Ursprache|indogermanischer]] Sprachen auf ''er-''.<ref>{{Literatur |Titel=Das Herkunftswörterbuch |Reihe=[[Duden#Duden in zwölf Bänden (2017)|Der Duden in zwölf Bänden]] |BandReihe=7 |Auflage=5. |Verlag=Dudenverlag |Ort=Berlin |Datum=2014 |Seiten=255 |Online={{Google Buch |BuchID=KqvWCgAAQBAJ |Seite=255 |Hervorhebung=erde}}}} ''Siehe auch [[Digitales Wörterbuch der deutschen Sprache|DWDS]]'' ([https://www.dwds.de/wb/Erde#et-1 „Erde“]) ''und'' {{Literatur |Autor=[[Friedrich Kluge]] |Titel=[[Etymologisches Wörterbuch der deutschen Sprache]] |Auflage=7 |Verlag=Trübner |Ort=Straßburg |Datum=1910 |Online=[http://daten.digitale-sammlungen.de/~db/0007/bsb00070228/images/index.html?&seite=139 S. 117]}}</ref>
+Die '''Erde''' ist der [[dichte]]ste, fünftgrößte und der [[Sonne]] drittnächste [[Planet]] des [[Sonnensystem]]s.
+Das [[Astronomisches Symbol|astronomische Symbol]] der Erde ist [[Datei:Globus cruciger (fixed width).svg|16px|♁]]<!--PROBLEME MIT DER DARSTELLUNG DES ZEICHENS?: Bitte nicht ohne Diskussion austauschen, sondern [[Wikipedia:UTF-8-Probleme]] lesen!--> oder [[Datei:Earth symbol (fixed width).svg|16px|🜨]].<ref>Hans-Ulrich Keller, Kompendium der Astronomie: Einführung in die Wissenschaft vom Universum (ISBN 978-3-440-15215-7)</ref>
 
 == Umlaufbahn ==
 {{Hauptartikel|Erdbahn}}
@@ -55,7 +12,7 @@ Die Erde bewegt sich gemäß dem [[Keplersche Gesetze#Erstes Keplersches Gesetz|
 
 Das Aphel liegt bei 1,017&nbsp;AE (152,1 Mio.&nbsp;km) und das Perihel bei 0,983&nbsp;AE (147,1 Mio.&nbsp;km). Damit hat die Ellipse eine [[Exzentrizität (Astronomie)|Exzentrizität]] von 0,0167. Der Aphel-Durchgang erfolgt um den 5. Juli und der Perihel-Durchgang um den 3. Januar. Die Erde umkreist die Sonne in 365&nbsp;Tagen, 6&nbsp;Stunden, 9&nbsp;Minuten und 9,54&nbsp;Sekunden; diese Zeitspanne heißt auch [[siderisches Jahr]]. Das siderische Jahr ist 20&nbsp;Minuten und 24&nbsp;Sekunden länger als das [[Tropisches Jahr|tropische Jahr]], auf dem das [[Bürgerlicher Kalender|bürgerliche Jahr der Kalenderrechnung]] basiert. Die Bahngeschwindigkeit der Erde beträgt im Mittel 29,78&nbsp;km/s, im Perihel 30,29&nbsp;km/s und im Aphel 29,29&nbsp;km/s; somit legt die Erde eine Strecke der Länge ihres Durchmessers in gut sieben Minuten zurück.
 
-Die Erdbahn ist zur inneren Nachbarbahn der [[Venus (Planet)|Venus]] im Mittel 0,28&nbsp;AE (41,44&nbsp;Mio. km) und zur äußeren Nachbarbahn des [[Mars (Planet)|Mars]] im Mittel 0,52&nbsp;AE (78,32&nbsp;Mio. km) entfernt. Im Mittel ist jedoch [[Merkur (Planet)|Merkur]] der Erde am nächsten (1,039 AE).<ref name=":0">{{Literatur |Autor=Tom Stockman, Gabriel Monroe, Samuel Cordner |Titel=Venus is not Earth's closest neighbor |Sammelwerk=[[Physics Today]] |Datum=2019-03-12 |Sprache=en |DOI=10.1063/PT.6.3.20190312a}}</ref> Auf der Erdbahn befinden sich mehrere [[Koorbitales Objekt|koorbitale Objekte]], weitere Details siehe: [[Erdbahn#Koorbitale Objekte|Erdbahn]].
+Die Erdbahn ist zur inneren Nachbarbahn der [[Venus (Planet)|Venus]] im Mittel 0,28&nbsp;AE (41,44&nbsp;Mio. km) und zur äußeren Nachbarbahn des [[Mars (Planet)|Mars]] im Mittel 0,52&nbsp;AE (78,32&nbsp;Mio. km) entfernt. Im Mittel ist jedoch [[Merkur (Planet)|Merkur]] der Erde am nächsten (1,039 AE).<ref name=":0">Tom Stockman, Gabriel Monroe, Samuel Cordner -- Venus is not Earth's closest neighbor</ref> Auf der Erdbahn befinden sich mehrere [[Koorbitales Objekt|koorbitale Objekte]], weitere Details siehe: [[Erdbahn#Koorbitale Objekte|Erdbahn]].
 
 Die Erde umkreist die Sonne [[Rechtläufig und rückläufig|prograd]], das heißt in der [[Drehrichtung|Rotationsrichtung]] der Sonne, was vom Nordpol der Erdbahnebene aus gesehen entgegen dem Uhrzeigersinn ist.
 
@@ -80,7 +37,6 @@ Am Erdäquatorwulst erzeugen die [[Gezeitenkraft|Gezeitenkräfte]] des [[Mond]]e
 
 === Rotationsdauer und Gezeitenkräfte ===
 Auf der Erde verursacht die [[Gravitation]] von Mond und Sonne die Gezeiten von [[Ebbe]] und [[Flut]] der Meere. Dabei ist der Anteil der Sonne etwa halb so groß wie der des Mondes. Die Gezeiten heben und senken auch die Landmassen um etwa einen halben Meter. Die [[Gezeiten]] verursachen die [[Gezeitenreibung]], welche die [[Erdrotation]] bremst und dadurch die [[Tag]]e um etwa 20&nbsp;Mikrosekunden pro Jahr verlängert. Dabei wird die [[Rotationsenergie]] der Erde in [[Wärme]] umgewandelt und der [[Drehimpuls]] wird auf den Mond übertragen, der sich dadurch um etwa vier Zentimeter pro Jahr von der Erde entfernt. Dieser schon lange vermutete Effekt ist seit 1995 durch Laserdistanzmessungen abgesichert. [[Extrapolation|Extrapoliert]] man diese Abbremsung in die Zukunft, wird auch die Erde einmal dem Mond immer dieselbe Seite zuwenden, wobei ein Tag auf der Erde dann etwa 47-mal so lang wäre wie heute. Damit unterliegt die Erde demselben Effekt, der schon zur [[Gebundene Rotation|gebundenen Rotation]] ''(Korotation)'' des Mondes führte.
-{{Siehe auch|Erdrotation#Langfristige Änderungen|titel1=Langfristige Änderungen der Erdrotation}}
 
 {| class="centered"
 |-
@@ -113,13 +69,13 @@ Ein dreidimensionales Modell der Erde heißt, wie alle verkleinerten Nachbildung
 |- style="border-bottom:2pt solid black"
 | Gesamtfläche der Erde || 510&#8239;000&#8239;000 || 100,0 %
 |-
-| Wasserfläche || 360&#8239;570&#8239;000 || {{0}}70,7 %
+| Wasserfläche || 360&#8239;570&#8239;000 || 70,7 %
 |- style="border-bottom:2pt solid black"
-| Landfläche|| 149&#8239;430&#8239;000 || {{0}}29,3 %
+| Landfläche|| 149&#8239;430&#8239;000 || 29,3 %
 |-
-| davon [[Ökumene (Geographie)|Dauernutzungsraum]] des Menschen<br />(Wohngebiete, Infrastruktur, intensiv genutzte Flächen, Land- und Forstwirtschaft) <small>2004</small><ref name="SEDAC">{{Internetquelle |url=http://sedac.ciesin.columbia.edu/wildareas/methods.jsp/ |titel=Last of the wild, v2 |werk=sedac.ciesin.columbia.edu |hrsg=„Socioeconomic Data and Applications Center“ des „Center for International Earth Science Information Network (CIESIN)“ der Columbia University, New York |abruf=2019-01-27 |kommentar=Prozentwerte der Studie auf Landfläche in km² umgelegt}}</ref> || {{0}}72&#8239;084&#8239;920 || {{0}}48,2 %
+| davon [[Ökumene (Geographie)|Dauernutzungsraum]] des Menschen<br />(Wohngebiete, Infrastruktur, intensiv genutzte Flächen, Land- und Forstwirtschaft) <small>2004</small><ref name="SEDAC">{{Internetquelle |url=http://sedac.ciesin.columbia.edu/wildareas/methods.jsp/ |titel=Last of the wild, v2 |werk=sedac.ciesin.columbia.edu |hrsg=„Socioeconomic Data and Applications Center“ des „Center for International Earth Science Information Network (CIESIN)“ der Columbia University, New York |abruf=2019-01-27 |kommentar=Prozentwerte der Studie auf Landfläche in km² umgelegt}}</ref> || 72&#8239;084&#8239;920 || 48,2 %
 |-
-| sowie kaum und nicht genutzte „[[Wildnis]]regionen“ (inkl. [[Eisschild]]e) <small>2004</small><ref name="SEDAC" /> || {{0}}77&#8239;345&#8239;080 || {{0}}51,8 %
+| sowie kaum und nicht genutzte „[[Wildnis]]regionen“ (inkl. [[Eisschild]]e) <small>2004</small><ref name="SEDAC" /> || 77&#8239;345&#8239;080 || 51,8 %
 |}
 
 [[Datei:MapL.png|mini|[[Landhemisphäre|Landhalbkugel]]]]
@@ -137,28 +93,6 @@ Die Erde ist der einzige Planet im Sonnensystem, auf dessen Oberfläche flüssig
 
 Die [[Wasserfläche]] hat in der gegenwärtigen geologischen Epoche einen Gesamtanteil von 70,7 % an der Erdoberfläche. Die restlichen 29,3 %, die [[Landfläche]], entfallen hauptsächlich auf sieben Kontinente; in der Reihenfolge ihrer Größe: [[Asien]], [[Afrika]], [[Amerika|Nordamerika, Südamerika]], [[Antarktika]], [[Europa]] und [[Australien (Kontinent)|Australien]] (Europa ist im Rahmen der Plattentektonik als große westliche Halbinsel des Kontinentes [[Eurasien]] allerdings wahrscheinlich nie eine selbstständige Einheit gewesen). Die Fläche des [[Weltmeer]]es wird allgemein in drei [[Ozean]]e einschließlich der [[Nebenmeer]]e unterteilt: den [[Pazifischer Ozean|Pazifik]], den [[Atlantischer Ozean|Atlantik]] und den [[Indischer Ozean|Indik]]. Die tiefste Meeresstelle, das [[Witjastief 1]], liegt im [[Marianengraben]], 11&#8239;034&nbsp;m unter dem Meeresspiegel. Die durchschnittliche Meerestiefe beträgt 3&#8239;800&nbsp;m. Das ist etwa das Fünffache der bei 800&nbsp;m liegenden mittleren Höhe der Kontinente (s. [[hypsografische Kurve]]).
 
-=== Plattentektonik ===
-{{Hauptartikel|Plattentektonik}}
-
-Die größten Platten entsprechen in ihrer Anzahl und Ordnung etwa jener der von ihnen getragenen Kontinente, mit Ausnahme der pazifischen Platte. Alle diese Platten bewegen sich gemäß der Plattentektonik relativ zueinander auf den teils aufgeschmolzenen, zähflüssigen Gesteinen des oberen Mantels, der 100 bis 150&nbsp;km mächtigen [[Asthenosphäre]].
-
-== Magnetfeld ==
-{{Hauptartikel|Erdmagnetfeld}}
-
-Das die Erde umgebende Magnetfeld wird von einem ''Geodynamo'' erzeugt. Das Feld ähnelt nahe der Erdoberfläche einem [[Magnetischer Dipol|magnetischen Dipol]]. Die magnetischen [[Feldlinie]]n treten auf der Südhalbkugel aus und durch die Nordhalbkugel wieder in die Erde ein. Im Erdmantel wird das Magnetfeld verformt.<!-- Wodurch? --> Das Magnetfeld wird außerhalb der Erdatmosphäre durch den [[Sonnenwind]] gestaucht.
-
-Die [[Pol (Geomagnetismus)|magnetischen Pole]] der Erde fallen nicht genau mit den [[Pol (Geographie)|geografischen Polen]] zusammen. Die Magnetfeldachse war im Jahr 2007 um etwa 11,5° gegenüber der [[Erdachse]] geneigt.
-
-== Atmosphäre ==
-{{Hauptartikel|Erdatmosphäre}}
-[[Datei:Full moon partially obscured by atmosphere.jpg|mini|Diese Ansicht aus der Umlaufbahn zeigt den Vollmond, der von der Erdatmosphäre teilweise verschleiert wird. ''NASA-Bild.'']]
-
-Die Erdatmosphäre geht kontinuierlich in den [[Weltraum]] über, so dass sie nach oben nicht scharf begrenzt ist. Ihre Masse beträgt etwa 5,13&nbsp;×&nbsp;10<sup>18</sup>&nbsp;kg und macht somit knapp ein Millionstel der Erdmasse aus. In der Atmosphäre auf Meeresspiegel-Niveau beträgt der mittlere Luftdruck unter [[Standardbedingungen]] 1013,25&nbsp;[[Pascal (Einheit)|hPa]]. Die Atmosphäre besteht am Boden vor allem aus 78 Vol.-% [[Stickstoff]], 21 Vol.-% [[Sauerstoff]] und 1 Vol.-% [[Edelgase]]n, überwiegend [[Argon]]. Dazu kommt 0,4 Vol.-% [[Wasserdampf]] in der gesamten Erdatmosphäre. Der für den [[Treibhauseffekt]] wichtige Anteil an [[Kohlendioxid]] ist durch menschlichen Einfluss gestiegen und liegt momentan bei etwa 0,04 Vol.-%.<ref name="Scripps">R. F. Keeling et al.: ''Atmospheric CO<sub>2</sub> concentrations (ppm) derived from in situ air measurements at Mauna Loa, Observatory, Hawaii: Latitude 19.5&nbsp;N, longitude 155.6&nbsp;W, elevation 3397&nbsp;m. '' In: ''Scripps CO<sub>2</sub> Program'', Scripps Institution of Oceanography (SIO), University of California, La Jolla (2011).</ref>
-
-Die auf der Erde meteorologisch gemessenen Temperaturextreme betragen −89,2&nbsp;°C (gemessen am 21. Juli 1983 auf 3420&nbsp;Metern Höhe in der [[Wostok-Station]] in der [[Antarktis]]) und 56,7&nbsp;°C (gemessen am 10. Juli 1913 im [[Death Valley]] auf {{Höhe|-54}})<ref name="wmo">[http://wmo.asu.edu/ ''Global Weather & Climate Extremes''] auf ''wmo.asu.edu'', abgerufen am 22. Dezember 2013.</ref>. Die mittlere Temperatur in Bodennähe beträgt 15&nbsp;°C. Bei dieser Temperatur liegt die Schallgeschwindigkeit in der Luft auf Meeresniveau bei 340&nbsp;m/s.
-
-Die Erdatmosphäre [[Rayleigh-Streuung|streut]] den kurzwelligen, blauen [[Elektromagnetisches Spektrum|Spektralanteil]] des [[Sonnenlicht]]s etwa fünfmal stärker als den langwelligen, roten und färbt dadurch bei hohem Sonnenstand den Himmel blau. Ebenfalls blau erscheint die Oberfläche der Meere und Ozeane vom Weltall aus, weswegen die Erde seit dem Beginn der Raumfahrt auch der „Blaue Planet“ genannt wird. Dieser Effekt ist jedoch auf die stärkere [[Absorption (Physik)|Absorption]] roten Lichtes im Wasser selbst zurückzuführen. Dabei ist die Spiegelung des blauen Himmels an der Wasseroberfläche nur nebensächlich.
-
 == Klima ==
 === Klima- und Vegetationszonen ===
 [[Datei:Klimagürtel-der-erde.svg|mini|hochkant=1.9|Klimazonen der Erde]]
@@ -171,9 +105,9 @@ Die Erde wird anhand unterschiedlich intensiver Sonneneinstrahlung in [[Klimazon
 ! ungefähre Breitengrade<br />Nord/Süd
 ! Durchschnitts-<br />temperatur
 |- style="font-size:90%;"
-| [[Polargebiet|Polarzone/Kalte Zone]] || Pol bis 66,56° (Polarkreise) || ca. {{0}}0&nbsp;°C
+| [[Polargebiet|Polarzone/Kalte Zone]] || Pol bis 66,56° (Polarkreise) || ca. 0&nbsp;°C
 |- style="font-size:90%;"
-| [[Gemäßigte Zone]] || 66,56° bis 40° || ca. {{0}}8&nbsp;°C
+| [[Gemäßigte Zone]] || 66,56° bis 40° || ca. 8&nbsp;°C
 |- style="font-size:90%;"
 | [[Subtropen]] || 40° bis 23,5° (Wendekreise) || ca. 16&nbsp;°C
 |- style="font-size:90%;"
@@ -181,38 +115,6 @@ Die Erde wird anhand unterschiedlich intensiver Sonneneinstrahlung in [[Klimazon
 |}
 
 Je weiter eine Klimazone vom Äquator und vom nächsten Ozean entfernt ist, desto stärker schwanken die Temperaturen zwischen den Jahreszeiten.
-
-==== Polarzone ====
-{{Hauptartikel|Polargebiet}}
-Die Polargebiete liegen an den Polen. Das Nördliche liegt innerhalb des nördlichen [[Polarkreis]]es und umfasst die [[Arktis]], in deren Zentrum das [[Nordpolarmeer]] liegt. Das Südliche liegt entsprechend innerhalb des südlichen Polarkreises und umfasst die [[Antarktis]], zu welcher der Großteil des Kontinents [[Antarktika]] gehört.
-
-Die Polargebiete werden geprägt durch kaltes Klima mit viel Schnee und Eis, [[Polarlicht]]ern, sowie dem [[Polartag]] mit der [[Mitternachtssonne]] und der [[Polarnacht]], die beide bis zu einem halben Jahr dauern können.
-
-Die Vegetation der [[Polare/Subpolare Zone|polaren- und subpolaren Ökozone]] reicht von den [[Kältewüste]]n (die nur kleine, inselartige Pflanzenvorkommen mit sehr wenigen flach wachsenden Arten aufweisen) zu den baumlosen, gras-, strauch- und moosbewachsenen [[Tundra|Tundren]].
-
-==== Gemäßigte Zone ====
-{{Hauptartikel|Gemäßigte Zone}}
-Die gemäßigte Klimazone reicht von den Polarkreisen bis zum vierzigsten Breitengrad und wird in eine [[Kaltgemäßigtes Klima|kalt-]] und [[kühlgemäßigtes Klima|kühlgemäßigte Zone]] eingeteilt. In dieser Zone unterscheiden sich die Jahreszeiten groß, was jedoch zum [[Äquator]] etwas abnimmt. Ein weiteres Merkmal sind die Unterschiede der Längen von Tag und Nacht, die je nach Jahreszeit stark variieren. Diese Unterschiede nehmen zum Pol hin immer mehr zu.
-
-Die Vegetation wird durch Wälder (im Norden der Nordhalbkugel [[Borealer Nadelwald|boreale Nadelwälder]], bei den äquatornäheren Gebieten [[Nemorale Wälder|nemorale beziehungsweise australe Misch- und Laubwälder]] der [[Feuchte Mittelbreiten|feuchten Mittelbreiten]]) sowie [[Grassteppe]]n und winterkalte [[Halbwüste]]n und [[Wüste]]n ([[Prärie]]n und [[Großes Becken]] in Nordamerika; [[Eurasische Steppe]] und Wüsten [[Zentralasien]]s, [[Pampa]] und [[Patagonien|patagonische Trockensteppe]]) geprägt.
-
-==== Subtropen ====
-{{Hauptartikel|Subtropen}}
-Die Subtropen (zum Teil auch ''warmgemäßigte Klimazone'') liegen in der geografischen Breite zwischen den [[Tropen]] in Äquatorrichtung und den gemäßigten Zonen in Richtung der Pole, ungefähr zwischen 25° und 40° nördlicher beziehungsweise südlicher Breite. In den Subtropen herrschen tropische Sommer und nicht-tropische Winter vor. Die Subtropen lassen sich weiter in trockene, winterfeuchte, sommerfeuchte und immerfeuchte Subtropen unterteilen.
-
-Weitverbreitet wird ''subtropisches Klima'' mit einer Mitteltemperatur im Jahr über 20&nbsp;Grad Celsius, und einer Mitteltemperatur des kältesten Monats von unterhalb 20&nbsp;Grad definiert.
-
-Die Unterschiede zwischen den Längen von Tag und Nacht sind relativ gering.
-
-Die Vegetation umfasst vor allem [[Tropisch / subtropische Trockengebiete|trockene Offenlandschaften]] ([[Heiße Halbwüste]]n und -[[Heiße Wüste|Wüsten]] wie die [[Sahara]] und die [[Australische Wüsten|australischen Wüsten]]), aber auch Waldgebiete ([[Hartlaubgehölze|lichte Hartlaubwälder]] der [[Winterfeuchte Subtropen|winterfeuchten „Mittelmeerklimate“]] und dichte [[Lorbeerwald|Lorbeerwälder]] der [[Immerfeuchte Subtropen|immerfeuchten Subtropen]]).
-
-==== Tropen ====
-{{Hauptartikel|Tropen}}
-Die Tropen befinden sich zwischen dem nördlichen und südlichen [[Wendekreis (Breitenkreis)|Wendekreis]]. In den Tropen sind Tag und Nacht immer ungefähr gleich lang (zwischen 10,5 und 13,5&nbsp;Stunden).
-
-Die Tropen können in die immerfeuchten und wechselfeuchten Tropen unterteilt werden. Nur die wechselfeuchten Tropen haben zwei klimatisch unterscheidbare Jahreszeiten: Trocken- und Regenzeit.
-
-Die Tropen werden [[Vegetationszone|vegetationsgeographisch]] in die [[Sommerfeuchte Tropen|sommerfeuchten-]] [[Trockensavanne|Trocken-]] und [[Feuchtsavanne]]n sowie die [[Tropischer Regenwald|Regenwälder]] der [[Immerfeuchte Tropen|immerfeuchten Tropen]] ([[Amazonasbecken]], [[Kongobecken]], [[Malaiischer Archipel]] und [[Neuguinea]]) untergliedert. In den Tropen konzentriert sich die größte [[Artenvielfalt]] und [[Biodiversität]] der Erde.
 
 === Jahreszeiten ===
 {{Hauptartikel|Jahreszeiten}}
@@ -231,14 +133,6 @@ Die Wanderung erfolgt im Jahresrhythmus wie folgt:
 
 Abweichend davon wird in der [[Meteorologie]] der Beginn der Jahreszeiten jeweils auf den Monatsanfang vorverlegt (1. Dezember, 1. März usw.).
 
-=== Globaler Energiehaushalt ===
-Der Energiehaushalt der Erde wird wesentlich durch die [[Insolation (Physik)|Einstrahlung]] der Sonne und die [[Ausstrahlung (Atmosphäre)|Ausstrahlung]] der Erdoberfläche bzw. Atmosphäre bestimmt, also durch den [[Strahlungshaushalt der Erde]]. Die restlichen Beiträge von zusammen etwa 0,02 % liegen deutlich unterhalb der Messungsgenauigkeit der [[Solarkonstante]]n sowie ihrer Schwankung im Lauf eines [[Sonnenfleckenzyklus]].
-
-Etwa 0,013 % macht der durch [[Radioaktivität|radioaktive Zerfälle]] erzeugte [[Geothermie|geothermische]] Energiebeitrag aus, etwa 0,007 % stammen aus der menschlichen Nutzung fossiler und nuklearer Energieträger und etwa 0,002 % verursacht die [[Gezeitenreibung]].
-
-Die Erde hat eine geometrische [[Albedo]] im Mittel von 0,367, wobei ein wesentlicher Anteil auf die Wolken der Erdatmosphäre zurückzuführen ist. Dies führt zu einer globalen effektiven Temperatur von 246&nbsp;K (−27&nbsp;°C). Die Durchschnittstemperatur am Boden liegt jedoch durch einen starken atmosphärischen [[Treibhauseffekt]] bzw. [[Atmosphärische Gegenstrahlung|Gegenstrahlung]] bei etwa 288&nbsp;K (15&nbsp;°C), wobei die [[Treibhausgas]]e Wasser und Kohlendioxid den Hauptbeitrag liefern.
-{{Siehe auch|Gleichgewichtstemperatur}}
-
 === Einfluss des Menschen ===
 {| style="text-align:center"
 | [[Datei:Whole world - land and oceans.jpg|mini|hochkant=1.6|Die Erdoberfläche bei Tag (Fotomontage).]]
@@ -248,9 +142,9 @@ Die Erde hat eine geometrische [[Albedo]] im Mittel von 0,367, wobei ein wesentl
 | [[Datei:Land ocean ice cloud hires.jpg|mini|hochkant=1.6|Mit Eispanzer und Wolken (Fotomontage)]]
 |}
 
-Die Wechselwirkungen zwischen Lebewesen und Klima haben heute eine neue Quantität durch den zunehmenden Einfluss des Menschen erreicht. Während etwa 1,8 Milliarden Menschen im Jahr 1920 die Erde bevölkerten, wuchs die [[Weltbevölkerung|Erdbevölkerung]] bis zum Jahr 2008 auf knapp 6,7 Milliarden und bis zum Jahr 2022 auf rund 8,0&nbsp;Milliarden Menschen.<ref>[https://countrymeters.info/de/World Aktuelle Weltbevölkerung auf countrymeters.info], abgerufen am 14. Mai 2020.</ref> Die [[Vereinte Nationen|UNO]] rechnete für den Zeitraum 2015 bis 2020 mit einem [[Bevölkerungsentwicklung|Bevölkerungswachstum]] von rund 78&nbsp;Millionen Menschen pro Jahr.<ref name="UNS">{{Literatur |Hrsg=Population Division of the Department of Economic and Social Affairs of the [[UN-Sekretariat|United Nations Secretariat]] |Titel=World Population Prospects. The 2010 Revision. World Population change per year (thousands) Medium variant 1950–2050 |Datum=2012 |Online=http://esa.un.org/wpp/unpp/panel_population.htm}}</ref> Im Jahr 2022 wurde die Acht-Milliarden-Menschen-Marke überschritten.<ref name="DSW">{{Internetquelle |url=https://www.dsw.org/ |titel=Der wievielte Mensch bist Du? |werk=Weltbevölkerungs-Rechner |hrsg=[[Deutsche Stiftung Weltbevölkerung]] |abruf=2019-09-14}}</ref> Die UNO erwartet für 2050 etwa 9,7&nbsp;Milliarden Menschen und für 2100 10,9&nbsp;Milliarden Menschen.<ref>[https://population.un.org/wpp/Publications/Files/WPP2019_Highlights.pdf population.un.org]</ref> Ein starkes [[Bevölkerungswachstum]] ist für die absehbare Zukunft in den Entwicklungsländern weiterhin zu erwarten, während in vielen hoch entwickelten Ländern die Bevölkerung [[Stagnation|stagniert]] oder nur sehr langsam wächst, aber deren industrieller Einfluss auf die Natur weiterhin wächst.
+Die Wechselwirkungen zwischen Lebewesen und Klima haben heute eine neue Quantität durch den zunehmenden Einfluss des Menschen erreicht. Während etwa 1,8 Milliarden Menschen im Jahr 1920 die Erde bevölkerten, wuchs die [[Weltbevölkerung|Erdbevölkerung]] bis zum Jahr 2008 auf knapp 6,7 Milliarden und bis zum Jahr 2022 auf rund 8,0&nbsp;Milliarden Menschen.<ref>[https://countrymeters.info/de/World Aktuelle Weltbevölkerung auf countrymeters.info], abgerufen am 14. Mai 2020.</ref> Die [[Vereinte Nationen|UNO]] rechnete für den Zeitraum 2015 bis 2020 mit einem [[Bevölkerungsentwicklung|Bevölkerungswachstum]] von rund 78&nbsp;Millionen Menschen pro Jahr.<ref name="UNS">World Population Prospects. The 2010 Revision. World Population change per year (thousands) Medium variant 1950–2050 </ref> Im Jahr 2022 wurde die Acht-Milliarden-Menschen-Marke überschritten.<ref name="DSW">Der wievielte Mensch bist Du?</ref> Die UNO erwartet für 2050 etwa 9,7&nbsp;Milliarden Menschen und für 2100 10,9&nbsp;Milliarden Menschen.<ref>[https://population.un.org/wpp/Publications/Files/WPP2019_Highlights.pdf population.un.org]</ref> Ein starkes [[Bevölkerungswachstum]] ist für die absehbare Zukunft in den Entwicklungsländern weiterhin zu erwarten, während in vielen hoch entwickelten Ländern die Bevölkerung [[Stagnation|stagniert]] oder nur sehr langsam wächst, aber deren industrieller Einfluss auf die Natur weiterhin wächst.
 
-Da viele Menschen nach steigendem [[Lebensstandard]] streben, [[konsum]]ieren sie mehr, was aber mehr [[Primärenergieverbrauch|Energie verbraucht]].<ref>{{Internetquelle |url=https://www.zeit.de/wissen/umwelt/2018-08/welterschoepfungstag-natuerliche-ressourcen-erde-aufgebraucht |titel=Welterschöpfungstag: Der Mensch überfordert die Erde |werk=zeit.de |datum=2018-08-01 |abruf=2019-01-28}}</ref>  Die meiste Energie stammt aus der Verbrennung [[Fossile Energie|fossiler Energieträger]], der [[Kohlenstoffdioxid in der Erdatmosphäre|Kohlenstoffdioxidgehalt in der Atmosphäre]] erhöht sich daher. Da [[Kohlendioxid]] eines der wichtigsten [[Treibhausgas]]e ist, führte das zum [[Globale Erwärmung|anthropogenen Klimawandel]], der nach den meisten Experten die globale Durchschnittstemperatur deutlich steigern wird. Die [[Folgen der globalen Erwärmung|Folgen dieses Prozesses]] werden Klima, [[Meer]]e, [[Flora|Vegetation]], [[Tierwelt]] und Menschen erheblich beeinflussen. Die primären Folgen sind häufigere und verstärkte [[Wetter]]ereignisse, ein steigender Meeresspiegel infolge abschmelzenden [[Eisschild|Inlandeises]] und der [[Wärmeausdehnung]] des Wassers, sowie eine [[Zonale Modelle der Biogeographie#Verschiebung der biogeographischen Zonen durch den Klimawandel|Verlagerung der Klima- und Vegetationszonen]] nach Norden. Sofern die internationalen [[Klimaschutz]]bemühungen zu wenig Erfolg haben, kann es zu einem Szenario unkalkulierbarer Risiken für die Erde kommen, das von den Medien auch als „[[Klimakatastrophe]]“ bezeichnet wird.
+Da viele Menschen nach steigendem [[Lebensstandard]] streben, [[konsum]]ieren sie mehr, was aber mehr [[Primärenergieverbrauch|Energie verbraucht]].<ref>Welterschöpfungstag: Der Mensch überfordert die Erde</ref>  Die meiste Energie stammt aus der Verbrennung [[Fossile Energie|fossiler Energieträger]], der [[Kohlenstoffdioxid in der Erdatmosphäre|Kohlenstoffdioxidgehalt in der Atmosphäre]] erhöht sich daher. Da [[Kohlendioxid]] eines der wichtigsten [[Treibhausgas]]e ist, führte das zum [[Globale Erwärmung|anthropogenen Klimawandel]], der nach den meisten Experten die globale Durchschnittstemperatur deutlich steigern wird. Die [[Folgen der globalen Erwärmung|Folgen dieses Prozesses]] werden Klima, [[Meer]]e, [[Flora|Vegetation]], [[Tierwelt]] und Menschen erheblich beeinflussen. Die primären Folgen sind häufigere und verstärkte [[Wetter]]ereignisse, ein steigender Meeresspiegel infolge abschmelzenden [[Eisschild|Inlandeises]] und der [[Wärmeausdehnung]] des Wassers, sowie eine [[Zonale Modelle der Biogeographie#Verschiebung der biogeographischen Zonen durch den Klimawandel|Verlagerung der Klima- und Vegetationszonen]] nach Norden. Sofern die internationalen [[Klimaschutz]]bemühungen zu wenig Erfolg haben, kann es zu einem Szenario unkalkulierbarer Risiken für die Erde kommen, das von den Medien auch als „[[Klimakatastrophe]]“ bezeichnet wird.
 
 == Mond ==
 {{Hauptartikel|Mond}}
@@ -258,7 +152,7 @@ Da viele Menschen nach steigendem [[Lebensstandard]] streben, [[konsum]]ieren si
 
 Der Mond umkreist die Erde als [[Satellit (Astronomie)|natürlicher Satellit]]. Das Verhältnis des Durchmessers des Mondes zu seinem Planeten von 0,273 (mittlerer Monddurchmesser 3&#8239;476&nbsp;km zu mittlerem Erddurchmesser 12&#8239;742&nbsp;km) ist deutlich größer als bei den natürlichen Satelliten der anderen Planeten.
 
-Der Mond [[Entstehung des Mondes|entstand]] nach heutigem Wissen, nachdem die [[Protoplanet|Proto-Erde]] mit der marsgroßen [[Theia (Protoplanet)|Theia]] seitlich zusammengestoßen war.<ref>{{Internetquelle |url=http://science.orf.at/stories/1740146 |titel=Bestätigt: Mond entstand durch Kollision |werk=science.orf.at |abruf=2016-08-23}}</ref>
+Der Mond [[Entstehung des Mondes|entstand]] nach heutigem Wissen, nachdem die [[Protoplanet|Proto-Erde]] mit der marsgroßen [[Theia (Protoplanet)|Theia]] seitlich zusammengestoßen war.<ref>Bestätigt: Mond entstand durch Kollision</ref>
 
 Der Mond stabilisiert die [[Erdachse]], deren Neigung mit ± 1,3° um den Mittelwert 23,3° schwankt. Diese Schwankung wäre viel größer, wenn die Präzessionsperiode von etwa 26&#8239;000&nbsp;Jahren in [[Bahnresonanz|Resonanz]] mit einer der vielen periodischen Störungen stünde, die von der Gravitation der anderen Planeten stammen und die Erdbahn beeinflusst. Gegenwärtig beeinflusst nur eine geringe Störung von [[Jupiter (Planet)|Jupiter]] und [[Saturn (Planet)|Saturn]] mit einer Periode von 25&#8239;760&nbsp;Jahren <!-- in der Ref.: 50,3021 "/Jahr --> die Erde, ist aber zu schwach, um viel zu verändern. Die Neigung der Erdachse wäre, wie Simulationen zeigen, im gegenwärtigen Zustand des Sonnensystems instabil, wenn die Neigung im Bereich von etwa 60° bis 90° läge; die tatsächliche Neigung von gut 23° hingegen ist weit genug von starken Resonanzen entfernt und bleibt stabil.<ref name="Laskar1">{{Literatur |Autor=Jacques Laskar |Titel=Large scale chaos and marginal stability in the solar system |Sammelwerk=Celestial Mechanics and Dynamical Astronomy |Band=64 |Nummer=1-2 |Datum=1996 |ISSN=1572-9478 |Seiten=115–162 |Fundstelle=Abschnitt 3.5: ''The Chaotic Obliquity of the Planets.'' |DOI=10.1007/BF00051610 |bibcode=1996CeMDA..64..115L}}</ref>
 
@@ -286,16 +180,7 @@ Auch in bzw. bei den [[Lagrange-Punkte]]n L<sub>4</sub> und L<sub>5</sub> der Er
 == Entstehung der Erde ==
 {| class="float-right" style="width: 200px; padding: 0; border: 1px solid #666666;"
 |
-{{Bild mit Markierung
-|Hintergrund        = Pale Blue Dot (cropped 2).png
-|Hintergrund_Breite = 200px
-|Hintergrund_Text   = Die Erde als „blassblauer Punkt“
-|Markierung         = Circle Gainsboro.svg
-|Markierung_Breite  = 20px
-|Markierung_Text    = 
-|x                  = 90
-|y                  = 88
-}}
+Bild mit Markierung (Pale Blue Dot (cropped 2).png)
 |-
 |Die Erde als „blassblauer Punkt“, aufgenommen von der [[Raumsonde]] ''[[Voyager 1]]'' am 14. Februar 1990 aus einer Entfernung von etwa 40,5 [[Astronomische Einheit|AE]] (ca. 6 Mrd. km)
 |}
@@ -307,33 +192,15 @@ Die Erde entstand wie die Sonne und ihre anderen Planeten vor etwa 4,6 [[Größe
 
 Die Erdoberflächen-Entwicklung im Wechselspiel der geologischen und biologischen Faktoren wird als [[Erdgeschichte]] bezeichnet.
 
-=== Herkunft des Wassers ===
-{{Hauptartikel|Herkunft des irdischen Wassers}}
-[[Datei:BlueMarble-2001-2002.jpg|mini|links|hochkant=2|Wasser bedeckt etwa 70 % der Erdoberfläche.]]
-
-Woher das [[Wasser]] auf der Erde kommt, und insbesondere warum die Erde deutlich mehr Wasser hat als die anderen erdähnlichen Planeten, ist bis heute nicht befriedigend geklärt. Ein Teil des Wassers dürfte als Wasserdampf aus [[Magma]] [[Ausgasen|ausgegast]] sein, also letztlich aus dem [[Innerer Aufbau der Erde|Erdinneren]] kommen. Ob das aber für die heutige Menge an Wasser ausreicht, ist fraglich. Weitere große Anteile könnten von Einschlägen von [[Komet]]en, [[Transneptunisches Objekt|transneptunischen Objekten]] oder wasserreichen [[Asteroid]]en ([[Protoplanet]]en) aus den äußeren Bereichen des [[Asteroidengürtel]]s stammen. Wobei Messungen des Isotopen-Verhältnisses von [[Deuterium]] zu [[Wasserstoff#Isotope|Protium]] (D/H-Verhältnis) eher auf Asteroiden deuten, da in Wassereinschlüssen in kohligen [[Chondrit]]en ähnliche Isotopen-Verhältnisse gefunden wurden wie im Ozeanwasser, wohingegen das Isotopen-Verhältnis von Kometen und transneptunischen Objekten nach bisherigen Messungen nicht mit dem von irdischem Wasser übereinstimmt.
-
 == Leben ==
 [[Datei:Geological time spiral (de).jpg|mini|hochkant=1.8|Stark vereinfachte grafische Darstellung der Geschichte der Erde und des Lebens]]
 Die Erde ist der einzige bekannte Planet, auf dem eine [[Biosphäre]] mit [[Leben]]sformen existiert. Das Leben begann nach heutigem Wissen möglicherweise bereits relativ schnell nach dem Ende des [[Großes Bombardement|letzten schweren Bombardements]] großer Asteroiden: der letzten Phase [[Sonnensystem#Entstehung|der Entstehung des Sonnensystems]], die von der Erdentstehung von vor etwa 4,6 bis vor etwa 3,9 Milliarden Jahren dauerte. Danach kühlte sich die Erde ab, so dass sich eine stabile Kruste bildete, auf der sich dann Wasser sammeln konnte. Das Leben entwickelte sich, wie Hinweise vermuten lassen, die jedoch nicht von allen Wissenschaftlern anerkannt werden, schon (geologisch) kurze Zeit später:
-
-In 3,85 Milliarden Jahre altem Sedimentgestein aus der [[Isua-Gneis|Isua-Region]] im Südwesten Grönlands wurden in den Verhältnissen von Kohlenstoffisotopen Anomalien entdeckt, die auf biologischen [[Stoffwechsel]] deuten könnten. Das Gestein kann aber auch statt Sedimentgestein nur stark verändertes Ergussgestein sein, ohne dabei auf Leben zu deuten. Die ältesten direkten, allerdings umstrittenen Hinweise auf Leben sind Strukturen in 3,5 Milliarden Jahre alten Gesteinen der [[Warrawoona Group|Warrawoona-Gruppe]] im Nordwesten Australiens und im Barberton-[[Grünsteingürtel]] in Südafrika, die als von [[Cyanobakterien]] verursacht gedeutet werden. Die ältesten eindeutigen Lebensspuren auf der Erde sind 1,9 Milliarden Jahre alte [[Fossilien]] aus der Gunflint-Formation in Ontario, die [[Bakterien]] oder [[Archaeen]] gewesen sein könnten.
-
-Mit der Erd[[klimageschichte]] sind untrennbar die [[Chemische Evolution|chemische]] wie die [[Evolution|biologische Evolution]] verknüpft. Obwohl anfangs die Sonne deutlich weniger als heute strahlte (vgl. [[Paradoxon der schwachen jungen Sonne]]), existieren Hinweise auf irdisches Leben, grundsätzlich vergleichbar dem heutigen, „seit es Steine gibt“.<ref>[[Jan Veizer|Veizer, Ján]] (2005): [http://journals.hil.unb.ca/index.php/GC/article/viewArticle/2691/3113 ''Celestial Climate Driver: A Perspective from Four Billion Years of the Carbon Cycle''], Geoscience Canada, Band 32, Nr. 1, 2005.</ref>
-
-Des pflanzlichen Lebens Stoffwechsel, also die [[Photosynthese]], reicherte die Erdatmosphäre mit molekularem Sauerstoff an, so dass sie ihren oxidierenden Charakter bekam. Zudem veränderte die Pflanzendecke merklich die [[Albedo]] und damit die Energiebilanz der Erde.
-
-Die Lebensformen auf der Erde entstanden in der permanenten [[Interaktion|Wechselwirkung]] zwischen dem Leben und den herrschenden klimatischen, [[Geologie|geologischen]] und [[Hydrologie|hydrologischen]] [[Umwelt]]bedingungen und bilden die Biosphäre: eine [[system]]ische Ganzheit, die in großflächigen [[Biom]]en, [[Ökosystem]]en und [[Biotop]]en beschrieben wird.
 
 === Mensch und Umwelt ===
 {{Hauptartikel|Globale Umweltveränderungen und Zukunftsszenarien}}
 [[Datei:Klimazonen-Prognose.gif|mini|hochkant=1.9|Verschiebung der Klimazonen nach dem [[Worst Case|Worst-Case-Szenario]]]]
 
 Auf der Erde existiert seit rund 3 bis 2 Millionen Jahren die Gattung [[Homo]], zu der der seit rund 300.000 Jahren existierende anatomisch moderne [[Mensch]] gehört. Die Menschen lebten bis zur Erfindung von [[Pflanzenbau]] und [[Nutztierhaltung]] im Vorderen Orient (ca. 11.), in China (ca. 8.) und im mexikanischen Tiefland (ca. 6. Jahrtausend v. Chr.) ausschließlich als [[Jäger und Sammler]]. Seit dieser [[Neolithische Revolution|neolithischen Revolution]] verdrängten die vom Menschen [[Zucht|gezüchteten]] [[Kulturpflanze]]n und [[Nutztier|-tiere]] bei der Ausbreitung der [[Zivilisation]]en die Wildpflanzen und -tiere immer mehr. Der Mensch beeinflusst spätestens seit der [[Industrielle Revolution|industriellen Revolution]] das Erscheinungsbild und die Entwicklung der Erde immer mehr: Große Landflächen wurden in Industrie- und Verkehrsflächen umgewandelt.
-
-Dieser [[anthropogen]]e Wandel wirkte bereits zu Beginn der [[Neuzeit]] in einigen Erdregionen deutlich negativ: So entstand in Mitteleuropa seit dem 16. Jahrhundert eine dramatische [[Holznot]], die eine erhebliche Entwaldung verursachte. Daraus entstanden im 18. und 19. Jahrhundert die ersten größeren [[Umweltbewegung|Bewegungen]] in Europa und Nordamerika für [[Umweltschutz|Umwelt-]] und [[Naturschutz]]. [[Umweltverschmutzung]] und [[Umweltzerstörung|-zerstörung]] globalen Ausmaßes nahmen im 20. Jahrhundert schnell zu. Die zugrundeliegenden Zusammenhänge zeigte die 1972 erschienene Studie „[[Grenzen des Wachstums]]“ erstmals umfassend auf. Der internationale Umweltschutz-[[Liste der Gedenktage und Aktionstage|Aktionstag]] ist seit 1990 der 22. April und heißt [[Tag der Erde]]. 1992 kam eine erste „Warnung der Welt-Wissenschaftsgemeinde an die Menschheit“ zur dringenden Reduzierung schädlicher Einflüsse auf die Erde.<ref name="BioScience">William J. Ripple, Christopher Wolf, Thomas M. Newsome, Mauro Galetti, Mohammed Alamgir, Eileen Crist, Mahmoud I. Mahmoud, William F. Laurance und 15.364 Biowissenschaftler aus 184 Ländern: ''[https://academic.oup.com/bioscience/article-abstract/67/12/1026/4605229?redirectedFrom=fulltext World Scientists’ Warning to Humanity: A Second Notice]'', Zeitschrift: BioScience, Volume 67, Ausgabe 12, 1. Dezember 2017, veröffentlicht am 13. Dezember 2017. Seiten 1026–1028.</ref>
-
-Das Jahr 2008 wurde von den Vereinten Nationen unter Federführung der [[UNESCO]] zum [[Internationale Jahre und Dekaden|Internationalen Jahr]] des Planeten Erde (IYPE) erklärt. Diese bislang größte weltweite Initiative in den [[Geowissenschaften]] soll die Bedeutung und den Nutzen der modernen Geowissenschaften für die Gesellschaft und für eine [[nachhaltige Entwicklung]] verdeutlichen. Zahlreiche Veranstaltungen und interdisziplinäre Projekte auf internationaler und nationaler Ebene erstreckten sich von 2007 bis 2009 über einen Zeitraum von insgesamt drei Jahren.<ref>Deutsche UNESCO-Kommission e.&nbsp;V.: [http://www.unesco.de/iype2008.html?&L=0 ''Das Internationale Jahr des Planeten Erde 2008''].</ref>
 
 Um die entscheidenden [[Ökologie|ökologischen]] Belastungsgrenzen der Erde zu quantifizieren, formulierte 2009 ein 28-köpfiges Wissenschaftlerteam unter Leitung von [[Johan Rockström]] (Stockholm Resilience Centre) die ''[[Planetary Boundaries]]'':<ref>Johan Rockström u. a.: ''A safe operating space for humanity.'' In: ''[[Nature]].'' 461, 2009, S. 472–475. (24 September 2009)</ref>
 * [[Massenaussterben#Das gegenwärtige Massenaussterben|Verlust der biologischen Vielfalt]]
@@ -358,29 +225,21 @@ Um die entscheidenden [[Ökologie|ökologischen]] Belastungsgrenzen der Erde zu 
 </gallery>
 <div style="border:1px solid #808080; margin:5px 3px 0 3px; padding:0 5px 2px 5px; background:#F8F9FA;"><small>„Ampel“-Darstellung der ökologischen Trends der Erde nach William J. Ripple et al.: „Zweite Warnung an die Menschheit“ (2017)<br />*) = Emissionen von ozonabbauenden Halogenverbindungen als [[Ozonabbaupotential|R-11-Äquivalente]] im Megatonnen unter Annahme einer konstanten natürlichen Emissionsrate von 0,11 Mt pro Jahr</small></div>
 
-Die nähere Zukunft der Erdoberfläche hängt sehr stark von der Entwicklung des [[Mensch#Von der Umweltgestaltung zur Umweltzerstörung?|menschlichen Umwelteinflusses]] ab.
-
-Dazu veröffentlichten 15&#8239;372 Wissenschaftler aus 184 Ländern am 13. November 2017 eine „zweite Warnung an die Menschheit“, da es außer beim Schutz der Ozonschicht und den Fischfangquoten keine realen Fortschritte gegeben hat: Fast alle wichtigen ökologischen Kennzahlen haben sich drastisch verschlechtert. Besonders beunruhigend sind die Trends bei der Klimaerwärmung, der [[Entwaldung]], der Zunahme [[Hypoxie (Ökologie)|toter Gewässer]] und der Verringerung der Artenvielfalt. Die Wissenschaftler sehen die Lebensgrundlagen der Menschheit ernsthaft gefährdet und rufen zu kurzfristigen Gegenmaßnahmen auf.<ref name="BioScience" />
-
 == Zukunft ==
 === Veränderungen durch das Altern der Sonne ===
 Die fernere Zukunft der Erde ist eng an die der [[Sonne]] gebunden.
 
 [[Datei:Lebenszyklus der Sonne.svg|mini|hochkant=3|Der Lebenszyklus der Sonne]]
-Im Sonnenkern vermindert die [[Kernfusion]] die Teilchenzahl (4 p + 2 e → He<sup>2+</sup>), aber kaum die Masse. Daher wird der Kern langsam schrumpfen und heißer werden. Außerhalb des Kerns wird sich die Sonne ausdehnen, das Material wird durchlässiger für Strahlung, sodass die Leuchtkraft der Sonne etwa um 10 % über die nächsten 1,1 Milliarden Jahre und um 40 % nach 3,5 Milliarden Jahren zunehmen wird.<ref name="sun_future">{{cite journal | author=I.-J. Sackmann, A. I. Boothroyd, K. E. Kraemer | title=Our Sun. III. Present and Future | journal=Astrophysical Journal | year=1993 | volume=418 | pages=457–468 | doi = 10.1086/173407 | bibcode= 1993ApJ...418..457S }}</ref>
-
-Sofern obige Sonnenveränderungen als Haupteinflussfaktor auf die Erde angenommen werden, wird vermutet, dass die Erde noch etwa 500 Millionen Jahre lang ähnlich wie heute belebt bleiben könne.<ref>{{Internetquelle |autor=Carl Koppeschaar |url=http://carlkop.home.xs4all.nl/toast.html |titel=ASTRONET |datum=2000-02-20 |abruf=2012-12-26}}</ref> Danach, so zeigen Klimamodelle, wird der [[Treibhauseffekt]] instabil und höhere Temperatur führt zu mehr Wasserdampf in der Atmosphäre, was wiederum den Treibhauseffekt verstärken wird.<ref>{{cite journal | last = Kasting | first = J. F. |title=Runaway and Moist Greenhouse Atmospheres and the Evolution of Earth and Venus | journal=Icarus | year=1988 | volume=74 | pages=472–494 | bibcode=1988Icar...74..472K | doi = 10.1016/0019-1035(88)90116-9 }}.</ref> Der warme Regen wird durch Erosion den anorganischen [[Kohlenstoffzyklus]] beschleunigen, wodurch der CO<sub>2</sub>-Gehalt der Atmosphäre auf etwa 10 [[Parts per million|ppm]] in etwa 900 Millionen Jahren (verglichen mit 280 ppm in vorindustrieller Zeit) stark abnehmen wird, sodass mit den Pflanzen auch die Tiere verhungern werden.<ref name="ward_brownlee">Peter D. Ward und Donald Brownlee: ''The Life and Death of Planet Earth: How the New Science of Astrobiology Charts the Ultimate Fate of Our World''. Times Books, New York 2003, ISBN 0-8050-6781-7.</ref> Nach einer weiteren Milliarde Jahren wird das gesamte Oberflächenwasser verschwunden sein<ref name="carrington">{{cite news | author= Damian Carrington | title=Date set for desert Earth | publisher=BBC News | date=2000-02-21 | url=http://news.bbc.co.uk/1/hi/sci/tech/specials/washington_2000/649913.stm | accessdate=2008-12-23 }}</ref> und die globale Durchschnittstemperatur der Erde +70&nbsp;°C erreichen.<ref name="ward_brownlee" />
+Im Sonnenkern vermindert die [[Kernfusion]] die Teilchenzahl (4 p + 2 e → He<sup>2+</sup>), aber kaum die Masse. Daher wird der Kern langsam schrumpfen und heißer werden. Außerhalb des Kerns wird sich die Sonne ausdehnen, das Material wird durchlässiger für Strahlung, sodass die Leuchtkraft der Sonne etwa um 10 % über die nächsten 1,1 Milliarden Jahre und um 40 % nach 3,5 Milliarden Jahren zunehmen wird.<ref name="sun_future">I.-J. Sackmann, A. I. Boothroyd, K. E. Kraemer -- Our Sun. III. Present and Future</ref>
 
 === Verlassen des Sonnensystems ===
-Ein „[[Wild Card (Zukunftsforschung)|Wild-Card]]“-Ereignis wäre das Herausschleudern der Erde aus dem Sonnensystem durch das nahe Vorbeiziehen eines Sterns (aufgrund der Wirkung von dessen [[Gravitation]] auf die Erde). Die Wahrscheinlichkeit dafür, dass das innerhalb der nächsten fünf Milliarden Jahre passiert, liegt bei etwa 1 zu 100.000 (0,001&nbsp;%). In diesem Szenario würden die Ozeane innerhalb einiger Millionen Jahre fast vollständig gefrieren und nur noch vereinzelte Taschen flüssigen Wassers etwa 14 km unter der Oberfläche bestehen. Mit einer Wahrscheinlichkeit von etwa 1 zu 3.000.000 zieht stattdessen ein [[Doppelstern]] vorbei, nimmt die Erde in eine Umlaufbahn auf und hält so sogar die [[Biosphäre]] intakt.<ref>{{Cite book | author=Fred C. Adams | date=2008 | editor=[[Nick Bostrom]], Milan M. Ćirković | series=Global catastrophic risks | title=Long term astrophysical processes | language=en | publisher=Oxford University Press | isbn=978-0-19-857050-9 | url=https://books.google.com/books?id=-Jxc88RuJhgC&pg=PA33 |pages=33–44 }}</ref>
+Ein „[[Wild Card (Zukunftsforschung)|Wild-Card]]“-Ereignis wäre das Herausschleudern der Erde aus dem Sonnensystem durch das nahe Vorbeiziehen eines Sterns (aufgrund der Wirkung von dessen [[Gravitation]] auf die Erde). Die Wahrscheinlichkeit dafür, dass das innerhalb der nächsten fünf Milliarden Jahre passiert, liegt bei etwa 1 zu 100.000 (0,001&nbsp;%). In diesem Szenario würden die Ozeane innerhalb einiger Millionen Jahre fast vollständig gefrieren und nur noch vereinzelte Taschen flüssigen Wassers etwa 14 km unter der Oberfläche bestehen. Mit einer Wahrscheinlichkeit von etwa 1 zu 3.000.000 zieht stattdessen ein [[Doppelstern]] vorbei, nimmt die Erde in eine Umlaufbahn auf und hält so sogar die [[Biosphäre]] intakt.<ref>Global catastrophic risks -- Long term astrophysical processes</ref>
 
 === Zerstörung ===
 Verschiedene weitere Wild-Card-Ereignisse könnten die Erde schon bald zerstören. Beispiele hierfür sind:
 * Zerstörung durch die Kollision mit einem anderen ausreichend großen [[Himmelskörper]] (Hierzu zählt ebenfalls der Eintritt der Erde in den Anziehungsbereich eines [[Schwarzes Loch|Schwarzen Lochs]] oder [[Neutronenstern]]s ausreichender Größe. Die Wahrscheinlichkeit für all solche Kollisionen ist aber selbst dann, wenn der [[Andromedanebel]] in frühestens zwei<ref>[https://www.spiegel.de/wissenschaft/weltall/neue-messung-hoehere-kollisionsgefahr-fuer-die-milchstrasse-a-599560.html ''Neue Messung: Höhere Kollisionsgefahr für die Milchstraße.''] SPIEGEL online, 6. Januar 2009</ref> Milliarden Jahren mit der Milchstraße kollidiert, noch gering aufgrund der großen Leere des Universums sogar innerhalb von Galaxien.)
 * Umwandlung in [[Seltsame Materie]] durch die Kollision mit einem Strangelet
 * Zerstörung durch [[Außerirdische]]
-
-Ohne Wild Cards oder menschliches Einwirken wird die Erde ab in etwa sieben Milliarden Jahren in die Sonne abstürzen und verglühen. Die oben beschriebene Vergrößerung sowie die Leuchtkraftzunahme der Sonne wird sich zuvor deutlich beschleunigt haben. Irgendwann wird die Sonne als [[Roter Riese]] bis an die heutige Erdbahn reichen. Zwar wird die Sonne als Roter Riese durch starken [[Sonnenwind]] etwa 30 % ihrer Masse verlieren, sodass rechnerisch der Erdbahnradius auf 1,7 AE anwachsen wird,<ref name="sun_future" /> aber die Erde wird in der nahen, sehr diffusen Sonnenoberfläche eine ihr nachlaufende Gezeitenwelle hervorrufen, die an ihrer Bahnenergie zehren und so die Flucht vereiteln wird.<ref name="sun_future" /><ref name="sun_future_schroder">{{cite journal |first=K.-P. |last=Schröder |coauthors=Robert Connon Smith |year=2008 |title=Distant future of the Sun and Earth revisited |doi=10.1111/j.1365-2966.2008.13022.x |journal=Monthly Notices of the Royal Astronomical Society |arxiv=0801.4031 |volume=386 |pages=155}} Siehe auch {{Internetquelle |autor=Jason Palmer |url=http://www.newscientist.com/article/dn13369-hope-dims-that-earth-will-survive-suns-death.html |titel=Hope dims that Earth will survive Sun’s death |werk=newscientist.com |datum=2008-02-22 |abruf=2018-11-22 |sprache=en}}</ref>
 
 == Siehe auch ==
 * [[Erde/Daten und Zahlen]]
@@ -403,7 +262,7 @@ Ohne Wild Cards oder menschliches Einwirken wird die Erde ab in etwa sieben Mill
 * [http://www.raumfahrer.net/planeterde Raumfahrer.net Sonderseite: Planet Erde]
 * [http://portal.onegeology.org/ Onegeology.org]: Geologische Weltkarte
 * [http://earthobservatory.nasa.gov/ NASA Earth Observatory]
-* {{Internetquelle |url=https://solarsystem.nasa.gov/planets/earth/overview/ |titel=Solar System Exploration: Earth |werk=NASA.gov |abruf=2020-05-10 |sprache=en |abruf-verborgen=1}}
+* Solar System Exploration: Earth
 
 '''Medien'''
 {{Commons|Earth|Erde}}
