@@ -8,6 +8,36 @@ import (
 	"strings"
 )
 
+func ToRelative(paths ...string) ([]string, error) {
+	var err error
+	var result = make([]string, len(paths))
+
+	for i, path := range paths {
+		relativePath, err := MakePathRelative(path)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = relativePath
+	}
+
+	return result, err
+}
+
+func ToAbsolute(paths ...string) ([]string, error) {
+	var err error
+	var result = make([]string, len(paths))
+
+	for i, path := range paths {
+		absolutePath, err := MakePathAbsolute(path)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = absolutePath
+	}
+
+	return result, err
+}
+
 func MakePathRelative(styleFile string) (string, error) {
 	currentDir, err := os.Getwd()
 	sigolo.FatalCheck(err)

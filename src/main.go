@@ -135,7 +135,12 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	}
 
 	// Make all relevant paths absolute
-	styleFile, outputFile, coverImageFile, pandocDataDir, err = toAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
+	paths, err := util.ToAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
+	sigolo.FatalCheck(err)
+	styleFile = paths[0]
+	outputFile = paths[1]
+	coverImageFile = paths[2]
+	pandocDataDir = paths[3]
 
 	// Create cache dir and go into it
 	err = os.MkdirAll(cacheDir, os.ModePerm)
@@ -146,7 +151,11 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	styleFile, outputFile, coverImageFile, err = toRelative(styleFile, outputFile, coverImageFile)
+	paths, err = util.ToRelative(styleFile, outputFile, coverImageFile)
+	sigolo.FatalCheck(err)
+	styleFile = paths[0]
+	outputFile = paths[1]
+	coverImageFile = paths[2]
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache)
 	article := tokenizer.Tokenize(string(fileContent), title)
@@ -199,12 +208,17 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 		forceHtmlRecreate)
 }
 
-func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool) {
+func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool) {
 	var articleFiles []string
 	var err error
 
 	// Make all relevant paths absolute
-	styleFile, outputFile, coverFile, pandocDataDir, err = toAbsolute(styleFile, outputFile, coverFile, pandocDataDir)
+	paths, err := util.ToAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
+	sigolo.FatalCheck(err)
+	styleFile = paths[0]
+	outputFile = paths[1]
+	coverImageFile = paths[2]
+	pandocDataDir = paths[3]
 
 	// Create cache dir and go into it
 	err = os.MkdirAll(cacheDir, os.ModePerm)
@@ -215,7 +229,11 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	styleFile, outputFile, coverFile, err = toRelative(styleFile, outputFile, coverFile)
+	paths, err = util.ToRelative(styleFile, outputFile, coverImageFile)
+	sigolo.FatalCheck(err)
+	styleFile = paths[0]
+	outputFile = paths[1]
+	coverImageFile = paths[2]
 
 	imageCache := "images"
 	mathCache := "math"
@@ -254,7 +272,7 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 	}
 
 	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, outputFile, styleFile, coverFile, pandocDataDir, metadata)
+	err = epub.Generate(articleFiles, outputFile, styleFile, coverImageFile, pandocDataDir, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
@@ -273,37 +291,4 @@ func shouldRecreateHtml(htmlOutputFolder string, htmlFileName string, forceHtmlR
 	htmlFileExists := err == nil
 
 	return !htmlFileExists
-}
-
-func toRelative(styleFile string, outputFile string, coverFile string) (string, string, string, error) {
-	var err error
-
-	styleFile, err = util.MakePathRelative(styleFile)
-	sigolo.FatalCheck(err)
-
-	outputFile, err = util.MakePathRelative(outputFile)
-	sigolo.FatalCheck(err)
-
-	coverFile, err = util.MakePathRelative(coverFile)
-	sigolo.FatalCheck(err)
-
-	return styleFile, outputFile, coverFile, err
-}
-
-func toAbsolute(styleFile string, outputFile string, coverFile string, pandocDir string) (string, string, string, string, error) {
-	var err error
-
-	styleFile, err = util.MakePathAbsolute(styleFile)
-	sigolo.FatalCheck(err)
-
-	outputFile, err = util.MakePathAbsolute(outputFile)
-	sigolo.FatalCheck(err)
-
-	coverFile, err = util.MakePathAbsolute(coverFile)
-	sigolo.FatalCheck(err)
-
-	pandocDir, err = util.MakePathAbsolute(pandocDir)
-	sigolo.FatalCheck(err)
-
-	return styleFile, outputFile, coverFile, pandocDir, err
 }
