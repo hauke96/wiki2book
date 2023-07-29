@@ -10,7 +10,11 @@ import (
 
 const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"
 
+// evaluateTemplates evaluates all non-nested templates. Therefore, this method might return a string still containing
+// some templates.
 func (t *Tokenizer) evaluateTemplates(content string) string {
+	// The lastOpeningTemplateIndex is set whenever a new opening template is found. When any closing template backets
+	// are discovered, this variable contains the index of the corresponding opening backets.
 	lastOpeningTemplateIndex := -1
 	placeholderToContent := map[string]string{}
 
@@ -30,7 +34,7 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 			}
 
 			// Replace the template by a placeholder. We do not directly replace the wikitext of the template with the
-			//evaluated form because nested templates might lead to too long URLs.
+			// evaluated form because nested templates might lead to too long URLs.
 			placeholderToContent[key] = evaluatedTemplate
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
 			content = strings.Replace(content, templateText, placeholder, 1)
