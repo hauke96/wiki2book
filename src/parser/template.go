@@ -10,14 +10,19 @@ import (
 
 const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"
 
-// evaluateTemplates evaluates all non-nested templates. Therefore, this method might return a string still containing
-// some templates.
+// evaluateTemplates evaluates all templates including nested ones.
 func (t *Tokenizer) evaluateTemplates(content string) string {
-	// The lastOpeningTemplateIndex is set whenever a new opening template is found. When any closing template backets
-	// are discovered, this variable contains the index of the corresponding opening backets.
+	// The lastOpeningTemplateIndex is set whenever a new opening template is found. When closing template brackets
+	// are discovered, this variable contains the index of the corresponding opening brackets.
 	lastOpeningTemplateIndex := -1
+
+	// All evaluated templates are stored in this map. Replacing evaluated templates by placeholders reduces the length
+	// of request URLs significantly and prevents errors due to too long URLs.
 	placeholderToContent := map[string]string{}
 
+	// Go through the content until the end. Whenever a template has been found, the variable "i" is reset to the
+	// beginning so that this loop actually iterates the content over and over again until no unevaluated templates
+	// are left.
 	for i := 0; i < len(content)-1; i++ {
 		cursor := content[i : i+2]
 
