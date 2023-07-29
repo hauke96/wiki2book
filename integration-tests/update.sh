@@ -1,18 +1,23 @@
 #!/bin/bash
 
-if [ "$1" == "" ] || [ "$1" == "--help" ]
+if [[ "$1" == "" ]] || [[ $@ == *--help* ]]
 then
-	echo "Please provide at least one test name."
-	echo
-	echo "Example usage:"
-	echo "    ./update.sh foo bar blubb"
-	echo
-	echo "Example usage with running the test before updating:"
-	echo "    ./update.sh -r foo bar blubb"
+	cat <<EOF
+Provide at least one test name to update.
+
+Example to update the two given tests:
+
+  ./update.sh real-article-Erde generic
+
+Example usage with running the test before updating:
+
+  ./update.sh -r real-article-Erde generic
+
+EOF
 	exit 1
 fi
 
-if [ "$1" == "-r" ]
+if [[ $@ == *-r* ]]
 then
 	echo "Run run.sh to generate files"
 	./run.sh
@@ -20,6 +25,12 @@ fi
 
 for NAME in "$@"
 do
+	if [[ $NAME == -* ]]
+	then
+		# ignore CLI parameters
+		continue
+	fi
+
 	echo "Copy files for test-$NAME"
 	cp "results/test-$NAME/test-$NAME.filelist" .
 	cp "results/test-$NAME/test-$NAME.html" .
