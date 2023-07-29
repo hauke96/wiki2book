@@ -7,6 +7,51 @@ import (
 
 const semiHeadingDepth = 10
 
+// All lower case. Makes things easier below.
+var ignoreTemplates = []string{
+	"alpha centauri",
+	"begriffsklärung",
+	"begriffsklärungshinweis",
+	"belege fehlen",
+	"belege",
+	"commons",
+	"commonscat",
+	"dieser artikel",
+	"exzellent",
+	"gesprochener artikel",
+	"gesprochene version",
+	"graph:chart",
+	"hauptartikel",
+	"klade",
+	"lesenswert",
+	"linkbox",
+	"lückenhaft",
+	"manueller rahmen",
+	"navigationsleiste",
+	"navigationsleiste sonnensystem",
+	"navigationsleiste wörter des jahres (deutschland)",
+	"naviblock",
+	"normdaten",
+	"panorama",
+	"portal",
+	"positionskarte+",
+	"positionskarte~",
+	"quellen",
+	"rechtshinweis",
+	"redundanztext",
+	"siehe auch",
+	"staatslastig",
+	"toc",
+	"toter link",
+	"überarbeiten",
+	"veraltet",
+	"weiterleitungshinweis",
+	"wikibooks",
+	"wikiquote",
+	"wikisource",
+	"wiktionary",
+}
+
 func clean(content string) string {
 	content = removeComments(content)
 	content = removeUnwantedCategories(content)
@@ -93,53 +138,6 @@ func removeUnwantedInterwikiLinks(content string) string {
 }
 
 func removeUnwantedTemplates(content string) string {
-	// All lower case. Makes things easier below.
-	ignoreTemplates := []string{
-		"alpha centauri",
-		"begriffsklärung",
-		"begriffsklärungshinweis",
-		"belege fehlen",
-		"belege",
-		"commons",
-		"commonscat",
-		"dieser artikel",
-		"exzellent",
-		"gesprochener artikel",
-		"gesprochene version",
-		"graph:chart",
-		"hauptartikel",
-		"klade",
-		"lesenswert",
-		"linkbox",
-		"lückenhaft",
-		"manueller rahmen",
-		"navigationsleiste",
-		"navigationsleiste sonnensystem",
-		"navigationsleiste wörter des jahres (deutschland)",
-		"naviblock",
-		"normdaten",
-		"panorama",
-		"portal",
-		"positionskarte+",
-		"positionskarte~",
-		"quellen",
-		"rechtshinweis",
-		"redundanztext",
-		"siehe auch",
-		"staatslastig",
-		"toc",
-		"toter link",
-		"überarbeiten",
-		"veraltet",
-		"weiterleitungshinweis",
-		"wikibooks",
-		"wikiquote",
-		"wikisource",
-		"wiktionary",
-	}
-
-	lastOpeningTemplateIndex := -1
-
 	for {
 		originalContent := content
 
@@ -147,29 +145,31 @@ func removeUnwantedTemplates(content string) string {
 			cursor := content[i : i+2]
 
 			if cursor == "{{" {
-				lastOpeningTemplateIndex = i
-			} else if lastOpeningTemplateIndex != -1 && cursor == "}}" {
-				templateText := content[lastOpeningTemplateIndex : i+2]
-
-				matches := templateNameRegex.FindStringSubmatch(templateText)
-				if matches == nil {
-					// No match found
-					lastOpeningTemplateIndex = -1
+				// Get the index on which the template is closed
+				closedTemplateIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+				if closedTemplateIndex == -1 {
+					// no closing tag found -> move on in the normal text
 					continue
 				}
 
-				templateName := strings.ToLower(matches[1])
+				templateText := content[i : closedTemplateIndex+2]
+				templateNameMatches := templateNameRegex.FindStringSubmatch(templateText)
+				if templateNameMatches == nil {
+					// No match found
+					continue
+				}
+
+				templateName := strings.ToLower(templateNameMatches[1])
 				templateName = strings.TrimSpace(templateName)
 
 				if util.Contains(ignoreTemplates, templateName) {
 					// Replace the template with an empty string, since it should be ignored.
 					content = strings.Replace(content, templateText, "", 1)
 
-					// Continue from the original template position (-1 because of the i++ of the loop)
-					i = lastOpeningTemplateIndex - 1
+					// Continue from the original template position (only +1 and not +2 to skip the "}}" token, because
+					// of the i++ of the loop)
+					i = closedTemplateIndex + 1
 				}
-
-				lastOpeningTemplateIndex = -1
 			}
 		}
 
@@ -179,6 +179,29 @@ func removeUnwantedTemplates(content string) string {
 	}
 
 	return content
+}
+
+// findCorrespondingCloseToken determines the index on which the given openingToken at the startIndex is closed.
+func findCorrespondingCloseToken(content string, startIndex int, openingToken string, closingToken string) int {
+	// Used as a primitive stack to count the degree of nesting the cursor is in. If a closing token has been found
+	// and the nesting degree is 0, then the correct closing token has been found.
+	closeTokenCounter := 0
+
+	for i := startIndex; i < len(content)-1; i++ {
+		cursor := content[i : i+2]
+
+		if cursor == openingToken {
+			closeTokenCounter++
+		} else if cursor == closingToken {
+			if closeTokenCounter == 0 {
+				return i
+			} else {
+				closeTokenCounter--
+			}
+		}
+	}
+
+	return -1
 }
 
 func removeUnwantedHtml(content string) string {
