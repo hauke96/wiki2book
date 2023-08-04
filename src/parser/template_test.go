@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -74,7 +73,7 @@ func hasLocalTemplate(key string, templateFolder string) bool {
 func getLocalTemplate(key string, templateFolder string) (string, error) {
 	templateFilepath := filepath.Join(templateFolder, key)
 
-	content, err := ioutil.ReadFile(templateFilepath)
+	content, err := os.ReadFile(templateFilepath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Error reading template %s from %s", key, templateFilepath))
 	}

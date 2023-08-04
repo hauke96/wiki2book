@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/alecthomas/kong"
 	"github.com/hauke96/sigolo"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +21,7 @@ var cli struct {
 	Debug               bool `help:"Enable debug mode." short:"d"`
 	Profiling           bool `help:"Enable profiling and write results to ./profiling.prof."`
 	ForceRegenerateHtml bool `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	SvgSizeToViewbox    bool `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height."`
 	Standalone          struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
@@ -135,7 +135,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
-	fileContent, err := ioutil.ReadFile(inputFile)
+	fileContent, err := os.ReadFile(inputFile)
 	sigolo.FatalCheck(err)
 
 	file, err := os.Open(outputFile)

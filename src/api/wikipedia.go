@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -48,7 +48,7 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
 
-	bodyBytes, err := ioutil.ReadFile(cachedFilePath)
+	bodyBytes, err := os.ReadFile(cachedFilePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
@@ -146,7 +146,7 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
 
-	evaluatedTemplateString, err := ioutil.ReadFile(cacheFilePath)
+	evaluatedTemplateString, err := os.ReadFile(cacheFilePath)
 	if err != nil {
 		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
 	}
@@ -185,7 +185,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	return cachedSvgFile, cachedPngFile, nil
 }
 
-// getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SVG filename.
+// getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func getMathResource(mathString string, cacheFolder string) (string, error) {
 	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
 	requestData := fmt.Sprintf("q=%s", mathString)
@@ -194,7 +194,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	filename := util.Hash(mathString)
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	if _, err := os.Stat(outputFilepath); err == nil {
-		mathSvgFilenameBytes, err := ioutil.ReadFile(outputFilepath)
+		mathSvgFilenameBytes, err := os.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
 		if err != nil {
 			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
@@ -221,7 +221,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		return "", errors.Errorf("Unable to get location header for math %s", mathString)
 	}
 
-	err = cacheToFile(cacheFolder, filename, ioutil.NopCloser(strings.NewReader(locationHeader)))
+	err = cacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

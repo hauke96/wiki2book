@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ type MockHttpClient struct {
 func (h *MockHttpClient) Get(url string) (resp *http.Response, err error) {
 	h.GetCalls++
 	return &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewReader([]byte(h.Response))),
+		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
 		StatusCode: h.StatusCode,
 	}, nil
 }
@@ -25,7 +24,7 @@ func (h *MockHttpClient) Get(url string) (resp *http.Response, err error) {
 func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
 	h.PostCalls++
 	return &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewReader([]byte(h.Response))),
+		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
 		StatusCode: h.StatusCode,
 	}, nil
 }
