@@ -6,7 +6,7 @@ import (
 )
 
 func TestReadSvg(t *testing.T) {
-	svg, err := ReadSvg("../test/image.svg")
+	svg, err := ReadSimpleAvgAttributes("../test/image.svg")
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.Fail()
@@ -19,12 +19,39 @@ func TestReadSvg(t *testing.T) {
 
 func TestReadSvg_imageNotFound(t *testing.T) {
 	filename := "../test/image-that-does-not-exist.svg"
-	_, err := ReadSvg(filename)
-	test.AssertError(t, "Error reading svg file "+filename+": open ../test/image-that-does-not-exist.svg: no such file or directory", err)
+	_, err := ReadSimpleAvgAttributes(filename)
+	test.AssertError(t, "Error reading SVG file "+filename+": open ../test/image-that-does-not-exist.svg: no such file or directory", err)
 }
 
 func TestReadSvg_brokenImage(t *testing.T) {
 	filename := "../test/image-broken.svg"
-	_, err := ReadSvg(filename)
-	test.AssertError(t, "Error parsing svg file "+filename+": EOF", err)
+	_, err := ReadSimpleAvgAttributes(filename)
+	test.AssertError(t, "Error parsing SVG file "+filename+": EOF", err)
+}
+
+func TestMakeSvgSizeAbsolute(t *testing.T) {
+	fileBytes := []byte(`<svg width="50%" height="100%" viewBox="0 0 123 234">
+  <rect width="100%" height="100%" />
+</svg>`)
+	attributedBefore, err := parseSimpleSvgAttributes(fileBytes)
+	if err != nil {
+		t.Errorf("%+v", err)
+		t.Fail()
+	}
+	test.AssertEqual(t, attributedBefore.Width, "50%")
+	test.AssertEqual(t, attributedBefore.Height, "100%")
+
+	updatedFileContent, err := replaceRelativeSizeByViewboxSize(string(fileBytes), "../test/image_relative-width-height.svg", attributedBefore)
+	if err != nil {
+		t.Errorf("%+v", err)
+		t.Fail()
+	}
+
+	attributedAfter, err := parseSimpleSvgAttributes([]byte(updatedFileContent))
+	if err != nil {
+		t.Errorf("%+v", err)
+		t.Fail()
+	}
+	test.AssertEqual(t, attributedAfter.Width, "123pt")
+	test.AssertEqual(t, attributedAfter.Height, "234pt")
 }

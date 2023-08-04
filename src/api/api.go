@@ -8,28 +8,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"time"
-	"wiki2book/util"
 )
 
 var imageSources = []string{"commons", "de"}
 var httpClient = GetDefaultHttpClient()
-var redirectRegex = regexp.MustCompile(`#REDIRECT \[\[(.*)]]`)
-
-const imgSize = 600
-
-// processImage will convert and rescale the image so that it's suitable for eBooks.
-func processImage(outputFilepath string) error {
-	err := util.Execute("convert", outputFilepath, "-colorspace", "gray", "-separate", "-average", "-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize), "-quality", "75",
-		"-define", "PNG:compression-level=9", "-define", "PNG:compression-filter=0", outputFilepath)
-
-	if err != nil {
-		sigolo.Error("Converting image %s failed", outputFilepath)
-	}
-
-	return err
-}
 
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath or an error. If the file already exists, no HTTP request is made.

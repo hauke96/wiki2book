@@ -69,14 +69,14 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool) error {
 	for _, image := range images {
 		var downloadErr error = nil
 		var outputFilepath string
 
 		for i, source := range imageSources {
 			isLastSource := i == len(imageSources)-1
-			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source)
+			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
 					sigolo.Error("Could not downloading image %s from last source %s: %s\n", image, source, downloadErr.Error())
@@ -108,7 +108,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string) 
 // downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder. When the file already exists,
 // nothing is done and "", nil will be returned. When the file has been downloaded "filename", nil will be returned.
 // The article cache folder is needed as some files might be redirects and such a redirect counts as article.
-func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, source string) (string, error) {
+func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, source string, svgSizeToViewbox bool) (string, error) {
 	// TODO handle colons in file names
 	imageName := strings.Split(imageNameWithPrefix, ":")[1]
 	imageArticle, err := DownloadArticle(source, "File:"+imageName, articleFolder)
@@ -134,7 +134,19 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 	sigolo.Debug(imageUrl)
 
-	return downloadAndCache(imageUrl, outputFolder, originalImageName)
+	cachedFilePath, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
+	if err != nil {
+		return "", err
+	}
+
+	if svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
+		err = util.MakeSvgSizeAbsolute(cachedFilePath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return cachedFilePath, nil
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {

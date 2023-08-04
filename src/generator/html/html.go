@@ -416,7 +416,7 @@ func (g *HtmlGenerator) expandMath(tokenString string, tokenMap map[string]strin
 		return "", err
 	}
 
-	svg, err := util.ReadSvg(svgFilename)
+	svg, err := util.ReadSimpleAvgAttributes(svgFilename)
 	if err != nil {
 		return "", err
 	}

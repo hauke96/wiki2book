@@ -74,9 +74,10 @@ func main() {
 			cli.Standalone.CoverImage,
 			cli.Standalone.PandocDataDir,
 			cli.ForceRegenerateHtml,
+			cli.SvgSizeToViewbox,
 		)
 	case "project <project-file>":
-		generateProjectEbook(cli.Project.ProjectFile, cli.ForceRegenerateHtml)
+		generateProjectEbook(cli.Project.ProjectFile, cli.ForceRegenerateHtml, cli.SvgSizeToViewbox)
 	case "article <article-name>":
 		generateArticleEbook(
 			cli.Article.ArticleName,
@@ -87,6 +88,7 @@ func main() {
 			cli.Article.PandocDataDir,
 			cli.Article.WikipediaInstance,
 			cli.ForceRegenerateHtml,
+			cli.SvgSizeToViewbox,
 		)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
@@ -98,7 +100,7 @@ func main() {
 	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
-func generateProjectEbook(projectFile string, forceHtmlRecreate bool) {
+func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
 	sigolo.Info("Use project file: %s", projectFile)
@@ -120,10 +122,10 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool) {
 	outputFile := project.OutputFile
 	pandocDataDir := project.PandocDataDir
 
-	generateEpubFromArticles(articles, wikipediaDomain, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate)
+	generateEpubFromArticles(articles, wikipediaDomain, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate, svgSizeToViewbox)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool) {
+func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
 	imageCache := "images"
@@ -175,7 +177,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	tokenizer := parser.NewTokenizer(imageCache, templateCache)
 	article := tokenizer.Tokenize(string(fileContent), title)
 
-	err = api.DownloadImages(article.Images, imageCache, articleCache)
+	err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
 	sigolo.FatalCheck(err)
 
 	htmlFileName := article.Title + ".html"
@@ -199,7 +201,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool) {
+func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	//var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -220,10 +222,12 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 		coverImageFile,
 		pandocDataDir,
 		project.Metadata{},
-		forceHtmlRecreate)
+		forceHtmlRecreate,
+		svgSizeToViewbox,
+	)
 }
 
-func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool) {
+func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articleFiles []string
 	var err error
 
@@ -272,7 +276,7 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 			article := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 
 			sigolo.Info("Download images from article %s", articleName)
-			err = api.DownloadImages(article.Images, imageCache, articleCache)
+			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
 			sigolo.FatalCheck(err)
 
 			sigolo.Info("Generate HTML for article %s", articleName)
