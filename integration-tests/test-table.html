@@ -201,5 +201,139 @@ col2
 
 </div>
 </div>
+<h2>Test 4: Table with col- and rowspan</h2>
+<h3>Test 4a: Normal table</h3>
+<div class="figure">
+<table>
+ <tr>
+<th>
+H1
+</th>
+ <th colspan=2>
+ H2
+</th>
+
+</tr>
+ <tr>
+<td rowspan=2>
+ A
+</td>
+ <td>
+B
+</td>
+ <td>
+C
+</td>
+
+</tr>
+ <tr>
+<td colspan=2>
+  E
+</td>
+
+</tr>
+ <tr>
+<td>
+G
+</td>
+ <td colspan=2>
+ H
+</td>
+
+</tr>
+
+</table>
+<div class="caption">
+Some caption
+</div>
+</div>
+<h3>Test 4b: Table inside table with col- and rowspan</h3>
+<div class="figure">
+<table>
+ <tr>
+<th>
+H1
+</th>
+ <th colspan=2>
+ H2
+</th>
+
+</tr>
+ <tr>
+<td rowspan=2>
+ A
+</td>
+ <td>
+B
+</td>
+ <td>
+C
+</td>
+
+</tr>
+ <tr>
+<td colspan=2>
+<div class="figure">
+<table>
+ <tr>
+<th>
+inner-H1
+</th>
+ <th colspan=2>
+ inner-H2
+</th>
+
+</tr>
+ <tr>
+<td rowspan=2>
+ inner-A
+</td>
+ <td>
+inner-B
+</td>
+ <td>
+inner-C
+</td>
+
+</tr>
+ <tr>
+<td colspan=2>
+  inner-E
+</td>
+
+</tr>
+ <tr>
+<td>
+inner-F
+</td>
+ <td colspan=2>
+ inner-G
+</td>
+
+</tr>
+
+</table>
+<div class="caption">
+The inner table
+</div>
+</div>
+</td>
+
+</tr>
+ <tr>
+<td>
+F
+</td>
+ <td colspan=2>
+ G
+</td>
+
+</tr>
+
+</table>
+<div class="caption">
+Some caption
+</div>
+</div>
 </body>
 </html>

@@ -202,7 +202,7 @@ func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
 		return t.tokenizeContent(t, content), ""
 	}
 
-	attributeString := splittedContent[0]
+	attributeString := strings.TrimSpace(splittedContent[0])
 	entryText := t.tokenizeContent(t, splittedContent[1])
 
 	var relevantTags []string

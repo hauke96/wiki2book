@@ -68,3 +68,43 @@ With table:
 |}
 |}
 
+== Test 4: Table with col- and rowspan ==
+
+=== Test 4a: Normal table ===
+
+{| class="wikitable"
+|+ Some caption
+|-
+! H1 !! colspan=2 | H2
+|-
+| rowspan=2 | A || B || C
+|-
+| colspan=2 |  E
+|-
+| G || colspan=2 | H
+|}
+
+=== Test 4b: Table inside table with col- and rowspan ===
+
+{| class="wikitable"
+|+ Some caption
+|-
+! H1 !! colspan=2 | H2
+|-
+| rowspan=2 | A || B || C
+|-
+| colspan=2 |
+{| class="wikitable"
+|+ The inner table
+|-
+! inner-H1 !! colspan=2 | inner-H2
+|-
+| rowspan=2 | inner-A || inner-B || inner-C
+|-
+| colspan=2 |  inner-E
+|-
+| inner-F || colspan=2 | inner-G
+|}
+|-
+| F || colspan=2 | G
+|}

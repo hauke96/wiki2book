@@ -78,7 +78,7 @@ var (
 // Tables
 var (
 	tableStartRegex         = regexp.MustCompile(`^(:*)(\{\|.*)`)
-	tableRowAndColspanRegex = regexp.MustCompile(`(colspan|rowspan)="(\d+)"`)
+	tableRowAndColspanRegex = regexp.MustCompile(`(colspan|rowspan)="?(\d+)"?`)
 	tableTextAlignRegex     = regexp.MustCompile(`text-align:.+?;`)
 )
 
