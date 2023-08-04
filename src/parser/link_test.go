@@ -43,6 +43,18 @@ func TestParseInternalLinks_withFile(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseInternalLinks_withSectionReference(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
+	content := tokenizer.parseInternalLinks("foo [[article#section]]")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_2$$", content)
+	test.AssertEqual(t, map[string]string{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$":         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 0, TOKEN_INTERNAL_LINK_TEXT, 1),
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK_ARTICLE + "_0$$": "article",
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK_TEXT + "_1$$":    "article",
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseInternalLinks_externalLinkWillNotBeTouched(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseInternalLinks("foo [http://bar.com website]")
