@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"time"
+	"wiki2book/util"
 )
 
 var imageSources = []string{"commons", "de"}

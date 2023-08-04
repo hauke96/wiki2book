@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/hauke96/wiki2book/src/test"
 	"testing"
+	"wiki2book/test"
 )
 
 func TestDownloadAndCache(t *testing.T) {

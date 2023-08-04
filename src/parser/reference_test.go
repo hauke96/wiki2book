@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/wiki2book/src/test"
 	"testing"
+	"wiki2book/test"
 )
 
 func TestGetReferenceHeadAndFoot(t *testing.T) {

@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/api"
-	"github.com/hauke96/wiki2book/src/util"
 	"strings"
+	"wiki2book/api"
+	"wiki2book/util"
 )
 
 const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"

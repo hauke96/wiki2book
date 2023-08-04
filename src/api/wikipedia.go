@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"wiki2book/util"
 )
 
 type WikiArticleDto struct {

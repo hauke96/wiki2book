@@ -2,9 +2,9 @@ package epub
 
 import (
 	"fmt"
-	"github.com/hauke96/wiki2book/src/project"
-	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
+	"wiki2book/project"
+	"wiki2book/util"
 )
 
 func Generate(sourceFiles []string, outputFile string, styleFile string, coverFile string, pandocDataDir string, metadata project.Metadata) error {

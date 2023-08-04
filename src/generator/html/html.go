@@ -3,9 +3,6 @@ package html
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/api"
-	"github.com/hauke96/wiki2book/src/parser"
-	"github.com/hauke96/wiki2book/src/util"
 	"github.com/pkg/errors"
 	"html"
 	"os"
@@ -13,6 +10,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"wiki2book/api"
+	"wiki2book/parser"
+	"wiki2book/util"
 )
 
 const HEADER = `<?xml version="1.0" encoding="UTF-8"?>

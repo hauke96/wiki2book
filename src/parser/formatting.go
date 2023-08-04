@@ -2,8 +2,8 @@ package parser
 
 import (
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/util"
 	"strings"
+	"wiki2book/util"
 )
 
 type BoldItalicStackItemType int

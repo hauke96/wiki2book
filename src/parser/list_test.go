@@ -2,9 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/wiki2book/src/test"
 	"strings"
 	"testing"
+	"wiki2book/test"
 )
 
 func TestParseList(t *testing.T) {

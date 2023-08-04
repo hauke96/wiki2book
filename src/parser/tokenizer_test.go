@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/hauke96/wiki2book/src/test"
 	"testing"
+	"wiki2book/test"
 )
 
 func TestNewTokenizer(t *testing.T) {

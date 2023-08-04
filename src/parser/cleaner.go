@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/hauke96/wiki2book/src/util"
 	"strings"
+	"wiki2book/util"
 )
 
 const semiHeadingDepth = 10

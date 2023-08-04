@@ -2,9 +2,9 @@ package html
 
 import (
 	"fmt"
-	"github.com/hauke96/wiki2book/src/parser"
-	"github.com/hauke96/wiki2book/src/test"
 	"testing"
+	"wiki2book/parser"
+	"wiki2book/test"
 )
 
 var generator = HtmlGenerator{}

@@ -2,9 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/wiki2book/src/util"
 	"sort"
 	"strings"
+	"wiki2book/util"
 )
 
 func (t *Tokenizer) parseReferences(content string) string {

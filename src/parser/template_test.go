@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/api"
-	"github.com/hauke96/wiki2book/src/test"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+	"wiki2book/api"
+	"wiki2book/test"
 )
 
 const cacheSubFolder = "templates"

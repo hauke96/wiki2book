@@ -3,10 +3,10 @@ package parser
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/util"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"wiki2book/util"
 )
 
 var images []string

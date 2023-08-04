@@ -3,12 +3,6 @@ package main
 import (
 	"github.com/alecthomas/kong"
 	"github.com/hauke96/sigolo"
-	"github.com/hauke96/wiki2book/src/api"
-	"github.com/hauke96/wiki2book/src/generator/epub"
-	"github.com/hauke96/wiki2book/src/generator/html"
-	"github.com/hauke96/wiki2book/src/parser"
-	"github.com/hauke96/wiki2book/src/project"
-	"github.com/hauke96/wiki2book/src/util"
 	"io/ioutil"
 	"os"
 	"path"
@@ -16,6 +10,12 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
+	"wiki2book/api"
+	"wiki2book/generator/epub"
+	"wiki2book/generator/html"
+	"wiki2book/parser"
+	"wiki2book/project"
+	"wiki2book/util"
 )
 
 var cli struct {
