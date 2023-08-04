@@ -12,7 +12,7 @@ echo "Build project..."
 
 cd ../src
 go build .
-mv src "$HOME/wiki2book"
+mv wiki2book "$HOME/wiki2book"
 
 echo "Building project done"
 echo
