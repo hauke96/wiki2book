@@ -203,7 +203,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 
 func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	//var err error
-	// Enable this to create a profiling file. Then use the command "go tool pprof src ./profiling.prof" and enter "web" to open a diagram in your browser.
+	// Enable this to create a profiling file. Then use the command "go tool pprof wiki2book ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
 	//sigolo.FatalCheck(err)
 	//
