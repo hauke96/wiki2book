@@ -19,30 +19,28 @@ import (
 )
 
 var cli struct {
-	Debug      bool `help:"Enable debug mode." short:"d"`
-	Profiling  bool `help:"Enable profiling and write results to ./profiling.prof."`
-	Standalone struct {
-		File                string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile          string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir            string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile           string `help:"The CSS file that should be used." short:"s"`
-		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
-		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	Debug               bool `help:"Enable debug mode." short:"d"`
+	Profiling           bool `help:"Enable profiling and write results to ./profiling.prof."`
+	ForceRegenerateHtml bool `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	Standalone          struct {
+		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
+		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile     string `help:"The CSS file that should be used." short:"s"`
+		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
+		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile         string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName         string `help:"The name of the article to render." arg:""`
-		OutputFile          string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir            string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile           string `help:"The CSS file that should be used." short:"s"`
-		CoverImage          string `help:"A cover image for the front cover of the eBook." short:"c"`
-		PandocDataDir       string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		WikipediaInstance   string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
-		ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+		ArticleName       string `help:"The name of the article to render." arg:""`
+		OutputFile        string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir          string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile         string `help:"The CSS file that should be used." short:"s"`
+		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"c"`
+		PandocDataDir     string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -68,11 +66,28 @@ func main() {
 	case "standalone <file>":
 		util.AssertFileExists(cli.Standalone.StyleFile)
 		util.AssertFileExists(cli.Standalone.CoverImage)
-		generateStandaloneEbook(cli.Standalone.File, cli.Standalone.OutputFile, cli.Standalone.CacheDir, cli.Standalone.StyleFile, cli.Standalone.CoverImage, cli.Standalone.PandocDataDir, cli.Standalone.ForceRegenerateHtml)
+		generateStandaloneEbook(
+			cli.Standalone.File,
+			cli.Standalone.OutputFile,
+			cli.Standalone.CacheDir,
+			cli.Standalone.StyleFile,
+			cli.Standalone.CoverImage,
+			cli.Standalone.PandocDataDir,
+			cli.ForceRegenerateHtml,
+		)
 	case "project <project-file>":
-		generateProjectEbook(cli.Project.ProjectFile, cli.Project.ForceRegenerateHtml)
+		generateProjectEbook(cli.Project.ProjectFile, cli.ForceRegenerateHtml)
 	case "article <article-name>":
-		generateArticleEbook(cli.Article.ArticleName, cli.Article.OutputFile, cli.Article.CacheDir, cli.Article.StyleFile, cli.Article.CoverImage, cli.Article.PandocDataDir, cli.Article.WikipediaInstance, cli.Article.ForceRegenerateHtml)
+		generateArticleEbook(
+			cli.Article.ArticleName,
+			cli.Article.OutputFile,
+			cli.Article.CacheDir,
+			cli.Article.StyleFile,
+			cli.Article.CoverImage,
+			cli.Article.PandocDataDir,
+			cli.Article.WikipediaInstance,
+			cli.ForceRegenerateHtml,
+		)
 	default:
 		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
 	}
