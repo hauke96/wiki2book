@@ -1,0 +1,31 @@
+== Normal refs ==
+
+This Article has references <ref>This is a reference</ref>.
+
+Refs can also have multiple lines <ref>This is a
+multi-line
+reference</ref>.
+
+== Named refs ==
+
+Names refs are supported <ref name="foo">named ref</ref>.
+They can be reused <ref name="foo" />.
+
+== Mediawiki inside refs ==
+
+Refs can also have formatting <ref>''beautiful'' '''formatting'''</ref>.
+
+They also support links <ref>Interesting [[article]]</ref>.
+
+Even tables are supported <ref>
+{| class="wikitable"
+|-
+! H1 !! H2
+|-
+| A || B
+|}
+</ref>.
+
+== Ref list ==
+
+<references />
