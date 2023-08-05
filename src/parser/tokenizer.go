@@ -146,7 +146,6 @@ func tokenizeContent(t *Tokenizer, content string) string {
 		content = t.parseReferences(content)
 		content = t.parseInternalLinks(content)
 
-		content = escapeImages(content)
 		content = t.parseGalleries(content)
 		content = t.parseImageMaps(content)
 		content = t.parseImages(content)

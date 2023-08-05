@@ -51,41 +51,44 @@ var imageNonInlineParameters = []string{
 	"thumb",
 }
 
-// escapeImages escapes the image names in the content and returns the updated content.
+// escapeImages escapes the image names in the image specification and returns the updated spec. The spec is expected to
+// be the complete spec, not just the image name, so everything between "[[" and "]]". If the media type if not
+// supported, an empty string is returned.
 func escapeImages(content string) string {
-	var result []string
+	segments := strings.Split(content, "|")
 
-	content = nonImageRegex.ReplaceAllString(content, "")
-
-	submatches := imageRegex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		filePrefix := submatch[2]
-		filename := submatch[3]
-		filename = strings.TrimSpace(filename)
-
-		// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
-		filename = strings.ReplaceAll(filename, " ", "_")
-		filename = strings.ReplaceAll(filename, "%20", "_")
-
-		// Make first letter upper case as wikimedia wants it this way:
-		filenameRunes := []rune(filename)
-		filename = strings.ToUpper(string(filenameRunes[0])) + string(filenameRunes[1:])
-
-		// Attach prefix like "File:" to reconstruct the wikitext entry:
-		filename = filePrefix + ":" + filename
-
-		content = strings.ReplaceAll(content, submatch[1], filename)
-		result = append(result, filename)
-
-		sigolo.Debug("Found image: %s", filename)
+	fileSegments := strings.SplitN(segments[0], ":", 2)
+	var mediaType string
+	var filename string
+	if len(fileSegments) == 1 {
+		mediaType = "File"
+		filename = strings.TrimSpace(fileSegments[0])
+	} else {
+		mediaType = fileSegments[0]
+		filename = strings.TrimSpace(fileSegments[1])
 	}
 
-	images = append(images, result...)
+	// Check if this media type is unwanted
+	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
+	if util.Contains(unwantedMediaTypes, fileExtension) {
+		return ""
+	}
 
-	firstPartOfContent := util.TruncString(content)
+	sigolo.Debug("Found image: %s", filename)
 
-	sigolo.Debug("Found and embedded %d images in content %s", len(submatches), firstPartOfContent)
-	return content
+	// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
+	filename = strings.ReplaceAll(filename, " ", "_")
+	filename = strings.ReplaceAll(filename, "%20", "_")
+
+	// Make first letter upper case as wikimedia wants it this way:
+	filenameRunes := []rune(filename)
+	filename = strings.ToUpper(string(filenameRunes[0])) + string(filenameRunes[1:])
+
+	filenameWithMediaType := mediaType + ":" + filename
+	images = append(images, filenameWithMediaType)
+	segments[0] = filenameWithMediaType
+
+	return strings.Join(segments, "|")
 }
 
 func (t *Tokenizer) parseGalleries(content string) string {
@@ -113,35 +116,38 @@ func (t *Tokenizer) parseGalleries(content string) string {
 
 			// Gallery starts -> Remove tag and see if the line also contains the first image
 			trimmedLine = galleryStartRegex.ReplaceAllString(trimmedLine, "")
-			if trimmedLine != "" {
-				// This line contained more than just the start tag -> handle line again
-				lines[i] = trimmedLine
-				i--
-			}
+		}
 
-			continue
-		} else if withinGallery {
+		if withinGallery {
 			// We're within a gallery -> turn each line into a correct wikitext image with "[[File:...]]"
 
 			if trimmedLine == "" {
 				continue
 			}
 
+			lineSegments := strings.Split(trimmedLine, "|")
+
 			if !hasNonInlineParameterRegex.MatchString(trimmedLine) {
 				// Line has no non-inline parameter -> Add one to make it a non-inline image in further image parsing/escaping
-				lineSegments := strings.Split(trimmedLine, "|")
 				// The last parameter is the caption, so the non-inline parameter is added right behind the file name
-				lineSegments[0] += "|mini"
-				trimmedLine = strings.Join(lineSegments, "|")
+				newLineSegments := make([]string, len(lineSegments)+1)
+				for j, v := range lineSegments {
+					if j == 0 {
+						// Add filename and "mini"
+						newLineSegments[0] = lineSegments[0]
+						newLineSegments[1] = "mini"
+					} else {
+						// Add parameter
+						newLineSegments[j+1] = v
+					}
+				}
+				trimmedLine = strings.Join(newLineSegments, "|")
 			}
 
-			if !imagePrefixRegex.MatchString(trimmedLine) {
-				// Files with and without "File:" prefixes are allowed. This line has no such prefix -> add valid prefix
-				trimmedLine = "File:" + trimmedLine
-			}
-
-			trimmedLine = fmt.Sprintf("[[%s]]", trimmedLine)
 			line = escapeImages(trimmedLine)
+			if line != "" {
+				line = fmt.Sprintf("[[%s]]", line)
+			}
 		}
 
 		// Normal line or line has been processed -> anyway, add it to the result list
@@ -196,19 +202,29 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 }
 
 func (t *Tokenizer) parseImages(content string) string {
-	submatches := imageRegex.FindAllStringSubmatch(content, -1)
-	for _, submatch := range submatches {
-		filename := submatch[3]
-		imageFilepath := filepath.Join(t.imageFolder, filename)
-		filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
-		t.setRawToken(filenameToken, imageFilepath)
+	startIndex := imageStartRegex.FindStringIndex(content)
+	for startIndex != nil {
+		// Use the end-index of the match, since it points to the ":" of the "[[File:" match
+		endIndex := findCorrespondingCloseToken(content, startIndex[1], "[", "]")
 
-		tokenString := TOKEN_IMAGE_INLINE
-		imageSizeToken := ""
-		captionToken := ""
+		// +1 to jump over the ":" after "File". Hence, the resulting string starts at the first character of the image name.
+		imageContent := content[startIndex[1]:endIndex]
+		imageContent = t.tokenizeContent(t, imageContent)
+		imageContent = escapeImages(imageContent)
 
-		if len(submatch) >= 4 {
-			options := strings.Split(submatch[5], "|")
+		if imageContent == "" {
+			content = content[0:startIndex[0]] + content[endIndex+2:]
+		} else {
+			options := strings.Split(imageContent, "|")
+
+			filename := strings.SplitN(options[0], ":", 2)[1]
+			imageFilepath := filepath.Join(t.imageFolder, filename)
+			filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
+			t.setRawToken(filenameToken, imageFilepath)
+
+			tokenString := TOKEN_IMAGE_INLINE
+			imageSizeToken := ""
+			captionToken := ""
 
 			// Do some cleanup: Remove definitely uninteresting options.
 			var filteredOptions []string
@@ -254,22 +270,23 @@ func (t *Tokenizer) parseImages(content string) string {
 					t.setToken(captionToken, option)
 				}
 			}
+
+			token := t.getToken(tokenString)
+			resultTokenString := filenameToken
+			if captionToken != "" {
+				resultTokenString += " " + captionToken
+			}
+
+			if imageSizeToken != "" {
+				resultTokenString += " " + imageSizeToken
+			}
+			t.setRawToken(token, resultTokenString)
+
+			content = content[0:startIndex[0]] + token + content[endIndex+2:]
 		}
 
-		token := t.getToken(tokenString)
-		resultTokenString := filenameToken
-
-		if captionToken != "" {
-			resultTokenString += " " + captionToken
-		}
-
-		if imageSizeToken != "" {
-			resultTokenString += " " + imageSizeToken
-		}
-
-		t.setRawToken(token, resultTokenString)
-
-		content = strings.Replace(content, submatch[0], token, 1)
+		// Find next image
+		startIndex = imageStartRegex.FindStringIndex(content)
 	}
 
 	return content

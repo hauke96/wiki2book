@@ -12,6 +12,8 @@ Short explanations (because regex is like magic to some people):
 	[^x]  Match everything except the character x (or whatever x is).
 	*?    Minimum sized match.
 	(?m)  Flag to use multi-line matchings to also match on \n.
+	(?s)  Flag to let . also match on \n.
+	(?i)  Flag to use case-insensitive matching.
 */
 
 // Token
@@ -41,7 +43,7 @@ var (
 // Links
 var (
 	interwikiLinkRegex = regexp.MustCompile(`\[\[([A-Za-z\-]+:)[^]]+]]`)
-	linkPrefixe        = append(imageTypes,
+	linkPrefixe        = append(filePrefixe,
 		[]string{
 			"arxiv",
 			"doi",
@@ -57,19 +59,29 @@ var (
 	listPrefixRegex    = regexp.MustCompile(`^([*#:;])`)
 )
 
-// Images
+// Media files
 var (
-	imageTypes = []string{
+	filePrefixe = []string{
 		"datei",
 		"file",
 		"bild",
 		"image",
 		"media",
 	}
-	filePrefixes               = strings.Join(imageTypes, "|")
-	nonImageRegex              = regexp.MustCompile(`(?i)\[\[((` + filePrefixes + `):.*?\.(gif|mp3|mp4|pdf|oga|ogg|ogv|wav|webm))(\|([^\]]*))?]]`) // TODO Regarding PDFs: This is temporary, solve issue #33 to handle them properly.
-	imageRegex                 = regexp.MustCompile(`(?i)\[\[((` + filePrefixes + `):([^|^\]]*))(\|([^\]]*))?]]`)
-	imagePrefixRegex           = regexp.MustCompile("(?i)^(" + filePrefixes + "):")
+	unwantedMediaTypes = []string{
+		"gif",
+		"mp3",
+		"mp4",
+		"pdf",
+		"oga",
+		"ogg",
+		"ogv",
+		"wav",
+		"webm",
+	}
+	filePrefixRegex            = strings.Join(filePrefixe, "|")
+	imageStartRegex            = regexp.MustCompile(`(?i)\[\[(` + filePrefixRegex + `):`)
+	imagePrefixRegex           = regexp.MustCompile("(?i)^(" + filePrefixRegex + "):")
 	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
 	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")

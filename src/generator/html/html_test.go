@@ -60,6 +60,62 @@ some <b>caption</b>
 	test.AssertEqual(t, "", actualResult)
 }
 
+func TestExpandImage_onlyWidthSpecified(t *testing.T) {
+	result := `<div class="figure">
+<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px;">
+<div class="caption">
+some <b>caption</b>
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 3)
+	tokenString := tokenImage
+	tokenFilename := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
+	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
+	tokenImageSize := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
+	tokenMap := map[string]string{
+		tokenImage:     tokenFilename + " " + tokenCaption + " " + tokenImageSize,
+		tokenFilename:  "foo/image.jpg",
+		tokenCaption:   "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
+		tokenImageSize: "10x",
+	}
+
+	actualResult, err := generator.expandImage(tokenString, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
+func TestExpandImage_linkAtEndOfCaption(t *testing.T) {
+	result := `<div class="figure">
+<img alt="image" src="./foo/image.jpg" >
+<div class="caption">
+some <a href="https://foo.com">link</a>
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 3)
+	tokenString := tokenImage
+	tokenFilename := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
+	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
+	tokenImageSize := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
+
+	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 2)
+	tokenLinkUrl := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK_URL, 0)
+	tokenLinkText := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK_TEXT, 1)
+
+	tokenMap := map[string]string{
+		tokenImage:     tokenFilename + " " + tokenCaption + " " + tokenImageSize,
+		tokenFilename:  "foo/image.jpg",
+		tokenCaption:   "some " + tokenLink,
+		tokenImageSize: "10x",
+		tokenLink:      tokenLinkUrl + " " + tokenLinkText,
+		tokenLinkUrl:   "https://foo.com",
+		tokenLinkText:  "link",
+	}
+
+	actualResult, err := generator.expandImage(tokenString, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
 func TestExpandImageInline(t *testing.T) {
 	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 3)
