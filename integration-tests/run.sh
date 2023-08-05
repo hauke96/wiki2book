@@ -1,11 +1,24 @@
 #!/bin/bash
 
+if [[ $@ == *--help* || $@ == *-h* ]]
+then
+	cat<<EOF
+Run all tests: ./run.sh
+Run one test : ./run.sh <names>
+
+Example: ./run.sh bold-italic real-article-Erde
+EOF
+	exit 0
+fi
+
 GLOBAL_START=$(($(date +%s%N)/1000000))
 
 HOME=$PWD
-LOGS="./logs"   # Folder with log files for each test
+LOGS="./logs"              # Folder with log files for each test
 FAILED_TESTS_WITH_CAUSE="" # List of test names with the fail-cause (e.g. "[HTML]")
-FAILED_TESTS="" # List of failed test names only
+FAILED_TESTS=""            # List of failed test names only
+PREFIX="test-"             # Prefix of test files
+SUFFIX=".mediawiki"        # File extension of test files
 
 # Build project
 echo "Build project..."
@@ -88,16 +101,31 @@ function run()
 	echo "$1: Finished after `expr $END - $START` milliseconds"
 }
 
-# Run tests
-PREFIX="test-"
-SUFFIX=".mediawiki"
-echo "=========="
-for f in $(find *.mediawiki)
-do
-	F=${f%"$SUFFIX"}
-	run ${F#"$PREFIX"}
+# Runs all the given tests.
+# $@ - Test names separated by a space
+function runAll()
+{
 	echo "=========="
-done
+	for f in $@
+	do
+		F=${f%"$SUFFIX"}
+		run ${F#"$PREFIX"}
+		echo "=========="
+	done
+}
+
+if [[ $1 != "" ]]
+then
+	TESTS=$(echo $@ | tr " " "\n")
+	echo -e "Run specific tests:\n$TESTS"
+	echo
+	runAll $@
+else
+	TESTS=$(find *.mediawiki)
+	echo -e "Run all tests:\n$TESTS"
+	echo
+	runAll $TESTS
+fi
 
 GLOBAL_END=$(($(date +%s%N)/1000000))
 
