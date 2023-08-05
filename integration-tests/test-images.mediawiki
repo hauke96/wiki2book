@@ -1,0 +1,45 @@
+== Normal images ==
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|thumb|Image as thumbnail.]]
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|mini|Image with 'mini' tag.]]
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|Normal image.]]
+
+=== Inline ===
+
+A small inline [[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|25px]] image.
+
+Another small but distorted inline [[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|80x25px|Ignored caption.]] image with ignored caption.
+
+=== With formatting in caption ===
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|mini|With ''formatted'' '''caption'''.]]
+
+=== With link in caption ===
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|mini|With [[link]] to [[article]]]]
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|mini|With a link to [https://wikipedia.org Wikipedia]]]
+
+=== Image with image in caption ===
+
+[[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|mini|Caption with image inside: [[File:DT5 in Richtung Hauptbahnhof-Süd.JPG|80x25px]]]]
+
+== SVGs ==
+
+SVGs work as well: [[File:Koffein - Caffeine.svg|mini|SVG of Koffein]].
+
+=== Inline ===
+
+And they also can be inserted inline [[File:Koffein - Caffeine.svg|25px|SVG of Koffein]].
+
+== Gallery ==
+
+Galleries also work.
+Here's Earth at two slightly different zoom-levels:
+
+<gallery>
+File:Pale Blue Dot.png|With some caption
+File:Iceland sat cleaned.png
+</gallery>
