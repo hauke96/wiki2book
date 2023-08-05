@@ -1,6 +1,8 @@
 # Binaries for programs and plugins
 src/src
+src/wiki2book
 wiki2book
+.wiki2book
 *.exe
 *.exe~
 *.dll
@@ -16,7 +18,6 @@ templates
 articles
 math
 src/.test-cache
-src/profiling.prof
 
 # IDE stuff
 .idea
@@ -33,3 +34,7 @@ standalone.mediawiki
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Profiling stuff
+*.prof
+*.pdf
