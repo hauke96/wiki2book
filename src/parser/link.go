@@ -5,14 +5,18 @@ import (
 )
 
 func (t *Tokenizer) parseInternalLinks(content string) string {
-	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK, false)
+	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK, false, true)
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK, true)
+	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK, true, false)
 }
 
-func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string, delimiterRequired bool) string {
+// parseLink takes the given bracket type and tries to find the link content in between them and replaces it with a
+// token. The parameter delimiterRequired specified if the link must definitely have two parts (URL/Article and a
+// display text). The parameter removeSectionReference specifies whether or not everything behind the first "#" should
+// be ignored or not.
+func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string, delimiterRequired bool, removeSectionReference bool) string {
 	splitContent := strings.Split(content, openingBrackets)
 	var resultSegments []string
 
@@ -46,17 +50,20 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 
 		wikitextElements := strings.Split(possibleLinkWikitext, linkDelimiter)
 		linkTarget := wikitextElements[0]
-
-		linkText := linkTarget
-
-		if delimiterRequired && len(wikitextElements) == 1 {
-			// We need at least one delimiter in this link but found none -> Abort parsing this link.
-			resultSegments = append(resultSegments, openingBrackets)
-			resultSegments = append(resultSegments, splitItem)
-			continue
+		if removeSectionReference {
+			linkTarget = strings.SplitN(linkTarget, "#", 2)[0]
 		}
 
-		if len(wikitextElements) > 1 {
+		var linkText string
+		if len(wikitextElements) == 1 {
+			if delimiterRequired {
+				// We need at least one delimiter in this link but found none -> Abort parsing this link.
+				resultSegments = append(resultSegments, openingBrackets)
+				resultSegments = append(resultSegments, splitItem)
+				continue
+			}
+			linkText = linkTarget
+		} else {
 			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
 		}
 
