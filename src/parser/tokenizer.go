@@ -165,17 +165,3 @@ func tokenizeContent(t *Tokenizer, content string) string {
 
 	return content
 }
-
-// tokenizeInline is meant for strings that are known to be inline string. Example: The text of an internal link cannot
-// contain tables and lists, so we do not want to parse them.
-func (t *Tokenizer) tokenizeInline(content string) string {
-	content = t.parseBoldAndItalic(content)
-	content = t.parseHeadings(content)
-	content = t.parseReferences(content)
-
-	content = t.parseInternalLinks(content)
-	content = t.parseImages(content)
-	content = t.parseExternalLinks(content)
-
-	return content
-}

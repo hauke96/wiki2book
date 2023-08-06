@@ -1,0 +1,57 @@
+linters-settings:
+  tab-width: 4
+issues:
+# Maybe add additional configs for specific linters
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+       - dupl
+       - goconst
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - cyclop
+    - dogsled
+    - dupl
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustruct
+    - exportloopref
+    - forcetypeassert
+    - funlen
+    - gocognit
+    - goconst
+    - gocyclo
+    - goerr113
+    - gomnd
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacebloat
+    - ireturn
+    - lll
+    - maintidx
+    - makezero
+    - misspell
+    - musttag
+    - nakedret
+    # Maybe activate in future? - nestif
+    - nilerr
+    - nilnil
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - reassign
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wrapcheck

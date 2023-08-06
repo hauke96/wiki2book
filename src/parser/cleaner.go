@@ -55,7 +55,7 @@ var ignoreTemplates = []string{
 func clean(content string) string {
 	content = removeComments(content)
 	content = removeUnwantedCategories(content)
-	content = removeUnwantedInterwikiLinks(content)
+	content = removeUnwantedInterWikiLinks(content)
 	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
 	content = removeUnwantedWikitext(content)
@@ -107,27 +107,24 @@ func removeUnwantedCategories(content string) string {
 	return categoryRegex.ReplaceAllString(content, "")
 }
 
-// removeUnwantedInterwikiLinks removes all kind of unwanted links. This method leaves all internal link unchanged
-// as well as all links with a certain prefix. All other prefixe are considered to be codes for Wikipedia instances and
+// removeUnwantedInterWikiLinks removes all kind of unwanted links. This method leaves all internal link unchanged
+// as well as all links with a certain prefix. All other prefixes are considered to be codes for Wikipedia instances and
 // the remaining links will be removed.
-func removeUnwantedInterwikiLinks(content string) string {
+func removeUnwantedInterWikiLinks(content string) string {
 	matches := interwikiLinkRegex.FindAllString(content, -1)
 	for _, potentialLink := range matches {
-		//replaceWith := ""
-
-		// If the segment is a interwiki- oder image-link, there will be two parts:
+		// If the segment is a inter-wiki- or image-link, there will be two parts:
 		//  [0] - The Wikipedia instance or image identifier
 		//  [1] - The article or image name
-		splittedSegment := strings.Split(potentialLink, ":")
-
-		if len(splittedSegment) == 1 {
+		linkParts := strings.Split(potentialLink, ":")
+		if len(linkParts) == 1 {
 			// No ":" inside the link -> internal link
 			continue
 		}
 
-		wikipediaInstanceOrImageType := strings.Replace(splittedSegment[0], "[[", "", 1)
+		wikipediaInstanceOrImageType := strings.Replace(linkParts[0], "[[", "", 1)
 		if util.Contains(linkPrefixe, strings.ToLower(wikipediaInstanceOrImageType)) {
-			// Link with a prefix denoting it to be *not* an interwiki link
+			// Link with a prefix denoting it to be *not* an inter-wiki link
 			continue
 		}
 
@@ -223,7 +220,7 @@ func removeEmptySections(content string) string {
 
 			// Go through lines of this "current" section until the end of data has been reached OR the current line is
 			// a heading.
-			sectionIsEmpty := true
+			var sectionIsEmpty bool
 			i, sectionIsEmpty = walkSection(i, lines, currentHeadingDepth)
 
 			// If the section was not empty, go back to the first line of the section. This causes the loop to go over

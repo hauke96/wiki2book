@@ -100,7 +100,6 @@ func compareMaps(values map[string]string, valuePrefix string, otherValues map[s
 			expectedMapLines = append(expectedMapLines, s)
 		}
 	}
-	//sort.Strings(expectedMapLines)
 	expectedMapString := strings.Join(expectedMapLines, "\n")
 	return expectedMapString
 }

@@ -15,6 +15,18 @@ To test if everything works, it's easiest to run `./wiki2book article Erde` (it 
 
 Use `./wiki2book --help` for all available options.
 
+# Linting
+
+I use `golangci-lint` since it combines multiple linters.
+
+1. Install it `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
+2. Use it `golangci-lint run`
+
+As you may see, the logs are spammed with error messages.
+Not all of them are relevant, but they give you a hint on what could be improved.
+
+The configuration `.golangci-lint` contains the list of used linters and some additional configuration of them.
+
 # Run tests
 
 You have three options:

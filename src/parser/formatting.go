@@ -55,7 +55,7 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 			}
 		}
 
-		// the index increase when inserting the markers as the content gets longer
+		// The index increases when inserting the markers as the content gets longer, the offset stores this additional length
 		offset := 0
 		chars := []byte(content)
 		for _, item := range stack {
@@ -153,8 +153,10 @@ func (t *Tokenizer) tokenizeBoldAndItalic(content string, index int, stack []Bol
 
 			newStack := append(stack, BoldItalicStackItem{itemType: itemType, index: index, length: 3})
 
-			// Crossover = The combination of opening italic followed by closing bold is invalid in most markup languages
-			// -> insert dummy-items to resolve this issue
+			// Crossover = Overlapping italic and bold blocks. I.e. the combination of opening italic followed by
+			// closing bold, which is invalid in most markup languages -> insert dummy-items to resolve this issue
+			// Example: Foo ''' b '' bi ''' i '' bar.
+			// Result:  Foo ''' b '' bi '' ''' '' i '' bar.
 			hasCrossover := len(stack) > 0 && stack[len(stack)-1].itemType == ITALIC_OPEN && itemType == BOLD_CLOSE
 			if hasCrossover {
 				if repairCrossovers {

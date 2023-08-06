@@ -83,7 +83,7 @@ $ome+µeird-string]]
 before[[de:foo:bar]]after
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
-	content = removeUnwantedInterwikiLinks(content)
+	content = removeUnwantedInterWikiLinks(content)
 	test.AssertEqual(t, `[[arxiv:whatever]]
 beforeafter
 before[[internal]]after
@@ -92,7 +92,7 @@ before image [[iMAge:this-should:stay.jpg]] after image`, content)
 
 func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 	content := `foo[[Image:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
-	cleanedContent := removeUnwantedInterwikiLinks(content)
+	cleanedContent := removeUnwantedInterWikiLinks(content)
 	test.AssertEqual(t, content, cleanedContent)
 }
 
