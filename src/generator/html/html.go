@@ -28,8 +28,11 @@ const FOOTER = `
 </html>
 `
 
-const HREF_TEMPLATE = "<a href=\"%s\">%s</a>"
-const IMAGE_SIZE_TEMPLATE = `style="vertical-align: middle; width: %spx; height: %spx;"`
+const HREF_TEMPLATE = `<a href="%s">%s</a>`
+const STYLE_TEMPLATE = `style="%s"`
+const IMAGE_SIZE_ALIGN_TEMPLATE = `vertical-align: middle;`
+const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %spx;`
+const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %spx;`
 const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
 <img alt="image" src="./%s" %s>
@@ -238,8 +241,15 @@ func (g *HtmlGenerator) expandImage(tokenString string, tokenMap map[string]stri
 	}
 
 	sizeTemplate := ""
-	if xSize != "" && ySize != "" {
-		sizeTemplate = fmt.Sprintf(IMAGE_SIZE_TEMPLATE, xSize, ySize)
+	if xSize != "" || ySize != "" {
+		styles := []string{IMAGE_SIZE_ALIGN_TEMPLATE}
+		if xSize != "" {
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_WIDTH_TEMPLATE, xSize))
+		}
+		if ySize != "" {
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_HEIGHT_TEMPLATE, ySize))
+		}
+		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
 
 	if inline {
