@@ -15,7 +15,7 @@ H6
 === H3 ''with '''formatting''''' ===
 Foo
 
-== H2 with an image: [[Datei:Wikipedia-logo-v2.svg|16px]] ==
+== H2 with an image: [[Datei:Wikipedia-logo-v2.svg|x16px]] ==
 Bar
 
  == Heading with spaces around==  
