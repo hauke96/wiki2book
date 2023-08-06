@@ -222,7 +222,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
 			t.setRawToken(filenameToken, imageFilepath)
 
-			tokenString := TOKEN_IMAGE_INLINE
+			tokenKey := TOKEN_IMAGE_INLINE
 			imageSizeToken := ""
 			captionToken := ""
 
@@ -236,7 +236,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 			for i, option := range filteredOptions {
 				if util.ElementHasPrefix(option, imageNonInlineParameters) {
-					tokenString = TOKEN_IMAGE
+					tokenKey = TOKEN_IMAGE
 				} else if strings.HasSuffix(option, "px") {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
@@ -258,29 +258,29 @@ func (t *Tokenizer) parseImages(content string) string {
 					ySizeInt, _ := strconv.Atoi(ySize)
 					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
 					if ySizeInt >= 50 || xSizeInt >= 100 {
-						tokenString = TOKEN_IMAGE
+						tokenKey = TOKEN_IMAGE
 					}
 
 					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
 					imageSizeToken = t.getToken(TOKEN_IMAGE_SIZE)
 					t.setRawToken(imageSizeToken, imageSizeString)
-				} else if i == len(filteredOptions)-1 && tokenString == TOKEN_IMAGE {
+				} else if i == len(filteredOptions)-1 && tokenKey == TOKEN_IMAGE {
 					// Last remaining option is the caption. We ignore captions on inline images.
 					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
 					t.setToken(captionToken, option)
 				}
 			}
 
-			token := t.getToken(tokenString)
-			resultTokenString := filenameToken
+			token := t.getToken(tokenKey)
+			resultTokenContent := filenameToken
 			if captionToken != "" {
-				resultTokenString += " " + captionToken
+				resultTokenContent += " " + captionToken
 			}
 
 			if imageSizeToken != "" {
-				resultTokenString += " " + imageSizeToken
+				resultTokenContent += " " + imageSizeToken
 			}
-			t.setRawToken(token, resultTokenString)
+			t.setRawToken(token, resultTokenContent)
 
 			content = content[0:startIndex[0]] + token + content[endIndex+2:]
 		}

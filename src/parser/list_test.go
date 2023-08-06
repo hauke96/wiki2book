@@ -287,25 +287,25 @@ end of list
 	}, tokenizer.getTokenMap())
 }
 
-func TestGetListTokenString(t *testing.T) {
+func TestGetListTokenKey(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	test.AssertEqual(t, TOKEN_UNORDERED_LIST, tokenizer.getListTokenString("*"))
-	test.AssertEqual(t, TOKEN_ORDERED_LIST, tokenizer.getListTokenString("#"))
-	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST, tokenizer.getListTokenString(";"))
-	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_-", tokenizer.getListTokenString("-"))
-	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_~", tokenizer.getListTokenString("~"))
-	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_ ", tokenizer.getListTokenString(" "))
-	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_", tokenizer.getListTokenString(""))
+	test.AssertEqual(t, TOKEN_UNORDERED_LIST, tokenizer.getListTokenKey("*"))
+	test.AssertEqual(t, TOKEN_ORDERED_LIST, tokenizer.getListTokenKey("#"))
+	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST, tokenizer.getListTokenKey(";"))
+	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_-", tokenizer.getListTokenKey("-"))
+	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_~", tokenizer.getListTokenKey("~"))
+	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_ ", tokenizer.getListTokenKey(" "))
+	test.AssertEqual(t, "UNKNOWN_LIST_TYPE_", tokenizer.getListTokenKey(""))
 }
 
-func TestGetListItemToken(t *testing.T) {
+func TestGetListItemTokenKey(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenString("*"))
-	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenString("#"))
-	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST_HEAD, tokenizer.getListItemTokenString(";"))
-	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST_ITEM, tokenizer.getListItemTokenString(":"))
-	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_-", tokenizer.getListItemTokenString("-"))
-	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_~", tokenizer.getListItemTokenString("~"))
-	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_ ", tokenizer.getListItemTokenString(" "))
-	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_", tokenizer.getListItemTokenString(""))
+	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenKey("*"))
+	test.AssertEqual(t, TOKEN_LIST_ITEM, tokenizer.getListItemTokenKey("#"))
+	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST_HEAD, tokenizer.getListItemTokenKey(";"))
+	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST_ITEM, tokenizer.getListItemTokenKey(":"))
+	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_-", tokenizer.getListItemTokenKey("-"))
+	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_~", tokenizer.getListItemTokenKey("~"))
+	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_ ", tokenizer.getListItemTokenKey(" "))
+	test.AssertEqual(t, "UNKNOWN_LIST_ITEM_TYPE_", tokenizer.getListItemTokenKey(""))
 }

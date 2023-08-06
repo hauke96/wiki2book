@@ -14,9 +14,9 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 
 // parseLink takes the given bracket type and tries to find the link content in between them and replaces it with a
 // token. The parameter delimiterRequired specified if the link must definitely have two parts (URL/Article and a
-// display text). The parameter removeSectionReference specifies whether or not everything behind the first "#" should
-// be ignored or not.
-func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenString string, linkTextTokenString string, linkTokenString string, delimiterRequired bool, removeSectionReference bool) string {
+// display text). The parameter removeSectionReference specifies whether everything behind the first "#" should be
+// ignored or not.
+func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenKey string, linkTextTokenKey string, linkTokenKey string, delimiterRequired bool, removeSectionReference bool) string {
 	splitContent := strings.Split(content, openingBrackets)
 	var resultSegments []string
 
@@ -67,13 +67,13 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
 		}
 
-		tokenTarget := t.getToken(targetTokenString)
+		tokenTarget := t.getToken(targetTokenKey)
 		t.setRawToken(tokenTarget, linkTarget)
 
-		tokenLinkText := t.getToken(linkTextTokenString)
+		tokenLinkText := t.getToken(linkTextTokenKey)
 		t.setRawToken(tokenLinkText, linkText)
 
-		token := t.getToken(linkTokenString)
+		token := t.getToken(linkTokenKey)
 		t.setRawToken(token, tokenTarget+" "+tokenLinkText)
 
 		resultSegments = append(resultSegments, token)

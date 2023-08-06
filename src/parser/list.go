@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/hauke96/sigolo"
 	"strings"
 )
@@ -14,10 +15,10 @@ func (t *Tokenizer) parseLists(content string) string {
 		lineStartCharacter := listPrefixRegex.FindStringSubmatch(line)
 
 		if len(lineStartCharacter) > 0 && lineStartCharacter[1] != "" {
-			listTokenString := t.getListTokenString(lineStartCharacter[1])
+			listTokenKey := t.getListTokenKey(lineStartCharacter[1])
 
 			// a new list starts here
-			token, newIndex := t.tokenizeList(lines, i, lineStartCharacter[1], listTokenString)
+			token, newIndex := t.tokenizeList(lines, i, lineStartCharacter[1], listTokenKey)
 
 			length := newIndex - i
 
@@ -38,7 +39,7 @@ func (t *Tokenizer) parseLists(content string) string {
 // tokenizeList takes several lines of text and searches for lists to tokenize. It returns the token to a list and the
 // new index. The new index is the index in the input lines and points to the first line that was *not* processed by
 // this function.
-func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, tokenString string) (string, int) {
+func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, listTokenKey string) (string, int) {
 	/*
 		Implementation idea:
 
@@ -88,7 +89,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 			!(linePrefix == ":" && itemPrefix == ";") &&
 			!(linePrefix == ";" && itemPrefix == ":") {
 			// Yes, line is a sub-list beginning: Parse this sub-list recursively
-			token, lineIndex = t.tokenizeList(listLines, lineIndex, linePrefix, t.getListTokenString(linePrefix))
+			token, lineIndex = t.tokenizeList(listLines, lineIndex, linePrefix, t.getListTokenKey(linePrefix))
 		} else {
 			// No sub-list starts, line is just text:
 			// First check if the next line starts a new sub-list. If so, we have to parse that first, because the
@@ -106,7 +107,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 				if nextLinePrefix != ":" {
 					// When there's a sub-list, then this sub list token will be part of the current list item token. Therefore,
 					// we have to start parsing the sub-list before creating the token for the current list item.
-					subListToken, lineIndex = t.tokenizeList(listLines, lineIndex+1, nextLinePrefix, t.getListTokenString(nextLinePrefix))
+					subListToken, lineIndex = t.tokenizeList(listLines, lineIndex+1, nextLinePrefix, t.getListTokenKey(nextLinePrefix))
 					lineIndex-- // compensates the  lineIndex++  from the for-loop
 				}
 			}
@@ -128,15 +129,15 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 				tokenContent += " " + subListToken
 			}
 
-			tokenString := t.getListItemTokenString(tokenItemPrefix)
-			if tokenString == TOKEN_DESCRIPTION_LIST_HEAD {
+			listItemTokenKey := t.getListItemTokenKey(tokenItemPrefix)
+			if listItemTokenKey == TOKEN_DESCRIPTION_LIST_HEAD {
 				// A description list may contain content within the line of a heading. Something like this: "; foo: bar"
 
 				// Split the heading-part from potential content
 				lineParts := strings.Split(tokenContent, ":")
 
 				headPart := lineParts[0]
-				token = t.getToken(tokenString)
+				token = t.getToken(listItemTokenKey)
 				t.setRawToken(token, headPart)
 
 				if len(lineParts) > 1 {
@@ -149,7 +150,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 					t.setRawToken(token, contentPart)
 				}
 			} else {
-				token = t.getToken(tokenString)
+				token = t.getToken(listItemTokenKey)
 				t.setRawToken(token, tokenContent)
 			}
 		}
@@ -158,7 +159,7 @@ func (t *Tokenizer) tokenizeList(lines []string, i int, itemPrefix string, token
 	}
 
 	tokenContent := strings.Join(allListItemTokens, " ")
-	token := t.getToken(tokenString)
+	token := t.getToken(listTokenKey)
 	t.setRawToken(token, tokenContent)
 
 	return token, i
@@ -199,7 +200,7 @@ func removeListPrefix(line string, itemPrefix string) string {
 	return strings.TrimPrefix(line, itemPrefix)
 }
 
-func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
+func (t *Tokenizer) getListTokenKey(listItemPrefix string) string {
 	switch listItemPrefix {
 	case "*":
 		return TOKEN_UNORDERED_LIST
@@ -210,11 +211,11 @@ func (t *Tokenizer) getListTokenString(listItemPrefix string) string {
 	case ":":
 		return TOKEN_DESCRIPTION_LIST
 	}
-	sigolo.Error("Unable to get list token string: Unknown list item prefix %s", listItemPrefix)
-	return "UNKNOWN_LIST_TYPE_" + listItemPrefix
+	sigolo.Error("Unable to get list token key: Unknown list item prefix %s", listItemPrefix)
+	return fmt.Sprintf(TOKEN_UNKNOWN_LIST_ITEM, listItemPrefix)
 }
 
-func (t *Tokenizer) getListItemTokenString(listItemPrefix string) string {
+func (t *Tokenizer) getListItemTokenKey(listItemPrefix string) string {
 	switch listItemPrefix {
 	case "*":
 		return TOKEN_LIST_ITEM
@@ -225,6 +226,6 @@ func (t *Tokenizer) getListItemTokenString(listItemPrefix string) string {
 	case ":":
 		return TOKEN_DESCRIPTION_LIST_ITEM
 	}
-	sigolo.Error("Unable to get list item token string: Unknown list item prefix %s", listItemPrefix)
-	return "UNKNOWN_LIST_ITEM_TYPE_" + listItemPrefix
+	sigolo.Error("Unable to get list item token key: Unknown list item prefix %s", listItemPrefix)
+	return fmt.Sprintf(TOKEN_UNKNOWN_LIST_ITEM_TYPE, listItemPrefix)
 }

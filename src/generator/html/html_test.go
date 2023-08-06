@@ -40,7 +40,7 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 3)
-	tokenString := tokenImage
+	token := tokenImage
 	tokenFilename := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
 	tokenImageSize := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
@@ -51,7 +51,7 @@ some <b>caption</b>
 		tokenImageSize: "10x20",
 	}
 
-	actualResult, err := generator.expandImage(tokenString, tokenMap)
+	actualResult, err := generator.expandImage(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 
@@ -69,7 +69,7 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 3)
-	tokenString := tokenImage
+	token := tokenImage
 	tokenFilename := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
 	tokenImageSize := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
@@ -80,7 +80,7 @@ some <b>caption</b>
 		tokenImageSize: "10x",
 	}
 
-	actualResult, err := generator.expandImage(tokenString, tokenMap)
+	actualResult, err := generator.expandImage(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 
@@ -92,7 +92,7 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 3)
-	tokenString = tokenImage
+	token = tokenImage
 	tokenFilename = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
 	tokenCaption = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
 	tokenImageSize = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
@@ -103,7 +103,7 @@ some <b>caption</b>
 		tokenImageSize: "x10",
 	}
 
-	actualResult, err = generator.expandImage(tokenString, tokenMap)
+	actualResult, err = generator.expandImage(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -111,7 +111,7 @@ some <b>caption</b>
 func TestExpandImageInline(t *testing.T) {
 	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 3)
-	tokenString := tokenImage
+	token := tokenImage
 	tokenFilename := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_FILENAME, 0)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 2)
 	tokenImageSize := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_SIZE, 1)
@@ -122,7 +122,7 @@ func TestExpandImageInline(t *testing.T) {
 		tokenImageSize: "10x20",
 	}
 
-	actualResult, err := generator.expandImage(tokenString, tokenMap)
+	actualResult, err := generator.expandImage(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -136,9 +136,9 @@ func TestExpandInternalLink(t *testing.T) {
 		tokenArticle: "foo",
 		tokenText:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 	}
-	tokenString := tokenLink
+	token := tokenLink
 
-	link, err := generator.expandInternalLink(tokenString, tokenMap)
+	link, err := generator.expandInternalLink(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "b<b>a</b>r", link)
 }
@@ -153,9 +153,9 @@ func TestExpandExternalLink(t *testing.T) {
 		tokenUrl:  url,
 		tokenText: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 	}
-	tokenString := tokenLink
+	token := tokenLink
 
-	link, err := generator.expandExternalLink(tokenString, tokenMap)
+	link, err := generator.expandExternalLink(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<a href=\""+url+"\">b<b>a</b>r</a>", link)
 }
