@@ -16,6 +16,10 @@
     "doi",
     "vorlage"
   ],
+  "category-prefixes": [
+    "category",
+    "kategorie"
+  ],
   "ignored-templates": [
     "alpha centauri",
     "begriffsklärung",

@@ -35,7 +35,6 @@ var (
 
 // Categories, templates, unwanted HTML
 var (
-	categoryRegex     = regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`) // TODO move to config
 	templateNameRegex = regexp.MustCompile(`{{\s*([^\n|}]+)`)
 	unwantedHtmlRegex = regexp.MustCompile(`</?(div|span)[^>]*>`)
 )

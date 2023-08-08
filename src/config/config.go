@@ -16,6 +16,7 @@ var Current = &Configuration{
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
+	CategoryPrefixes:               []string{"category"},
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -94,6 +95,15 @@ type Configuration struct {
 		Mandatory: No
 	*/
 	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
+
+	/*
+		A list of category prefixes, which are technically internals links. However, categories will be removed from
+		the input wikitext.
+
+		Default: [ "category" ]
+		Mandatory: No
+	*/
+	CategoryPrefixes []string `json:"category-prefixes"`
 }
 
 func LoadConfig(file string) error {

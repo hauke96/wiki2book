@@ -73,8 +73,8 @@ bar
 }
 
 func TestRemoveUnwantedCategories(t *testing.T) {
-	content := "[[Kategorie:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
-	content = removeUnwantedCategories(content)
+	content := "[[Category:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
+	content = removeUnwantedInternalLinks(content)
 	test.AssertEmptyString(t, content)
 }
 
@@ -92,23 +92,23 @@ before image [[iMAge:this-should:stay.jpg]] after image`
 beforeafter
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
-	actual := removeUnwantedInterWikiLinks(content)
+	actual := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 
 	content = "foo[[:de:pic.jpg|mini|With [[nested]]]]bar"
 	expected = "foobar"
-	actual = removeUnwantedInterWikiLinks(content)
+	actual = removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 }
 
 func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 	content := `foo[[file:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
-	cleanedContent := removeUnwantedInterWikiLinks(content)
+	cleanedContent := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, content, cleanedContent)
 
 	content = "foo[[:de:pic.jpg|mini|With [[nested]] link]]bar"
 	expected := "foobar"
-	actual := removeUnwantedInterWikiLinks(content)
+	actual := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 }
 
