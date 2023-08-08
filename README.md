@@ -29,7 +29,7 @@ You need the following tools and fonts:
 
 1. ImageMagick (to have the `convert` command)
 2. Pandoc (to have the `pandoc` command). See notes on pandoc versions 2 and 3 below.
-3. DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (currently hard-coded, s. TODOs below)
+3. DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (currently hard-coded #15)
 
 ## CLI
 
@@ -79,6 +79,11 @@ All values are folders, which don't need to exist, they will be created.
 **Notice:** Currently only the German Wikipedia is supported.
 However, you can specify `en` as `wikipedia-domain` to download articles from the English Wikipedia.
 But because a lot of German template-strings are removed while parsing, the English strings remain and result in unwanted stuff in the eBook.
+
+### Configuration
+
+Next to the project file, the application reads technical, project-independent and basic configurations from a JSON file (e.g. the templates to ignore), which can be specified with `--config / -c`.
+See [configs/de.json](configs/de.json) for an example and [src/config/config.go](src/config/config.go) for all technical details on each possible value including their defaults.
 
 ### Pandoc version 2 and 3
 

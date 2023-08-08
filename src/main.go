@@ -23,25 +23,25 @@ var cli struct {
 	Profiling           bool   `help:"Enable profiling and write results to ./profiling.prof."`
 	ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
 	SvgSizeToViewbox    bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
-	Config              string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c"`
+	Config              string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
 	Standalone          struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile     string `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
+		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
 		ArticleName   string `help:"The name of the article to render." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
+		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile     string `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -52,8 +52,10 @@ func main() {
 		sigolo.LogLevel = sigolo.LOG_DEBUG
 	}
 
-	err := config.LoadConfig(cli.Config)
-	sigolo.FatalCheck(err)
+	if cli.Config != "" {
+		err := config.LoadConfig(cli.Config)
+		sigolo.FatalCheck(err)
+	}
 
 	if cli.Profiling {
 		f, err := os.Create("profiling.prof")
