@@ -50,9 +50,11 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 			lastOpeningTemplateIndex = -1
 		}
 	}
+	sigolo.Debug("Finished finding and evaluating templates")
 
 	// Replace all template placeholders with the actual content until no placeholders are unresolved. This is not very
 	// elegant or fast but due to the nesting a simple and working approach.
+	sigolo.Debug("Replace %d template placeholder with evaluated content", len(placeholderToContent))
 	for len(placeholderToContent) != 0 {
 		for key, template := range placeholderToContent {
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
@@ -62,6 +64,7 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 			}
 		}
 	}
+	sigolo.Debug("Finished replacing template placeholders. Template handling done.")
 
 	return content
 }

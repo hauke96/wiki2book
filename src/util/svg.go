@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/xml"
+	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
 	"os"
@@ -20,7 +21,7 @@ func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 		return nil, errors.Wrap(err, "Error reading SVG file "+filename)
 	}
 
-	attributes, err := parseSimpleSvgAttributes(file)
+	attributes, err := parseSimpleSvgAttributes(file, filename)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing SVG file "+filename)
 	}
@@ -37,9 +38,9 @@ func MakeSvgSizeAbsolute(filename string) error {
 		return errors.Wrap(err, "Error reading SVG file "+filename)
 	}
 
-	attributes, err := parseSimpleSvgAttributes(fileBytes)
+	attributes, err := parseSimpleSvgAttributes(fileBytes, filename)
 	if err != nil {
-		return errors.Wrap(err, "Error parsing SVG file "+filename)
+		return err
 	}
 
 	if !strings.HasSuffix(attributes.Width, "%") && strings.HasSuffix(attributes.Height, "%") {
@@ -100,11 +101,11 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 	return fileString, nil
 }
 
-func parseSimpleSvgAttributes(file []byte) (*SimpleSvgAttributes, error) {
+func parseSimpleSvgAttributes(file []byte, filename string) (*SimpleSvgAttributes, error) {
 	var svg = &SimpleSvgAttributes{}
 	err := xml.Unmarshal(file, &svg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("Unable to unmarshal XML of SVG document %s", filename))
 	}
 
 	return svg, nil

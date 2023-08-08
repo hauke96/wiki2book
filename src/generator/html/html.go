@@ -122,7 +122,8 @@ func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (stri
 	}
 
 	for _, submatch := range submatches {
-		sigolo.Debug("Found token %s", submatch[1])
+		// TODO Only print when --trace is active (-> #35)
+		//sigolo.Debug("Found token %s", submatch[1])
 
 		html := submatch[0]
 		var err error = nil
@@ -220,7 +221,8 @@ func (g *HtmlGenerator) expandImage(token string, tokenMap map[string]string) (s
 	}
 
 	for _, submatch := range submatches {
-		sigolo.Debug("Found sub-token %s in image token %s", submatch[1], token)
+		// TODO Only print when --trace is active (-> #35)
+		//sigolo.Debug("Found sub-token %s in image token %s", submatch[1], token)
 
 		subToken := submatch[0]
 

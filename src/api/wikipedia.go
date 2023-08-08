@@ -128,9 +128,10 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	sigolo.Debug("Original image name: %s", originalImageName)
-	sigolo.Debug("Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
-	sigolo.Debug("MD5 of redirected image name: %s", md5sum)
+	// TODO Only print when --trace is active (-> #35)
+	//sigolo.Debug("Original image name: %s", originalImageName)
+	//sigolo.Debug("Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
+	//sigolo.Debug("MD5 of redirected image name: %s", md5sum)
 
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 	sigolo.Debug(imageUrl)
@@ -151,7 +152,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
-	sigolo.Debug("Evaluate template %s", util.TruncString(template))
+	sigolo.Debug("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
 	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)

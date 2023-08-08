@@ -40,7 +40,8 @@ func escapeImages(content string) string {
 		return ""
 	}
 
-	sigolo.Debug("Found image: %s", filename)
+	// TODO Maybe print when --trace is set (-> #35)
+	//sigolo.Debug("Found image: %s", filename)
 
 	// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
 	filename = strings.ReplaceAll(filename, " ", "_")

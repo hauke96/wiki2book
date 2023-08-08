@@ -26,14 +26,14 @@ func TestReadSvg_imageNotFound(t *testing.T) {
 func TestReadSvg_brokenImage(t *testing.T) {
 	filename := "../test/image-broken.svg"
 	_, err := ReadSimpleAvgAttributes(filename)
-	test.AssertError(t, "Error parsing SVG file "+filename+": EOF", err)
+	test.AssertError(t, "Error parsing SVG file ../test/image-broken.svg: Unable to unmarshal XML of SVG document "+filename+": EOF", err)
 }
 
 func TestMakeSvgSizeAbsolute(t *testing.T) {
 	fileBytes := []byte(`<svg width="50%" height="100%" viewBox="0 0 123 234">
   <rect width="100%" height="100%" />
 </svg>`)
-	attributedBefore, err := parseSimpleSvgAttributes(fileBytes)
+	attributedBefore, err := parseSimpleSvgAttributes(fileBytes, "foo.svg")
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.Fail()
@@ -47,7 +47,7 @@ func TestMakeSvgSizeAbsolute(t *testing.T) {
 		t.Fail()
 	}
 
-	attributedAfter, err := parseSimpleSvgAttributes([]byte(updatedFileContent))
+	attributedAfter, err := parseSimpleSvgAttributes([]byte(updatedFileContent), "foo.svg")
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.Fail()
