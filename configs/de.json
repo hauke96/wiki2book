@@ -11,6 +11,11 @@
     "datei",
     "bild"
   ],
+  "allowed-link-prefixes": [
+    "arxiv",
+    "doi",
+    "vorlage"
+  ],
   "ignored-templates": [
     "alpha centauri",
     "begriffsklärung",

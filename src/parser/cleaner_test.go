@@ -79,22 +79,37 @@ func TestRemoveUnwantedCategories(t *testing.T) {
 }
 
 func TestRemoveUnwantedLinks(t *testing.T) {
-	content := `[[de:foo]][[arxiv:whatever]][[DE:FOO]][[EN:FOO:BAR
+	config.Current.AllowedLinkPrefixes = []string{"arxiv"}
+
+	content := `[[:de:foo]][[arxiv:whatever]][[:DE:FOO]][[:EN:FOO:BAR
 $ome+µeird-string]]
-before[[de:foo:bar]]after
+[[:should_stay]]
+before[[:de:foo:bar]]after
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
-	content = removeUnwantedInterWikiLinks(content)
-	test.AssertEqual(t, `[[arxiv:whatever]]
+	expected := `[[arxiv:whatever]]
+[[:should_stay]]
 beforeafter
 before[[internal]]after
-before image [[iMAge:this-should:stay.jpg]] after image`, content)
+before image [[iMAge:this-should:stay.jpg]] after image`
+	actual := removeUnwantedInterWikiLinks(content)
+	test.AssertEqual(t, expected, actual)
+
+	content = "foo[[:de:pic.jpg|mini|With [[nested]]]]bar"
+	expected = "foobar"
+	actual = removeUnwantedInterWikiLinks(content)
+	test.AssertEqual(t, expected, actual)
 }
 
 func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
-	content := `foo[[Image:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
+	content := `foo[[file:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
 	cleanedContent := removeUnwantedInterWikiLinks(content)
 	test.AssertEqual(t, content, cleanedContent)
+
+	content = "foo[[:de:pic.jpg|mini|With [[nested]] link]]bar"
+	expected := "foobar"
+	actual := removeUnwantedInterWikiLinks(content)
+	test.AssertEqual(t, expected, actual)
 }
 
 func TestRemoveUnwantedTemplates(t *testing.T) {

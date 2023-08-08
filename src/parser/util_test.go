@@ -41,3 +41,33 @@ func TestFindCorrespondingCloseToken(t *testing.T) {
 	index = findCorrespondingCloseToken("abc[def]ghi", 10, "[", "]")
 	test.AssertEqual(t, -1, index)
 }
+
+func TestFindCorrespondingCloseToken_multiLineStrings(t *testing.T) {
+	var index int
+
+	index = findCorrespondingCloseToken(`ab
+c[def]ghi`, 5, "[", "]")
+	test.AssertEqual(t, 8, index)
+
+	index = findCorrespondingCloseToken(`abc[d
+ef]ghi`, 5, "[", "]")
+	test.AssertEqual(t, 8, index)
+
+	index = findCorrespondingCloseToken(`abc[def]g
+hi`, 5, "[", "]")
+	test.AssertEqual(t, 7, index)
+}
+
+func TestFindCorrespondingCloseToken_specialChars(t *testing.T) {
+	var index int
+
+	index = findCorrespondingCloseToken("abc[äöü]ghi", 4, "[", "]")
+	test.AssertEqual(t, 10, index)
+
+	index = findCorrespondingCloseToken("abc[dµf]ghi", 4, "[", "]")
+	test.AssertEqual(t, 8, index)
+
+	index = findCorrespondingCloseToken(`abc[[:EN:FOO:BAR
+$ome+µeird-string]]ghi`, 5, "[", "]")
+	test.AssertEqual(t, 35, index)
+}

@@ -42,12 +42,7 @@ var (
 
 // Links
 var (
-	interwikiLinkRegex = regexp.MustCompile(`\[\[([A-Za-z\-]+:)[^]]+]]`)
-	allowedLinkPrefixe = []string{ // TODO move to config
-		"arxiv",
-		"doi",
-		"vorlage",
-	}
+	internalLinkStartRegex = regexp.MustCompile(`(?s)\[\[([^]]+?):`)
 )
 
 // Lists
@@ -59,7 +54,6 @@ var (
 
 // Media files
 var (
-	imageStartRegex            = regexp.MustCompile(`(?i)\[\[.*?:`)
 	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
 	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")

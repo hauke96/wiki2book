@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
 	IgnoredTemplates:               []string{},
 	IgnoredImageParams:             []string{},
@@ -14,6 +15,7 @@ var Current = &Configuration{
 	WikipediaInstance:              "en",
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
+	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -82,6 +84,16 @@ type Configuration struct {
 		JSON example: "file-prefixe": [ "file", "datei" ]
 	*/
 	FilePrefixe []string `json:"file-prefixe"`
+
+	/*
+		A list of link prefixes that are allowed. All prefixes  specified by "FilePrefixe" are considered to be allowed
+		prefixes. Any other not explicitly allowed prefix of a link causes the link to get removed. This especially
+		happens for inter-wiki-links if the Wikipedia instance is not explicitly allowed using this list.
+
+		Default: [ "arxiv", "doi" ]
+		Mandatory: No
+	*/
+	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
 }
 
 func LoadConfig(file string) error {

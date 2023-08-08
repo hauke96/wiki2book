@@ -67,28 +67,76 @@ func removeUnwantedCategories(content string) string {
 // as well as all links with a certain prefix. All other prefixes are considered to be codes for Wikipedia instances and
 // the remaining links will be removed.
 func removeUnwantedInterWikiLinks(content string) string {
-	matches := interwikiLinkRegex.FindAllString(content, -1)
-	for _, potentialLink := range matches {
-		// If the segment is a inter-wiki- or image-link, there will be two parts:
-		//  [0] - The Wikipedia instance or image identifier
-		//  [1] - The article or image name
-		linkParts := strings.Split(potentialLink, ":")
-		if len(linkParts) == 1 {
-			// No ":" inside the link -> internal link
-			continue
-		}
+	// Go through all characters with a 2-char sliding window, hence the "-2".
+	for i := 0; i < len(content)-2; i++ {
+		cursor := content[i : i+2]
+		charAfterCursor := content[i+2]
 
-		wikipediaInstanceOrImageType := strings.Replace(linkParts[0], "[[", "", 1)
-		if util.Contains(allowedLinkPrefixe, strings.ToLower(wikipediaInstanceOrImageType)) ||
-			util.Contains(config.Current.FilePrefixe, strings.ToLower(wikipediaInstanceOrImageType)) {
-			// Link with one of these prefixes means it's *not* an inter-wiki link
-			continue
-		}
+		// Only remove real inter-wiki links of the format "[[:<lang>:...]]"
+		if cursor == "[[" && charAfterCursor == ':' {
+			endIndex := findCorrespondingCloseToken(content, i+2, "[", "]")
 
-		content = strings.Replace(content, potentialLink, "", 1)
+			linkContent := content[i+2 : endIndex]
+			allPrefixes := strings.SplitN(linkContent, ":", -1)
+
+			// Go through all prefixes and see if any one is forbidden. Use the "-1" to skip the last element, which is
+			// the actual link/article and not a prefix anymore.
+			for j := 0; j < len(allPrefixes)-1; j++ {
+				linkPrefix := strings.ToLower(allPrefixes[j])
+
+				if linkPrefix != "" &&
+					!util.Contains(config.Current.FilePrefixe, linkPrefix) &&
+					!util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix) {
+					content = content[0:i] + content[endIndex+2:]
+					i-- // Compensate "i++" from loop to not skip a character
+					break
+				}
+			}
+		}
 	}
 
+	//startIndex := internalLinkStartRegex.FindStringIndex(content)
+	//for startIndex != nil {
+	//	// Use the end-index of the match, since it points to the ":" of the "[[File:" match
+	//	endIndex := findCorrespondingCloseToken(content, startIndex[1], "[", "]")
+	//
+	//	linkContent := content[startIndex[1]:endIndex]
+	//	linkPrefix := strings.ToLower(strings.SplitN(linkContent, ":", 2)[0])
+	//
+	//	if !util.Contains(config.Current.FilePrefixe, linkPrefix) &&
+	//		!util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix) {
+	//		content = content[0:startIndex[0]] + content[endIndex+2:]
+	//	}
+	//
+	//	// Find next link
+	//	startIndex = internalLinkStartRegex.FindStringIndex(content)
+	//}
+
 	return content
+	//
+	//
+	//matches := interwikiLinkRegex.FindAllString(content, -1)
+	//for _, potentialLink := range matches {
+	//	// If the segment is a inter-wiki- or image-link, there will be two parts:
+	//	//  [0] - The Wikipedia instance or image identifier
+	//	//  [1] - The article or image name
+	//	linkParts := strings.Split(potentialLink, ":")
+	//	if len(linkParts) == 1 {
+	//		// No ":" inside the link -> internal link
+	//		continue
+	//	}
+	//
+	//	wikipediaInstanceOrImageType := strings.Replace(linkParts[0], "[[", "", 1)
+	//	if util.Contains(allowedLinkPrefixe, strings.ToLower(wikipediaInstanceOrImageType)) ||
+	//		util.Contains(config.Current.FilePrefixe, strings.ToLower(wikipediaInstanceOrImageType)) {
+	//		// Link with one of these prefixes means it's *not* an inter-wiki link
+	//		continue
+	//	}
+	//
+	//	content = strings.Replace(content, potentialLink, "", 1)
+	//}
+	//
+	//return content
 }
 
 func removeUnwantedTemplates(content string) string {
