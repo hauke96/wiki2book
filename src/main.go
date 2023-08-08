@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 	"wiki2book/api"
+	"wiki2book/config"
 	"wiki2book/generator/epub"
 	"wiki2book/generator/html"
 	"wiki2book/parser"
@@ -18,16 +19,17 @@ import (
 )
 
 var cli struct {
-	Debug               bool `help:"Enable debug mode." short:"d"`
-	Profiling           bool `help:"Enable profiling and write results to ./profiling.prof."`
-	ForceRegenerateHtml bool `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
-	SvgSizeToViewbox    bool `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height."`
+	Debug               bool   `help:"Enable debug mode." short:"d"`
+	Profiling           bool   `help:"Enable profiling and write results to ./profiling.prof."`
+	ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	SvgSizeToViewbox    bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height."`
+	Config              string `help:"The path to the overall application config" type:"existingfile" short:"c" default:"config.json"`
 	Standalone          struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
 		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
 		StyleFile     string `help:"The CSS file that should be used." short:"s"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"c"`
+		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i"`
 		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
@@ -38,9 +40,9 @@ var cli struct {
 		OutputFile        string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
 		CacheDir          string `help:"The directory where all cached files will be written to." default:".wiki2book"`
 		StyleFile         string `help:"The CSS file that should be used." short:"s"`
-		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"c"`
+		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"i"`
 		PandocDataDir     string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"i" default:"de"`
+		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"w" default:"de"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -50,6 +52,9 @@ func main() {
 	if cli.Debug {
 		sigolo.LogLevel = sigolo.LOG_DEBUG
 	}
+
+	err := config.LoadConfig(cli.Config)
+	sigolo.FatalCheck(err)
 
 	if cli.Profiling {
 		f, err := os.Create("profiling.prof")

@@ -27,3 +27,13 @@ func ElementHasPrefix(element string, prefixes []string) bool {
 	}
 	return false
 }
+
+func AllToLower(items []string) []string {
+	result := make([]string, len(items))
+
+	for i, s := range items {
+		result[i] = strings.ToLower(s)
+	}
+
+	return result
+}

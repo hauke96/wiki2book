@@ -2,55 +2,11 @@ package parser
 
 import (
 	"strings"
+	"wiki2book/config"
 	"wiki2book/util"
 )
 
 const semiHeadingDepth = 10
-
-// All lower case. Makes things easier below.
-var ignoreTemplates = []string{
-	"alpha centauri",
-	"begriffsklärung",
-	"begriffsklärungshinweis",
-	"belege fehlen",
-	"belege",
-	"commons",
-	"commonscat",
-	"dieser artikel",
-	"exzellent",
-	"gesprochener artikel",
-	"gesprochene version",
-	"graph:chart",
-	"hauptartikel",
-	"klade",
-	"lesenswert",
-	"linkbox",
-	"lückenhaft",
-	"manueller rahmen",
-	"navigationsleiste",
-	"navigationsleiste sonnensystem",
-	"navigationsleiste wörter des jahres (deutschland)",
-	"naviblock",
-	"normdaten",
-	"panorama",
-	"portal",
-	"positionskarte+",
-	"positionskarte~",
-	"quellen",
-	"rechtshinweis",
-	"redundanztext",
-	"siehe auch",
-	"staatslastig",
-	"toc",
-	"toter link",
-	"überarbeiten",
-	"veraltet",
-	"weiterleitungshinweis",
-	"wikibooks",
-	"wikiquote",
-	"wikisource",
-	"wiktionary",
-}
 
 func clean(content string) string {
 	content = removeComments(content)
@@ -135,6 +91,9 @@ func removeUnwantedInterWikiLinks(content string) string {
 }
 
 func removeUnwantedTemplates(content string) string {
+	// All lower case. Makes things easier below.
+	ignoreTemplates := util.AllToLower(config.Current.IgnoredTemplates)
+
 	for {
 		originalContent := content
 
