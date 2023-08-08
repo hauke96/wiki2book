@@ -157,7 +157,7 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 			}
 
 			// "line" contains definitely the image of the imagemap
-			lines[i] = escapeImages(fmt.Sprintf("[[%s]]", line))
+			lines[i] = fmt.Sprintf("[[%s]]", escapeImages(line))
 
 			withinImageMap = true
 			continue

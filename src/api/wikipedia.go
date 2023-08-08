@@ -144,7 +144,8 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	if svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
 		err = util.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			return "", err
+			sigolo.Error("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs.", cachedFilePath)
+			sigolo.Error("%+v", err)
 		}
 	}
 

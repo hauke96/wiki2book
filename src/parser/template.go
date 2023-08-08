@@ -12,24 +12,24 @@ const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"
 
 // evaluateTemplates evaluates all templates including nested ones.
 func (t *Tokenizer) evaluateTemplates(content string) string {
-	// The lastOpeningTemplateIndex is set whenever a new opening template is found. When closing template brackets
-	// are discovered, this variable contains the index of the corresponding opening brackets.
-	lastOpeningTemplateIndex := -1
-
 	// All evaluated templates are stored in this map. Replacing evaluated templates by placeholders reduces the length
 	// of request URLs significantly and prevents errors due to too long URLs.
 	placeholderToContent := map[string]string{}
 
-	// Go through the content until the end. Whenever a template has been found, the variable "i" is reset to the
-	// beginning so that this loop actually iterates the content over and over again until no unevaluated templates
-	// are left.
-	for i := 0; i < len(content)-1; i++ {
+	sigolo.Debug("Start evaluating templates and replacing them by placeholders")
+	for i := 0; i < len(content)-2; i++ {
 		cursor := content[i : i+2]
 
 		if cursor == "{{" {
-			lastOpeningTemplateIndex = i
-		} else if lastOpeningTemplateIndex != -1 && cursor == "}}" {
-			templateText := content[lastOpeningTemplateIndex : i+2]
+			endIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+			templateText := content[i : endIndex+2]
+
+			if strings.Contains(templateText[2:], "{{") {
+				// If the template itself contains a template, then proceed to first evaluate the inner template and
+				// to evaluate the outer template in a later run
+				continue
+			}
+
 			key := util.Hash(templateText)
 
 			evaluatedTemplate, err := api.EvaluateTemplate(templateText, t.templateFolder, key)
@@ -43,11 +43,6 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 			placeholderToContent[key] = evaluatedTemplate
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
 			content = strings.Replace(content, templateText, placeholder, 1)
-
-			// Resetting the cursor index to 0 (= -1 due to the i++ of the loop) works fine and is simple, even though
-			// it's not the most efficient or fastest approach.
-			i = -1
-			lastOpeningTemplateIndex = -1
 		}
 	}
 	sigolo.Debug("Finished finding and evaluating templates")

@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"github.com/hauke96/sigolo"
-	"sort"
 )
 
 const TOKEN_HEADING_TEMPLATE = "HEADING_%d"
@@ -97,19 +96,20 @@ func (t *Tokenizer) Tokenize(content string, title string) Article {
 	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
 
 	// print some debug information if wanted
-	if sigolo.LogLevel <= sigolo.LOG_DEBUG {
-		sigolo.Debug(content)
-
-		keys := make([]string, 0, len(t.getTokenMap()))
-		for k := range t.getTokenMap() {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		for _, k := range keys {
-			sigolo.Debug("%s : %s", k, t.getTokenMap()[k])
-		}
-	}
+	// TODO Print these internal information when --trace or similar has been specified (see also #35)
+	//if sigolo.LogLevel <= sigolo.LOG_DEBUG {
+	//	sigolo.Debug(content)
+	//
+	//	keys := make([]string, 0, len(t.getTokenMap()))
+	//	for k := range t.getTokenMap() {
+	//		keys = append(keys, k)
+	//	}
+	//	sort.Strings(keys)
+	//
+	//	for _, k := range keys {
+	//		sigolo.Debug("%s : %s", k, t.getTokenMap()[k])
+	//	}
+	//}
 
 	return Article{
 		Title:    title,
