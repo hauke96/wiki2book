@@ -73,7 +73,7 @@ Ein dreidimensionales Modell der Erde heißt, wie alle verkleinerten Nachbildung
 |- style="border-bottom:2pt solid black"
 | Landfläche|| 149&#8239;430&#8239;000 || 29,3 %
 |-
-| davon [[Ökumene (Geographie)|Dauernutzungsraum]] des Menschen<br />(Wohngebiete, Infrastruktur, intensiv genutzte Flächen, Land- und Forstwirtschaft) <small>2004</small><ref name="SEDAC">{{Internetquelle |url=http://sedac.ciesin.columbia.edu/wildareas/methods.jsp/ |titel=Last of the wild, v2 |werk=sedac.ciesin.columbia.edu |hrsg=„Socioeconomic Data and Applications Center“ des „Center for International Earth Science Information Network (CIESIN)“ der Columbia University, New York |abruf=2019-01-27 |kommentar=Prozentwerte der Studie auf Landfläche in km² umgelegt}}</ref> || 72&#8239;084&#8239;920 || 48,2 %
+| davon [[Ökumene (Geographie)|Dauernutzungsraum]] des Menschen<br />(Wohngebiete, Infrastruktur, intensiv genutzte Flächen, Land- und Forstwirtschaft) <small>2004</small><ref name="SEDAC">Last of the wild, v2</ref> || 72&#8239;084&#8239;920 || 48,2 %
 |-
 | sowie kaum und nicht genutzte „[[Wildnis]]regionen“ (inkl. [[Eisschild]]e) <small>2004</small><ref name="SEDAC" /> || 77&#8239;345&#8239;080 || 51,8 %
 |}
