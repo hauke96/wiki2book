@@ -2,6 +2,7 @@ package parser
 
 import (
 	"testing"
+	"wiki2book/config"
 	"wiki2book/test"
 )
 
@@ -97,6 +98,8 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 }
 
 func TestRemoveUnwantedTemplates(t *testing.T) {
+	config.Current.IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
+
 	content := `{{siehe auch}}{{GRAPH:CHART
 |$ome+µeird-string}}{{let this template stay}}{{
 toc }}`
@@ -105,6 +108,8 @@ toc }}`
 }
 
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
+	config.Current.IgnoredTemplates = []string{"naviblock"}
+
 	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem}}\nbar"
 	content = removeUnwantedTemplates(content)
 	test.AssertEqual(t, "foo\n\nbar", content)
@@ -117,6 +122,8 @@ func TestRemoveUnwantedHtml(t *testing.T) {
 }
 
 func TestClean(t *testing.T) {
+	config.Current.IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
+
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"
 	content = clean(content)
 	test.AssertEqual(t, "Some wikitext", content)

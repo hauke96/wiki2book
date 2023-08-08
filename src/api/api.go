@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-var imageSources = []string{"commons", "de"}
 var httpClient = GetDefaultHttpClient()
 
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return

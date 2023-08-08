@@ -22,8 +22,8 @@ var cli struct {
 	Debug               bool   `help:"Enable debug mode." short:"d"`
 	Profiling           bool   `help:"Enable profiling and write results to ./profiling.prof."`
 	ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
-	SvgSizeToViewbox    bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height."`
-	Config              string `help:"The path to the overall application config" type:"existingfile" short:"c" default:"config.json"`
+	SvgSizeToViewbox    bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
+	Config              string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c"`
 	Standalone          struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
@@ -36,13 +36,12 @@ var cli struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName       string `help:"The name of the article to render." arg:""`
-		OutputFile        string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
-		CacheDir          string `help:"The directory where all cached files will be written to." default:".wiki2book"`
-		StyleFile         string `help:"The CSS file that should be used." short:"s"`
-		CoverImage        string `help:"A cover image for the front cover of the eBook." short:"i"`
-		PandocDataDir     string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
-		WikipediaInstance string `help:"The Wikipedia-server that should be used. For example 'en' for en.wikipedia.org or 'de' for de.wikipedia.org." short:"w" default:"de"`
+		ArticleName   string `help:"The name of the article to render." arg:""`
+		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub"`
+		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book"`
+		StyleFile     string `help:"The CSS file that should be used." short:"s"`
+		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i"`
+		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -91,7 +90,6 @@ func main() {
 			cli.Article.StyleFile,
 			cli.Article.CoverImage,
 			cli.Article.PandocDataDir,
-			cli.Article.WikipediaInstance,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
 		)
@@ -119,7 +117,6 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 	sigolo.FatalCheck(err)
 
 	articles := project.Articles
-	wikipediaDomain := project.Domain
 	cacheDir := project.CacheDir
 	styleFile := project.Style
 	coverFile := project.Cover
@@ -127,7 +124,7 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 	outputFile := project.OutputFile
 	pandocDataDir := project.PandocDataDir
 
-	generateEpubFromArticles(articles, wikipediaDomain, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate, svgSizeToViewbox)
+	generateEpubFromArticles(articles, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate, svgSizeToViewbox)
 }
 
 func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
@@ -206,7 +203,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, instance string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	//var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof wiki2book ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -220,7 +217,6 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 	articles = append(articles, articleName)
 
 	generateEpubFromArticles(articles,
-		instance,
 		cacheDir,
 		styleFile,
 		outputFile,
@@ -232,7 +228,7 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 	)
 }
 
-func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateEpubFromArticles(articles []string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articleFiles []string
 	var err error
 
@@ -273,7 +269,7 @@ func generateEpubFromArticles(articles []string, wikipediaDomain string, cacheDi
 			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
 			sigolo.Info("Download article %s", articleName)
-			wikiArticleDto, err := api.DownloadArticle(wikipediaDomain, articleName, articleCache)
+			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
 			sigolo.Info("Tokenize article %s", articleName)

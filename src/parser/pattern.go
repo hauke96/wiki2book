@@ -35,7 +35,7 @@ var (
 
 // Categories, templates, unwanted HTML
 var (
-	categoryRegex     = regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`)
+	categoryRegex     = regexp.MustCompile(`\[\[(Kategorie|Category):[^]]*?]]\n?`) // TODO move to config
 	templateNameRegex = regexp.MustCompile(`{{\s*([^\n|}]+)`)
 	unwantedHtmlRegex = regexp.MustCompile(`</?(div|span)[^>]*>`)
 )
@@ -43,13 +43,11 @@ var (
 // Links
 var (
 	interwikiLinkRegex = regexp.MustCompile(`\[\[([A-Za-z\-]+:)[^]]+]]`)
-	linkPrefixe        = append(filePrefixe,
-		[]string{
-			"arxiv",
-			"doi",
-			"vorlage",
-		}...,
-	)
+	allowedLinkPrefixe = []string{ // TODO move to config
+		"arxiv",
+		"doi",
+		"vorlage",
+	}
 )
 
 // Lists
@@ -61,27 +59,7 @@ var (
 
 // Media files
 var (
-	filePrefixe = []string{
-		"datei",
-		"file",
-		"bild",
-		"image",
-		"media",
-	}
-	unwantedMediaTypes = []string{
-		"gif",
-		"mp3",
-		"mp4",
-		"pdf",
-		"oga",
-		"ogg",
-		"ogv",
-		"wav",
-		"webm",
-	}
-	filePrefixRegex            = strings.Join(filePrefixe, "|")
-	imageStartRegex            = regexp.MustCompile(`(?i)\[\[(` + filePrefixRegex + `):`)
-	imagePrefixRegex           = regexp.MustCompile("(?i)^(" + filePrefixRegex + "):")
+	imageStartRegex            = regexp.MustCompile(`(?i)\[\[.*?:`)
 	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
 	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
 	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")

@@ -79,8 +79,9 @@ func removeUnwantedInterWikiLinks(content string) string {
 		}
 
 		wikipediaInstanceOrImageType := strings.Replace(linkParts[0], "[[", "", 1)
-		if util.Contains(linkPrefixe, strings.ToLower(wikipediaInstanceOrImageType)) {
-			// Link with a prefix denoting it to be *not* an inter-wiki link
+		if util.Contains(allowedLinkPrefixe, strings.ToLower(wikipediaInstanceOrImageType)) ||
+			util.Contains(config.Current.FilePrefixe, strings.ToLower(wikipediaInstanceOrImageType)) {
+			// Link with one of these prefixes means it's *not* an inter-wiki link
 			continue
 		}
 

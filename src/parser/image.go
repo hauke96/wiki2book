@@ -6,46 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"wiki2book/config"
 	"wiki2book/util"
 )
 
 var images []string
 
-var imageIgnoreParameters = []string{
-	"alt",
-	"alternativtext",
-	"baseline",
-	"border",
-	"bottom",
-	"center",
-	"class",
-	"framed",
-	"frameless",
-	"gerahmt",
-	"hochkant",
-	"lang",
-	"left",
-	"link",
-	"links",
-	"middle",
-	"none",
-	"ohne",
-	"page",
-	"rahmenlos",
-	"rand",
-	"rechts",
-	"right",
-	"seite",
-	"sprache",
-	"sub",
-	"super",
-	"text-bottom",
-	"text-top",
-	"top",
-	"upright",
-	"verweis",
-	"zentriert",
-}
 var imageNonInlineParameters = []string{
 	"mini",
 	"thumb",
@@ -70,7 +36,7 @@ func escapeImages(content string) string {
 
 	// Check if this media type is unwanted
 	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
-	if util.Contains(unwantedMediaTypes, fileExtension) {
+	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
 		return ""
 	}
 
@@ -207,12 +173,13 @@ func (t *Tokenizer) parseImages(content string) string {
 		// Use the end-index of the match, since it points to the ":" of the "[[File:" match
 		endIndex := findCorrespondingCloseToken(content, startIndex[1], "[", "]")
 
-		// +1 to jump over the ":" after "File". Hence, the resulting string starts at the first character of the image name.
 		imageContent := content[startIndex[1]:endIndex]
 		imageContent = t.tokenizeContent(t, imageContent)
 		imageContent = escapeImages(imageContent)
 
-		if imageContent == "" {
+		fileprefix := strings.ToLower(strings.SplitN(imageContent, ":", 2)[0])
+
+		if imageContent == "" || !util.Contains(config.Current.FilePrefixe, fileprefix) {
 			content = content[0:startIndex[0]] + content[endIndex+2:]
 		} else {
 			options := strings.Split(imageContent, "|")
@@ -229,7 +196,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			// Do some cleanup: Remove definitely uninteresting options.
 			var filteredOptions []string
 			for _, option := range options {
-				if !util.ElementHasPrefix(option, imageIgnoreParameters) {
+				if !util.ElementHasPrefix(option, config.Current.IgnoredImageParams) {
 					filteredOptions = append(filteredOptions, option)
 				}
 			}

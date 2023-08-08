@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"wiki2book/config"
 	"wiki2book/util"
 )
 
@@ -37,10 +38,10 @@ type WikitextDto struct {
 	Content string `json:"wikitext"`
 }
 
-func DownloadArticle(language string, title string, cacheFolder string) (*WikiArticleDto, error) {
+func DownloadArticle(wikipediaInstance string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", language, escapedTitle)
+	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, err := downloadAndCache(urlString, cacheFolder, cachedFile)
@@ -56,7 +57,7 @@ func DownloadArticle(language string, title string, cacheFolder string) (*WikiAr
 	wikiArticleDto := &WikiArticleDto{}
 	err = json.Unmarshal(bodyBytes, wikiArticleDto)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", language, title))
+		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", wikipediaInstance, title))
 	}
 
 	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
@@ -74,12 +75,12 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 		var downloadErr error = nil
 		var outputFilepath string
 
-		for i, source := range imageSources {
-			isLastSource := i == len(imageSources)-1
+		for i, source := range config.Current.WikipediaImageArticleInstances {
+			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
 			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
-					sigolo.Error("Could not downloading image %s from last source %s: %s\n", image, source, downloadErr.Error())
+					sigolo.Error("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
 				} else {
 					// That an image is not available at one source is a common situation and not an error that needs to be handled.
 					sigolo.Debug("Could not downloading image %s from source %s: %s", image, source, downloadErr.Error())
@@ -108,10 +109,10 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 // downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder. When the file already exists,
 // nothing is done and "", nil will be returned. When the file has been downloaded "filename", nil will be returned.
 // The article cache folder is needed as some files might be redirects and such a redirect counts as article.
-func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, source string, svgSizeToViewbox bool) (string, error) {
+func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, error) {
 	// TODO handle colons in file names
 	imageName := strings.Split(imageNameWithPrefix, ":")[1]
-	imageArticle, err := DownloadArticle(source, "File:"+imageName, articleFolder)
+	imageArticle, err := DownloadArticle(wikipediaInstance, "File:"+imageName, articleFolder)
 	if err != nil {
 		return "", err
 	}
@@ -131,7 +132,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	sigolo.Debug("Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Debug("MD5 of redirected image name: %s", md5sum)
 
-	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", source, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 	sigolo.Debug(imageUrl)
 
 	cachedFilePath, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
@@ -152,7 +153,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debug("Evaluate template %s", util.TruncString(template))
 
-	urlString := "https://de.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=" + url.QueryEscape(template)
+	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
 	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)

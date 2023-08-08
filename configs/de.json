@@ -1,4 +1,16 @@
 {
+  "wikipedia-instance": "de",
+  "wikipedia-image-article-instances": [
+    "commons",
+    "de"
+  ],
+  "file-prefixe": [
+    "file",
+    "image",
+    "media",
+    "datei",
+    "bild"
+  ],
   "ignored-templates": [
     "alpha centauri",
     "begriffsklärung",
@@ -41,5 +53,40 @@
     "wikiquote",
     "wikisource",
     "wiktionary"
+  ],
+  "ignored-image-params": [
+    "alt",
+    "alternativtext",
+    "baseline",
+    "border",
+    "bottom",
+    "center",
+    "class",
+    "framed",
+    "frameless",
+    "gerahmt",
+    "hochkant",
+    "lang",
+    "left",
+    "link",
+    "links",
+    "middle",
+    "none",
+    "ohne",
+    "page",
+    "rahmenlos",
+    "rand",
+    "rechts",
+    "right",
+    "seite",
+    "sprache",
+    "sub",
+    "super",
+    "text-bottom",
+    "text-top",
+    "top",
+    "upright",
+    "verweis",
+    "zentriert"
   ]
 }

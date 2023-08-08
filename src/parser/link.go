@@ -2,6 +2,8 @@ package parser
 
 import (
 	"strings"
+	"wiki2book/config"
+	"wiki2book/util"
 )
 
 func (t *Tokenizer) parseInternalLinks(content string) string {
@@ -38,10 +40,13 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		}
 
 		// Ignore all kind of files, they are parsed elsewhere
-		if imagePrefixRegex.MatchString(splitItem) {
-			resultSegments = append(resultSegments, openingBrackets)
-			resultSegments = append(resultSegments, splitItem)
-			continue
+		if strings.Contains(splitItem, ":") {
+			fileprefix := strings.ToLower(strings.SplitN(splitItem, ":", 2)[0])
+			if util.Contains(config.Current.FilePrefixe, fileprefix) {
+				resultSegments = append(resultSegments, openingBrackets)
+				resultSegments = append(resultSegments, splitItem)
+				continue
+			}
 		}
 
 		segments := strings.Split(splitItem, closingBrackets)

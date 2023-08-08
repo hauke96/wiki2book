@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
+	"wiki2book/config"
 )
 
 type Project struct {
@@ -26,6 +27,8 @@ type Metadata struct {
 	Date     string `json:"date"`
 }
 
+// LoadProject reads the given file and creates a corresponding Project instance. It also alters the config.Current
+// object to override default configurations since project specific configs have a higher precedence.
 func LoadProject(file string) (*Project, error) {
 	projectString, err := os.ReadFile(file)
 	if err != nil {
@@ -39,6 +42,9 @@ func LoadProject(file string) (*Project, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")
 	}
+
+	// Override default configs with project specific ones
+	config.Current.WikipediaInstance = project.Domain
 
 	return project, nil
 }
