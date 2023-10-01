@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"strings"
@@ -11,7 +12,7 @@ import (
 const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"
 
 // evaluateTemplates evaluates all templates including nested ones.
-func (t *Tokenizer) evaluateTemplates(content string) string {
+func (t *Tokenizer) evaluateTemplates(content string) (string, error) {
 	// All evaluated templates are stored in this map. Replacing evaluated templates by placeholders reduces the length
 	// of request URLs significantly and prevents errors due to too long URLs.
 	placeholderToContent := map[string]string{}
@@ -25,9 +26,7 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 		if cursor == startToken {
 			endIndex := findCorrespondingCloseToken(content, i+2, startToken, endToken)
 			if endIndex == -1 {
-				// TODO return an error instead and do not ignore anything!
-				sigolo.Error("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken)
-				return content
+				return "", errors.New(fmt.Sprintf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken))
 			}
 
 			templateText := content[i : endIndex+2]
@@ -42,8 +41,7 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 
 			evaluatedTemplate, err := api.EvaluateTemplate(templateText, t.templateFolder, key)
 			if err != nil {
-				sigolo.Stack(err)
-				return ""
+				return "", err
 			}
 
 			// Replace the template by a placeholder. We do not directly replace the wikitext of the template with the
@@ -69,5 +67,5 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 	}
 	sigolo.Debug("Finished replacing template placeholders. Template handling done.")
 
-	return content
+	return content, nil
 }

@@ -30,7 +30,8 @@ func TestEvaluateTemplate_existingFile(t *testing.T) {
 	sigolo.FatalCheck(err)
 	templateFile.Close()
 
-	content := tokenizer.evaluateTemplates("Wikitext with {{my-template}}.")
+	content, err := tokenizer.evaluateTemplates("Wikitext with {{my-template}}.")
+	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, "Wikitext with blubb.", content)
@@ -46,7 +47,8 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	mockHttpClient := api.MockHttp(expectedTemplateFileContent, 200)
 
 	// Evaluate content
-	content := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
+	content, err := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
+	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, "Siehe "+expectedTemplateContent+".", content)

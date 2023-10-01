@@ -8,7 +8,9 @@ import (
 
 const semiHeadingDepth = 10
 
-func clean(content string) string {
+func clean(content string) (string, error) {
+	var err error
+
 	content = removeComments(content)
 	content = removeUnwantedInternalLinks(content)
 	content = removeUnwantedTemplates(content)
@@ -17,9 +19,12 @@ func clean(content string) string {
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
 
-	content = hackGermanRailwayTemplates(content, 0)
+	content, err = hackGermanRailwayTemplates(content, 0)
+	if err != nil {
+		return "", err
+	}
 
-	return content
+	return content, nil
 }
 
 func removeComments(content string) string {

@@ -84,11 +84,25 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	}
 }
 
-func (t *Tokenizer) Tokenize(content string, title string) Article {
+func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
+	var err error
+
 	sigolo.Info("Tokenize article %s [1/2]: Evaluate templates", title)
-	content = clean(content)
-	content = t.evaluateTemplates(content)
-	content = clean(content)
+
+	content, err = clean(content)
+	if err != nil {
+		return nil, err
+	}
+
+	content, err = t.evaluateTemplates(content)
+	if err != nil {
+		return nil, err
+	}
+
+	content, err = clean(content)
+	if err != nil {
+		return nil, err
+	}
 
 	sigolo.Info("Tokenize article %s [2/2]: Tokenize content", title)
 	content = t.tokenizeContent(t, content)
@@ -111,12 +125,13 @@ func (t *Tokenizer) Tokenize(content string, title string) Article {
 	//	}
 	//}
 
-	return Article{
+	article := Article{
 		Title:    title,
 		TokenMap: t.getTokenMap(),
 		Images:   images,
 		Content:  content,
 	}
+	return &article, nil
 }
 
 func (t *Tokenizer) getTokenMap() map[string]string {

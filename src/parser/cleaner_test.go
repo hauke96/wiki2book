@@ -138,13 +138,16 @@ func TestRemoveUnwantedHtml(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	config.Current.IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
+	var err error
 
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"
-	content = clean(content)
+	content, err = clean(content)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, "Some wikitext", content)
 
 	content = " '''test'''"
-	content = clean(content)
+	content, err = clean(content)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, content, content)
 
 	content = `
@@ -160,7 +163,8 @@ func TestClean(t *testing.T) {
 |Navigationsleiste Monde
 }}
 foo`
-	content = clean(content)
+	content, err = clean(content)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, `
 == Einzelnachweise ==
 <references />
@@ -177,7 +181,8 @@ foo`, content)
 }}
 
 bar`
-	content = clean(content)
+	content, err = clean(content)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, `
 == Foo ==
 

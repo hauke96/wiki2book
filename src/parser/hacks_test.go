@@ -12,7 +12,8 @@ bar`
 	expectedContent := `foo
 something
 bar`
-	actualContent := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
@@ -27,7 +28,8 @@ bar`
 something
 
 bar`
-	actualContent := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
@@ -42,7 +44,8 @@ bär`
 sömethöng
 
 bär`
-	actualContent := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
@@ -65,6 +68,7 @@ some inner stuff
 some outer stuff
 
 bar`
-	actualContent := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }

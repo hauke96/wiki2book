@@ -179,7 +179,8 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	coverImageFile = paths[2]
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache)
-	article := tokenizer.Tokenize(string(fileContent), title)
+	article, err := tokenizer.Tokenize(string(fileContent), title)
+	sigolo.FatalCheck(err)
 
 	err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
 	sigolo.FatalCheck(err)
@@ -276,7 +277,8 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 
 			sigolo.Info("Tokenize article %s", articleName)
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
-			article := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
+			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
+			sigolo.FatalCheck(err)
 
 			sigolo.Info("Download images from article %s", articleName)
 			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
