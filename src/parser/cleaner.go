@@ -10,12 +10,14 @@ const semiHeadingDepth = 10
 
 func clean(content string) string {
 	content = removeComments(content)
+	content = replaceStrings(content)
 	content = removeUnwantedInternalLinks(content)
 	content = removeUnwantedTemplates(content)
 	content = removeUnwantedHtml(content)
 	content = removeUnwantedWikitext(content)
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
+	// TODO deal with empty tables due to replaceStrings
 	return content
 }
 
@@ -56,6 +58,13 @@ func removeComments(content string) string {
 	}
 
 	return strings.Join(resultSegments, "")
+}
+
+func replaceStrings(content string) string {
+	for _, replacer := range config.Current.StringReplacements {
+		content = replacer.Regex.ReplaceAllString(content, replacer.To)
+	}
+	return content
 }
 
 // removeUnwantedInternalLinks removes all kind of unwanted links. This method leaves all allowed internal links

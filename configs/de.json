@@ -101,5 +101,11 @@
     "upright",
     "verweis",
     "zentriert"
+  ],
+  "string-replacements": [
+    {
+      "from": "\\{\\{bs-table\\}\\}",
+      "to": "{|"
+    }
   ]
 }

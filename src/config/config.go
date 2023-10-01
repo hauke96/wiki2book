@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
+	"regexp"
 )
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
@@ -17,6 +18,7 @@ var Current = &Configuration{
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 	CategoryPrefixes:               []string{"category"},
+	StringReplacements:             []StringReplace{},
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -24,7 +26,9 @@ var Current = &Configuration{
 // not given. Entries marked as non-mandatory may also cause a crash.
 type Configuration struct {
 	/*
-		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
+		List of templates that should be ignored and removed from the input wikitext. Replacing templates is case-
+		sensitive. If the same template is listed in the "string-replacements" list, the template will be replaced
+		instead of being removed (so this list is not used).
 
 		Default: Empty list
 		Mandatory: No
@@ -104,6 +108,27 @@ type Configuration struct {
 		Mandatory: No
 	*/
 	CategoryPrefixes []string `json:"category-prefixes"`
+
+	/*
+		A list of replacement objects to replace strings. The "from" value is interpreted as regular expression.
+		Replacement happens prior to template removal.
+
+		Format: { "from": "string-value", "to": "string-value" }
+		Default: [ ]
+		Mandatory: No
+		JSON example replacing "{{foobar | param=value}}" by "blubb":
+			"string-replacements": [ { "from": "{{foobar.*}}", "to": "blubb" } ]
+	*/
+	StringReplacements []StringReplace `json:"string-replacements"`
+}
+
+// StringReplace can be used to replace a template by a certain string rather than removing it entirely.
+type StringReplace struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+
+	// Set by loading function using the "from" field. The regex is case-INsensitive.
+	Regex *regexp.Regexp `json:"-"`
 }
 
 func LoadConfig(file string) error {
@@ -115,6 +140,12 @@ func LoadConfig(file string) error {
 	err = json.Unmarshal(projectString, Current)
 	if err != nil {
 		return errors.Wrap(err, "Error parsing config file content")
+	}
+
+	// Init the string replacer to create a regex
+	for i, _ := range Current.StringReplacements {
+		replacer := &(Current.StringReplacements[i])
+		replacer.Regex = regexp.MustCompile("(?i)" + replacer.From)
 	}
 
 	return nil
