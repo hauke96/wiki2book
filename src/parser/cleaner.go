@@ -16,6 +16,9 @@ func clean(content string) string {
 	content = removeUnwantedWikitext(content)
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
+
+	content = hackGermanRailwayTemplates(content, 0)
+
 	return content
 }
 
