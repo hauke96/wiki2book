@@ -15,16 +15,24 @@ func (t *Tokenizer) evaluateTemplates(content string) string {
 	// All evaluated templates are stored in this map. Replacing evaluated templates by placeholders reduces the length
 	// of request URLs significantly and prevents errors due to too long URLs.
 	placeholderToContent := map[string]string{}
+	startToken := "{{"
+	endToken := "}}"
 
 	sigolo.Debug("Start evaluating templates and replacing them by placeholders")
 	for i := 0; i < len(content)-2; i++ {
 		cursor := content[i : i+2]
 
-		if cursor == "{{" {
-			endIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+		if cursor == startToken {
+			endIndex := findCorrespondingCloseToken(content, i+2, startToken, endToken)
+			if endIndex == -1 {
+				// TODO return an error instead and do not ignore anything!
+				sigolo.Error("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken)
+				return content
+			}
+
 			templateText := content[i : endIndex+2]
 
-			if strings.Contains(templateText[2:], "{{") {
+			if strings.Contains(templateText[2:], startToken) {
 				// If the template itself contains a template, then proceed to first evaluate the inner template and
 				// to evaluate the outer template in a later run
 				continue
