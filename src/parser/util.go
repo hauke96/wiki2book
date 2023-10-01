@@ -7,14 +7,25 @@ func findCorrespondingCloseToken(content string, startIndex int, openingToken st
 	closeTokenCounter := 0
 
 	// The tokens are considered to be of equal size
-	tokenSize := len(openingToken)
+	openingTokenSize := len(openingToken)
+	closingTokenSize := len(closingToken)
+	contentSize := len(content)
 
-	for i := startIndex; i < len(content)-1; i++ {
-		cursor := content[i : i+tokenSize]
+	for i := startIndex; i < contentSize; i++ {
+		cursorOpeningToken := ""
+		cursorClosingToken := ""
 
-		if cursor == openingToken {
+		if i < contentSize-openingTokenSize+1 {
+			cursorOpeningToken = content[i : i+openingTokenSize]
+		}
+
+		if i < contentSize-closingTokenSize+1 {
+			cursorClosingToken = content[i : i+closingTokenSize]
+		}
+
+		if cursorOpeningToken == openingToken {
 			closeTokenCounter++
-		} else if cursor == closingToken {
+		} else if cursorClosingToken == closingToken {
 			if closeTokenCounter == 0 {
 				return i
 			} else {

@@ -71,3 +71,16 @@ func TestFindCorrespondingCloseToken_specialChars(t *testing.T) {
 $ome+µeird-string]]ghi`, 5, "[", "]")
 	test.AssertEqual(t, 35, index)
 }
+
+func TestFindCorrespondingCloseToken_differentlySizedTokens(t *testing.T) {
+	var index int
+
+	index = findCorrespondingCloseToken("abc[def]]ghi", 4, "[", "]]")
+	test.AssertEqual(t, 7, index)
+
+	index = findCorrespondingCloseToken("abc[[def]ghi", 5, "[[", "]")
+	test.AssertEqual(t, 8, index)
+
+	index = findCorrespondingCloseToken("abc[[defghi]", 5, "[[", "]")
+	test.AssertEqual(t, 11, index)
+}
