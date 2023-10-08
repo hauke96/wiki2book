@@ -257,34 +257,36 @@ func TestParseImages_withCaption(t *testing.T) {
 func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[file:image.jpg|mini|some [https://foo.com link]]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_4$$ bar", content)
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_IMAGE + "_4$$": &ImageToken{
+		"$$TOKEN_" + TOKEN_IMAGE + "_2$$": &ImageToken{
 			Filename:        "foo/Image.jpg",
-			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 3),
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 1),
 			SizeX:           -1,
 			SizeY:           -1,
 		},
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_3$$":      "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_2$$",
-		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_2$$":      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_EXTERNAL_LINK_URL, 0, TOKEN_EXTERNAL_LINK_TEXT, 1),
-		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_URL + "_0$$":  "https://foo.com",
-		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_TEXT + "_1$$": "link",
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_1$$": "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$",
+		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$": &ExternalLinkToken{
+			URL:      "https://foo.com",
+			LinkText: "link",
+		},
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:image.jpg|mini|some [[article]]]]")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_4$$", content)
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_IMAGE + "_4$$": &ImageToken{
+		"$$TOKEN_" + TOKEN_IMAGE + "_2$$": &ImageToken{
 			Filename:        "foo/Image.jpg",
-			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 3),
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 1),
 			SizeX:           -1,
 			SizeY:           -1,
 		},
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_3$$":         "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$",
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$":         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 0, TOKEN_INTERNAL_LINK_TEXT, 1),
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK_ARTICLE + "_0$$": "article",
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK_TEXT + "_1$$":    "article",
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_1$$": "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$",
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+			ArticleName: "article",
+			LinkText:    "article",
+		},
 	}, tokenizer.getTokenMap())
 }
 

@@ -127,10 +127,15 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 
 	switch token.(type) {
 	case *parser.HeadingToken:
+		html, err = g.expandHeadings(token.(*parser.HeadingToken), tokenMap)
 	case *parser.InlineImageToken:
 		html, err = g.expandInlineImage(token.(*parser.InlineImageToken))
 	case *parser.ImageToken:
 		html, err = g.expandImage(token.(*parser.ImageToken), tokenMap)
+	case parser.InternalLinkToken:
+		html, err = g.expandExternalLink(token.(*parser.ExternalLinkToken), tokenMap)
+	case parser.ExternalLinkToken:
+		html, err = g.expandInternalLink(token.(*parser.InternalLinkToken), tokenMap)
 	}
 
 	if err != nil {
@@ -163,9 +168,9 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 
 		switch submatch[1] {
 		case parser.TOKEN_EXTERNAL_LINK:
-			html, err = g.expandExternalLink(submatch[0], tokenMap)
+			html, err = g.expandExternalLink(tokenMap[submatch[0]].(*parser.ExternalLinkToken), tokenMap)
 		case parser.TOKEN_INTERNAL_LINK:
-			html, err = g.expandInternalLink(submatch[0], tokenMap)
+			html, err = g.expandInternalLink(tokenMap[submatch[0]].(*parser.InternalLinkToken), tokenMap)
 		case parser.TOKEN_TABLE:
 			html, err = g.expandTable(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_HEAD:
@@ -267,22 +272,19 @@ func expandSizeTemplate(xSize int, ySize int) string {
 	return sizeTemplate
 }
 
-func (g *HtmlGenerator) expandInternalLink(token string, tokenMap map[string]interface{}) (string, error) {
-	tokenContentParts := strings.Split(tokenMap[token].(string), " ")
+func (g *HtmlGenerator) expandInternalLink(token *parser.InternalLinkToken, tokenMap map[string]interface{}) (string, error) {
 	// Currently links are not added to the eBook, even though it's possible. Maybe this will be made configurable in
 	// the future.
-	return g.expand(tokenMap[tokenContentParts[1]], tokenMap)
+	return g.expand(token.LinkText, tokenMap)
 }
 
-func (g *HtmlGenerator) expandExternalLink(token string, tokenMap map[string]interface{}) (string, error) {
-	splitToken := strings.Split(tokenMap[token].(string), " ")
-	url := tokenMap[splitToken[0]]
-	text, err := g.expand(tokenMap[splitToken[1]], tokenMap)
+func (g *HtmlGenerator) expandExternalLink(token *parser.ExternalLinkToken, tokenMap map[string]interface{}) (string, error) {
+	text, err := g.expand(token.LinkText, tokenMap)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf(HREF_TEMPLATE, url, text), nil
+	return fmt.Sprintf(HREF_TEMPLATE, token.URL, text), nil
 }
 
 func (g *HtmlGenerator) expandTable(token string, tokenMap map[string]interface{}) (string, error) {

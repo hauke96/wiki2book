@@ -83,11 +83,11 @@ is
 after`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 19), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 17), tokenizedTable)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 19): fmt.Sprintf(
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 17): fmt.Sprintf(
 			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
-			TOKEN_TABLE_CAPTION, 1, TOKEN_TABLE_ROW, 4, TOKEN_TABLE_ROW, 10, TOKEN_TABLE_ROW, 13, TOKEN_TABLE_ROW, 18,
+			TOKEN_TABLE_CAPTION, 1, TOKEN_TABLE_ROW, 4, TOKEN_TABLE_ROW, 8, TOKEN_TABLE_ROW, 11, TOKEN_TABLE_ROW, 16,
 		),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): "rowspan=\"2\" style=\"text-align:left;\"",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 1):        fmt.Sprintf(TOKEN_TEMPLATE+" capti0n\nfoo", TOKEN_TABLE_COL_ATTRIBUTES, 0),
@@ -96,22 +96,23 @@ after`
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2): "head1",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 3): "" + MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
 		// row 1: internal link
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 10):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8, TOKEN_TABLE_COL, 9),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 8):             fmt.Sprintf("foo "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 7),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 7):         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 5, TOKEN_INTERNAL_LINK_TEXT, 6),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 5): "internal",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_TEXT, 6):    "internal",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9):             "bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 8): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6, TOKEN_TABLE_COL, 7),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6): fmt.Sprintf("foo "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5): &InternalLinkToken{
+			ArticleName: "internal",
+			LinkText:    "internal",
+		},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7): "bar",
 		// row 2: multi-line
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 13): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11, TOKEN_TABLE_COL, 12),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 11): "This row\nis",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 12): "multi-line wikitext",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 11): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9, TOKEN_TABLE_COL, 10),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9):  "This row\nis",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10): "multi-line wikitext",
 		// row 3: attributes
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 18):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15, TOKEN_TABLE_COL, 17),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15):            fmt.Sprintf(TOKEN_TEMPLATE+" some", TOKEN_TABLE_COL_ATTRIBUTES, 14),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 14): "colspan=\"42\" style=\"text-align:right;\"",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 17):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes", TOKEN_TABLE_COL_ATTRIBUTES, 16),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 16): "colspan=\"1\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 16):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 13, TOKEN_TABLE_COL, 15),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 13):            fmt.Sprintf(TOKEN_TEMPLATE+" some", TOKEN_TABLE_COL_ATTRIBUTES, 12),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 12): "colspan=\"42\" style=\"text-align:right;\"",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes", TOKEN_TABLE_COL_ATTRIBUTES, 14),
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 14): "colspan=\"1\"",
 	}, tokenizer.getTokenMap())
 }
 

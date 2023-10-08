@@ -6,19 +6,38 @@ import (
 	"wiki2book/util"
 )
 
+type LinkType int
+
+const (
+	LINK_TYPE_INTERNAL LinkType = iota
+	LINK_TYPE_EXTERNAL
+)
+
+type InternalLinkToken struct {
+	Token
+	ArticleName string
+	LinkText    string
+}
+
+type ExternalLinkToken struct {
+	Token
+	URL      string
+	LinkText string
+}
+
 func (t *Tokenizer) parseInternalLinks(content string) string {
-	return t.parseLink(content, "[[", "]]", "|", TOKEN_INTERNAL_LINK_ARTICLE, TOKEN_INTERNAL_LINK_TEXT, TOKEN_INTERNAL_LINK, false, true)
+	return t.parseLink(content, "[[", "]]", "|", LINK_TYPE_INTERNAL, false, true)
 }
 
 func (t *Tokenizer) parseExternalLinks(content string) string {
-	return t.parseLink(content, "[", "]", " ", TOKEN_EXTERNAL_LINK_URL, TOKEN_EXTERNAL_LINK_TEXT, TOKEN_EXTERNAL_LINK, true, false)
+	return t.parseLink(content, "[", "]", " ", LINK_TYPE_EXTERNAL, true, false)
 }
 
 // parseLink takes the given bracket type and tries to find the link content in between them and replaces it with a
 // token. The parameter delimiterRequired specified if the link must definitely have two parts (URL/Article and a
 // display text). The parameter removeSectionReference specifies whether everything behind the first "#" should be
 // ignored or not.
-func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, targetTokenKey string, linkTextTokenKey string, linkTokenKey string, delimiterRequired bool, removeSectionReference bool) string {
+func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, linkType LinkType, delimiterRequired bool, removeSectionReference bool) string {
 	splitContent := strings.Split(content, openingBrackets)
 	var resultSegments []string
 
@@ -72,16 +91,26 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
 		}
 
-		tokenTarget := t.getToken(targetTokenKey)
-		t.setRawToken(tokenTarget, linkTarget)
+		var token Token
+		var linkTokenKey string
+		if linkType == LINK_TYPE_INTERNAL {
+			token = &InternalLinkToken{
+				ArticleName: linkTarget,
+				LinkText:    t.tokenizeContent(t, linkText),
+			}
+			linkTokenKey = TOKEN_INTERNAL_LINK
+		} else {
+			token = &ExternalLinkToken{
+				URL:      linkTarget,
+				LinkText: t.tokenizeContent(t, linkText),
+			}
+			linkTokenKey = TOKEN_EXTERNAL_LINK
+		}
 
-		tokenLinkText := t.getToken(linkTextTokenKey)
-		t.setRawToken(tokenLinkText, linkText)
+		tokenKey := t.getToken(linkTokenKey)
+		t.setRawToken(tokenKey, token)
 
-		token := t.getToken(linkTokenKey)
-		t.setRawToken(token, tokenTarget+" "+tokenLinkText)
-
-		resultSegments = append(resultSegments, token)
+		resultSegments = append(resultSegments, tokenKey)
 
 		if len(segments) > 1 {
 			// Add all uninteresting segments behind the link

@@ -72,7 +72,7 @@ $$TOKEN_HEADING_3$$
 1
 $$TOKEN_HEADING_1$$
 3-2`, content)
-	test.AssertEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]interface{}{
 		"$$TOKEN_HEADING_0$$": &HeadingToken{
 			Content: "heading3",
 			Depth:   3,

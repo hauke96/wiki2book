@@ -31,7 +31,7 @@ func TestGetSortedReferenceNames(t *testing.T) {
 	sortedName, refNameToIndex := tokenizer.getSortedReferenceNames(refIndexToName)
 
 	test.AssertEqual(t, []string{"foo", "blubb", "bar"}, sortedName)
-	test.AssertEqual(t, map[string]int{
+	test.AssertMapEqual(t, map[string]int{
 		"foo":   1,
 		"blubb": 2,
 		"bar":   3,
@@ -97,7 +97,7 @@ func TestGetReferenceUsages(t *testing.T) {
 	content := `some<ref name="bar" /> text with refs<ref name="foo" />`
 	usages, _ := tokenizer.getReferenceUsages(content)
 
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		"bar": `<ref name="bar" />`,
 		"foo": `<ref name="foo" />`,
 	}, usages)

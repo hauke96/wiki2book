@@ -158,33 +158,29 @@ func TestExpandImageInline(t *testing.T) {
 
 func TestExpandInternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
-	tokenArticle := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK_ARTICLE, 1)
-	tokenText := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK_TEXT, 2)
 	tokenMap := map[string]interface{}{
-		tokenLink:    tokenArticle + " " + tokenText,
-		tokenArticle: "foo",
-		tokenText:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		tokenLink: &parser.InternalLinkToken{
+			ArticleName: "foo",
+			LinkText:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		},
 	}
-	token := tokenLink
 
-	link, err := generator.expandInternalLink(token, tokenMap)
+	link, err := generator.expand(tokenLink, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "b<b>a</b>r", link)
 }
 
 func TestExpandExternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 0)
-	tokenUrl := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK_URL, 1)
-	tokenText := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK_TEXT, 2)
 	url := "https://foo.com"
 	tokenMap := map[string]interface{}{
-		tokenLink: tokenUrl + " " + tokenText,
-		tokenUrl:  url,
-		tokenText: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		tokenLink: &parser.ExternalLinkToken{
+			URL:      url,
+			LinkText: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		},
 	}
-	token := tokenLink
 
-	link, err := generator.expandExternalLink(token, tokenMap)
+	link, err := generator.expand(tokenLink, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<a href=\""+url+"\">b<b>a</b>r</a>", link)
 }
