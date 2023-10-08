@@ -126,6 +126,7 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 	var html = ""
 
 	switch token.(type) {
+	case *parser.HeadingToken:
 	case *parser.InlineImageToken:
 		html, err = g.expandInlineImage(token.(*parser.InlineImageToken))
 	case *parser.ImageToken:
@@ -191,18 +192,8 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
 		case parser.TOKEN_MATH:
 			html, err = g.expandMath(submatch[0], tokenMap)
-		case parser.TOKEN_HEADING_1:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 1)
-		case parser.TOKEN_HEADING_2:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 2)
-		case parser.TOKEN_HEADING_3:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 3)
-		case parser.TOKEN_HEADING_4:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 4)
-		case parser.TOKEN_HEADING_5:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 5)
-		case parser.TOKEN_HEADING_6:
-			html, err = g.expandHeadings(submatch[0], tokenMap, 6)
+		case parser.TOKEN_HEADING:
+			html, err = g.expandHeadings(tokenMap[submatch[0]].(*parser.HeadingToken), tokenMap)
 		case parser.TOKEN_REF_DEF:
 			html, err = g.expandRefDefinition(submatch[0], tokenMap)
 		case parser.TOKEN_REF_USAGE:
@@ -231,9 +222,12 @@ func (g *HtmlGenerator) expandMarker(content string) string {
 }
 
 // expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
-func (g *HtmlGenerator) expandHeadings(token string, tokenMap map[string]interface{}, level int) (string, error) {
-	title := tokenMap[token]
-	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, level, title, level), tokenMap)
+func (g *HtmlGenerator) expandHeadings(token *parser.HeadingToken, tokenMap map[string]interface{}) (string, error) {
+	expandedHeadingText, err := g.expand(token.Content, tokenMap)
+	if err != nil {
+		return "", err
+	}
+	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth), tokenMap)
 }
 
 func (g *HtmlGenerator) expandInlineImage(token *parser.InlineImageToken) (string, error) {

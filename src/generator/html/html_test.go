@@ -21,15 +21,18 @@ func TestExpandMarker(t *testing.T) {
 }
 
 func TestExpandHeadings(t *testing.T) {
+	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_HEADING, 3)
+	token := &parser.HeadingToken{
+		Content: "foobar",
+		Depth:   3,
+	}
 	tokenMap := map[string]interface{}{
-		"foo": "bar",
+		tokenKey: token,
 	}
 
-	for i := 1; i <= 7; i++ {
-		headings, err := generator.expandHeadings("foo", tokenMap, i)
-		test.AssertNil(t, err)
-		test.AssertEqual(t, fmt.Sprintf("<h%d>bar</h%d>", i, i), headings)
-	}
+	headings, err := generator.expand("some\n"+tokenKey+"\nheading", tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, fmt.Sprintf("some\n<h%d>foobar</h%d>\nheading", 3, 3), headings)
 }
 
 func TestExpandImage(t *testing.T) {

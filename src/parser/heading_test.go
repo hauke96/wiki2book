@@ -11,11 +11,16 @@ func TestParseHeading(t *testing.T) {
 	for i := 1; i < 7; i++ {
 		tokenizer := NewTokenizer("foo", "bar")
 		headingPrefixSuffix := strings.Repeat("=", i)
-		content := tokenizer.parseHeadings(fmt.Sprintf("%s h%d %s", headingPrefixSuffix, i, headingPrefixSuffix))
-		token := fmt.Sprintf(TOKEN_TEMPLATE, fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i), 0)
+
+		content := tokenizer.tokenizeContent(&tokenizer, fmt.Sprintf("%s heading of depth %d %s", headingPrefixSuffix, i, headingPrefixSuffix))
+
+		token := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING, 0)
 		test.AssertEqual(t, token, content)
 		test.AssertMapEqual(t, map[string]interface{}{
-			token: fmt.Sprintf("h%d", i),
+			token: &HeadingToken{
+				Content: fmt.Sprintf("heading of depth %d", i),
+				Depth:   i,
+			},
 		}, tokenizer.getTokenMap())
 	}
 }
@@ -24,9 +29,12 @@ func TestParseHeading_withFormatting(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseHeadings("== H2 ''with formatting'' ==")
 
-	test.AssertEqual(t, "$$TOKEN_HEADING_2_0$$", content)
+	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_HEADING_2_0$$": "H2 $$MARKER_ITALIC_OPEN$$with formatting$$MARKER_ITALIC_CLOSE$$",
+		"$$TOKEN_HEADING_0$$": &HeadingToken{
+			Content: "H2 $$MARKER_ITALIC_OPEN$$with formatting$$MARKER_ITALIC_CLOSE$$",
+			Depth:   2,
+		},
 	}, tokenizer.getTokenMap())
 }
 
@@ -34,9 +42,12 @@ func TestParseHeading_withSpacesAroundEqualCharacters(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseHeadings("  == foo == ")
 
-	test.AssertEqual(t, "$$TOKEN_HEADING_2_0$$", content)
+	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_HEADING_2_0$$": "foo",
+		"$$TOKEN_HEADING_0$$": &HeadingToken{
+			Content: "foo",
+			Depth:   2,
+		},
 	}, tokenizer.getTokenMap())
 }
 
@@ -53,18 +64,30 @@ func TestParseMultipleHeadings(t *testing.T) {
 3-2`)
 
 	test.AssertEqual(t, `foo
-$$TOKEN_HEADING_2_2$$
+$$TOKEN_HEADING_2$$
 2
-$$TOKEN_HEADING_3_0$$
+$$TOKEN_HEADING_0$$
 3
-$$TOKEN_HEADING_1_3$$
+$$TOKEN_HEADING_3$$
 1
-$$TOKEN_HEADING_3_1$$
+$$TOKEN_HEADING_1$$
 3-2`, content)
 	test.AssertEqual(t, map[string]interface{}{
-		"$$TOKEN_HEADING_3_0$$": "heading3",
-		"$$TOKEN_HEADING_3_1$$": "heading3-2",
-		"$$TOKEN_HEADING_2_2$$": "heading2",
-		"$$TOKEN_HEADING_1_3$$": "heading1",
+		"$$TOKEN_HEADING_0$$": &HeadingToken{
+			Content: "heading3",
+			Depth:   3,
+		},
+		"$$TOKEN_HEADING_1$$": &HeadingToken{
+			Content: "heading3-2",
+			Depth:   3,
+		},
+		"$$TOKEN_HEADING_2$$": &HeadingToken{
+			Content: "heading2",
+			Depth:   2,
+		},
+		"$$TOKEN_HEADING_3$$": &HeadingToken{
+			Content: "heading1",
+			Depth:   1,
+		},
 	}, tokenizer.getTokenMap())
 }

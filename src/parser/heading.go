@@ -1,9 +1,14 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 )
+
+type HeadingToken struct {
+	Token
+	Content string // TODO replace by "[]*Token" when ready
+	Depth   int
+}
 
 func (t *Tokenizer) parseHeadings(content string) string {
 	lines := strings.Split(content, "\n")
@@ -19,8 +24,11 @@ func (t *Tokenizer) parseHeadings(content string) string {
 				headingText := strings.ReplaceAll(line, headingMediawikiMarker, "")
 				headingText = strings.TrimSpace(headingText)
 
-				token := t.getToken(fmt.Sprintf(TOKEN_HEADING_TEMPLATE, headingDepth))
-				t.setToken(token, headingText)
+				token := t.getToken(TOKEN_HEADING)
+				t.setRawToken(token, &HeadingToken{
+					Content: t.tokenizeContent(t, headingText),
+					Depth:   headingDepth,
+				})
 				lines[i] = token
 			}
 		}

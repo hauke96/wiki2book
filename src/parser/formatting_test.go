@@ -122,7 +122,7 @@ bar
 %s
 blubb
 %s
-par`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 1), MARKER_PARAGRAPH), tokenizedContent)
+par`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING, 0), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING, 1), MARKER_PARAGRAPH), tokenizedContent)
 }
 
 func TestParseParagraph_beforeToken(t *testing.T) {
@@ -142,5 +142,5 @@ cool`
 %s
 blubb
 %s
-cool`, MARKER_PARAGRAPH, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING_2, 0)), tokenizedContent)
+cool`, MARKER_PARAGRAPH, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING, 0)), tokenizedContent)
 }
