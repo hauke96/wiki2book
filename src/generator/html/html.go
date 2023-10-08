@@ -186,7 +186,7 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html, err = g.expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE_INLINE:
-			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
+			html, err = g.expandInlineImage(tokenMap[submatch[0]].(*parser.InlineImageToken))
 		case parser.TOKEN_IMAGE:
 			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
 		case parser.TOKEN_MATH:
