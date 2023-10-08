@@ -58,24 +58,35 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 type Tokenizer struct {
-	tokenMap       map[string]string
+	// TODO Change "interface{}" to "*Token" when everything is migrated
+	// TODO Use separate new type "type TokenKey string" for token keys instead of "string"
+	tokenMap       map[string]interface{}
 	tokenCounter   int
 	imageFolder    string
 	templateFolder string
 
-	tokenizeContent func(tokenizer *Tokenizer, content string) string
+	tokenizeContent func(tokenizer *Tokenizer, content string) string // TODO Change "interface{}" to "*Token" when everything is migrated
 }
 
 type Article struct {
 	Title    string
 	Content  string
-	TokenMap map[string]string
+	TokenMap map[string]interface{}
 	Images   []string
+}
+
+// Token is the abstract type for all sorts of tokens.
+type Token interface{}
+
+// StringToken represents a part of the input data that is pure text.
+type StringToken struct {
+	Token
+	String string
 }
 
 func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	return Tokenizer{
-		tokenMap:       map[string]string{},
+		tokenMap:       map[string]interface{}{},
 		tokenCounter:   0,
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
@@ -134,10 +145,11 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	return &article, nil
 }
 
-func (t *Tokenizer) getTokenMap() map[string]string {
+func (t *Tokenizer) getTokenMap() map[string]interface{} {
 	return t.tokenMap
 }
 
+// TODO rename to "getTokenKey"
 func (t *Tokenizer) getToken(tokenType string) string {
 	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, t.tokenCounter)
 	t.tokenCounter++
@@ -148,7 +160,7 @@ func (t *Tokenizer) setToken(key string, tokenContent string) {
 	t.setRawToken(key, t.tokenizeContent(t, tokenContent))
 }
 
-func (t *Tokenizer) setRawToken(key string, tokenContent string) {
+func (t *Tokenizer) setRawToken(key string, tokenContent interface{}) {
 	t.tokenMap[key] = tokenContent
 }
 

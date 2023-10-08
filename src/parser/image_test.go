@@ -94,7 +94,7 @@ bar
 [[File:File_3.jpg|mini]]
 blubb`, content)
 
-	test.AssertMapEqual(t, map[string]string{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestParseGalleries_emptyGallery(t *testing.T) {
@@ -107,7 +107,7 @@ bar`)
 	test.AssertEqual(t, `foo
 bar`, content)
 
-	test.AssertMapEqual(t, map[string]string{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestParseImagemaps(t *testing.T) {
@@ -130,35 +130,39 @@ bar
 [[Image:Picture.jpg]]
 blubb`, content)
 
-	test.AssertMapEqual(t, map[string]string{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_inlineHappyPath(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[file:image.jpg]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 }
 
 func TestParseImages_withEscaping(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	content := tokenizer.parseImages("foo [[file:nice image.jpg]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_1$$":   fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Nice_image.jpg",
+	content := tokenizer.parseImages("blubb [[file:nice image.jpg]] bar")
+	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_0$$": &ImageToken{
+			Filename:        "foo/Nice_image.jpg",
+			CaptionTokenKey: "",
+			SizeX:           -1,
+			SizeY:           -1,
+		},
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:nice image.gif]] bar")
 	test.AssertEqual(t, "foo  bar", content)
-	test.AssertMapEqual(t, map[string]string{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_ignoreParameters(t *testing.T) {
 	for _, param := range imageNonInlineParameters {
 		tokenizer := NewTokenizer("foo", "bar")
 		content := tokenizer.parseImages(fmt.Sprintf("foo [[file:image.jpg|%s]] bar", param))
-		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
+		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	}
 }
 
@@ -171,55 +175,67 @@ func TestParseImages_ignoreParametersOnInlineImage(t *testing.T) {
 	for _, param := range config.Current.IgnoredImageParams {
 		tokenizer := NewTokenizer("foo", "bar")
 		content := tokenizer.parseImages(fmt.Sprintf("foo [[file:image.jpg|%s]] bar", param))
-		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
+		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 	}
 }
 
 func TestParseImages_smallSizesProduceInlineImage(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[file:image.jpg|99x49px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:image.jpg|101x51px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 }
 
 func TestParseImages_withSizes(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	content := tokenizer.parseImages("foo [[file:image.jpg|100x200px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "100x200",
+	content := tokenizer.parseImages("blubb [[file:image.jpg|100x200px]] bar")
+	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: "",
+			SizeX:           100,
+			SizeY:           200,
+		},
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseImages("foo [[file:image.jpg|x200px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "x200",
+	content = tokenizer.parseImages("blubb [[file:image.jpg|x200px]] bar")
+	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: "",
+			SizeX:           -1,
+			SizeY:           200,
+		},
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseImages("foo [[file:image.jpg|200px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "200x",
+	content = tokenizer.parseImages("blubb [[file:image.jpg|200px]] bar")
+	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: "",
+			SizeX:           200,
+			SizeY:           -1,
+		},
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
-	content = tokenizer.parseImages("foo [[file:image.jpg|mini|200px]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_2$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_2$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "200x",
+	content = tokenizer.parseImages("blubb [[file:image.jpg|mini|200px]] bar")
+	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: "",
+			SizeX:           200,
+			SizeY:           -1,
+		},
 	}, tokenizer.getTokenMap())
 }
 
@@ -227,23 +243,30 @@ func TestParseImages_withCaption(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 
 	content := tokenizer.parseImages("foo [[file:image.jpg|10x20px|mini|some caption]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_3$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_3$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_CAPTION, 2, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_2$$":  "some caption",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "10x20",
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 0),
+			SizeX:           10,
+			SizeY:           20,
+		},
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_0$$": "some caption",
 	}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[file:image.jpg|mini|some [https://foo.com link]]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_5$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_5$$":              fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 3, TOKEN_IMAGE_CAPTION, 4),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_3$$":     "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_4$$":      "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_2$$",
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_4$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_4$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 3),
+			SizeX:           -1,
+			SizeY:           -1,
+		},
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_3$$":      "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_2$$",
 		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_2$$":      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_EXTERNAL_LINK_URL, 0, TOKEN_EXTERNAL_LINK_TEXT, 1),
 		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_URL + "_0$$":  "https://foo.com",
 		"$$TOKEN_" + TOKEN_EXTERNAL_LINK_TEXT + "_1$$": "link",
@@ -251,11 +274,15 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:image.jpg|mini|some [[article]]]]")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_5$$", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_5$$":                 fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 3, TOKEN_IMAGE_CAPTION, 4),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_3$$":        "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_4$$":         "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$",
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_4$$", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_4$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 3),
+			SizeX:           -1,
+			SizeY:           -1,
+		},
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_3$$":         "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$",
 		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_2$$":         fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK_ARTICLE, 0, TOKEN_INTERNAL_LINK_TEXT, 1),
 		"$$TOKEN_" + TOKEN_INTERNAL_LINK_ARTICLE + "_0$$": "article",
 		"$$TOKEN_" + TOKEN_INTERNAL_LINK_TEXT + "_1$$":    "article",
@@ -270,11 +297,14 @@ func TestParseImages_withCaptionAndTrailingParameter(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 
 	content := tokenizer.parseImages("foo [[file:image.jpg|10x20px|mini|some caption|ignoredParam=blubb]] bar")
-	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_3$$ bar", content)
-	test.AssertMapEqual(t, map[string]string{
-		"$$TOKEN_" + TOKEN_IMAGE + "_3$$":          fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_IMAGE_FILENAME, 0, TOKEN_IMAGE_CAPTION, 2, TOKEN_IMAGE_SIZE, 1),
-		"$$TOKEN_" + TOKEN_IMAGE_FILENAME + "_0$$": "foo/Image.jpg",
-		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_2$$":  "some caption",
-		"$$TOKEN_" + TOKEN_IMAGE_SIZE + "_1$$":     "10x20",
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
+	test.AssertMapEqual(t, map[string]interface{}{
+		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": &ImageToken{
+			Filename:        "foo/Image.jpg",
+			CaptionTokenKey: fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_IMAGE_CAPTION, 0),
+			SizeX:           10,
+			SizeY:           20,
+		},
+		"$$TOKEN_" + TOKEN_IMAGE_CAPTION + "_0$$": "some caption",
 	}, tokenizer.getTokenMap())
 }

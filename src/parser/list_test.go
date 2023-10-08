@@ -25,7 +25,7 @@ bar
 end
 `, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3))
 	test.AssertEqual(t, expectedTokenizedContent, newContent)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3):   fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " a",
@@ -77,7 +77,7 @@ end of list
 	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " bar",
@@ -96,7 +96,7 @@ end of list
 	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " a",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " A",
@@ -114,7 +114,7 @@ end of list
 	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
 	test.AssertEqual(t, 4, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2, TOKEN_LIST_ITEM, 3),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      fmt.Sprintf(" foo "+TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1),
@@ -133,7 +133,7 @@ end of list
 	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
@@ -153,7 +153,7 @@ blubb`
 
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
@@ -172,7 +172,7 @@ blubb`
 
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_HEAD, 1),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 1): " bar",
@@ -190,7 +190,7 @@ blubb`
 
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): " foo",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
@@ -208,7 +208,7 @@ blubb`
 
 	test.AssertEqual(t, 3, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
@@ -229,7 +229,7 @@ blubb`
 
 	test.AssertEqual(t, 4, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): "",
@@ -251,7 +251,7 @@ blubb`
 
 	test.AssertEqual(t, 6, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 4, TOKEN_DESCRIPTION_LIST_ITEM, 7, TOKEN_DESCRIPTION_LIST_ITEM, 8),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " foo1",
@@ -277,7 +277,7 @@ end of list
 	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
 	test.AssertEqual(t, 5, i)
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5), token)
-	test.AssertMapEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5):        fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3, TOKEN_LIST_ITEM, 4),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):             fmt.Sprintf(" foo "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 4):             " bar",

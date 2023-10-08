@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
-	"html"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -31,8 +30,8 @@ const FOOTER = `
 const HREF_TEMPLATE = `<a href="%s">%s</a>`
 const STYLE_TEMPLATE = `style="%s"`
 const IMAGE_SIZE_ALIGN_TEMPLATE = `vertical-align: middle;`
-const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %spx;`
-const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %spx;`
+const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %dpx;`
+const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %dpx;`
 const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
 <img alt="image" src="./%s" %s>
@@ -111,7 +110,35 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder strin
 	return write(wikiArticle.Title, outputFolder, content)
 }
 
-func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expand(content interface{}, tokenMap map[string]interface{}) (string, error) {
+	switch content.(type) {
+	case string:
+		return g.expandString(content.(string), tokenMap)
+	case parser.Token:
+		return g.expandToken(content.(parser.Token), tokenMap)
+	}
+
+	return "", errors.New(fmt.Sprintf("Unsupported type to expand: %T", content))
+}
+
+func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]interface{}) (string, error) {
+	var err error = nil
+	var html = ""
+
+	switch token.(type) {
+	case parser.ImageToken:
+		// TODO Replace "true" by correct boolean whether or not image is inlines
+		html, err = g.expandImage(token.(*parser.ImageToken), true, tokenMap)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return html, nil
+}
+
+func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interface{}) (string, error) {
 	content = g.expandMarker(content)
 
 	submatches := tokenRegex.FindAllStringSubmatch(content, -1)
@@ -124,6 +151,10 @@ func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (stri
 	for _, submatch := range submatches {
 		// TODO Only print when --trace is active (-> #35)
 		//sigolo.Debug("Found token %s", submatch[1])
+
+		if _, ok := tokenMap[submatch[0]]; !ok {
+			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", submatch[0]))
+		}
 
 		html := submatch[0]
 		var err error = nil
@@ -154,9 +185,9 @@ func (g *HtmlGenerator) expand(content string, tokenMap map[string]string) (stri
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html, err = g.expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE_INLINE:
-			html, err = g.expandImage(submatch[0], tokenMap)
+			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), true, tokenMap)
 		case parser.TOKEN_IMAGE:
-			html, err = g.expandImage(submatch[0], tokenMap)
+			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), false, tokenMap)
 		case parser.TOKEN_MATH:
 			html, err = g.expandMath(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
@@ -199,77 +230,55 @@ func (g *HtmlGenerator) expandMarker(content string) string {
 }
 
 // expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
-func (g *HtmlGenerator) expandHeadings(token string, tokenMap map[string]string, level int) (string, error) {
+func (g *HtmlGenerator) expandHeadings(token string, tokenMap map[string]interface{}, level int) (string, error) {
 	title := tokenMap[token]
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, level, title, level), tokenMap)
 }
 
-func (g *HtmlGenerator) expandImage(token string, tokenMap map[string]string) (string, error) {
-	filename := ""
-	xSize := ""
-	ySize := ""
+// TODO maybe remove "isInline" and use separate token type for inline images?
+func (g *HtmlGenerator) expandImage(token *parser.ImageToken, isInline bool, tokenMap map[string]interface{}) (string, error) {
 	caption := ""
 	var err error = nil
 
-	tokenKey := tokenRegex.FindStringSubmatch(token)[1]
-	inline := tokenKey == parser.TOKEN_IMAGE_INLINE
-
-	submatches := tokenRegex.FindAllStringSubmatch(tokenMap[token], -1)
-
-	if len(submatches) == 0 {
-		return "", errors.New("No token found in image token: " + token)
-	}
-
-	for _, submatch := range submatches {
-		// TODO Only print when --trace is active (-> #35)
-		//sigolo.Debug("Found sub-token %s in image token %s", submatch[1], token)
-
-		subToken := submatch[0]
-
-		switch submatch[1] {
-		case parser.TOKEN_IMAGE_FILENAME:
-			filename = html.EscapeString(tokenMap[subToken])
-		case parser.TOKEN_IMAGE_CAPTION:
-			caption, err = g.expand(tokenMap[subToken], tokenMap)
-		case parser.TOKEN_IMAGE_SIZE:
-			sizes := strings.Split(tokenMap[subToken], "x")
-			xSize = sizes[0]
-			ySize = sizes[1]
+	captionToken, hasCaptionToken := tokenMap[token.CaptionTokenKey]
+	if hasCaptionToken {
+		caption, err = g.expand(captionToken, tokenMap)
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("Error while parsing image token %#v", token))
 		}
 	}
 
-	if err != nil {
-		return "", errors.Wrap(err, "Error while parsing image token "+token)
-	}
+	xSize := token.SizeX
+	ySize := token.SizeY
 
 	sizeTemplate := ""
-	if xSize != "" || ySize != "" {
+	if xSize != -1 || ySize != -1 {
 		styles := []string{IMAGE_SIZE_ALIGN_TEMPLATE}
-		if xSize != "" {
-			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_WIDTH_TEMPLATE, xSize))
+		if xSize != -1 {
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_WIDTH_TEMPLATE, int(xSize)))
 		}
-		if ySize != "" {
-			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_HEIGHT_TEMPLATE, ySize))
+		if ySize != -1 {
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_HEIGHT_TEMPLATE, int(ySize)))
 		}
 		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
 
-	if inline {
-		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, filename, sizeTemplate), nil
+	if isInline {
+		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, token.Filename, sizeTemplate), nil
 	}
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, filename, sizeTemplate, caption), nil
+	return fmt.Sprintf(IMAGE_TEMPLATE, token.Filename, sizeTemplate, caption), nil
 }
 
-func (g *HtmlGenerator) expandInternalLink(token string, tokenMap map[string]string) (string, error) {
-	tokenContentParts := strings.Split(tokenMap[token], " ")
+func (g *HtmlGenerator) expandInternalLink(token string, tokenMap map[string]interface{}) (string, error) {
+	tokenContentParts := strings.Split(tokenMap[token].(string), " ")
 	// Currently links are not added to the eBook, even though it's possible. Maybe this will be made configurable in
 	// the future.
 	return g.expand(tokenMap[tokenContentParts[1]], tokenMap)
 }
 
-func (g *HtmlGenerator) expandExternalLink(token string, tokenMap map[string]string) (string, error) {
-	splitToken := strings.Split(tokenMap[token], " ")
+func (g *HtmlGenerator) expandExternalLink(token string, tokenMap map[string]interface{}) (string, error) {
+	splitToken := strings.Split(tokenMap[token].(string), " ")
 	url := tokenMap[splitToken[0]]
 	text, err := g.expand(tokenMap[splitToken[1]], tokenMap)
 	if err != nil {
@@ -279,7 +288,7 @@ func (g *HtmlGenerator) expandExternalLink(token string, tokenMap map[string]str
 	return fmt.Sprintf(HREF_TEMPLATE, url, text), nil
 }
 
-func (g *HtmlGenerator) expandTable(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandTable(token string, tokenMap map[string]interface{}) (string, error) {
 	tokenContent := tokenMap[token]
 	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
 	if err != nil {
@@ -307,17 +316,17 @@ func (g *HtmlGenerator) expandTable(token string, tokenMap map[string]string) (s
 	return fmt.Sprintf(TABLE_TEMPLATE, expandedTokenContent, caption), nil
 }
 
-func (g *HtmlGenerator) expandTableRow(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandTableRow(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TABLE_TEMPLATE_ROW)
 }
 
-func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]string, template string) (string, error) {
-	tokenContent := tokenMap[token]
+func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]interface{}, template string) (string, error) {
+	tokenContent := tokenMap[token].(string)
 
 	attributes := ""
 	if strings.Contains(tokenContent, parser.TOKEN_TABLE_COL_ATTRIBUTES) {
 		attributeToken := tableColAttributeTokenRegex.FindString(tokenContent)
-		attributes = " " + tokenMap[attributeToken]
+		attributes = " " + tokenMap[attributeToken].(string)
 		tokenContent = strings.Replace(tokenContent, attributeToken, "", 1)
 	}
 
@@ -329,32 +338,32 @@ func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]stri
 	return fmt.Sprintf(template, attributes, expandedTokenContent), nil
 }
 
-func (g *HtmlGenerator) expandUnorderedList(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandUnorderedList(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_UL)
 }
 
-func (g *HtmlGenerator) expandOrderedList(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandOrderedList(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_OL)
 }
 
-func (g *HtmlGenerator) expandDescriptionList(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandDescriptionList(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_DL)
 }
 
-func (g *HtmlGenerator) expandListItem(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandListItem(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_LI)
 }
 
-func (g *HtmlGenerator) expandDescriptionHead(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandDescriptionHead(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_DT)
 }
 
-func (g *HtmlGenerator) expandDescriptionItem(token string, tokenMap map[string]string) (string, error) {
+func (g *HtmlGenerator) expandDescriptionItem(token string, tokenMap map[string]interface{}) (string, error) {
 	return g.expandSimple(token, tokenMap, TEMPLATE_DD)
 }
 
-func (g *HtmlGenerator) expandRefDefinition(token string, tokenMap map[string]string) (string, error) {
-	tokenContent := tokenMap[token]
+func (g *HtmlGenerator) expandRefDefinition(token string, tokenMap map[string]interface{}) (string, error) {
+	tokenContent := tokenMap[token].(string)
 	tokenContentParts := strings.SplitN(tokenContent, " ", 2)
 	refIndex, err := strconv.Atoi(tokenContentParts[0])
 	if err != nil {
@@ -369,8 +378,8 @@ func (g *HtmlGenerator) expandRefDefinition(token string, tokenMap map[string]st
 	return fmt.Sprintf(TEMPLATE_REF_DEF, refIndex, expandedRefContent), nil
 }
 
-func (g *HtmlGenerator) expandRefUsage(token string, tokenMap map[string]string) (string, error) {
-	tokenContent := tokenMap[token]
+func (g *HtmlGenerator) expandRefUsage(token string, tokenMap map[string]interface{}) (string, error) {
+	tokenContent := tokenMap[token].(string)
 	tokenContentParts := strings.SplitN(tokenContent, " ", 2)
 	refIndex, err := strconv.Atoi(tokenContentParts[0])
 	if err != nil {
@@ -381,8 +390,8 @@ func (g *HtmlGenerator) expandRefUsage(token string, tokenMap map[string]string)
 }
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
-func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]string) (string, error) {
-	svgFilename, pngFilename, err := api.RenderMath(tokenMap[token], g.imageCacheFolder, g.mathCacheFolder)
+func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]interface{}) (string, error) {
+	svgFilename, pngFilename, err := api.RenderMath(tokenMap[token].(string), g.imageCacheFolder, g.mathCacheFolder)
 	if err != nil {
 		return "", err
 	}
@@ -397,7 +406,7 @@ func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]string) (st
 	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
 }
 
-func (g *HtmlGenerator) expandSimple(token string, tokenMap map[string]string, template string) (string, error) {
+func (g *HtmlGenerator) expandSimple(token string, tokenMap map[string]interface{}, template string) (string, error) {
 	tokenContent := tokenMap[token]
 	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
 	if err != nil {

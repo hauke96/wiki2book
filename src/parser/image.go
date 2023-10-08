@@ -17,6 +17,19 @@ var imageNonInlineParameters = []string{
 	"thumb",
 }
 
+type ImageCaptionToken struct {
+	Token
+	Content []Token
+}
+
+type ImageToken struct {
+	Token
+	Filename        string
+	CaptionTokenKey string // TODO rename when TokenKey type exists
+	SizeX           int
+	SizeY           int
+}
+
 // escapeImages escapes the image names in the image specification and returns the updated spec. The spec is expected to
 // be the complete spec, not just the image name, so everything between "[[" and "]]". If the media type if not
 // supported, an empty string is returned.
@@ -169,6 +182,8 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 }
 
 func (t *Tokenizer) parseImages(content string) string {
+	var err error
+
 	startIndex := internalLinkStartRegex.FindStringIndex(content)
 	for startIndex != nil {
 		// Use the end-index of the match, since it points to the ":" of the "[[File:" match
@@ -187,12 +202,11 @@ func (t *Tokenizer) parseImages(content string) string {
 
 			filename := strings.SplitN(options[0], ":", 2)[1]
 			imageFilepath := filepath.Join(t.imageFolder, filename)
-			filenameToken := t.getToken(TOKEN_IMAGE_FILENAME)
-			t.setRawToken(filenameToken, imageFilepath)
 
-			tokenKey := TOKEN_IMAGE_INLINE
-			imageSizeToken := ""
+			tokenType := TOKEN_IMAGE_INLINE
 			captionToken := ""
+			ySizeInt := -1
+			xSizeInt := -1
 
 			// Do some cleanup: Remove definitely uninteresting options.
 			var filteredOptions []string
@@ -204,7 +218,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 			for i, option := range filteredOptions {
 				if util.ElementHasPrefix(option, imageNonInlineParameters) {
-					tokenKey = TOKEN_IMAGE
+					tokenType = TOKEN_IMAGE
 				} else if strings.HasSuffix(option, "px") {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
@@ -222,33 +236,35 @@ func (t *Tokenizer) parseImages(content string) string {
 						sigolo.Error("Invalid size specification %spx of image %s", option, filename)
 					}
 
-					xSizeInt, _ := strconv.Atoi(xSize)
-					ySizeInt, _ := strconv.Atoi(ySize)
-					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
-					if ySizeInt >= 50 || xSizeInt >= 100 {
-						tokenKey = TOKEN_IMAGE
+					xSizeInt, err = strconv.Atoi(xSize)
+					if err != nil {
+						xSizeInt = -1
 					}
 
-					imageSizeString := fmt.Sprintf("%sx%s", xSize, ySize)
-					imageSizeToken = t.getToken(TOKEN_IMAGE_SIZE)
-					t.setRawToken(imageSizeToken, imageSizeString)
-				} else if i == len(filteredOptions)-1 && tokenKey == TOKEN_IMAGE {
+					ySizeInt, err = strconv.Atoi(ySize)
+					if err != nil {
+						ySizeInt = -1
+					}
+
+					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
+					if ySizeInt >= 50 || xSizeInt >= 100 {
+						tokenType = TOKEN_IMAGE
+					}
+				} else if i == len(filteredOptions)-1 && tokenType == TOKEN_IMAGE {
 					// Last remaining option is the caption. We ignore captions on inline images.
 					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
 					t.setToken(captionToken, option)
 				}
 			}
 
-			token := t.getToken(tokenKey)
-			resultTokenContent := filenameToken
-			if captionToken != "" {
-				resultTokenContent += " " + captionToken
+			imageToken := &ImageToken{
+				Filename:        imageFilepath,
+				CaptionTokenKey: captionToken,
+				SizeX:           xSizeInt,
+				SizeY:           ySizeInt,
 			}
-
-			if imageSizeToken != "" {
-				resultTokenContent += " " + imageSizeToken
-			}
-			t.setRawToken(token, resultTokenContent)
+			token := t.getToken(tokenType)
+			t.setRawToken(token, imageToken)
 
 			content = content[0:startIndex[0]] + token + content[endIndex+2:]
 		}

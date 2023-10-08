@@ -14,7 +14,7 @@ func TestParseHeading(t *testing.T) {
 		content := tokenizer.parseHeadings(fmt.Sprintf("%s h%d %s", headingPrefixSuffix, i, headingPrefixSuffix))
 		token := fmt.Sprintf(TOKEN_TEMPLATE, fmt.Sprintf(TOKEN_HEADING_TEMPLATE, i), 0)
 		test.AssertEqual(t, token, content)
-		test.AssertEqual(t, map[string]string{
+		test.AssertMapEqual(t, map[string]interface{}{
 			token: fmt.Sprintf("h%d", i),
 		}, tokenizer.getTokenMap())
 	}
@@ -25,7 +25,7 @@ func TestParseHeading_withFormatting(t *testing.T) {
 	content := tokenizer.parseHeadings("== H2 ''with formatting'' ==")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_2_0$$", content)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		"$$TOKEN_HEADING_2_0$$": "H2 $$MARKER_ITALIC_OPEN$$with formatting$$MARKER_ITALIC_CLOSE$$",
 	}, tokenizer.getTokenMap())
 }
@@ -35,7 +35,7 @@ func TestParseHeading_withSpacesAroundEqualCharacters(t *testing.T) {
 	content := tokenizer.parseHeadings("  == foo == ")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_2_0$$", content)
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]interface{}{
 		"$$TOKEN_HEADING_2_0$$": "foo",
 	}, tokenizer.getTokenMap())
 }
@@ -61,7 +61,7 @@ $$TOKEN_HEADING_1_3$$
 1
 $$TOKEN_HEADING_3_1$$
 3-2`, content)
-	test.AssertEqual(t, map[string]string{
+	test.AssertEqual(t, map[string]interface{}{
 		"$$TOKEN_HEADING_3_0$$": "heading3",
 		"$$TOKEN_HEADING_3_1$$": "heading3-2",
 		"$$TOKEN_HEADING_2_2$$": "heading2",
