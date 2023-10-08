@@ -149,7 +149,6 @@ func (t *Tokenizer) getTokenMap() map[string]interface{} {
 	return t.tokenMap
 }
 
-// TODO rename to "getTokenKey"
 func (t *Tokenizer) getToken(tokenType string) string {
 	token := fmt.Sprintf(TOKEN_TEMPLATE, tokenType, t.tokenCounter)
 	t.tokenCounter++

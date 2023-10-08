@@ -144,11 +144,10 @@ func TestParseImages_withEscaping(t *testing.T) {
 	content := tokenizer.parseImages("blubb [[file:nice image.jpg]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_0$$": &ImageToken{
-			Filename:        "foo/Nice_image.jpg",
-			CaptionTokenKey: "",
-			SizeX:           -1,
-			SizeY:           -1,
+		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_0$$": &InlineImageToken{
+			Filename: "foo/Nice_image.jpg",
+			SizeX:    -1,
+			SizeY:    -1,
 		},
 	}, tokenizer.getTokenMap())
 

@@ -126,9 +126,10 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 	var html = ""
 
 	switch token.(type) {
-	case parser.ImageToken:
-		// TODO Replace "true" by correct boolean whether or not image is inlines
-		html, err = g.expandImage(token.(*parser.ImageToken), true, tokenMap)
+	case *parser.InlineImageToken:
+		html, err = g.expandInlineImage(token.(*parser.InlineImageToken))
+	case *parser.ImageToken:
+		html, err = g.expandImage(token.(*parser.ImageToken), tokenMap)
 	}
 
 	if err != nil {
@@ -185,9 +186,9 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
 			html, err = g.expandDescriptionItem(submatch[0], tokenMap)
 		case parser.TOKEN_IMAGE_INLINE:
-			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), true, tokenMap)
+			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
 		case parser.TOKEN_IMAGE:
-			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), false, tokenMap)
+			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
 		case parser.TOKEN_MATH:
 			html, err = g.expandMath(submatch[0], tokenMap)
 		case parser.TOKEN_HEADING_1:
@@ -235,8 +236,12 @@ func (g *HtmlGenerator) expandHeadings(token string, tokenMap map[string]interfa
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, level, title, level), tokenMap)
 }
 
-// TODO maybe remove "isInline" and use separate token type for inline images?
-func (g *HtmlGenerator) expandImage(token *parser.ImageToken, isInline bool, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandInlineImage(token *parser.InlineImageToken) (string, error) {
+	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
+	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, token.Filename, sizeTemplate), nil
+}
+
+func (g *HtmlGenerator) expandImage(token *parser.ImageToken, tokenMap map[string]interface{}) (string, error) {
 	caption := ""
 	var err error = nil
 
@@ -248,9 +253,12 @@ func (g *HtmlGenerator) expandImage(token *parser.ImageToken, isInline bool, tok
 		}
 	}
 
-	xSize := token.SizeX
-	ySize := token.SizeY
+	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
+	return fmt.Sprintf(IMAGE_TEMPLATE, token.Filename, sizeTemplate, caption), nil
+}
+
+func expandSizeTemplate(xSize int, ySize int) string {
 	sizeTemplate := ""
 	if xSize != -1 || ySize != -1 {
 		styles := []string{IMAGE_SIZE_ALIGN_TEMPLATE}
@@ -262,12 +270,7 @@ func (g *HtmlGenerator) expandImage(token *parser.ImageToken, isInline bool, tok
 		}
 		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
-
-	if isInline {
-		return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, token.Filename, sizeTemplate), nil
-	}
-
-	return fmt.Sprintf(IMAGE_TEMPLATE, token.Filename, sizeTemplate, caption), nil
+	return sizeTemplate
 }
 
 func (g *HtmlGenerator) expandInternalLink(token string, tokenMap map[string]interface{}) (string, error) {

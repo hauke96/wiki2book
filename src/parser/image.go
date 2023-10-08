@@ -17,17 +17,19 @@ var imageNonInlineParameters = []string{
 	"thumb",
 }
 
-type ImageCaptionToken struct {
-	Token
-	Content []Token
-}
-
 type ImageToken struct {
 	Token
 	Filename        string
 	CaptionTokenKey string // TODO rename when TokenKey type exists
 	SizeX           int
 	SizeY           int
+}
+
+type InlineImageToken struct {
+	Token
+	Filename string
+	SizeX    int
+	SizeY    int
 }
 
 // escapeImages escapes the image names in the image specification and returns the updated spec. The spec is expected to
@@ -257,11 +259,20 @@ func (t *Tokenizer) parseImages(content string) string {
 				}
 			}
 
-			imageToken := &ImageToken{
-				Filename:        imageFilepath,
-				CaptionTokenKey: captionToken,
-				SizeX:           xSizeInt,
-				SizeY:           ySizeInt,
+			var imageToken Token
+			if tokenType == TOKEN_IMAGE_INLINE {
+				imageToken = &InlineImageToken{
+					Filename: imageFilepath,
+					SizeX:    xSizeInt,
+					SizeY:    ySizeInt,
+				}
+			} else {
+				imageToken = &ImageToken{
+					Filename:        imageFilepath,
+					CaptionTokenKey: captionToken,
+					SizeX:           xSizeInt,
+					SizeY:           ySizeInt,
+				}
 			}
 			token := t.getToken(tokenType)
 			t.setRawToken(token, imageToken)

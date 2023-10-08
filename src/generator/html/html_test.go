@@ -52,7 +52,7 @@ some <b>caption</b>
 		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
 	}
 
-	actualResult, err := generator.expandImage(token, false, tokenMap)
+	actualResult, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 
@@ -79,7 +79,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 		tokenImage: token,
 	}
 
-	actualResult, err := generator.expandImage(token, false, tokenMap)
+	actualResult, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -105,7 +105,7 @@ some <b>caption</b>
 		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
 	}
 
-	actualResult, err := generator.expandImage(token, false, tokenMap)
+	actualResult, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 
@@ -129,7 +129,7 @@ some <b>caption</b>
 		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
 	}
 
-	actualResult, err = generator.expandImage(token, false, tokenMap)
+	actualResult, err = generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -138,18 +138,17 @@ func TestExpandImageInline(t *testing.T) {
 	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
-	token := &parser.ImageToken{
-		Filename:        "foo/image.jpg",
-		CaptionTokenKey: tokenCaption,
-		SizeX:           10,
-		SizeY:           20,
+	token := &parser.InlineImageToken{
+		Filename: "foo/image.jpg",
+		SizeX:    10,
+		SizeY:    20,
 	}
 	tokenMap := map[string]interface{}{
 		tokenImage:   token,
 		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
 	}
 
-	actualResult, err := generator.expandImage(token, true, tokenMap)
+	actualResult, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
