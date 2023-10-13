@@ -94,13 +94,13 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		var token Token
 		var linkTokenKey string
 		if linkType == LINK_TYPE_INTERNAL {
-			token = &InternalLinkToken{
+			token = InternalLinkToken{
 				ArticleName: linkTarget,
 				LinkText:    t.tokenizeContent(t, linkText),
 			}
 			linkTokenKey = TOKEN_INTERNAL_LINK
 		} else {
-			token = &ExternalLinkToken{
+			token = ExternalLinkToken{
 				URL:      linkTarget,
 				LinkText: t.tokenizeContent(t, linkText),
 			}

@@ -261,13 +261,13 @@ func (t *Tokenizer) parseImages(content string) string {
 
 			var imageToken Token
 			if tokenType == TOKEN_IMAGE_INLINE {
-				imageToken = &InlineImageToken{
+				imageToken = InlineImageToken{
 					Filename: imageFilepath,
 					SizeX:    xSizeInt,
 					SizeY:    ySizeInt,
 				}
 			} else {
-				imageToken = &ImageToken{
+				imageToken = ImageToken{
 					Filename:        imageFilepath,
 					CaptionTokenKey: captionToken,
 					SizeX:           xSizeInt,

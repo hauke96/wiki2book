@@ -25,11 +25,40 @@ bar
 end
 `, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3))
 	test.AssertEqual(t, expectedTokenizedContent, newContent)
+	item0 := ListItemToken{Content: " a"}
+	item2 := ListItemToken{Content: " b"}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3):   fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " a",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      " b",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): UnorderedListToken{Items: []ListToken{item0}},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      item2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3):   OrderedListToken{Items: []ListToken{item2}},
+	}, tokenizer.getTokenMap())
+}
+func TestParseList_withIndentation(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `   foo
+  * a
+   bar
+ # b
+     end
+`
+
+	newContent := tokenizer.parseLists(content)
+
+	expectedTokenizedContent := fmt.Sprintf(`   foo
+%s
+   bar
+%s
+     end
+`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3))
+	test.AssertEqual(t, expectedTokenizedContent, newContent)
+	item0 := ListItemToken{Content: " a"}
+	item2 := ListItemToken{Content: " b"}
+	test.AssertMapEqual(t, map[string]interface{}{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): UnorderedListToken{Items: []ListToken{item0}},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      item2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 3):   OrderedListToken{Items: []ListToken{item2}},
 	}, tokenizer.getTokenMap())
 }
 
@@ -74,13 +103,18 @@ func TestTokenizeList(t *testing.T) {
 end of list
 `
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2), token)
+	item0 := ListItemToken{Content: " foo"}
+	item1 := ListItemToken{Content: " bar"}
+	list2 := UnorderedListToken{Items: []ListToken{item0, item1}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list2, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " bar",
+		expectedTokenKey: list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1): item1,
 	}, tokenizer.getTokenMap())
 }
 
@@ -93,33 +127,51 @@ func TestTokenizeList_twoTypesBelowEachOther(t *testing.T) {
 end of list
 `
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2), token)
+	item0 := ListItemToken{Content: " a"}
+	item1 := ListItemToken{Content: " A"}
+	list2 := UnorderedListToken{Items: []ListToken{item0, item1}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list2, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " a",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " A",
+		expectedTokenKey: list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1): item1,
 	}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeList_withSubList(t *testing.T) {
 	content := `stuff before list
 * foo
+* bar1
 ** b''a''r
-* bar
+** f''o''o
+* bar2
 end of list
 `
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
-	test.AssertEqual(t, 4, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4), token)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
+	test.AssertEqual(t, 6, i)
+	item0 := ListItemToken{Content: " foo"}
+	item1 := ListItemToken{Content: " bar1"}
+	item2 := ListItemToken{Content: fmt.Sprintf(" b%sa%sr", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE)}
+	item3 := ListItemToken{Content: fmt.Sprintf(" f%so%so", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE)}
+	list4 := UnorderedListToken{Items: []ListToken{item2, item3}}
+	item5 := ListItemToken{Content: " bar2"}
+	list6 := UnorderedListToken{Items: []ListToken{item0, item1, list4, item5}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list6, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2, TOKEN_LIST_ITEM, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      fmt.Sprintf(" foo "+TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      fmt.Sprintf(" b%sa%sr", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):      " bar",
+		expectedTokenKey: list6,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      item1,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):      item2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):      item3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): list4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 5):      item5,
 	}, tokenizer.getTokenMap())
 }
 
@@ -130,34 +182,47 @@ func TestTokenizeList_higherLevelStart(t *testing.T) {
 end of list
 `
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4), token)
+	item0 := ListItemToken{Content: " foo"}
+	item1 := ListItemToken{Content: " bar"}
+	list2 := UnorderedListToken{Items: []ListToken{item0, item1}}
+	list3 := UnorderedListToken{Items: []ListToken{list2}}
+	list4 := UnorderedListToken{Items: []ListToken{list3}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list4, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0, TOKEN_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      " bar",
+		expectedTokenKey: list4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3): list3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2): list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):      item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 1):      item1,
 	}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeDescriptionList(t *testing.T) {
 	content := `bla
-; foo: bar
-: blubb
-blubb`
+; foo : bar
+; blubb
+end`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3), token)
+	item0 := DescriptionListHeadToken{ListItemToken{Content: " foo "}}
+	item1 := DescriptionListItemToken{ListItemToken{Content: " bar"}}
+	item2 := DescriptionListHeadToken{ListItemToken{Content: " blubb"}}
+	list3 := DescriptionListToken{Items: []ListToken{item0, item1, item2}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list3, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): " blubb",
+		expectedTokenKey: list3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): item1,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 2): item2,
 	}, tokenizer.getTokenMap())
 }
 
@@ -168,14 +233,19 @@ func TestTokenizeDescriptionList_headingIsSecondItem(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2), token)
+	item0 := DescriptionListItemToken{ListItemToken{Content: " foo"}}
+	item1 := DescriptionListHeadToken{ListItemToken: ListItemToken{Content: " bar"}}
+	list2 := DescriptionListToken{Items: []ListToken{item0, item1}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list2, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_HEAD, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 1): " bar",
+		expectedTokenKey: list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 1): item1,
 	}, tokenizer.getTokenMap())
 }
 
@@ -186,14 +256,19 @@ func TestTokenizeDescriptionList_withoutHeading(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2), token)
+	item0 := DescriptionListItemToken{ListItemToken{Content: " foo"}}
+	item1 := DescriptionListItemToken{ListItemToken{Content: " bar"}}
+	list2 := DescriptionListToken{Items: []ListToken{item0, item1}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list2, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
+		expectedTokenKey: list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): item1,
 	}, tokenizer.getTokenMap())
 }
 
@@ -204,16 +279,23 @@ func TestTokenizeDescriptionList_deepBeginning(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ":", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ":")
 
 	test.AssertEqual(t, 3, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4), token)
+	item0 := DescriptionListItemToken{ListItemToken{Content: " foo"}}
+	item1 := DescriptionListItemToken{ListItemToken{Content: " bar"}}
+	list2 := DescriptionListToken{Items: []ListToken{item0, item1}}
+	list3 := DescriptionListToken{Items: []ListToken{list2}}
+	list4 := DescriptionListToken{Items: []ListToken{list3}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list4, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 4):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): " foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " bar",
+		expectedTokenKey: list4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      list3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      list2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 0): item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): item1,
 	}, tokenizer.getTokenMap())
 }
 
@@ -225,15 +307,21 @@ func TestTokenizeDescriptionList_withEmptyItem(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 4, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3), token)
+	head0 := DescriptionListHeadToken{ListItemToken{Content: " list"}}
+	item1 := DescriptionListItemToken{ListItemToken{Content: ""}}
+	item2 := DescriptionListItemToken{ListItemToken{Content: " bar"}}
+	list4 := DescriptionListToken{Items: []ListToken{head0, item1, item2}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list4, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): "",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): " bar",
+		expectedTokenKey: list4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): head0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): item1,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): item2,
 	}, tokenizer.getTokenMap())
 }
 
@@ -247,21 +335,27 @@ func TestTokenizeDescriptionList_withOtherSubList(t *testing.T) {
 blubb`
 
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";", TOKEN_DESCRIPTION_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 6, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9), token)
+	head0 := DescriptionListHeadToken{ListItemToken{Content: " list"}}
+	item1 := DescriptionListItemToken{ListItemToken{Content: " foo1"}}
+	item2 := ListItemToken{Content: " bar1"}
+	item3 := ListItemToken{Content: " bar2"}
+	list4 := UnorderedListToken{Items: []ListToken{item2, item3}}
+	item5 := DescriptionListItemToken{ListItemToken{Content: " foo2"}}
+	list6 := DescriptionListToken{Items: []ListToken{head0, item1, list4, item5}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 6)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list6, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 9):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1, TOKEN_DESCRIPTION_LIST_ITEM, 4, TOKEN_DESCRIPTION_LIST_ITEM, 7, TOKEN_DESCRIPTION_LIST_ITEM, 8),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " list",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " foo1",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 4): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 3):        fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):             " bar1",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 7): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 6):        fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 5),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 5):             " bar2",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 8): " foo2",
+		expectedTokenKey: list6,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): head0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): item1,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 2):             item2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):             item3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 4):        list4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 5): item5,
 	}, tokenizer.getTokenMap())
 }
 
@@ -274,16 +368,25 @@ func TestTokenizeList_withDescriptionSubList(t *testing.T) {
 end of list
 `
 	tokenizer := NewTokenizer("foo", "bar")
-	token, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*", TOKEN_UNORDERED_LIST)
+	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 5, i)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5), token)
+	item0 := ListItemToken{Content: " foo"}
+	head1 := DescriptionListHeadToken{ListItemToken{Content: " descr"}}
+	item2 := DescriptionListItemToken{ListItemToken{Content: " descr-item"}}
+	list3 := DescriptionListToken{Items: []ListToken{head1, item2}}
+	item4 := ListItemToken{Content: " bar"}
+	list5 := UnorderedListToken{Items: []ListToken{item0, list3, item4}}
+	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5)
+	test.AssertEqual(t, expectedTokenKey, tokenKey)
+	test.AssertEqual(t, list5, token)
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5):        fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3, TOKEN_LIST_ITEM, 4),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 3):             fmt.Sprintf(" foo "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 4):             " bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2):      fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0, TOKEN_DESCRIPTION_LIST_ITEM, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 0): " descr",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 1): " descr-item",
+		expectedTokenKey: list5,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 0):             item0,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_HEAD, 1): head1,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST_ITEM, 2): item2,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 3):      list3,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_LIST_ITEM, 4):             item4,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 5):        list5,
 	}, tokenizer.getTokenMap())
 }
 

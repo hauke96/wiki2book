@@ -98,7 +98,7 @@ after`
 		// row 1: internal link
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 8): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6, TOKEN_TABLE_COL, 7),
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6): fmt.Sprintf("foo "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5): &InternalLinkToken{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5): InternalLinkToken{
 			ArticleName: "internal",
 			LinkText:    "internal",
 		},

@@ -11,7 +11,7 @@ func TestParseInternalLinks(t *testing.T) {
 	content := tokenizer.parseInternalLinks("foo [[internal link]]")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
 			ArticleName: "internal link",
 			LinkText:    "internal link",
 		},
@@ -21,7 +21,7 @@ func TestParseInternalLinks(t *testing.T) {
 	content = tokenizer.parseInternalLinks("foo [[internal link|bar]] abc")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$ abc", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
 			ArticleName: "internal link",
 			LinkText:    "bar",
 		},
@@ -38,7 +38,7 @@ func TestParseInternalLinks_withFile(t *testing.T) {
 	content = tokenizer.parseInternalLinks("foo [[file:external-link.jpg|foo [[bar]]]]")
 	test.AssertEqual(t, "foo [[file:external-link.jpg|foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$]]", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
 			ArticleName: "bar",
 			LinkText:    "bar",
 		},
@@ -51,7 +51,7 @@ func TestParseInternalLinks_withSectionReference(t *testing.T) {
 	content := tokenizer.parseInternalLinks("foo [[article#section]]")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
 			ArticleName: "article",
 			LinkText:    "article",
 		},
@@ -70,7 +70,7 @@ func TestParseMixedLinks(t *testing.T) {
 	content := tokenizer.parseInternalLinks("foo [http://bar.com Has [[internal link]]]")
 	test.AssertEqual(t, "foo [http://bar.com Has $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$]", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": &InternalLinkToken{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
 			ArticleName: "internal link",
 			LinkText:    "internal link",
 		},
@@ -82,7 +82,7 @@ func TestParseExternalLinks(t *testing.T) {
 	content := tokenizer.parseExternalLinks("foo [http://bar.com website]")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_EXTERNAL_LINK+"_0$$", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$": &ExternalLinkToken{
+		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$": ExternalLinkToken{
 			URL:      "http://bar.com",
 			LinkText: "website",
 		},
@@ -92,7 +92,7 @@ func TestParseExternalLinks(t *testing.T) {
 	content = tokenizer.parseExternalLinks("foo [http://bar.com website] abc")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_EXTERNAL_LINK+"_0$$ abc", content)
 	test.AssertMapEqual(t, map[string]interface{}{
-		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$": &ExternalLinkToken{
+		"$$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$": ExternalLinkToken{
 			URL:      "http://bar.com",
 			LinkText: "website",
 		},

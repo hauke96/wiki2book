@@ -126,16 +126,28 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 	var html = ""
 
 	switch token.(type) {
-	case *parser.HeadingToken:
-		html, err = g.expandHeadings(token.(*parser.HeadingToken), tokenMap)
-	case *parser.InlineImageToken:
-		html, err = g.expandInlineImage(token.(*parser.InlineImageToken))
-	case *parser.ImageToken:
-		html, err = g.expandImage(token.(*parser.ImageToken), tokenMap)
-	case parser.InternalLinkToken:
-		html, err = g.expandExternalLink(token.(*parser.ExternalLinkToken), tokenMap)
+	case parser.HeadingToken:
+		html, err = g.expandHeadings(token.(parser.HeadingToken), tokenMap)
+	case parser.InlineImageToken:
+		html, err = g.expandInlineImage(token.(parser.InlineImageToken))
+	case parser.ImageToken:
+		html, err = g.expandImage(token.(parser.ImageToken), tokenMap)
 	case parser.ExternalLinkToken:
-		html, err = g.expandInternalLink(token.(*parser.InternalLinkToken), tokenMap)
+		html, err = g.expandExternalLink(token.(parser.ExternalLinkToken), tokenMap)
+	case parser.InternalLinkToken:
+		html, err = g.expandInternalLink(token.(parser.InternalLinkToken), tokenMap)
+	case parser.UnorderedListToken:
+		html, err = g.expandUnorderedList(token.(parser.UnorderedListToken), tokenMap)
+	case parser.OrderedListToken:
+		html, err = g.expandOrderedList(token.(parser.OrderedListToken), tokenMap)
+	case parser.DescriptionListToken:
+		html, err = g.expandDescriptionList(token.(parser.DescriptionListToken), tokenMap)
+	case parser.ListItemToken:
+		html, err = g.expandListItem(token.(parser.ListItemToken), tokenMap)
+	case parser.DescriptionListHeadToken:
+		html, err = g.expandDescriptionHead(token.(parser.DescriptionListHeadToken), tokenMap)
+	case parser.DescriptionListItemToken:
+		html, err = g.expandDescriptionItem(token.(parser.DescriptionListItemToken), tokenMap)
 	}
 
 	if err != nil {
@@ -167,10 +179,10 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		var err error = nil
 
 		switch submatch[1] {
-		case parser.TOKEN_EXTERNAL_LINK:
-			html, err = g.expandExternalLink(tokenMap[submatch[0]].(*parser.ExternalLinkToken), tokenMap)
-		case parser.TOKEN_INTERNAL_LINK:
-			html, err = g.expandInternalLink(tokenMap[submatch[0]].(*parser.InternalLinkToken), tokenMap)
+		//case parser.TOKEN_EXTERNAL_LINK:
+		//	html, err = g.expandExternalLink(tokenMap[submatch[0]].(*parser.ExternalLinkToken), tokenMap)
+		//case parser.TOKEN_INTERNAL_LINK:
+		//	html, err = g.expandInternalLink(tokenMap[submatch[0]].(*parser.InternalLinkToken), tokenMap)
 		case parser.TOKEN_TABLE:
 			html, err = g.expandTable(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_HEAD:
@@ -179,30 +191,32 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 			html, err = g.expandTableRow(submatch[0], tokenMap)
 		case parser.TOKEN_TABLE_COL:
 			html, err = g.expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_COL)
-		case parser.TOKEN_UNORDERED_LIST:
-			html, err = g.expandUnorderedList(submatch[0], tokenMap)
-		case parser.TOKEN_ORDERED_LIST:
-			html, err = g.expandOrderedList(submatch[0], tokenMap)
-		case parser.TOKEN_DESCRIPTION_LIST:
-			html, err = g.expandDescriptionList(submatch[0], tokenMap)
-		case parser.TOKEN_LIST_ITEM:
-			html, err = g.expandListItem(submatch[0], tokenMap)
-		case parser.TOKEN_DESCRIPTION_LIST_HEAD:
-			html, err = g.expandDescriptionHead(submatch[0], tokenMap)
-		case parser.TOKEN_DESCRIPTION_LIST_ITEM:
-			html, err = g.expandDescriptionItem(submatch[0], tokenMap)
-		case parser.TOKEN_IMAGE_INLINE:
-			html, err = g.expandInlineImage(tokenMap[submatch[0]].(*parser.InlineImageToken))
-		case parser.TOKEN_IMAGE:
-			html, err = g.expandImage(tokenMap[submatch[0]].(*parser.ImageToken), tokenMap)
+		//case parser.TOKEN_UNORDERED_LIST:
+		//	html, err = g.expandUnorderedList(submatch[0], tokenMap)
+		//case parser.TOKEN_ORDERED_LIST:
+		//	html, err = g.expandOrderedList(submatch[0], tokenMap)
+		//case parser.TOKEN_DESCRIPTION_LIST:
+		//	html, err = g.expandDescriptionList(submatch[0], tokenMap)
+		//case parser.TOKEN_LIST_ITEM:
+		//	html, err = g.expandListItem(submatch[0], tokenMap)
+		//case parser.TOKEN_DESCRIPTION_LIST_HEAD:
+		//	html, err = g.expandDescriptionHead(submatch[0], tokenMap)
+		//case parser.TOKEN_DESCRIPTION_LIST_ITEM:
+		//	html, err = g.expandDescriptionItem(submatch[0], tokenMap)
+		//case parser.TOKEN_IMAGE_INLINE:
+		//	html, err = g.expandInlineImage(tokenMap[submatch[0]].(parser.InlineImageToken))
+		//case parser.TOKEN_IMAGE:
+		//	html, err = g.expandImage(tokenMap[submatch[0]].(parser.ImageToken), tokenMap)
 		case parser.TOKEN_MATH:
 			html, err = g.expandMath(submatch[0], tokenMap)
-		case parser.TOKEN_HEADING:
-			html, err = g.expandHeadings(tokenMap[submatch[0]].(*parser.HeadingToken), tokenMap)
+		//case parser.TOKEN_HEADING:
+		//	html, err = g.expandHeadings(tokenMap[submatch[0]].(parser.HeadingToken), tokenMap)
 		case parser.TOKEN_REF_DEF:
 			html, err = g.expandRefDefinition(submatch[0], tokenMap)
 		case parser.TOKEN_REF_USAGE:
 			html, err = g.expandRefUsage(submatch[0], tokenMap)
+		default:
+			html, err = g.expand(tokenMap[submatch[0]], tokenMap)
 		}
 		if err != nil {
 			return "", err
@@ -227,7 +241,7 @@ func (g *HtmlGenerator) expandMarker(content string) string {
 }
 
 // expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
-func (g *HtmlGenerator) expandHeadings(token *parser.HeadingToken, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken, tokenMap map[string]interface{}) (string, error) {
 	expandedHeadingText, err := g.expand(token.Content, tokenMap)
 	if err != nil {
 		return "", err
@@ -235,12 +249,12 @@ func (g *HtmlGenerator) expandHeadings(token *parser.HeadingToken, tokenMap map[
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth), tokenMap)
 }
 
-func (g *HtmlGenerator) expandInlineImage(token *parser.InlineImageToken) (string, error) {
+func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, token.Filename, sizeTemplate), nil
 }
 
-func (g *HtmlGenerator) expandImage(token *parser.ImageToken, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandImage(token parser.ImageToken, tokenMap map[string]interface{}) (string, error) {
 	caption := ""
 	var err error = nil
 
@@ -272,13 +286,13 @@ func expandSizeTemplate(xSize int, ySize int) string {
 	return sizeTemplate
 }
 
-func (g *HtmlGenerator) expandInternalLink(token *parser.InternalLinkToken, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandInternalLink(token parser.InternalLinkToken, tokenMap map[string]interface{}) (string, error) {
 	// Currently links are not added to the eBook, even though it's possible. Maybe this will be made configurable in
 	// the future.
 	return g.expand(token.LinkText, tokenMap)
 }
 
-func (g *HtmlGenerator) expandExternalLink(token *parser.ExternalLinkToken, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken, tokenMap map[string]interface{}) (string, error) {
 	text, err := g.expand(token.LinkText, tokenMap)
 	if err != nil {
 		return "", err
@@ -337,28 +351,28 @@ func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]inte
 	return fmt.Sprintf(template, attributes, expandedTokenContent), nil
 }
 
-func (g *HtmlGenerator) expandUnorderedList(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_UL)
+func (g *HtmlGenerator) expandUnorderedList(token parser.UnorderedListToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandListItems(token.Items, tokenMap, TEMPLATE_UL)
 }
 
-func (g *HtmlGenerator) expandOrderedList(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_OL)
+func (g *HtmlGenerator) expandOrderedList(token parser.OrderedListToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandListItems(token.Items, tokenMap, TEMPLATE_OL)
 }
 
-func (g *HtmlGenerator) expandDescriptionList(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_DL)
+func (g *HtmlGenerator) expandDescriptionList(token parser.DescriptionListToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandListItems(token.Items, tokenMap, TEMPLATE_DL)
 }
 
-func (g *HtmlGenerator) expandListItem(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_LI)
+func (g *HtmlGenerator) expandListItem(token parser.ListItemToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandContent(token.Content, tokenMap, TEMPLATE_LI)
 }
 
-func (g *HtmlGenerator) expandDescriptionHead(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_DT)
+func (g *HtmlGenerator) expandDescriptionHead(token parser.DescriptionListHeadToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandContent(token.Content, tokenMap, TEMPLATE_DT)
 }
 
-func (g *HtmlGenerator) expandDescriptionItem(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TEMPLATE_DD)
+func (g *HtmlGenerator) expandDescriptionItem(token parser.DescriptionListItemToken, tokenMap map[string]interface{}) (string, error) {
+	return g.expandContent(token.Content, tokenMap, TEMPLATE_DD)
 }
 
 func (g *HtmlGenerator) expandRefDefinition(token string, tokenMap map[string]interface{}) (string, error) {
@@ -408,6 +422,35 @@ func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]interface{}
 func (g *HtmlGenerator) expandSimple(token string, tokenMap map[string]interface{}, template string) (string, error) {
 	tokenContent := tokenMap[token]
 	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(template, expandedTokenContent), nil
+}
+
+func (g *HtmlGenerator) expandListItems(items []parser.ListToken, tokenMap map[string]interface{}, template string) (string, error) {
+	var expandedItems []string
+
+	for _, item := range items {
+		expandedItem, err := g.expand(item, tokenMap)
+		if err != nil {
+			return "", err
+		}
+
+		expandedItems = append(expandedItems, expandedItem)
+	}
+
+	expandedTokenContent, err := g.expand(strings.Join(expandedItems, "\n"), tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(template, expandedTokenContent), nil
+}
+
+func (g *HtmlGenerator) expandContent(content string, tokenMap map[string]interface{}, template string) (string, error) {
+	expandedTokenContent, err := g.expand(content, tokenMap)
 	if err != nil {
 		return "", err
 	}

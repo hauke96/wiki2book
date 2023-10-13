@@ -25,7 +25,7 @@ func (t *Tokenizer) parseHeadings(content string) string {
 				headingText = strings.TrimSpace(headingText)
 
 				token := t.getToken(TOKEN_HEADING)
-				t.setRawToken(token, &HeadingToken{
+				t.setRawToken(token, HeadingToken{
 					Content: t.tokenizeContent(t, headingText),
 					Depth:   depth,
 				})
