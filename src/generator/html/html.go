@@ -61,23 +61,23 @@ const TABLE_TEMPLATE_COL = `<td%s>
 </td>
 `
 const TEMPLATE_UL = `<ul>
-%s</ul>`
+%s
+</ul>`
 const TEMPLATE_OL = `<ol>
-%s</ol>`
+%s
+</ol>`
 const TEMPLATE_DL = `<div class="description-list">
-%s</div>` // Use bare div-tags instead of <dl> due to eBook-reader incompatibilities :(
+%s
+</div>` // Use bare div-tags instead of <dl> due to eBook-reader incompatibilities :(
 const TEMPLATE_LI = `<li>
 %s
-</li>
-`
+</li>`
 const TEMPLATE_DT = `<div class="dt">
 %s
-</div>
-`
+</div>`
 const TEMPLATE_DD = `<div class="dd">
 %s
-</div>
-`
+</div>`
 const TEMPLATE_HEADING = "<h%d>%s</h%d>"
 const TEMPLATE_REF_DEF = "[%d] %s<br>"
 const TEMPLATE_REF_USAGE = "[%d]"
@@ -352,15 +352,47 @@ func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]inte
 }
 
 func (g *HtmlGenerator) expandUnorderedList(token parser.UnorderedListToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandListItems(token.Items, tokenMap, TEMPLATE_UL)
+	expandedItems, err := g.expandListItems(token.Items, tokenMap)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(TEMPLATE_UL, expandedItems), nil
 }
 
 func (g *HtmlGenerator) expandOrderedList(token parser.OrderedListToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandListItems(token.Items, tokenMap, TEMPLATE_OL)
+	expandedItems, err := g.expandListItems(token.Items, tokenMap)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(TEMPLATE_OL, expandedItems), nil
 }
 
 func (g *HtmlGenerator) expandDescriptionList(token parser.DescriptionListToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandListItems(token.Items, tokenMap, TEMPLATE_DL)
+	expandedItems, err := g.expandListItems(token.Items, tokenMap)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(TEMPLATE_DL, expandedItems), nil
+}
+
+func (g *HtmlGenerator) expandListItems(items []parser.ListToken, tokenMap map[string]interface{}) (string, error) {
+	var expandedItems []string
+
+	for _, item := range items {
+		expandedItem, err := g.expand(item, tokenMap)
+		if err != nil {
+			return "", err
+		}
+
+		expandedItems = append(expandedItems, expandedItem)
+	}
+
+	expandedTokenContent, err := g.expand(strings.Join(expandedItems, "\n"), tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return expandedTokenContent, nil
 }
 
 func (g *HtmlGenerator) expandListItem(token parser.ListItemToken, tokenMap map[string]interface{}) (string, error) {
@@ -422,26 +454,6 @@ func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]interface{}
 func (g *HtmlGenerator) expandSimple(token string, tokenMap map[string]interface{}, template string) (string, error) {
 	tokenContent := tokenMap[token]
 	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf(template, expandedTokenContent), nil
-}
-
-func (g *HtmlGenerator) expandListItems(items []parser.ListToken, tokenMap map[string]interface{}, template string) (string, error) {
-	var expandedItems []string
-
-	for _, item := range items {
-		expandedItem, err := g.expand(item, tokenMap)
-		if err != nil {
-			return "", err
-		}
-
-		expandedItems = append(expandedItems, expandedItem)
-	}
-
-	expandedTokenContent, err := g.expand(strings.Join(expandedItems, "\n"), tokenMap)
 	if err != nil {
 		return "", err
 	}

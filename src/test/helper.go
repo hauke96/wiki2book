@@ -33,18 +33,56 @@ func GetCacheFolder(subFolderName string) string {
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
+	expectedIsString := false
+	actualIsString := false
+
 	switch expected.(type) {
 	case string:
-		expected = strings.ReplaceAll(expected.(string), "\n", "\\n\n")
+		expectedIsString = true
 	}
 	switch actual.(type) {
 	case string:
-		actual = strings.ReplaceAll(actual.(string), "\n", "\\n\n")
+		actualIsString = true
 	}
+
 	if !reflect.DeepEqual(expected, actual) {
-		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
-		t.Fail()
+		if expectedIsString && actualIsString {
+			assertEqualStrings(t, expected.(string), actual.(string))
+		} else {
+			sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
+			t.Fail()
+		}
 	}
+}
+
+func assertEqualStrings(t *testing.T, expected string, actual string) {
+	expected = strings.ReplaceAll(expected, "\n", "\\n\n")
+
+	actual = strings.ReplaceAll(actual, "\n", "\\n\n")
+
+	expectedLines := strings.Split(expected, "\n")
+	actualLines := strings.Split(actual, "\n")
+
+	sigolo.Errorb(2, "Expect to be equal.\n| %50s | %50s |", "Expected", "Actual")
+	fmt.Printf("|%s|\n", strings.Repeat("-", 105))
+
+	for i, expectedLine := range expectedLines {
+		actualLine := ""
+		if len(actualLines) > i {
+			actualLine = actualLines[i]
+		}
+
+		fmt.Printf("| %50s | %50s |\n", "\""+expectedLine+"\"", "\""+actualLine+"\"")
+	}
+
+	if len(actualLines) > len(expectedLines) {
+		for i := len(expectedLines); i < len(actualLines); i++ {
+			actualLine := actualLines[i]
+			fmt.Printf("| %50s | %50s |\n", "", "\""+actualLine+"\"")
+		}
+	}
+
+	t.Fail()
 }
 
 func AssertMapEqual[K comparable, V comparable](t *testing.T, expected map[K]V, actual map[K]V) {

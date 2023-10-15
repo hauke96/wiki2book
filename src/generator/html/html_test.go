@@ -22,7 +22,7 @@ func TestExpandMarker(t *testing.T) {
 
 func TestExpandHeadings(t *testing.T) {
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_HEADING, 3)
-	token := &parser.HeadingToken{
+	token := parser.HeadingToken{
 		Content: "foobar",
 		Depth:   3,
 	}
@@ -30,9 +30,9 @@ func TestExpandHeadings(t *testing.T) {
 		tokenKey: token,
 	}
 
-	headings, err := generator.expand("some\n"+tokenKey+"\nheading", tokenMap)
+	headings, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, fmt.Sprintf("some\n<h%d>foobar</h%d>\nheading", 3, 3), headings)
+	test.AssertEqual(t, fmt.Sprintf("<h%d>foobar</h%d>", 3, 3), headings)
 }
 
 func TestExpandImage(t *testing.T) {
@@ -44,7 +44,7 @@ some <b>caption</b>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
-	token := &parser.ImageToken{
+	token := parser.ImageToken{
 		Filename:        "foo/image.jpg",
 		CaptionTokenKey: tokenCaption,
 		SizeX:           10,
@@ -72,7 +72,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 0)
-	token := &parser.ImageToken{
+	token := parser.ImageToken{
 		Filename:        "foo/image.jpg",
 		CaptionTokenKey: "",
 		SizeX:           10,
@@ -97,7 +97,7 @@ some <b>caption</b>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
-	token := &parser.ImageToken{
+	token := parser.ImageToken{
 		Filename:        "foo/image.jpg",
 		CaptionTokenKey: tokenCaption,
 		SizeX:           10,
@@ -121,7 +121,7 @@ some <b>caption</b>
 </div>`
 	tokenImage = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	tokenCaption = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
-	token = &parser.ImageToken{
+	token = parser.ImageToken{
 		Filename:        "foo/image.jpg",
 		CaptionTokenKey: tokenCaption,
 		SizeX:           -1,
@@ -141,7 +141,7 @@ func TestExpandImageInline(t *testing.T) {
 	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
-	token := &parser.InlineImageToken{
+	token := parser.InlineImageToken{
 		Filename: "foo/image.jpg",
 		SizeX:    10,
 		SizeY:    20,
@@ -159,7 +159,7 @@ func TestExpandImageInline(t *testing.T) {
 func TestExpandInternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
 	tokenMap := map[string]interface{}{
-		tokenLink: &parser.InternalLinkToken{
+		tokenLink: parser.InternalLinkToken{
 			ArticleName: "foo",
 			LinkText:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 		},
@@ -174,7 +174,7 @@ func TestExpandExternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 0)
 	url := "https://foo.com"
 	tokenMap := map[string]interface{}{
-		tokenLink: &parser.ExternalLinkToken{
+		tokenLink: parser.ExternalLinkToken{
 			URL:      url,
 			LinkText: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 		},
@@ -197,7 +197,7 @@ func TestExpandTable(t *testing.T) {
 		tokenCaption: "caption",
 	}
 
-	row, err := generator.expandTable(tokenTable, tokenMap)
+	row, err := generator.expand(tokenTable, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<div class="figure">
 <table>
@@ -256,13 +256,16 @@ func TestExpandUnorderedList(t *testing.T) {
 	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
 	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_UNORDERED_LIST, 2)
 
+	item1 := parser.ListItemToken{Content: "foo"}
+	item2 := parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.UnorderedListToken{Items: []parser.ListToken{item1, item2}}
 	tokenMap := map[string]interface{}{
-		tokenList: tokenLi1 + tokenLi2,
-		tokenLi1:  "foo",
-		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+		tokenList: tokenList,
+		tokenLi1:  item1,
+		tokenLi2:  item2,
 	}
 
-	row, err := generator.expandUnorderedList(tokenList, tokenMap)
+	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ul>
 <li>
@@ -279,13 +282,16 @@ func TestExpandOrderedList(t *testing.T) {
 	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
 	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_ORDERED_LIST, 2)
 
+	item1 := parser.ListItemToken{Content: "foo"}
+	item2 := parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListToken{item1, item2}}
 	tokenMap := map[string]interface{}{
-		tokenList: tokenLi1 + tokenLi2,
-		tokenLi1:  "foo",
-		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+		tokenList: tokenList,
+		tokenLi1:  item1,
+		tokenLi2:  item2,
 	}
 
-	row, err := generator.expandOrderedList(tokenList, tokenMap)
+	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ol>
 <li>
@@ -302,13 +308,16 @@ func TestExpandDescriptionList(t *testing.T) {
 	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 1)
 	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST, 2)
 
+	item1 := parser.DescriptionListHeadToken{ListItemToken: parser.ListItemToken{Content: "foo"}}
+	item2 := parser.DescriptionListItemToken{ListItemToken: parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}}
+	list3 := parser.DescriptionListToken{Items: []parser.ListToken{item1, item2}}
 	tokenMap := map[string]interface{}{
-		tokenList: tokenLi1 + tokenLi2,
-		tokenLi1:  "foo",
-		tokenLi2:  fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE),
+		tokenList: tokenList,
+		tokenLi1:  item1,
+		tokenLi2:  item2,
 	}
 
-	row, err := generator.expandDescriptionList(tokenList, tokenMap)
+	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<div class="description-list">
 <div class="dt">
