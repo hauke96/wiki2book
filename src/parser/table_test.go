@@ -15,16 +15,37 @@ func TestParseTable_simple(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "blubb",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "moin",
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): "bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): "blubb",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "moin",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -44,23 +65,53 @@ func TestParseTable_withIndentation(t *testing.T) {
   |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 10), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableHeadToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "h1",
+					},
+					TableHeadToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "h2",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "blubb",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "moin",
+					},
+				},
+			},
+			TableCaptionToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "caption",
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 10): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5, TOKEN_TABLE_ROW, 8, TOKEN_TABLE_CAPTION, 9),
-		// row 0: heading
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0, TOKEN_TABLE_HEAD, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0): "h1",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): "h2",
-		// row 1
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "bar",
-		// row 2
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 8): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6, TOKEN_TABLE_COL, 7),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6): "blubb",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7): "moin",
-		// caption
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 9): "caption",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -83,36 +134,83 @@ is
 after`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 17), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 1), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableCaptionToken{
+				Attributes: TableColAttributeToken{
+					Attributes: []string{
+						`rowspan="2"`,
+						`style="text-align:left;"`,
+					},
+				},
+				Content: "capti0n\nfoo",
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableHeadToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "head1",
+					},
+					TableHeadToken{
+						Attributes: TableColAttributeToken{},
+						Content:    MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo " + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 0),
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "This row\nis",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "multi-line wikitext",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{
+							Attributes: []string{
+								`colspan="42"`,
+								`style="text-align:right;"`,
+							},
+						},
+						Content: "some",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{
+							Attributes: []string{
+								`colspan="1"`,
+							},
+						},
+						Content: "attributes",
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 17): fmt.Sprintf(
-			TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE,
-			TOKEN_TABLE_CAPTION, 1, TOKEN_TABLE_ROW, 4, TOKEN_TABLE_ROW, 8, TOKEN_TABLE_ROW, 11, TOKEN_TABLE_ROW, 16,
-		),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): "rowspan=\"2\" style=\"text-align:left;\"",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 1):        fmt.Sprintf(TOKEN_TEMPLATE+" capti0n\nfoo", TOKEN_TABLE_COL_ATTRIBUTES, 0),
-		// row 0: heading
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2, TOKEN_TABLE_HEAD, 3),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 2): "head1",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 3): "" + MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
-		// row 1: internal link
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 8): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6, TOKEN_TABLE_COL, 7),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 6): fmt.Sprintf("foo "+TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 5): InternalLinkToken{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1): expectedTableToken,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 0): InternalLinkToken{
 			ArticleName: "internal",
 			LinkText:    "internal",
 		},
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 7): "bar",
-		// row 2: multi-line
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 11): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9, TOKEN_TABLE_COL, 10),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 9):  "This row\nis",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 10): "multi-line wikitext",
-		// row 3: attributes
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 16):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 13, TOKEN_TABLE_COL, 15),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 13):            fmt.Sprintf(TOKEN_TEMPLATE+" some", TOKEN_TABLE_COL_ATTRIBUTES, 12),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 12): "colspan=\"42\" style=\"text-align:right;\"",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 15):            fmt.Sprintf(TOKEN_TEMPLATE+" attributes", TOKEN_TABLE_COL_ATTRIBUTES, 14),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 14): "colspan=\"1\"",
 	}, tokenizer.getTokenMap())
 }
 
@@ -128,18 +226,43 @@ func TestParseTable_tableInTable(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1), tokenizedTable)
+
+	expectedInnerTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "inner",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "table",
+					},
+				},
+			},
+		},
+	}
+	expectedOuterTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0),
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 7): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4, TOKEN_TABLE_COL, 5),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 5): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3),
-		// inner table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3):     fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "inner",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): "table",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedInnerTableToken,
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1): expectedOuterTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -154,16 +277,37 @@ func TestParseTable_withoutExplicitRowStart(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "",
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): "bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -179,14 +323,31 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+				},
+			},
+			TableRowToken{},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+				},
+			},
+			TableRowToken{},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 4): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1, TOKEN_TABLE_ROW, 3),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 1): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 3): fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 2): "bar",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -199,16 +360,37 @@ func TestParseTable_withEmptyColumn(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "bar",
+					},
+				},
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "",
+					},
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "moin",
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 6): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2, TOKEN_TABLE_ROW, 5),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1): "bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 5): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3, TOKEN_TABLE_COL, 4),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3): "",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 4): "moin",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -221,13 +403,26 @@ func TestParseTable_captionInsideRow(t *testing.T) {
 |}`
 	tokenizedTable := tokenizer.parseTables(content)
 
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3), tokenizedTable)
+	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Rows: []Token{
+			TableRowToken{},
+			TableCaptionToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "cap",
+			},
+			TableRowToken{
+				Columns: []Token{
+					TableColToken{
+						Attributes: TableColAttributeToken{},
+						Content:    "foo",
+					},
+				},
+			},
+		},
+	}
 	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 3): fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0, TOKEN_TABLE_ROW, 2),
-		// outer table
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):     fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1),
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1):     "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_CAPTION, 0): "cap",
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -238,14 +433,24 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 		"!bar",
 		"|-",
 	}
+
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2), tokenizedColumn)
+
+	expectedRowToken := TableRowToken{
+		Columns: []Token{
+			TableHeadToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "foo",
+			},
+			TableHeadToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "bar",
+			},
+		},
+	}
+	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
 	test.AssertEqual(t, 1, i)
-	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0): "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 1): "bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 2):  fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_HEAD, 0, TOKEN_TABLE_HEAD, 1),
-	}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeTableRow_withColumn(t *testing.T) {
@@ -258,25 +463,46 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 		"|-",
 		"| this row should be ignored",
 	}
+
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4), tokenizedColumn)
+
+	expectedRowToken := TableRowToken{
+		Columns: []Token{
+			TableColToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "foo",
+			},
+			TableColToken{
+				Attributes: TableColAttributeToken{},
+				Content:    "bar",
+			},
+			TableColToken{
+				Attributes: TableColAttributeToken{
+					Attributes: []string{`colspan="2"`},
+				},
+				Content: "abc\ndef",
+			},
+		},
+	}
+
+	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
 	test.AssertEqual(t, 3, i)
-	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0):            "foo",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 1):            "bar",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 2): `colspan="2"`,
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL, 3):            fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 2) + " abc\ndef",
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_ROW, 4):            fmt.Sprintf(TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE+" "+TOKEN_TEMPLATE, TOKEN_TABLE_COL, 0, TOKEN_TABLE_COL, 1, TOKEN_TABLE_COL, 3),
-	}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeTableColumn(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `colspan="2" style="text-align:center; background:Lightgray;" | ''foo'' bar`
+
 	tokenizedColumn, attributeToken := tokenizer.tokenizeTableEntry(content)
+
+	expectedAttributeToken := TableColAttributeToken{
+		Attributes: []string{
+			`colspan="2"`,
+			`style="text-align:center;"`,
+		},
+	}
+	test.AssertEqual(t, expectedAttributeToken, attributeToken)
 	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
-	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0), attributeToken)
-	test.AssertMapEqual(t, map[string]interface{}{
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE_COL_ATTRIBUTES, 0): `colspan="2" style="text-align:center;"`,
-	}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
 }

@@ -2,6 +2,39 @@ package parser
 
 import "strings"
 
+type TableToken struct {
+	Token
+	Rows []Token
+}
+
+type TableHeadToken struct {
+	Token
+	Attributes TableColAttributeToken
+	Content    string
+}
+
+type TableRowToken struct {
+	Token
+	Columns []Token
+}
+
+type TableColToken struct {
+	Token
+	Attributes TableColAttributeToken
+	Content    string
+}
+
+type TableCaptionToken struct {
+	Token
+	Attributes TableColAttributeToken
+	Content    string
+}
+
+type TableColAttributeToken struct {
+	Token
+	Attributes []string
+}
+
 func (t *Tokenizer) parseTables(content string) string {
 	lines := strings.Split(content, "\n")
 
@@ -56,17 +89,21 @@ func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 
 	tableContent := strings.Join(tableLines, "\n")
 	token := t.tokenizeTable(tableContent)
-	return token, i
+
+	tokenKey := t.getToken(TOKEN_TABLE)
+	t.setRawToken(tokenKey, token)
+
+	return tokenKey, i
 }
 
 // tokenizeTable expects content to be all lines of a table.
-func (t *Tokenizer) tokenizeTable(content string) string {
+func (t *Tokenizer) tokenizeTable(content string) TableToken {
 	// ensure that each entry starts in a new row
 	content = strings.ReplaceAll(content, "||", "\n|")
 	content = strings.ReplaceAll(content, "!!", "\n!")
 	lines := strings.Split(content, "\n")
 
-	var tableTokens []string
+	var rowTokens []Token
 
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -77,7 +114,7 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 		isHeadingStart := strings.HasPrefix(line, "!")
 		isEndOfTable := strings.HasPrefix(line, "|}")
 
-		rowToken := ""
+		var rowToken Token
 		if isCaptionStart {
 			rowToken, i = t.tokenizeTableCaption(lines, i)
 		} else if isHeadingStart {
@@ -99,13 +136,14 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 			rowToken, i = t.tokenizeTableRow(lines, i)
 		}
 
-		if rowToken != "" {
-			tableTokens = append(tableTokens, rowToken)
+		if rowToken != nil {
+			rowTokens = append(rowTokens, rowToken)
 		}
 	}
 
-	token := t.getToken(TOKEN_TABLE)
-	t.setRawToken(token, strings.Join(tableTokens, " "))
+	token := TableToken{
+		Rows: rowTokens,
+	}
 
 	return token
 }
@@ -114,8 +152,9 @@ func (t *Tokenizer) tokenizeTable(content string) string {
 // function expects that each column of this row starts in a new line starting with  |  or  !  . The returned string is
 // never nil and an empty string represents an empty row, that can be ignored. The index points to the last text line of
 // this table row.
-func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
-	var rowLineTokens []string
+func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (TableRowToken, int) {
+	var rowToken TableRowToken
+	var columnTokens []Token
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
@@ -141,33 +180,41 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (string, int) {
 		// Now the index is at the start of the next column/row -> reduce by 1 for later parsing.
 		i -= 1
 
-		line, attributeToken := t.tokenizeTableEntry(line)
+		tokenizedLine, attributeToken := t.tokenizeTableEntry(line)
+		tokenizedLine = strings.TrimSpace(tokenizedLine)
 
-		token := ""
+		var token Token
 		if strings.HasPrefix(strings.TrimSpace(lines[i]), "!") {
-			token = t.getToken(TOKEN_TABLE_HEAD)
+			token = TableHeadToken{
+				Attributes: attributeToken,
+				Content:    tokenizedLine,
+			}
 		} else {
-			token = t.getToken(TOKEN_TABLE_COL)
+			token = TableColToken{
+				Attributes: attributeToken,
+				Content:    tokenizedLine,
+			}
 		}
-		t.setRawToken(token, attributeToken+line)
 
-		rowLineTokens = append(rowLineTokens, token)
+		columnTokens = append(columnTokens, token)
 	}
 
-	if len(rowLineTokens) == 0 {
-		return "", i - 1
+	// TODO Can this be removed? Wouldn't it remove empty rows because "nil" is later interpreted as "nothing to see here"?
+	if len(columnTokens) == 0 {
+		return rowToken, i - 1
 	}
 
-	token := t.getToken(TOKEN_TABLE_ROW)
-	t.setRawToken(token, strings.Join(rowLineTokens, " "))
+	rowToken = TableRowToken{
+		Columns: columnTokens,
+	}
 
 	// return i-1 so that i is on the last line of the row when returning
-	return token, i - 1
+	return rowToken, i - 1
 }
 
 // tokenizeTableCaption expects i to be the line in which the caption starts (i.e. the line after |+ ). The return
 // values are the tokenized caption and the index pointing to the last text line of the caption.
-func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
+func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (TableCaptionToken, int) {
 	captionLines := strings.TrimSpace(lines[i])
 
 	// collect all lines from this caption
@@ -182,24 +229,24 @@ func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (string, int) {
 	captionLines = strings.TrimPrefix(captionLines, "|+")
 
 	tokenizedCaption, styleAttributeToken := t.tokenizeTableEntry(captionLines)
-	captionTokenContent := strings.TrimSpace(tokenizedCaption)
-	if styleAttributeToken != "" {
-		captionTokenContent = styleAttributeToken + " " + captionTokenContent
+	tokenizedCaption = strings.TrimSpace(tokenizedCaption)
+	captionToken := TableCaptionToken{
+		Attributes: styleAttributeToken,
+		Content:    tokenizedCaption,
 	}
 
-	token := t.getToken(TOKEN_TABLE_CAPTION)
-	t.setRawToken(token, captionTokenContent)
-
 	// return i-1 so that i is on the last line of the caption when returning
-	return token, i - 1
+	return captionToken, i - 1
 }
 
 // tokenizeTableEntry returns the tokenized text of the entry (for example a column or caption) and a token containing
 // the style attributes (might be empty when no style was found).
-func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
+func (t *Tokenizer) tokenizeTableEntry(content string) (string, TableColAttributeToken) {
+	var attributeToken TableColAttributeToken
+
 	splittedContent := strings.Split(content, "|")
 	if len(splittedContent) < 2 {
-		return t.tokenizeContent(t, content), ""
+		return t.tokenizeContent(t, content), attributeToken
 	}
 
 	attributeString := strings.TrimSpace(splittedContent[0])
@@ -217,11 +264,10 @@ func (t *Tokenizer) tokenizeTableEntry(content string) (string, string) {
 		relevantTags = append(relevantTags, `style="`+alignmentMatch[0]+`"`)
 	}
 
-	attributeToken := ""
 	if len(relevantTags) > 0 {
-		attributes := strings.Join(relevantTags, " ")
-		attributeToken = t.getToken(TOKEN_TABLE_COL_ATTRIBUTES)
-		t.setRawToken(attributeToken, attributes)
+		attributeToken = TableColAttributeToken{
+			Attributes: relevantTags,
+		}
 	}
 
 	return entryText, attributeToken
