@@ -177,12 +177,11 @@ func TestExpandTable(t *testing.T) {
 	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 0)
 	tokenMap := map[string]interface{}{
 		tokenTable: parser.TableToken{
-			Rows: []parser.Token{
-				parser.TableCaptionToken{
-					Attributes: parser.TableColAttributeToken{},
-					Content:    "caption",
-				},
-				parser.TableRowToken{
+			Caption: parser.TableCaptionToken{
+				Content: "caption",
+			},
+			Rows: []parser.TableRowToken{
+				{
 					Columns: []parser.TableColToken{
 						{
 							Attributes: parser.TableColAttributeToken{},

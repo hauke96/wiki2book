@@ -298,19 +298,18 @@ func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken, token
 
 func (g *HtmlGenerator) expandTable(token parser.TableToken, tokenMap map[string]interface{}) (string, error) {
 	var expandedRows []string
-	var expandedCaption string
 	for _, rowToken := range token.Rows {
 		expandedRow, err := g.expand(rowToken, tokenMap)
 		if err != nil {
 			return "", err
 		}
 
-		switch rowToken.(type) {
-		case parser.TableCaptionToken:
-			expandedCaption = expandedRow
-		default:
-			expandedRows = append(expandedRows, expandedRow)
-		}
+		expandedRows = append(expandedRows, expandedRow)
+	}
+
+	expandedCaption, err := g.expand(token.Caption, tokenMap)
+	if err != nil {
+		return "", err
 	}
 
 	joinedRows := strings.Join(expandedRows, "\n")

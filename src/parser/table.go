@@ -4,8 +4,8 @@ import "strings"
 
 type TableToken struct {
 	Token
-	Rows []Token
-	// TODO Put caption here as explicit field in TableToken?
+	Rows    []TableRowToken
+	Caption TableCaptionToken
 }
 
 type TableRowToken struct {
@@ -22,8 +22,7 @@ type TableColToken struct {
 
 type TableCaptionToken struct {
 	Token
-	Attributes TableColAttributeToken // TODO Can this be removed? It's not used by the HTML generator
-	Content    string
+	Content string
 }
 
 type TableColAttributeToken struct {
@@ -99,7 +98,8 @@ func (t *Tokenizer) tokenizeTable(content string) TableToken {
 	content = strings.ReplaceAll(content, "!!", "\n!")
 	lines := strings.Split(content, "\n")
 
-	var rowTokens []Token
+	var rowTokens []TableRowToken
+	var captionToken TableCaptionToken
 
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -112,7 +112,7 @@ func (t *Tokenizer) tokenizeTable(content string) TableToken {
 
 		var rowToken Token
 		if isCaptionStart {
-			rowToken, i = t.tokenizeTableCaption(lines, i)
+			captionToken, i = t.tokenizeTableCaption(lines, i)
 		} else if isHeadingStart {
 			rowToken, i = t.tokenizeTableRow(lines, i)
 		} else if isRowStart {
@@ -133,12 +133,13 @@ func (t *Tokenizer) tokenizeTable(content string) TableToken {
 		}
 
 		if rowToken != nil {
-			rowTokens = append(rowTokens, rowToken)
+			rowTokens = append(rowTokens, rowToken.(TableRowToken))
 		}
 	}
 
 	token := TableToken{
-		Rows: rowTokens,
+		Rows:    rowTokens,
+		Caption: captionToken,
 	}
 
 	return token
@@ -225,11 +226,10 @@ func (t *Tokenizer) tokenizeTableCaption(lines []string, i int) (TableCaptionTok
 
 	captionLines = strings.TrimPrefix(captionLines, "|+")
 
-	tokenizedCaption, styleAttributeToken := t.tokenizeTableEntry(captionLines)
+	tokenizedCaption, _ := t.tokenizeTableEntry(captionLines)
 	tokenizedCaption = strings.TrimSpace(tokenizedCaption)
 	captionToken := TableCaptionToken{
-		Attributes: styleAttributeToken,
-		Content:    tokenizedCaption,
+		Content: tokenizedCaption,
 	}
 
 	// return i-1 so that i is on the last line of the caption when returning

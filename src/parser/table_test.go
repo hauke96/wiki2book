@@ -17,26 +17,26 @@ func TestParseTable_simple(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
 				},
 			},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "blubb",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "moin",
 					},
@@ -67,46 +67,47 @@ func TestParseTable_withIndentation(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
-			TableRowToken{
-				Columns: []Token{
-					TableHeadToken{
+		Caption: TableCaptionToken{
+			Content: "caption",
+		},
+		Rows: []TableRowToken{
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "h1",
+						IsHeading:  true,
 					},
-					TableHeadToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "h2",
+						IsHeading:  true,
 					},
 				},
 			},
-			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
 				},
 			},
-			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "blubb",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "moin",
 					},
 				},
-			},
-			TableCaptionToken{
-				Attributes: TableColAttributeToken{},
-				Content:    "caption",
 			},
 		},
 	}
@@ -136,55 +137,51 @@ after`
 
 	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 1), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
-			TableCaptionToken{
-				Attributes: TableColAttributeToken{
-					Attributes: []string{
-						`rowspan="2"`,
-						`style="text-align:left;"`,
-					},
-				},
-				Content: "capti0n\nfoo",
-			},
-			TableRowToken{
-				Columns: []Token{
-					TableHeadToken{
+		Caption: TableCaptionToken{
+			Content: "capti0n\nfoo",
+		},
+		Rows: []TableRowToken{
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "head1",
+						IsHeading:  true,
 					},
-					TableHeadToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    MARKER_BOLD_OPEN + "head2" + MARKER_BOLD_CLOSE,
+						IsHeading:  true,
 					},
 				},
 			},
-			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo " + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 0),
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
 				},
 			},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "This row\nis",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "multi-line wikitext",
 					},
 				},
 			},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{
 							Attributes: []string{
 								`colspan="42"`,
@@ -193,7 +190,7 @@ after`
 						},
 						Content: "some",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{
 							Attributes: []string{
 								`colspan="1"`,
@@ -229,14 +226,14 @@ func TestParseTable_tableInTable(t *testing.T) {
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1), tokenizedTable)
 
 	expectedInnerTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "inner",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "table",
 					},
@@ -245,14 +242,14 @@ func TestParseTable_tableInTable(t *testing.T) {
 		},
 	}
 	expectedOuterTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0),
 					},
@@ -279,26 +276,26 @@ func TestParseTable_withoutExplicitRowStart(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
 				},
 			},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "",
 					},
@@ -325,10 +322,10 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
@@ -336,8 +333,8 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 			},
 			TableRowToken{},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
@@ -362,26 +359,26 @@ func TestParseTable_withEmptyColumn(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
+		Rows: []TableRowToken{
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "bar",
 					},
 				},
 			},
 			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "",
 					},
-					TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "moin",
 					},
@@ -405,15 +402,14 @@ func TestParseTable_captionInsideRow(t *testing.T) {
 
 	test.AssertEqual(t, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0), tokenizedTable)
 	expectedTableToken := TableToken{
-		Rows: []Token{
-			TableRowToken{},
-			TableCaptionToken{
-				Attributes: TableColAttributeToken{},
-				Content:    "cap",
-			},
-			TableRowToken{
-				Columns: []Token{
-					TableColToken{
+		Caption: TableCaptionToken{
+			Content: "cap",
+		},
+		Rows: []TableRowToken{
+			{},
+			{
+				Columns: []TableColToken{
+					{
 						Attributes: TableColAttributeToken{},
 						Content:    "foo",
 					},
@@ -437,14 +433,16 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
 
 	expectedRowToken := TableRowToken{
-		Columns: []Token{
-			TableHeadToken{
+		Columns: []TableColToken{
+			{
 				Attributes: TableColAttributeToken{},
 				Content:    "foo",
+				IsHeading:  true,
 			},
-			TableHeadToken{
+			{
 				Attributes: TableColAttributeToken{},
 				Content:    "bar",
+				IsHeading:  true,
 			},
 		},
 	}
@@ -467,16 +465,16 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
 
 	expectedRowToken := TableRowToken{
-		Columns: []Token{
-			TableColToken{
+		Columns: []TableColToken{
+			{
 				Attributes: TableColAttributeToken{},
 				Content:    "foo",
 			},
-			TableColToken{
+			{
 				Attributes: TableColAttributeToken{},
 				Content:    "bar",
 			},
-			TableColToken{
+			{
 				Attributes: TableColAttributeToken{
 					Attributes: []string{`colspan="2"`},
 				},
