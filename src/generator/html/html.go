@@ -43,10 +43,11 @@ const MATH_TEMPLATE = `<img alt="image" src="./%s" style="width: %s; height: %s;
 const TABLE_TEMPLATE = `<div class="figure">
 <table>
 %s
-</table>
+</table>%s
+</div>`
+const TABLE_TEMPLATE_CAPTION = `
 <div class="caption">
 %s
-</div>
 </div>`
 const TABLE_TEMPLATE_HEAD = `<th%s>
 %s
@@ -54,12 +55,10 @@ const TABLE_TEMPLATE_HEAD = `<th%s>
 `
 const TABLE_TEMPLATE_ROW = `<tr>
 %s
-</tr>
-`
+</tr>`
 const TABLE_TEMPLATE_COL = `<td%s>
 %s
-</td>
-`
+</td>`
 const TEMPLATE_UL = `<ul>
 %s
 </ul>`
@@ -83,8 +82,7 @@ const TEMPLATE_REF_DEF = "[%d] %s<br>"
 const TEMPLATE_REF_USAGE = "[%d]"
 
 var (
-	tokenRegex                  = regexp.MustCompile(parser.TOKEN_REGEX)
-	tableColAttributeTokenRegex = regexp.MustCompile(`\$\$TOKEN_` + parser.TOKEN_TABLE_COL_ATTRIBUTES + `_\d+\$\$`)
+	tokenRegex = regexp.MustCompile(parser.TOKEN_REGEX)
 )
 
 type HtmlGenerator struct {
@@ -148,6 +146,12 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 		html, err = g.expandDescriptionHead(token.(parser.DescriptionListHeadToken), tokenMap)
 	case parser.DescriptionListItemToken:
 		html, err = g.expandDescriptionItem(token.(parser.DescriptionListItemToken), tokenMap)
+	case parser.TableRowToken:
+		html, err = g.expandTableRow(token.(parser.TableRowToken), tokenMap)
+	case parser.TableColToken:
+		html, err = g.expandTableColumn(token.(parser.TableColToken), tokenMap)
+	case parser.TableCaptionToken:
+		html, err = g.expandTableCaption(token.(parser.TableCaptionToken), tokenMap)
 	}
 
 	if err != nil {
@@ -184,13 +188,7 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		//case parser.TOKEN_INTERNAL_LINK:
 		//	html, err = g.expandInternalLink(tokenMap[submatch[0]].(*parser.InternalLinkToken), tokenMap)
 		case parser.TOKEN_TABLE:
-			html, err = g.expandTable(submatch[0], tokenMap)
-		case parser.TOKEN_TABLE_HEAD:
-			html, err = g.expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_HEAD)
-		case parser.TOKEN_TABLE_ROW:
-			html, err = g.expandTableRow(submatch[0], tokenMap)
-		case parser.TOKEN_TABLE_COL:
-			html, err = g.expandTableColumn(submatch[0], tokenMap, TABLE_TEMPLATE_COL)
+			html, err = g.expandTable(tokenMap[submatch[0]].(parser.TableToken), tokenMap)
 		//case parser.TOKEN_UNORDERED_LIST:
 		//	html, err = g.expandUnorderedList(submatch[0], tokenMap)
 		//case parser.TOKEN_ORDERED_LIST:
@@ -258,12 +256,9 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken, tokenMap map[string
 	caption := ""
 	var err error = nil
 
-	captionToken, hasCaptionToken := tokenMap[token.CaptionTokenKey]
-	if hasCaptionToken {
-		caption, err = g.expand(captionToken, tokenMap)
-		if err != nil {
-			return "", errors.Wrap(err, fmt.Sprintf("Error while parsing image token %#v", token))
-		}
+	caption, err = g.expand(token.Caption.Content, tokenMap)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Error while expanding caption of image %#v", token))
 	}
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
@@ -301,54 +296,66 @@ func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken, token
 	return fmt.Sprintf(HREF_TEMPLATE, token.URL, text), nil
 }
 
-func (g *HtmlGenerator) expandTable(token string, tokenMap map[string]interface{}) (string, error) {
-	tokenContent := tokenMap[token]
-	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
-	if err != nil {
-		return "", err
-	}
-
-	caption := ""
-	for _, subToken := range strings.Split(expandedTokenContent, " ") {
-		match := tokenRegex.FindStringSubmatch(subToken)
-		if len(match) < 2 {
-			continue
+func (g *HtmlGenerator) expandTable(token parser.TableToken, tokenMap map[string]interface{}) (string, error) {
+	var expandedRows []string
+	var expandedCaption string
+	for _, rowToken := range token.Rows {
+		expandedRow, err := g.expand(rowToken, tokenMap)
+		if err != nil {
+			return "", err
 		}
-		subTokenKey := match[1]
-		hasCaption := subTokenKey == parser.TOKEN_TABLE_CAPTION
-		if hasCaption {
-			caption, err = g.expand(tokenMap[match[0]], tokenMap)
-			if err != nil {
-				return "", err
-			}
-			expandedTokenContent = strings.Replace(expandedTokenContent, match[0], "", 1)
-			break
+
+		switch rowToken.(type) {
+		case parser.TableCaptionToken:
+			expandedCaption = expandedRow
+		default:
+			expandedRows = append(expandedRows, expandedRow)
 		}
 	}
 
-	return fmt.Sprintf(TABLE_TEMPLATE, expandedTokenContent, caption), nil
+	joinedRows := strings.Join(expandedRows, "\n")
+	return fmt.Sprintf(TABLE_TEMPLATE, joinedRows, expandedCaption), nil
 }
 
-func (g *HtmlGenerator) expandTableRow(token string, tokenMap map[string]interface{}) (string, error) {
-	return g.expandSimple(token, tokenMap, TABLE_TEMPLATE_ROW)
-}
-
-func (g *HtmlGenerator) expandTableColumn(token string, tokenMap map[string]interface{}, template string) (string, error) {
-	tokenContent := tokenMap[token].(string)
-
-	attributes := ""
-	if strings.Contains(tokenContent, parser.TOKEN_TABLE_COL_ATTRIBUTES) {
-		attributeToken := tableColAttributeTokenRegex.FindString(tokenContent)
-		attributes = " " + tokenMap[attributeToken].(string)
-		tokenContent = strings.Replace(tokenContent, attributeToken, "", 1)
+func (g *HtmlGenerator) expandTableRow(token parser.TableRowToken, tokenMap map[string]interface{}) (string, error) {
+	var expandedCols []string
+	for _, colToken := range token.Columns {
+		expandedCol, err := g.expand(colToken, tokenMap)
+		if err != nil {
+			return "", err
+		}
+		expandedCols = append(expandedCols, expandedCol)
 	}
 
-	expandedTokenContent, err := g.expand(tokenContent, tokenMap)
+	joinedColumns := strings.Join(expandedCols, "\n")
+	return fmt.Sprintf(TABLE_TEMPLATE_ROW, joinedColumns), nil
+}
+
+func (g *HtmlGenerator) expandTableColumn(token parser.TableColToken, tokenMap map[string]interface{}) (string, error) {
+	expandedTokenContent, err := g.expand(token.Content, tokenMap)
 	if err != nil {
 		return "", err
+	}
+	attributes := strings.Join(token.Attributes.Attributes, " ")
+	if attributes != "" {
+		attributes = " " + attributes
+	}
+
+	template := TABLE_TEMPLATE_COL
+	if token.IsHeading {
+		template = TABLE_TEMPLATE_HEAD
 	}
 
 	return fmt.Sprintf(template, attributes, expandedTokenContent), nil
+}
+
+func (g *HtmlGenerator) expandTableCaption(token parser.TableCaptionToken, tokenMap map[string]interface{}) (string, error) {
+	expandedTokenContent, err := g.expand(token.Content, tokenMap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(TABLE_TEMPLATE_CAPTION, expandedTokenContent), nil
 }
 
 func (g *HtmlGenerator) expandUnorderedList(token parser.UnorderedListToken, tokenMap map[string]interface{}) (string, error) {

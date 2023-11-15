@@ -43,25 +43,19 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
-	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
 	token := parser.ImageToken{
-		Filename:        "foo/image.jpg",
-		CaptionTokenKey: tokenCaption,
-		SizeX:           10,
-		SizeY:           20,
+		Filename: "foo/image.jpg",
+		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
+		SizeX:    10,
+		SizeY:    20,
 	}
 	tokenMap := map[string]interface{}{
-		tokenImage:   token,
-		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
+		tokenImage: token,
 	}
 
 	actualResult, err := generator.expand(token, tokenMap)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
-
-	actualResult, err = generator.expand("$$TOKEN_"+parser.TOKEN_IMAGE+"_23852376$$", tokenMap)
-	test.AssertNotNil(t, err)
-	test.AssertEqual(t, "", actualResult)
 }
 
 func TestExpandImage_noCaption(t *testing.T) {
@@ -73,10 +67,10 @@ func TestExpandImage_noCaption(t *testing.T) {
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 0)
 	token := parser.ImageToken{
-		Filename:        "foo/image.jpg",
-		CaptionTokenKey: "",
-		SizeX:           10,
-		SizeY:           20,
+		Filename: "foo/image.jpg",
+		Caption:  parser.CaptionToken{},
+		SizeX:    10,
+		SizeY:    20,
 	}
 	tokenMap := map[string]interface{}{
 		tokenImage: token,
@@ -96,16 +90,14 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
-	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
 	token := parser.ImageToken{
-		Filename:        "foo/image.jpg",
-		CaptionTokenKey: tokenCaption,
-		SizeX:           10,
-		SizeY:           -1,
+		Filename: "foo/image.jpg",
+		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
+		SizeX:    10,
+		SizeY:    -1,
 	}
 	tokenMap := map[string]interface{}{
-		tokenImage:   token,
-		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
+		tokenImage: token,
 	}
 
 	actualResult, err := generator.expand(token, tokenMap)
@@ -120,16 +112,14 @@ some <b>caption</b>
 </div>
 </div>`
 	tokenImage = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
-	tokenCaption = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
 	token = parser.ImageToken{
-		Filename:        "foo/image.jpg",
-		CaptionTokenKey: tokenCaption,
-		SizeX:           -1,
-		SizeY:           10,
+		Filename: "foo/image.jpg",
+		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
+		SizeX:    -1,
+		SizeY:    10,
 	}
 	tokenMap = map[string]interface{}{
-		tokenImage:   token,
-		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
+		tokenImage: token,
 	}
 
 	actualResult, err = generator.expand(token, tokenMap)
@@ -140,15 +130,13 @@ some <b>caption</b>
 func TestExpandImageInline(t *testing.T) {
 	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
-	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_CAPTION, 0)
 	token := parser.InlineImageToken{
 		Filename: "foo/image.jpg",
 		SizeX:    10,
 		SizeY:    20,
 	}
 	tokenMap := map[string]interface{}{
-		tokenImage:   token,
-		tokenCaption: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE,
+		tokenImage: token,
 	}
 
 	actualResult, err := generator.expand(token, tokenMap)
@@ -187,14 +175,24 @@ func TestExpandExternalLink(t *testing.T) {
 
 func TestExpandTable(t *testing.T) {
 	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 0)
-	tokenRow := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_ROW, 1)
-	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 2)
-	tokenCaption := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_CAPTION, 3)
 	tokenMap := map[string]interface{}{
-		tokenTable:   tokenRow + "" + tokenCaption,
-		tokenRow:     tokenCol,
-		tokenCol:     "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
-		tokenCaption: "caption",
+		tokenTable: parser.TableToken{
+			Rows: []parser.Token{
+				parser.TableCaptionToken{
+					Attributes: parser.TableColAttributeToken{},
+					Content:    "caption",
+				},
+				parser.TableRowToken{
+					Columns: []parser.TableColToken{
+						{
+							Attributes: parser.TableColAttributeToken{},
+							Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+							IsHeading:  false,
+						},
+					},
+				},
+			},
+		},
 	}
 
 	row, err := generator.expand(tokenTable, tokenMap)
@@ -205,9 +203,7 @@ func TestExpandTable(t *testing.T) {
 <td>
 b<b>a</b>r
 </td>
-
 </tr>
-
 </table>
 <div class="caption">
 caption
@@ -216,39 +212,48 @@ caption
 }
 
 func TestExpandTableRow(t *testing.T) {
-	tokenRow := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_ROW, 0)
-	tokenMap := map[string]interface{}{
-		tokenRow: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+	tokenRow := parser.TableRowToken{
+		Columns: []parser.TableColToken{
+			{
+				Attributes: parser.TableColAttributeToken{},
+				Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+				IsHeading:  false,
+			},
+		},
 	}
+	tokenMap := map[string]interface{}{}
 
 	row, err := generator.expandTableRow(tokenRow, tokenMap)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, "<tr>\nb<b>a</b>r\n</tr>\n", row)
+	test.AssertEqual(t, "<tr>\n<td>\nb<b>a</b>r\n</td>\n</tr>", row)
 }
 
 func TestExpandTableColumn(t *testing.T) {
-	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 0)
-	tokenMap := map[string]interface{}{
-		tokenCol: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+	tokenCol := parser.TableColToken{
+		Attributes: parser.TableColAttributeToken{},
+		Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		IsHeading:  false,
 	}
+	tokenMap := map[string]interface{}{}
 
-	row, err := generator.expandTableColumn(tokenCol, tokenMap, TABLE_TEMPLATE_COL)
+	row, err := generator.expandTableColumn(tokenCol, tokenMap)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, "<td>\nb<b>a</b>r\n</td>\n", row)
+	test.AssertEqual(t, "<td>\nb<b>a</b>r\n</td>", row)
 }
 
 func TestExpandTableColumnWithAttributes(t *testing.T) {
-	tokenCol := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL, 0)
-	tokenAttrib := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE_COL_ATTRIBUTES, 1)
-
-	tokenMap := map[string]interface{}{
-		tokenCol:    tokenAttrib + "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
-		tokenAttrib: "style=\"width: infinity lol\"",
+	tokenCol := parser.TableColToken{
+		Attributes: parser.TableColAttributeToken{
+			Attributes: []string{"style=\"width: infinity lol\""},
+		},
+		Content:   "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+		IsHeading: false,
 	}
+	tokenMap := map[string]interface{}{}
 
-	row, err := generator.expandTableColumn(tokenCol, tokenMap, TABLE_TEMPLATE_COL)
+	row, err := generator.expandTableColumn(tokenCol, tokenMap)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, "<td style=\"width: infinity lol\">\nb<b>a</b>r\n</td>\n", row)
+	test.AssertEqual(t, "<td style=\"width: infinity lol\">\nb<b>a</b>r\n</td>", row)
 }
 
 func TestExpandUnorderedList(t *testing.T) {
