@@ -19,10 +19,10 @@ var imageNonInlineParameters = []string{
 
 type ImageToken struct {
 	Token
-	Filename        string
-	CaptionTokenKey string // TODO rename when TokenKey type exists
-	SizeX           int
-	SizeY           int
+	Filename string
+	Caption  CaptionToken
+	SizeX    int
+	SizeY    int
 }
 
 type InlineImageToken struct {
@@ -30,6 +30,11 @@ type InlineImageToken struct {
 	Filename string
 	SizeX    int
 	SizeY    int
+}
+
+type CaptionToken struct {
+	Token
+	Content string
 }
 
 // escapeImages escapes the image names in the image specification and returns the updated spec. The spec is expected to
@@ -206,7 +211,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			imageFilepath := filepath.Join(t.imageFolder, filename)
 
 			tokenType := TOKEN_IMAGE_INLINE
-			captionToken := ""
+			captionToken := CaptionToken{}
 			ySizeInt := -1
 			xSizeInt := -1
 
@@ -254,8 +259,7 @@ func (t *Tokenizer) parseImages(content string) string {
 					}
 				} else if i == len(filteredOptions)-1 && tokenType == TOKEN_IMAGE {
 					// Last remaining option is the caption. We ignore captions on inline images.
-					captionToken = t.getToken(TOKEN_IMAGE_CAPTION)
-					t.setToken(captionToken, option)
+					captionToken.Content = t.tokenizeContent(t, option)
 				}
 			}
 
@@ -268,10 +272,10 @@ func (t *Tokenizer) parseImages(content string) string {
 				}
 			} else {
 				imageToken = ImageToken{
-					Filename:        imageFilepath,
-					CaptionTokenKey: captionToken,
-					SizeX:           xSizeInt,
-					SizeY:           ySizeInt,
+					Filename: imageFilepath,
+					Caption:  captionToken,
+					SizeX:    xSizeInt,
+					SizeY:    ySizeInt,
 				}
 			}
 			token := t.getToken(tokenType)
