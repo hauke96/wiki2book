@@ -5,28 +5,24 @@ import "strings"
 type TableToken struct {
 	Token
 	Rows []Token
-}
-
-type TableHeadToken struct {
-	Token
-	Attributes TableColAttributeToken
-	Content    string
+	// TODO Put caption here as explicit field in TableToken?
 }
 
 type TableRowToken struct {
 	Token
-	Columns []Token
+	Columns []TableColToken
 }
 
 type TableColToken struct {
 	Token
 	Attributes TableColAttributeToken
 	Content    string
+	IsHeading  bool
 }
 
 type TableCaptionToken struct {
 	Token
-	Attributes TableColAttributeToken
+	Attributes TableColAttributeToken // TODO Can this be removed? It's not used by the HTML generator
 	Content    string
 }
 
@@ -154,7 +150,7 @@ func (t *Tokenizer) tokenizeTable(content string) TableToken {
 // this table row.
 func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (TableRowToken, int) {
 	var rowToken TableRowToken
-	var columnTokens []Token
+	var columnTokens []TableColToken
 
 	// collect all lines from this row
 	for ; i < len(lines); i++ {
@@ -183,11 +179,12 @@ func (t *Tokenizer) tokenizeTableRow(lines []string, i int) (TableRowToken, int)
 		tokenizedLine, attributeToken := t.tokenizeTableEntry(line)
 		tokenizedLine = strings.TrimSpace(tokenizedLine)
 
-		var token Token
+		var token TableColToken
 		if strings.HasPrefix(strings.TrimSpace(lines[i]), "!") {
-			token = TableHeadToken{
+			token = TableColToken{
 				Attributes: attributeToken,
 				Content:    tokenizedLine,
+				IsHeading:  true,
 			}
 		} else {
 			token = TableColToken{
