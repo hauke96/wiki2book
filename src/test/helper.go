@@ -63,8 +63,8 @@ func assertEqualStrings(t *testing.T, expected string, actual string) {
 	expectedLines := strings.Split(expected, "\n")
 	actualLines := strings.Split(actual, "\n")
 
-	sigolo.Errorb(2, "Expect to be equal.\n| %50s | %50s |", "Expected", "Actual")
-	fmt.Printf("|%s|\n", strings.Repeat("-", 105))
+	sigolo.Errorb(2, "Expect to be equal.\n|   | %-50s | %-50s |", "Expected", "Actual")
+	fmt.Printf("|%s|\n", strings.Repeat("-", 109))
 
 	for i, expectedLine := range expectedLines {
 		actualLine := ""
@@ -72,7 +72,12 @@ func assertEqualStrings(t *testing.T, expected string, actual string) {
 			actualLine = actualLines[i]
 		}
 
-		fmt.Printf("| %50s | %50s |\n", "\""+expectedLine+"\"", "\""+actualLine+"\"")
+		changeMark := " "
+		if actualLine != expectedLine {
+			changeMark = "*"
+		}
+
+		fmt.Printf("| %s | %-50s | %-50s |\n", changeMark, "\""+expectedLine+"\"", "\""+actualLine+"\"")
 	}
 
 	if len(actualLines) > len(expectedLines) {
