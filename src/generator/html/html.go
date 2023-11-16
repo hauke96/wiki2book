@@ -150,6 +150,8 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 		html, err = g.expandTableColumn(token.(parser.TableColToken), tokenMap)
 	case parser.TableCaptionToken:
 		html, err = g.expandTableCaption(token.(parser.TableCaptionToken), tokenMap)
+	case parser.MathToken:
+		html, err = g.expandMath(token.(parser.MathToken))
 	}
 
 	if err != nil {
@@ -203,8 +205,8 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		//	html, err = g.expandInlineImage(tokenMap[submatch[0]].(parser.InlineImageToken))
 		//case parser.TOKEN_IMAGE:
 		//	html, err = g.expandImage(tokenMap[submatch[0]].(parser.ImageToken), tokenMap)
-		case parser.TOKEN_MATH:
-			html, err = g.expandMath(submatch[0], tokenMap)
+		//case parser.TOKEN_MATH:
+		//	html, err = g.expandMath(submatch[0])
 		//case parser.TOKEN_HEADING:
 		//	html, err = g.expandHeadings(tokenMap[submatch[0]].(parser.HeadingToken), tokenMap)
 		case parser.TOKEN_REF_DEF:
@@ -454,8 +456,8 @@ func (g *HtmlGenerator) expandRefUsage(token string, tokenMap map[string]interfa
 }
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
-func (g *HtmlGenerator) expandMath(token string, tokenMap map[string]interface{}) (string, error) {
-	svgFilename, pngFilename, err := api.RenderMath(tokenMap[token].(string), g.imageCacheFolder, g.mathCacheFolder)
+func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
+	svgFilename, pngFilename, err := api.RenderMath(token.Content, g.imageCacheFolder, g.mathCacheFolder)
 	if err != nil {
 		return "", err
 	}
