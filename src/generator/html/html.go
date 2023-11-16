@@ -142,10 +142,6 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 		html, err = g.expandDescriptionList(token.(parser.DescriptionListToken), tokenMap)
 	case parser.ListItemToken:
 		html, err = g.expandListItem(token.(parser.ListItemToken), tokenMap)
-	case parser.DescriptionListHeadToken:
-		html, err = g.expandDescriptionHead(token.(parser.DescriptionListHeadToken), tokenMap)
-	case parser.DescriptionListItemToken:
-		html, err = g.expandDescriptionItem(token.(parser.DescriptionListItemToken), tokenMap)
 	case parser.TableRowToken:
 		html, err = g.expandTableRow(token.(parser.TableRowToken), tokenMap)
 	case parser.TableColToken:
@@ -381,11 +377,11 @@ func (g *HtmlGenerator) expandDescriptionList(token parser.DescriptionListToken,
 	return fmt.Sprintf(TEMPLATE_DL, expandedItems), nil
 }
 
-func (g *HtmlGenerator) expandListItems(items []parser.ListToken, tokenMap map[string]interface{}) (string, error) {
+func (g *HtmlGenerator) expandListItems(items []parser.ListItemToken, tokenMap map[string]interface{}) (string, error) {
 	var expandedItems []string
 
 	for _, item := range items {
-		expandedItem, err := g.expand(item, tokenMap)
+		expandedItem, err := g.expandListItem(item, tokenMap)
 		if err != nil {
 			return "", err
 		}
@@ -393,24 +389,39 @@ func (g *HtmlGenerator) expandListItems(items []parser.ListToken, tokenMap map[s
 		expandedItems = append(expandedItems, expandedItem)
 	}
 
-	expandedTokenContent, err := g.expand(strings.Join(expandedItems, "\n"), tokenMap)
-	if err != nil {
-		return "", err
-	}
-
+	expandedTokenContent := strings.Join(expandedItems, "\n")
 	return expandedTokenContent, nil
 }
 
 func (g *HtmlGenerator) expandListItem(token parser.ListItemToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandContent(token.Content, tokenMap, TEMPLATE_LI)
-}
+	var template string
+	switch token.Type {
+	case parser.NORMAL_ITEM:
+		template = TEMPLATE_LI
+	case parser.DESCRIPTION_HEAD:
+		template = TEMPLATE_DT
+	case parser.DESCRIPTION_ITEM:
+		template = TEMPLATE_DD
+	default:
+		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
+	}
 
-func (g *HtmlGenerator) expandDescriptionHead(token parser.DescriptionListHeadToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandContent(token.Content, tokenMap, TEMPLATE_DT)
-}
+	var listItemContents []string
+	listItemContent, err := g.expand(token.Content, tokenMap)
+	if err != nil {
+		return "", err
+	}
+	listItemContents = append(listItemContents, listItemContent)
 
-func (g *HtmlGenerator) expandDescriptionItem(token parser.DescriptionListItemToken, tokenMap map[string]interface{}) (string, error) {
-	return g.expandContent(token.Content, tokenMap, TEMPLATE_DD)
+	for _, subListToken := range token.SubLists {
+		expandedSubList, err := g.expand(subListToken, tokenMap)
+		if err != nil {
+			return "", err
+		}
+		listItemContents = append(listItemContents, expandedSubList)
+	}
+
+	return fmt.Sprintf(template, strings.Join(listItemContents, "\n")), nil
 }
 
 func (g *HtmlGenerator) expandRefDefinition(token string, tokenMap map[string]interface{}) (string, error) {

@@ -14,12 +14,9 @@ const TOKEN_TABLE = "TABLE"
 
 const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
 const TOKEN_ORDERED_LIST = "ORDERED_LIST"
-const TOKEN_LIST_ITEM = "LIST_ITEM"
-const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
-
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_DESCRIPTION_LIST_HEAD = "DESCRIPTION_LIST_HEAD"      // Head of each description list
-const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"      // Item of a description list (the things with indentation)
+const TOKEN_UNKNOWN_LIST = "UNKNOWN_LIST_TYPE_%s"                // Template for unknown lists
+const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s"           // Template for unknown lists
 const TOKEN_UNKNOWN_LIST_ITEM_TYPE = "UNKNOWN_LIST_ITEM_TYPE_%s" // Template for unknown list items
 
 const TOKEN_IMAGE = "IMAGE"

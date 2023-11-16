@@ -256,18 +256,10 @@ func TestExpandTableColumnWithAttributes(t *testing.T) {
 }
 
 func TestExpandUnorderedList(t *testing.T) {
-	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 0)
-	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
-	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_UNORDERED_LIST, 2)
-
-	item1 := parser.ListItemToken{Content: "foo"}
-	item2 := parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
-	list3 := parser.UnorderedListToken{Items: []parser.ListToken{item1, item2}}
-	tokenMap := map[string]interface{}{
-		tokenList: tokenList,
-		tokenLi1:  item1,
-		tokenLi2:  item2,
-	}
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
+	tokenMap := map[string]interface{}{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -282,18 +274,10 @@ b<b>a</b>r
 }
 
 func TestExpandOrderedList(t *testing.T) {
-	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 0)
-	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_LIST_ITEM, 1)
-	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_ORDERED_LIST, 2)
-
-	item1 := parser.ListItemToken{Content: "foo"}
-	item2 := parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
-	list3 := parser.OrderedListToken{Items: []parser.ListToken{item1, item2}}
-	tokenMap := map[string]interface{}{
-		tokenList: tokenList,
-		tokenLi1:  item1,
-		tokenLi2:  item2,
-	}
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2}}
+	tokenMap := map[string]interface{}{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -308,18 +292,10 @@ b<b>a</b>r
 }
 
 func TestExpandDescriptionList(t *testing.T) {
-	tokenLi1 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_HEAD, 0)
-	tokenLi2 := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST_ITEM, 1)
-	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_DESCRIPTION_LIST, 2)
-
-	item1 := parser.DescriptionListHeadToken{ListItemToken: parser.ListItemToken{Content: "foo"}}
-	item2 := parser.DescriptionListItemToken{ListItemToken: parser.ListItemToken{Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}}
-	list3 := parser.DescriptionListToken{Items: []parser.ListToken{item1, item2}}
-	tokenMap := map[string]interface{}{
-		tokenList: tokenList,
-		tokenLi1:  item1,
-		tokenLi2:  item2,
-	}
+	item1 := parser.ListItemToken{Type: parser.DESCRIPTION_HEAD, Content: "foo"}
+	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.DescriptionListToken{Items: []parser.ListItemToken{item1, item2}}
+	tokenMap := map[string]interface{}{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -331,6 +307,31 @@ foo
 b<b>a</b>r
 </div>
 </div>`, row)
+}
+
+func TestExpandNestedLists(t *testing.T) {
+	tokenList := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_UNORDERED_LIST, 2)
+
+	itemInner := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "bar"}
+	listInner := parser.OrderedListToken{Items: []parser.ListItemToken{itemInner}}
+	itemOuter := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo", SubLists: []parser.ListToken{listInner}}
+	listOuter := parser.UnorderedListToken{Items: []parser.ListItemToken{itemOuter}}
+	tokenMap := map[string]interface{}{
+		tokenList: tokenList,
+	}
+
+	row, err := generator.expand(listOuter, tokenMap)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ul>
+<li>
+foo
+<ol>
+<li>
+bar
+</li>
+</ol>
+</li>
+</ul>`, row)
 }
 
 func TestExpandRefDefinition(t *testing.T) {

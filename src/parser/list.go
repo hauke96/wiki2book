@@ -10,34 +10,34 @@ type ListToken interface {
 	Token
 }
 
-type ListItemToken struct {
-	ListToken
-	Content string
-}
-
 type OrderedListToken struct {
 	ListToken
-	Items []ListToken
+	Items []ListItemToken
 }
 
 type UnorderedListToken struct {
 	ListToken
-	Items []ListToken
+	Items []ListItemToken
 }
 
-// DescriptionListHeadToken is the part after ";"
-type DescriptionListHeadToken struct {
-	ListItemToken
-}
+type ListItemTokenType int
 
-// DescriptionListItemToken is the part after ":"
-type DescriptionListItemToken struct {
-	ListItemToken
+const (
+	NORMAL_ITEM ListItemTokenType = iota
+	DESCRIPTION_ITEM
+	DESCRIPTION_HEAD
+)
+
+type ListItemToken struct {
+	ListToken
+	Type     ListItemTokenType
+	Content  string
+	SubLists []ListToken
 }
 
 type DescriptionListToken struct {
 	ListToken
-	Items []ListToken
+	Items []ListItemToken
 }
 
 func (t *Tokenizer) parseLists(content string) string {
@@ -100,7 +100,7 @@ func (t *Tokenizer) tokenizeList(lines []string, startLineIndex int, listPrefix 
 		listLines = append(listLines, line)
 	}
 
-	var allListItemTokens []ListToken
+	var allListItemTokens []ListItemToken
 
 	// Step 3: Parse each line.
 	for lineIndex := 0; lineIndex < len(listLines); lineIndex++ {
@@ -131,7 +131,22 @@ func (t *Tokenizer) tokenizeList(lines []string, startLineIndex int, listPrefix 
 			}
 
 			subListToken, _, _ := t.tokenizeList(trimmedListLines, 0, subListPrefix)
-			allListItemTokens = append(allListItemTokens, subListToken)
+
+			// Add the sub-list token to the previous list item. Of no previous list item exists, create one, which will
+			// only serve as a hull (or dummy) for the actual sub list.
+			hasPreviousListItem := len(allListItemTokens) > 0
+			if !hasPreviousListItem {
+				listItemType := t.getListItemTypeForList(listPrefix)
+				subListDummyToken := ListItemToken{
+					Type:     listItemType,
+					Content:  "",
+					SubLists: []ListToken{subListToken},
+				}
+				allListItemTokens = append(allListItemTokens, subListDummyToken)
+			} else {
+				previousListItem := &allListItemTokens[len(allListItemTokens)-1]
+				previousListItem.SubLists = appendOrCreate(previousListItem.SubLists, subListToken)
+			}
 
 			lineIndex += len(trimmedListLines)
 			// Compensate "lineIndex++" from the for-loop
@@ -142,84 +157,43 @@ func (t *Tokenizer) tokenizeList(lines []string, startLineIndex int, listPrefix 
 			// token of that sub-list must be within the token content of the current line token. Otherwise, the sub-
 			// list will be part of a new and empty item of the current list we're in. That's not what we want.
 
-			//var subListToken ListToken
-			// Is there a next line and does it start a sub-list?
-			// TODO is this still needed? Sub-lists are handles above.
-			//if lineIndex < len(listLines)-1 && listPrefixRegex.MatchString(listLines[lineIndex+1]) {
-			//	// Yes -> Get the prefix of the next line (to see what kind of list it starts)
-			//	nextLinePrefix := string(listLines[lineIndex+1][0])
-			//
-			//	// Is it a list of description list items? If so, we don't consider it a new list start, because a
-			//	// description list starts with a ";" (semicolon).
-			//	if nextLinePrefix != ":" {
-			//		// When there's a sub-list, then this sub list token will be part of the current list item token. Therefore,
-			//		// we have to start parsing the sub-list before creating the token for the current list item.
-			//		subListToken, _, lineIndex = t.tokenizeList(listLines, lineIndex+1, nextLinePrefix, t.getListTokenKey(nextLinePrefix))
-			//		lineIndex-- // compensates the  lineIndex++  from the for-loop
-			//	}
-			//}
-
-			//tokenItemPrefix := listPrefix
-			//if linePrefix == ":" {
-			//	// If this line is a description list item, we remove its prefix as it wasn't removed at beginning (s.
-			//	// above: Description lists usually start with ";" (semicolon) but items are marked with ":" (colon)
-			//	// which hasn't been removed to distinguish description list headings and items.
-			//	tokenItemPrefix = linePrefix
-			//	line = line[1:]
-			//}
-
-			listItemTokenKey := t.getListItemTokenKey(listPrefix)
 			if linePrefix == ";" {
 				// Description list head -> also check for description list item in the same line
 				lineParts := strings.SplitN(line[1:], ":", 2)
 
 				headPart := t.tokenizeContent(t, lineParts[0])
-				headTokenKey := t.getToken(listItemTokenKey)
-				headToken := DescriptionListHeadToken{
-					ListItemToken: ListItemToken{
-						Content: headPart,
-					},
+				var headToken ListItemToken
+				headToken = ListItemToken{
+					Type:    DESCRIPTION_HEAD,
+					Content: headPart,
 				}
-				t.setRawToken(headTokenKey, headToken)
 				allListItemTokens = append(allListItemTokens, headToken)
 
 				if len(lineParts) > 1 {
 					// There's a description list item after the heading -> Create separate token for that
 					itemPart := t.tokenizeContent(t, lineParts[1])
-					itemTokenKey := t.getToken(TOKEN_DESCRIPTION_LIST_ITEM)
-					itemToken := DescriptionListItemToken{
-						ListItemToken: ListItemToken{
-							Content: itemPart,
-						},
+					itemToken := ListItemToken{
+						Type:    DESCRIPTION_ITEM,
+						Content: itemPart,
 					}
-					t.setRawToken(itemTokenKey, itemToken)
 					allListItemTokens = append(allListItemTokens, itemToken)
 				}
 			} else if linePrefix == ":" {
 				// Description list item
-				itemTokenKey := t.getToken(TOKEN_DESCRIPTION_LIST_ITEM)
-				itemToken := DescriptionListItemToken{
-					ListItemToken: ListItemToken{
-						Content: t.tokenizeContent(t, line[1:]),
-					},
+				itemToken := ListItemToken{
+					Type:    DESCRIPTION_ITEM,
+					Content: t.tokenizeContent(t, line[1:]),
 				}
-				t.setRawToken(itemTokenKey, itemToken)
 				allListItemTokens = append(allListItemTokens, itemToken)
 			} else {
 				// Normal list item
 				tokenizedLine := t.tokenizeContent(t, line[1:])
-
-				lineTokenKey := t.getToken(TOKEN_LIST_ITEM)
 				lineToken := ListItemToken{
+					Type:    NORMAL_ITEM,
 					Content: tokenizedLine,
 				}
-				t.setRawToken(lineTokenKey, lineToken)
 				allListItemTokens = append(allListItemTokens, lineToken)
 			}
-
-			//if subListToken != nil {
-			//	allListItemTokens = append(allListItemTokens, subListToken)
-			//}
 		}
 	}
 
@@ -300,17 +274,24 @@ func (t *Tokenizer) getListTokenKey(listItemPrefix string) string {
 	return fmt.Sprintf(TOKEN_UNKNOWN_LIST_ITEM, listItemPrefix)
 }
 
-func (t *Tokenizer) getListItemTokenKey(listItemPrefix string) string {
+func (t *Tokenizer) getListItemTypeForList(listItemPrefix string) ListItemTokenType {
 	switch listItemPrefix {
 	case "*":
-		return TOKEN_LIST_ITEM
+		return NORMAL_ITEM
 	case "#":
-		return TOKEN_LIST_ITEM
+		return NORMAL_ITEM
 	case ";":
-		return TOKEN_DESCRIPTION_LIST_HEAD
+		return DESCRIPTION_HEAD
 	case ":":
-		return TOKEN_DESCRIPTION_LIST_ITEM
+		return DESCRIPTION_ITEM
 	}
-	sigolo.Error("Unable to get list item token key: Unknown list item prefix %s", listItemPrefix)
-	return fmt.Sprintf(TOKEN_UNKNOWN_LIST_ITEM_TYPE, listItemPrefix)
+	sigolo.Error("Unable to get list item type from list prefix '%s'", listItemPrefix)
+	return -1
+}
+
+func appendOrCreate[T interface{}](list []T, item T) []T {
+	if list == nil {
+		return []T{item}
+	}
+	return append(list, item)
 }

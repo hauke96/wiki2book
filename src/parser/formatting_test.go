@@ -100,7 +100,7 @@ blubb`
 	test.AssertEqual(t, fmt.Sprintf(`%s
 bar
 %s
-blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1), MARKER_PARAGRAPH), tokenizedContent)
+blubb`, fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0), MARKER_PARAGRAPH), tokenizedContent)
 }
 
 func TestParseParagraph_afterHeading(t *testing.T) {
