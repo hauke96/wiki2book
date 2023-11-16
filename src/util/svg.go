@@ -6,6 +6,7 @@ import (
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -14,6 +15,10 @@ type SimpleSvgAttributes struct {
 	Height string `xml:"height,attr"`
 	Style  string `xml:"style,attr"`
 }
+
+var (
+	xmlNamespaceValueRegex = regexp.MustCompile(`&ns.*?;`) // Attributes like  xmlns="&ns_svg;"  cause error during Unmarshalling.
+)
 
 func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 	file, err := os.ReadFile(filename)
@@ -103,7 +108,9 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 
 func parseSimpleSvgAttributes(file []byte, filename string) (*SimpleSvgAttributes, error) {
 	var svg = &SimpleSvgAttributes{}
-	err := xml.Unmarshal(file, &svg)
+	fileString := string(file)
+	fileString = xmlNamespaceValueRegex.ReplaceAllString(fileString, "")
+	err := xml.Unmarshal([]byte(fileString), &svg)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Unable to unmarshal XML of SVG document %s", filename))
 	}

@@ -48,7 +48,6 @@ var (
 var (
 	// TODO Edge case: Empty list item at the end of the content (with no trailing newline)
 	emptyListItemRegex = regexp.MustCompile(`(?m)^(\s*[*#:;]+\s*\n)`)
-	listPrefixRegex    = regexp.MustCompile(`^([*#:;])`)
 )
 
 // Media files
