@@ -27,7 +27,7 @@ end
 	test.AssertEqual(t, expectedTokenizedContent, newContent)
 	item1 := ListItemToken{Type: NORMAL_ITEM, Content: " a"}
 	item2 := ListItemToken{Type: NORMAL_ITEM, Content: " b"}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0): UnorderedListToken{Items: []ListItemToken{item1}},
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 1):   OrderedListToken{Items: []ListItemToken{item2}},
 	}, tokenizer.getTokenMap())
@@ -52,7 +52,7 @@ func TestParseList_withIndentation(t *testing.T) {
 	test.AssertEqual(t, expectedTokenizedContent, newContent)
 	item1 := ListItemToken{Type: NORMAL_ITEM, Content: " a"}
 	item2 := ListItemToken{Type: NORMAL_ITEM, Content: " b"}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0): UnorderedListToken{Items: []ListItemToken{item1}},
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_ORDERED_LIST, 1):   OrderedListToken{Items: []ListItemToken{item2}},
 	}, tokenizer.getTokenMap())
@@ -107,7 +107,7 @@ end of list
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -129,7 +129,7 @@ end of list
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -156,7 +156,7 @@ end of list
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0): innerList,
 	}, tokenizer.getTokenMap())
@@ -181,7 +181,7 @@ end of list
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 2)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, listOuter, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: listOuter,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1): listMiddle,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0): listInner,
@@ -205,7 +205,7 @@ end`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -226,7 +226,7 @@ blubb`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -247,7 +247,7 @@ blubb`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -272,7 +272,7 @@ blubb`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 2)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, listOuter, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: listOuter,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 1): listMiddle,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0): listInner,
@@ -297,7 +297,7 @@ blubb`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, list, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: list,
 	}, tokenizer.getTokenMap())
 }
@@ -325,7 +325,7 @@ blubb`
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 1)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, listOuter, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: listOuter,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 0): innerList,
 	}, tokenizer.getTokenMap())
@@ -351,7 +351,7 @@ end of list
 	expectedTokenKey := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_UNORDERED_LIST, 1)
 	test.AssertEqual(t, expectedTokenKey, tokenKey)
 	test.AssertEqual(t, listOuter, token)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		expectedTokenKey: listOuter,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_DESCRIPTION_LIST, 0): innerList,
 	}, tokenizer.getTokenMap())

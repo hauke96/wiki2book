@@ -44,7 +44,7 @@ func TestParseTable_simple(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -111,7 +111,7 @@ func TestParseTable_withIndentation(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -202,7 +202,7 @@ after`
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1): expectedTableToken,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 0): InternalLinkToken{
 			ArticleName: "internal",
@@ -257,7 +257,7 @@ func TestParseTable_tableInTable(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedInnerTableToken,
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 1): expectedOuterTableToken,
 	}, tokenizer.getTokenMap())
@@ -303,7 +303,7 @@ func TestParseTable_withoutExplicitRowStart(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -343,7 +343,7 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 			TableRowToken{},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -386,7 +386,7 @@ func TestParseTable_withEmptyColumn(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -417,7 +417,7 @@ func TestParseTable_captionInsideRow(t *testing.T) {
 			},
 		},
 	}
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
@@ -448,7 +448,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 	}
 	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
 	test.AssertEqual(t, 1, i)
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeTableRow_withColumn(t *testing.T) {
@@ -485,7 +485,7 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 
 	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
 	test.AssertEqual(t, 3, i)
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestTokenizeTableColumn(t *testing.T) {
@@ -502,5 +502,5 @@ func TestTokenizeTableColumn(t *testing.T) {
 	}
 	test.AssertEqual(t, expectedAttributeToken, attributeToken)
 	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }

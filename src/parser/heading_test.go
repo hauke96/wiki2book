@@ -16,7 +16,7 @@ func TestParseHeading(t *testing.T) {
 
 		token := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_HEADING, 0)
 		test.AssertEqual(t, token, content)
-		test.AssertMapEqual(t, map[string]interface{}{
+		test.AssertMapEqual(t, map[string]Token{
 			token: HeadingToken{
 				Content: fmt.Sprintf("heading of depth %d", i),
 				Depth:   i,
@@ -30,7 +30,7 @@ func TestParseHeading_withFormatting(t *testing.T) {
 	content := tokenizer.parseHeadings("== H2 ''with formatting'' ==")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_HEADING_0$$": HeadingToken{
 			Content: "H2 $$MARKER_ITALIC_OPEN$$with formatting$$MARKER_ITALIC_CLOSE$$",
 			Depth:   2,
@@ -43,7 +43,7 @@ func TestParseHeading_withSpacesAroundEqualCharacters(t *testing.T) {
 	content := tokenizer.parseHeadings("  == foo == ")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_HEADING_0$$": HeadingToken{
 			Content: "foo",
 			Depth:   2,
@@ -72,7 +72,7 @@ $$TOKEN_HEADING_3$$
 1
 $$TOKEN_HEADING_1$$
 3-2`, content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_HEADING_0$$": HeadingToken{
 			Content: "heading3",
 			Depth:   3,

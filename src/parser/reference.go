@@ -7,6 +7,17 @@ import (
 	"wiki2book/util"
 )
 
+type RefDefinitionToken struct {
+	Token
+	Index   int
+	Content string
+}
+
+type RefUsageToken struct {
+	Token
+	Index int
+}
+
 func (t *Tokenizer) parseReferences(content string) string {
 	/*
 		Idea of this parsing step:
@@ -47,17 +58,22 @@ func (t *Tokenizer) parseReferences(content string) string {
 	for _, name := range sortedRefNames {
 		ref := nameToReference[name]
 		refIndex := refNameToIndex[name]
-		token := t.getToken(TOKEN_REF_USAGE)
-		t.setToken(token, fmt.Sprintf("%d %s", refIndex, ref))
-		head = strings.ReplaceAll(head, ref, token)
+		tokenKey := t.getToken(TOKEN_REF_USAGE)
+		t.setRawToken(tokenKey, RefUsageToken{
+			Index: refIndex,
+		})
+		head = strings.ReplaceAll(head, ref, tokenKey)
 	}
 
 	// Append ref definitions to head
 	for _, name := range sortedRefNames {
 		ref := referenceDefinitions[name]
-		token := t.getToken(TOKEN_REF_DEF)
-		t.setToken(token, fmt.Sprintf("%d %s", refNameToIndex[name], t.tokenizeContent(t, ref)))
-		head += token + "\n"
+		tokenKey := t.getToken(TOKEN_REF_DEF)
+		t.setRawToken(tokenKey, RefDefinitionToken{
+			Index:   refNameToIndex[name],
+			Content: t.tokenizeContent(t, ref),
+		})
+		head += tokenKey + "\n"
 	}
 
 	return head + foot
@@ -120,7 +136,8 @@ func (t *Tokenizer) replaceNamedReferences(content string, nameToRefDef map[stri
 	for _, submatch := range submatches {
 		name := submatch[1]
 		totalRef := submatch[0]
-		nameToRefDef[name] = totalRef
+		refWithoutTags := submatch[2] // ref without "<ref>" and "</ref>"
+		nameToRefDef[name] = refWithoutTags
 		head = strings.ReplaceAll(head, totalRef, fmt.Sprintf("<ref name=\"%s\" />", name))
 	}
 	return head
@@ -132,6 +149,7 @@ func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[st
 	submatches := generalReferenceRegex.FindAllStringSubmatch(content, -1)
 	for i, submatch := range submatches {
 		totalRef := submatch[0]
+		refWithoutTags := submatch[2] // ref without "<ref>" and "</ref>"
 
 		// Ignore named references and usages, we're just interested in UNnamed ones
 		if namedReferenceRegex.MatchString(totalRef) || namedReferenceUsageRegex.MatchString(totalRef) {
@@ -141,7 +159,7 @@ func (t *Tokenizer) replaceUnnamedReferences(content string, nameToRefDef map[st
 		// Generate more or less random but unique name
 		name := util.Hash(fmt.Sprintf("%d%s", i, totalRef))
 
-		nameToRefDef[name] = totalRef
+		nameToRefDef[name] = refWithoutTags
 		head = strings.ReplaceAll(head, totalRef, fmt.Sprintf("<ref name=\"%s\" />", name))
 	}
 	return head

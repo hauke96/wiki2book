@@ -94,7 +94,7 @@ bar
 [[File:File_3.jpg|mini]]
 blubb`, content)
 
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestParseGalleries_emptyGallery(t *testing.T) {
@@ -107,7 +107,7 @@ bar`)
 	test.AssertEqual(t, `foo
 bar`, content)
 
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestParseImagemaps(t *testing.T) {
@@ -130,7 +130,7 @@ bar
 [[Image:Picture.jpg]]
 blubb`, content)
 
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_inlineHappyPath(t *testing.T) {
@@ -143,7 +143,7 @@ func TestParseImages_withEscaping(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("blubb [[file:nice image.jpg]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_0$$": InlineImageToken{
 			Filename: "foo/Nice_image.jpg",
 			SizeX:    -1,
@@ -154,7 +154,7 @@ func TestParseImages_withEscaping(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:nice image.gif]] bar")
 	test.AssertEqual(t, "foo  bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{}, tokenizer.getTokenMap())
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestParseImages_ignoreParameters(t *testing.T) {
@@ -192,7 +192,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("blubb [[file:image.jpg|100x200px]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{},
@@ -204,7 +204,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("blubb [[file:image.jpg|x200px]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{},
@@ -216,7 +216,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("blubb [[file:image.jpg|200px]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{},
@@ -228,7 +228,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("blubb [[file:image.jpg|mini|200px]] bar")
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{},
@@ -243,7 +243,7 @@ func TestParseImages_withCaption(t *testing.T) {
 
 	content := tokenizer.parseImages("foo [[file:image.jpg|10x20px|mini|some caption]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{Content: "some caption"},
@@ -257,7 +257,7 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseImages("foo [[file:image.jpg|mini|some [https://foo.com link]]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{Content: "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$"},
@@ -273,7 +273,7 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	tokenizer = NewTokenizer("foo", "bar")
 	content = tokenizer.parseImages("foo [[file:image.jpg|mini|some [[article]]]]")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{Content: "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$"},
@@ -296,7 +296,7 @@ func TestParseImages_withCaptionAndTrailingParameter(t *testing.T) {
 
 	content := tokenizer.parseImages("foo [[file:image.jpg|10x20px|mini|some caption|ignoredParam=blubb]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
-	test.AssertMapEqual(t, map[string]interface{}{
+	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
 			Filename: "foo/Image.jpg",
 			Caption:  CaptionToken{Content: "some caption"},

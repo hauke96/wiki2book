@@ -15,9 +15,7 @@ const TOKEN_TABLE = "TABLE"
 const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
 const TOKEN_ORDERED_LIST = "ORDERED_LIST"
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_UNKNOWN_LIST = "UNKNOWN_LIST_TYPE_%s"                // Template for unknown lists
-const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s"           // Template for unknown lists
-const TOKEN_UNKNOWN_LIST_ITEM_TYPE = "UNKNOWN_LIST_ITEM_TYPE_%s" // Template for unknown list items
+const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
 
 const TOKEN_IMAGE = "IMAGE"
 const TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
@@ -36,20 +34,18 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 type Tokenizer struct {
-	// TODO Change "interface{}" to "*Token" when everything is migrated
-	// TODO Use separate new type "type TokenKey string" for token keys instead of "string"
-	tokenMap       map[string]interface{}
+	tokenMap       map[string]Token
 	tokenCounter   int
 	imageFolder    string
 	templateFolder string
 
-	tokenizeContent func(tokenizer *Tokenizer, content string) string // TODO Change "interface{}" to "*Token" when everything is migrated
+	tokenizeContent func(tokenizer *Tokenizer, content string) string
 }
 
 type Article struct {
 	Title    string
 	Content  string
-	TokenMap map[string]interface{}
+	TokenMap map[string]Token
 	Images   []string
 }
 
@@ -64,7 +60,7 @@ type StringToken struct {
 
 func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	return Tokenizer{
-		tokenMap:       map[string]interface{}{},
+		tokenMap:       map[string]Token{},
 		tokenCounter:   0,
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
@@ -123,7 +119,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	return &article, nil
 }
 
-func (t *Tokenizer) getTokenMap() map[string]interface{} {
+func (t *Tokenizer) getTokenMap() map[string]Token {
 	return t.tokenMap
 }
 

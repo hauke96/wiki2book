@@ -26,7 +26,7 @@ func TestExpandHeadings(t *testing.T) {
 		Content: "foobar",
 		Depth:   3,
 	}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenKey: token,
 	}
 
@@ -49,7 +49,7 @@ some <b>caption</b>
 		SizeX:    10,
 		SizeY:    20,
 	}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenImage: token,
 	}
 
@@ -72,7 +72,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 		SizeX:    10,
 		SizeY:    20,
 	}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenImage: token,
 	}
 
@@ -96,7 +96,7 @@ some <b>caption</b>
 		SizeX:    10,
 		SizeY:    -1,
 	}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenImage: token,
 	}
 
@@ -118,7 +118,7 @@ some <b>caption</b>
 		SizeX:    -1,
 		SizeY:    10,
 	}
-	tokenMap = map[string]interface{}{
+	tokenMap = map[string]parser.Token{
 		tokenImage: token,
 	}
 
@@ -135,7 +135,7 @@ func TestExpandImageInline(t *testing.T) {
 		SizeX:    10,
 		SizeY:    20,
 	}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenImage: token,
 	}
 
@@ -146,7 +146,7 @@ func TestExpandImageInline(t *testing.T) {
 
 func TestExpandInternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenLink: parser.InternalLinkToken{
 			ArticleName: "foo",
 			LinkText:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
@@ -161,7 +161,7 @@ func TestExpandInternalLink(t *testing.T) {
 func TestExpandExternalLink(t *testing.T) {
 	tokenLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 0)
 	url := "https://foo.com"
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenLink: parser.ExternalLinkToken{
 			URL:      url,
 			LinkText: "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
@@ -175,7 +175,7 @@ func TestExpandExternalLink(t *testing.T) {
 
 func TestExpandTable(t *testing.T) {
 	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 0)
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenTable: parser.TableToken{
 			Caption: parser.TableCaptionToken{
 				Content: "caption",
@@ -220,7 +220,7 @@ func TestExpandTableRow(t *testing.T) {
 			},
 		},
 	}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expandTableRow(tokenRow, tokenMap)
 	test.AssertNil(t, err)
@@ -233,7 +233,7 @@ func TestExpandTableColumn(t *testing.T) {
 		Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 		IsHeading:  false,
 	}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expandTableColumn(tokenCol, tokenMap)
 	test.AssertNil(t, err)
@@ -248,7 +248,7 @@ func TestExpandTableColumnWithAttributes(t *testing.T) {
 		Content:   "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
 		IsHeading: false,
 	}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expandTableColumn(tokenCol, tokenMap)
 	test.AssertNil(t, err)
@@ -259,7 +259,7 @@ func TestExpandUnorderedList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -277,7 +277,7 @@ func TestExpandOrderedList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2}}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -295,7 +295,7 @@ func TestExpandDescriptionList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.DESCRIPTION_HEAD, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.DescriptionListToken{Items: []parser.ListItemToken{item1, item2}}
-	tokenMap := map[string]interface{}{}
+	tokenMap := map[string]parser.Token{}
 
 	row, err := generator.expand(list3, tokenMap)
 	test.AssertNil(t, err)
@@ -316,7 +316,7 @@ func TestExpandNestedLists(t *testing.T) {
 	listInner := parser.OrderedListToken{Items: []parser.ListItemToken{itemInner}}
 	itemOuter := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo", SubLists: []parser.ListToken{listInner}}
 	listOuter := parser.UnorderedListToken{Items: []parser.ListItemToken{itemOuter}}
-	tokenMap := map[string]interface{}{
+	tokenMap := map[string]parser.Token{
 		tokenList: tokenList,
 	}
 
@@ -335,25 +335,30 @@ bar
 }
 
 func TestExpandRefDefinition(t *testing.T) {
-	tokenRef := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
-
-	tokenMap := map[string]interface{}{
-		tokenRef: "42 f" + parser.MARKER_BOLD_OPEN + "o" + parser.MARKER_BOLD_CLOSE + "o",
+	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
+	tokenMap := map[string]parser.Token{
+		tokenKey: parser.RefDefinitionToken{
+			Index:   42,
+			Content: "f" + parser.MARKER_BOLD_OPEN + "o" + parser.MARKER_BOLD_CLOSE + "o",
+		},
 	}
 
-	row, err := generator.expandRefDefinition(tokenRef, tokenMap)
+	row, err := generator.expand(tokenKey, tokenMap)
+
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `[42] f<b>o</b>o<br>`, row)
 }
 
 func TestExpandRefUsage(t *testing.T) {
-	tokenRef := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
-
-	tokenMap := map[string]interface{}{
-		tokenRef: "42 f" + parser.MARKER_BOLD_OPEN + "o" + parser.MARKER_BOLD_CLOSE + "o",
+	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
+	tokenMap := map[string]parser.Token{
+		tokenKey: parser.RefUsageToken{
+			Index: 42,
+		},
 	}
 
-	row, err := generator.expandRefUsage(tokenRef, tokenMap)
+	row, err := generator.expand(tokenKey, tokenMap)
+
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `[42]`, row)
 }
