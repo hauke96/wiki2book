@@ -85,17 +85,14 @@ var (
 )
 
 type HtmlGenerator struct {
-	imageCacheFolder   string
-	mathCacheFolder    string
-	articleCacheFolder string
+	ImageCacheFolder   string
+	MathCacheFolder    string
+	ArticleCacheFolder string
+	TokenMap           map[string]parser.Token
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
-func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder string, styleFile string, imgFolder string, mathFolder string, articleFolder string) (string, error) {
-	g.imageCacheFolder = imgFolder
-	g.mathCacheFolder = mathFolder
-	g.articleCacheFolder = articleFolder
-
+func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder string, styleFile string) (string, error) {
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
 	expandedContent, err := g.expand(wikiArticle.Content, wikiArticle.TokenMap)
@@ -410,7 +407,7 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) (string, erro
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, pngFilename, err := api.RenderMath(token.Content, g.imageCacheFolder, g.mathCacheFolder)
+	svgFilename, pngFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {
 		return "", err
 	}

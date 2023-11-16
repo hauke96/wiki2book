@@ -188,8 +188,13 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	htmlFileName := article.Title + ".html"
 	htmlFile := path.Join(htmlOutputFolder, htmlFileName)
 	if shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
-		htmlGenerator := &html.HtmlGenerator{}
-		htmlFile, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
+		htmlGenerator := &html.HtmlGenerator{
+			ImageCacheFolder:   imageCache,
+			MathCacheFolder:    mathCache,
+			ArticleCacheFolder: articleCache,
+			TokenMap:           article.TokenMap,
+		}
+		htmlFile, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
 		sigolo.FatalCheck(err)
 	}
 
@@ -285,8 +290,13 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 			sigolo.FatalCheck(err)
 
 			sigolo.Info("Generate HTML for article %s", articleName)
-			htmlGenerator := &html.HtmlGenerator{}
-			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile, imageCache, mathCache, articleCache)
+			htmlGenerator := &html.HtmlGenerator{
+				ImageCacheFolder:   imageCache,
+				MathCacheFolder:    mathCache,
+				ArticleCacheFolder: articleCache,
+				TokenMap:           article.TokenMap,
+			}
+			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
 			sigolo.FatalCheck(err)
 
 		}
