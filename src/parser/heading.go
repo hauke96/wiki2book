@@ -6,7 +6,7 @@ import (
 
 type HeadingToken struct {
 	Token
-	Content string // TODO replace by "[]*Token" when ready
+	Content string
 	Depth   int
 }
 
