@@ -31,7 +31,7 @@ func TestGetSortedReferenceNames(t *testing.T) {
 	sortedName, refNameToIndex := tokenizer.getSortedReferenceNames(refIndexToName)
 
 	test.AssertEqual(t, []string{"foo", "blubb", "bar"}, sortedName)
-	test.AssertEqual(t, map[string]int{
+	test.AssertMapEqual(t, map[string]int{
 		"foo":   1,
 		"blubb": 2,
 		"bar":   3,
@@ -46,8 +46,8 @@ func TestReplaceNamedReferences(t *testing.T) {
 	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
 
 	test.AssertMapEqual(t, map[string]string{
-		"barbar":     `<ref name="barbar">bar</ref>`,
-		"other-name": `<ref name=other-name>other</ref>`,
+		"barbar":     `bar`,
+		"other-name": `other`,
 	}, referenceDefinitions)
 	test.AssertEqual(t, `some<ref>foo</ref> text with refs<ref name="barbar" /> some <ref name="other-name" /> <ref>foo</ref>`, newHead)
 }
@@ -60,7 +60,7 @@ func TestReplaceNamedReferences_withSpecialCharacters(t *testing.T) {
 	newHead := tokenizer.replaceNamedReferences(content, referenceDefinitions, head)
 
 	test.AssertMapEqual(t, map[string]string{
-		"foo/bar.blubb": `<ref name="foo/bar.blubb">bar</ref>`,
+		"foo/bar.blubb": `bar`,
 	}, referenceDefinitions)
 	test.AssertEqual(t, `Refs can contain special chars <ref name="foo/bar.blubb" />.`, newHead)
 }
@@ -73,9 +73,9 @@ func TestReplaceUnnamedReferences(t *testing.T) {
 	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, head)
 
 	test.AssertMapEqual(t, map[string]string{
-		"2ae457b665ef5955b2fc685cdaaa879c96c14801": `<ref some="param">foo</ref>`,
-		"eeada6edccd48f48f3d8c8968c1878a994cbf23e": `<ref some="sla/shes">slashes</ref>`,
-		"74e7903564d066a6c4c76d9c0b9835938d0ae829": "<ref>blubb</ref>",
+		"2ae457b665ef5955b2fc685cdaaa879c96c14801": `foo`,
+		"eeada6edccd48f48f3d8c8968c1878a994cbf23e": `slashes`,
+		"74e7903564d066a6c4c76d9c0b9835938d0ae829": "blubb",
 	}, referenceDefinitions)
 	test.AssertEqual(t, `some<ref name="2ae457b665ef5955b2fc685cdaaa879c96c14801" /> text with refs<ref name="barbar">bar</ref> and <ref name="eeada6edccd48f48f3d8c8968c1878a994cbf23e" />`, newHead)
 }
@@ -87,7 +87,7 @@ func TestReplaceUnnamedReferences_ignoreReferenceUsages(t *testing.T) {
 	newHead := tokenizer.replaceUnnamedReferences(content, referenceDefinitions, content)
 
 	test.AssertMapEqual(t, map[string]string{
-		"c8d3521ed18935eb577600c6c0e9fd278b296264": `<ref some="barbar">bar</ref>`,
+		"c8d3521ed18935eb577600c6c0e9fd278b296264": `bar`,
 	}, referenceDefinitions)
 	test.AssertEqual(t, `foo <ref name="refname" /> bar <ref name="c8d3521ed18935eb577600c6c0e9fd278b296264" />`, newHead)
 }
@@ -97,7 +97,7 @@ func TestGetReferenceUsages(t *testing.T) {
 	content := `some<ref name="bar" /> text with refs<ref name="foo" />`
 	usages, _ := tokenizer.getReferenceUsages(content)
 
-	test.AssertEqual(t, map[string]string{
+	test.AssertMapEqual(t, map[string]string{
 		"bar": `<ref name="bar" />`,
 		"foo": `<ref name="foo" />`,
 	}, usages)
@@ -121,4 +121,12 @@ some footer`
 	newContent := tokenizer.parseReferences(content)
 
 	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0): RefUsageToken{Index: 1},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1): RefUsageToken{Index: 2},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2): RefUsageToken{Index: 3},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3):   RefDefinitionToken{Index: 1, Content: "bar"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4):   RefDefinitionToken{Index: 2, Content: "blubbeldy"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 5):   RefDefinitionToken{Index: 3, Content: "foo"},
+	}, tokenizer.getTokenMap())
 }

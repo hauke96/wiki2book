@@ -5,44 +5,20 @@ import (
 	"github.com/hauke96/sigolo"
 )
 
-const TOKEN_HEADING_TEMPLATE = "HEADING_%d"
-const TOKEN_HEADING_1 = "HEADING_1"
-const TOKEN_HEADING_2 = "HEADING_2"
-const TOKEN_HEADING_3 = "HEADING_3"
-const TOKEN_HEADING_4 = "HEADING_4"
-const TOKEN_HEADING_5 = "HEADING_5"
-const TOKEN_HEADING_6 = "HEADING_6"
+const TOKEN_HEADING = "HEADING"
 
 const TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
-const TOKEN_INTERNAL_LINK_ARTICLE = "INTERNAL_LINK_ARTICLE"
-const TOKEN_INTERNAL_LINK_TEXT = "INTERNAL_LINK_TEXT"
-
 const TOKEN_EXTERNAL_LINK = "EXTERNAL_LINK"
-const TOKEN_EXTERNAL_LINK_URL = "EXTERNAL_LINK_URL"
-const TOKEN_EXTERNAL_LINK_TEXT = "EXTERNAL_LINK_TEXT"
 
 const TOKEN_TABLE = "TABLE"
-const TOKEN_TABLE_CAPTION = "TABLE_CAPTION"
-const TOKEN_TABLE_HEAD = "TABLE_HEAD"
-const TOKEN_TABLE_ROW = "TABLE_ROW"
-const TOKEN_TABLE_COL = "TABLE_COL"
-const TOKEN_TABLE_COL_ATTRIBUTES = "TABLE_COL_ATTRIB"
 
 const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
 const TOKEN_ORDERED_LIST = "ORDERED_LIST"
-const TOKEN_LIST_ITEM = "LIST_ITEM"
-const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
-
 const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_DESCRIPTION_LIST_HEAD = "DESCRIPTION_LIST_HEAD"      // Head of each description list
-const TOKEN_DESCRIPTION_LIST_ITEM = "DESCRIPTION_LIST_ITEM"      // Item of a description list (the things with indentation)
-const TOKEN_UNKNOWN_LIST_ITEM_TYPE = "UNKNOWN_LIST_ITEM_TYPE_%s" // Template for unknown list items
+const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
 
 const TOKEN_IMAGE = "IMAGE"
 const TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
-const TOKEN_IMAGE_FILENAME = "IMAGE_FILENAME"
-const TOKEN_IMAGE_CAPTION = "IMAGE_CAPTION"
-const TOKEN_IMAGE_SIZE = "IMAGE_SIZE"
 
 const TOKEN_REF_USAGE = "REF_USAGE"
 const TOKEN_REF_DEF = "REF_DEF"
@@ -58,7 +34,7 @@ const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
 const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
 
 type Tokenizer struct {
-	tokenMap       map[string]string
+	tokenMap       map[string]Token
 	tokenCounter   int
 	imageFolder    string
 	templateFolder string
@@ -69,13 +45,22 @@ type Tokenizer struct {
 type Article struct {
 	Title    string
 	Content  string
-	TokenMap map[string]string
+	TokenMap map[string]Token
 	Images   []string
+}
+
+// Token is the abstract type for all sorts of tokens.
+type Token interface{}
+
+// StringToken represents a part of the input data that is pure text.
+type StringToken struct {
+	Token
+	String string
 }
 
 func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	return Tokenizer{
-		tokenMap:       map[string]string{},
+		tokenMap:       map[string]Token{},
 		tokenCounter:   0,
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
@@ -134,7 +119,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	return &article, nil
 }
 
-func (t *Tokenizer) getTokenMap() map[string]string {
+func (t *Tokenizer) getTokenMap() map[string]Token {
 	return t.tokenMap
 }
 
@@ -148,7 +133,7 @@ func (t *Tokenizer) setToken(key string, tokenContent string) {
 	t.setRawToken(key, t.tokenizeContent(t, tokenContent))
 }
 
-func (t *Tokenizer) setRawToken(key string, tokenContent string) {
+func (t *Tokenizer) setRawToken(key string, tokenContent interface{}) {
 	t.tokenMap[key] = tokenContent
 }
 

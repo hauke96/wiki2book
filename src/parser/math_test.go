@@ -16,5 +16,11 @@ some
 end`
 	tokenizedContent := tokenizer.tokenizeContent(&tokenizer, content)
 
-	test.AssertEqual(t, "abc"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 0)+"def\nsome\n"+fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 1)+"\nend", tokenizedContent)
+	expectedTokenKey0 := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 0)
+	expectedTokenKey1 := fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_MATH, 1)
+	test.AssertEqual(t, "abc"+expectedTokenKey0+"def\nsome\n"+expectedTokenKey1+"\nend", tokenizedContent)
+	test.AssertMapEqual(t, map[string]Token{
+		expectedTokenKey0: MathToken{Content: `x \cdot y`},
+		expectedTokenKey1: MathToken{Content: "\n\\multiline{math}\n"},
+	}, tokenizer.getTokenMap())
 }

@@ -33,32 +33,76 @@ func GetCacheFolder(subFolderName string) string {
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
+	expectedIsString := false
+	actualIsString := false
+
 	switch expected.(type) {
 	case string:
-		expected = strings.ReplaceAll(expected.(string), "\n", "\\n\n")
+		expectedIsString = true
 	}
 	switch actual.(type) {
 	case string:
-		actual = strings.ReplaceAll(actual.(string), "\n", "\\n\n")
+		actualIsString = true
 	}
+
 	if !reflect.DeepEqual(expected, actual) {
-		sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
-		t.Fail()
+		if expectedIsString && actualIsString {
+			assertEqualStrings(t, expected.(string), actual.(string))
+		} else {
+			sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
+			t.Fail()
+		}
 	}
 }
 
-func AssertMapEqual(t *testing.T, expected map[string]string, actual map[string]string) {
+func assertEqualStrings(t *testing.T, expected string, actual string) {
+	expected = strings.ReplaceAll(expected, "\n", "\\n\n")
+
+	actual = strings.ReplaceAll(actual, "\n", "\\n\n")
+
+	expectedLines := strings.Split(expected, "\n")
+	actualLines := strings.Split(actual, "\n")
+
+	sigolo.Errorb(2, "Expect to be equal.\n|   | %-50s | %-50s |", "Expected", "Actual")
+	fmt.Printf("|%s|\n", strings.Repeat("-", 109))
+
+	for i, expectedLine := range expectedLines {
+		actualLine := ""
+		if len(actualLines) > i {
+			actualLine = actualLines[i]
+		}
+
+		changeMark := " "
+		if actualLine != expectedLine {
+			changeMark = "*"
+		}
+
+		fmt.Printf("| %s | %-50s | %-50s |\n", changeMark, "\""+expectedLine+"\"", "\""+actualLine+"\"")
+	}
+
+	if len(actualLines) > len(expectedLines) {
+		for i := len(expectedLines); i < len(actualLines); i++ {
+			actualLine := actualLines[i]
+			fmt.Printf("| %50s | %50s |\n", "", "\""+actualLine+"\"")
+		}
+	}
+
+	t.Fail()
+}
+
+func AssertMapEqual[K comparable, V comparable](t *testing.T, expected map[K]V, actual map[K]V) {
 	if !reflect.DeepEqual(expected, actual) {
 		expectedMapString := compareMaps(expected, "E", actual, "A")
 
 		var notExpectedValues []string
-		for k, v := range actual {
-			valueInOtherMap, otherMapHasKey := expected[k]
-			valueIsNotInExpectedMap := !otherMapHasKey || valueInOtherMap != expected[k]
+		for actualK, actualV := range actual {
+			valueInExpectedMap, expectedMapHasKey := expected[actualK]
+			valueIsNotInExpectedMap := !expectedMapHasKey || !reflect.DeepEqual(valueInExpectedMap, actualV)
 
+			vString := fmt.Sprintf("%v", actualV)
 			if valueIsNotInExpectedMap {
-				v = strings.ReplaceAll(v, "\n", "\n  ")
-				s := fmt.Sprintf("  '%s' -> '%s'", k, v)
+				vString = strings.ReplaceAll(vString, "\n", "\n  ")
+				s := fmt.Sprintf("  '%v' -> '%s'", actualK, vString)
 				s = strings.ReplaceAll(s, "\n", "\\n\n")
 				notExpectedValues = append(notExpectedValues, s)
 			}
@@ -82,20 +126,22 @@ Values not expected but still found:
 
 // compareMaps lists all rows of the values-map and marks rows with the valuePrefix if they are not or in different form
 // in the other map
-func compareMaps(values map[string]string, valuePrefix string, otherValues map[string]string, otherValuePrefix string) string {
+func compareMaps[K comparable, V comparable](values map[K]V, valuePrefix string, otherValues map[K]V, otherValuePrefix string) string {
 	var expectedMapLines []string
 	for k, v := range values {
 		linePrefix, valueIsNotInOtherMap := getLinePrefix(otherValues, k, v, valuePrefix)
 
-		v = strings.ReplaceAll(v, "\n", "\n  ")
-		s := fmt.Sprintf("%s '%s' -> '%s'", linePrefix, k, v)
+		vString := fmt.Sprintf("%v", v)
+		vString = strings.ReplaceAll(vString, "\n", "\n  ")
+		s := fmt.Sprintf("%s '%v' -> '%s'", linePrefix, k, vString)
 		s = strings.ReplaceAll(s, "\n", "\\n\n")
 		expectedMapLines = append(expectedMapLines, s)
 
 		if valueIsNotInOtherMap {
 			v = otherValues[k]
-			v = strings.ReplaceAll(v, "\n", "\n  ")
-			s := fmt.Sprintf("%s '%s' -> '%s'", otherValuePrefix, k, v)
+			vString = fmt.Sprintf("%v", v)
+			vString = strings.ReplaceAll(vString, "\n", "\n  ")
+			s := fmt.Sprintf("%s '%v' -> '%s'", otherValuePrefix, k, vString)
 			s = strings.ReplaceAll(s, "\n", "\\n\n")
 			expectedMapLines = append(expectedMapLines, s)
 		}
@@ -106,9 +152,9 @@ func compareMaps(values map[string]string, valuePrefix string, otherValues map[s
 
 // getLinePrefix returns the prefix for map comparison lines. It can be used to mark lines not contains in the
 // expected/actual result map.
-func getLinePrefix(otherMap map[string]string, key string, expectedValue string, prefixIfNotInOtherMap string) (string, bool) {
+func getLinePrefix[K comparable, V comparable](otherMap map[K]V, key K, expectedValue V, prefixIfNotInOtherMap string) (string, bool) {
 	valueInOtherMap, otherMapHasKey := otherMap[key]
-	valueIsNotInOtherMap := !otherMapHasKey || valueInOtherMap != expectedValue
+	valueIsNotInOtherMap := !otherMapHasKey || !reflect.DeepEqual(valueInOtherMap, expectedValue)
 
 	if valueIsNotInOtherMap {
 		return prefixIfNotInOtherMap, valueIsNotInOtherMap
