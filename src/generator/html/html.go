@@ -142,6 +142,8 @@ func (g *HtmlGenerator) expandToken(token parser.Token, tokenMap map[string]inte
 		html, err = g.expandDescriptionList(token.(parser.DescriptionListToken), tokenMap)
 	case parser.ListItemToken:
 		html, err = g.expandListItem(token.(parser.ListItemToken), tokenMap)
+	case parser.TableToken:
+		html, err = g.expandTable(token.(parser.TableToken), tokenMap)
 	case parser.TableRowToken:
 		html, err = g.expandTableRow(token.(parser.TableRowToken), tokenMap)
 	case parser.TableColToken:
@@ -183,8 +185,8 @@ func (g *HtmlGenerator) expandString(content string, tokenMap map[string]interfa
 		//	html, err = g.expandExternalLink(tokenMap[submatch[0]].(*parser.ExternalLinkToken), tokenMap)
 		//case parser.TOKEN_INTERNAL_LINK:
 		//	html, err = g.expandInternalLink(tokenMap[submatch[0]].(*parser.InternalLinkToken), tokenMap)
-		case parser.TOKEN_TABLE:
-			html, err = g.expandTable(tokenMap[submatch[0]].(parser.TableToken), tokenMap)
+		//case parser.TOKEN_TABLE:
+		//	html, err = g.expandTable(tokenMap[submatch[0]].(parser.TableToken), tokenMap)
 		//case parser.TOKEN_UNORDERED_LIST:
 		//	html, err = g.expandUnorderedList(submatch[0], tokenMap)
 		//case parser.TOKEN_ORDERED_LIST:
