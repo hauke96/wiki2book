@@ -25,8 +25,6 @@ func TestArticleGermanLong(t *testing.T) {
 }
 
 func TestProjectGerman(t *testing.T) {
-	sigolo.LogLevel = sigolo.LOG_DEBUG
-
 	err := config.LoadConfig("../configs/de.json")
 	sigolo.FatalCheck(err)
 

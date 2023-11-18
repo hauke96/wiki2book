@@ -164,27 +164,27 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 func (g *HtmlGenerator) expandString(content string) (string, error) {
 	content = g.expandMarker(content)
 
-	submatches := tokenRegex.FindAllStringSubmatch(content, -1)
+	matches := tokenRegex.FindAllString(content, -1)
 
-	if len(submatches) == 0 {
+	if len(matches) == 0 {
 		// no token in content
 		return content, nil
 	}
 
-	for _, submatch := range submatches {
+	for _, match := range matches {
 		// TODO Only print when --trace is active (-> #35)
-		//sigolo.Debug("Found token %s", submatch[1])
+		//sigolo.Debug("Found token %s", match)
 
-		if _, ok := g.TokenMap[submatch[0]]; !ok {
-			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", submatch[0]))
+		if _, ok := g.TokenMap[match]; !ok {
+			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", match))
 		}
 
-		html, err := g.expand(g.TokenMap[submatch[0]])
+		html, err := g.expand(g.TokenMap[match])
 		if err != nil {
 			return "", err
 		}
 
-		content = strings.Replace(content, submatch[0], html, 1)
+		content = strings.Replace(content, match, html, 1)
 	}
 
 	return content, nil

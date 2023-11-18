@@ -49,13 +49,13 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
 
-	bodyBytes, err := os.ReadFile(cachedFilePath)
+	cachedResponseBytes, err := os.ReadFile(cachedFilePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
 
 	wikiArticleDto := &WikiArticleDto{}
-	err = json.Unmarshal(bodyBytes, wikiArticleDto)
+	err = json.Unmarshal(cachedResponseBytes, wikiArticleDto)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", wikipediaInstance, title))
 	}

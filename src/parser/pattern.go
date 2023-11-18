@@ -18,7 +18,7 @@ Short explanations (because regex is like magic to some people):
 
 // Token
 const (
-	TOKEN_REGEX      = `\$\$TOKEN_([A-Z_0-9]*)_\d+\$\$`
+	TOKEN_REGEX      = `\$\$TOKEN_[A-Z_0-9]+_\d+\$\$`
 	TOKEN_LINE_REGEX = "^" + TOKEN_REGEX + "$"
 	TOKEN_TEMPLATE   = "$$TOKEN_%s_%d$$"
 )
