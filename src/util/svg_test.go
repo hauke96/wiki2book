@@ -55,3 +55,19 @@ func TestMakeSvgSizeAbsolute(t *testing.T) {
 	test.AssertEqual(t, attributedAfter.Width, "123pt")
 	test.AssertEqual(t, attributedAfter.Height, "234pt")
 }
+
+func TestParseSvgAttributes_nonUtf8Encoding(t *testing.T) {
+	fileBytes := []byte(`<svg width="50%" height="100%" viewBox="0 0 123 234" encoding="iso-8859-1">
+  <rect width="100%" height="100%" />
+</svg>`)
+	_, err := parseSimpleSvgAttributes(fileBytes, "foo.svg")
+	test.AssertNil(t, err)
+}
+
+func TestParseSvgAttributes_withIllegalNamespaceAttribute(t *testing.T) {
+	fileBytes := []byte(`<svg width="50%" height="100%" viewBox="0 0 123 234" xmlns="&ns_foobar;">
+  <rect width="100%" height="100%" />
+</svg>`)
+	_, err := parseSimpleSvgAttributes(fileBytes, "foo.svg")
+	test.AssertNil(t, err)
+}

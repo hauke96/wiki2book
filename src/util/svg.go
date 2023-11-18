@@ -1,10 +1,12 @@
 package util
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
+	"golang.org/x/net/html/charset"
 	"os"
 	"regexp"
 	"strings"
@@ -106,11 +108,18 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 	return fileString, nil
 }
 
-func parseSimpleSvgAttributes(file []byte, filename string) (*SimpleSvgAttributes, error) {
+func parseSimpleSvgAttributes(fileContent []byte, filename string) (*SimpleSvgAttributes, error) {
+	// Remove all namespace strings that are in a format not supported by go
+	fileContentString := string(fileContent)
+	fileContentString = xmlNamespaceValueRegex.ReplaceAllString(fileContentString, "")
+	fileContent = []byte(fileContentString)
+
+	// Use the NewReaderLabel to support non-UTF-8 encodings
 	var svg = &SimpleSvgAttributes{}
-	fileString := string(file)
-	fileString = xmlNamespaceValueRegex.ReplaceAllString(fileString, "")
-	err := xml.Unmarshal([]byte(fileString), &svg)
+	reader := bytes.NewReader(fileContent)
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = charset.NewReaderLabel
+	err := decoder.Decode(&svg)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Unable to unmarshal XML of SVG document %s", filename))
 	}

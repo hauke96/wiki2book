@@ -136,7 +136,6 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	//sigolo.Debug("MD5 of redirected image name: %s", md5sum)
 
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
-	sigolo.Debug(imageUrl)
 
 	cachedFilePath, freshlyDownloaded, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {
