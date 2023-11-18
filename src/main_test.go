@@ -23,3 +23,16 @@ func TestArticleGermanLong(t *testing.T) {
 		true,
 	)
 }
+
+func TestProjectGerman(t *testing.T) {
+	sigolo.LogLevel = sigolo.LOG_DEBUG
+
+	err := config.LoadConfig("../configs/de.json")
+	sigolo.FatalCheck(err)
+
+	generateProjectEbook(
+		"../projects/de/astronomie/astronomie.json",
+		true,
+		true,
+	)
+}

@@ -14,29 +14,30 @@ import (
 var httpClient = GetDefaultHttpClient()
 
 // downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
-// value is this resulting filepath or an error. If the file already exists, no HTTP request is made.
-func downloadAndCache(url string, cacheFolder string, filename string) (string, error) {
+// value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
+// cache) or an error. If the file already exists, no HTTP request is made.
+func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
 		sigolo.Debug("File %s does already exist. Skip.", outputFilepath)
-		return outputFilepath, nil
+		return outputFilepath, false, nil
 	}
 
 	// Get the data
 	reader, err := download(url, filename)
 	if err != nil {
-		return "", err
+		return "", true, err
 	}
 	defer reader.Close()
 
 	err = cacheToFile(cacheFolder, filename, reader)
 	if err != nil {
-		return "", errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
+		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}
 
-	return outputFilepath, nil
+	return outputFilepath, true, nil
 }
 
 // download returns the open response body of the GET request for the given URL. The article name is just there for

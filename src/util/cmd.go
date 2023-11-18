@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
 	"os/exec"
@@ -17,7 +18,7 @@ func Execute(name string, arg ...string) error {
 	err := cmd.Run()
 
 	if err != nil {
-		return errors.Wrap(err, stderrBuffer.String())
+		return errors.Wrap(err, fmt.Sprintf("Command \"%s\" exited with error: %s", cmd.String(), stderrBuffer.String()))
 	}
 
 	return nil

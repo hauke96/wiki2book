@@ -44,7 +44,7 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
-	cachedFilePath, err := downloadAndCache(urlString, cacheFolder, cachedFile)
+	cachedFilePath, _, err := downloadAndCache(urlString, cacheFolder, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
@@ -74,10 +74,11 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 	for _, image := range images {
 		var downloadErr error = nil
 		var outputFilepath string
+		var freshlyDownloaded bool
 
 		for i, source := range config.Current.WikipediaImageArticleInstances {
 			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
-			outputFilepath, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
+			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
 					sigolo.Error("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
@@ -89,7 +90,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			}
 
 			// If the file is new, rescale it using ImageMagick.
-			if outputFilepath != "" && !strings.HasSuffix(strings.ToLower(outputFilepath), ".svg") {
+			if freshlyDownloaded && outputFilepath != "" && !strings.HasSuffix(strings.ToLower(outputFilepath), ".svg") {
 				err2 := processImage(outputFilepath)
 				if err2 != nil {
 					return err2
@@ -106,15 +107,16 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 	return nil
 }
 
-// downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder. When the file already exists,
-// nothing is done and "", nil will be returned. When the file has been downloaded "filename", nil will be returned.
-// The article cache folder is needed as some files might be redirects and such a redirect counts as article.
-func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, error) {
+// downloadImage downloads the given image (e.g. "File:foo.jpg") to the given folder and returns the filepath as first
+// return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
+// in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
+// redirects and such a redirect counts as article.
+func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := strings.Split(imageNameWithPrefix, ":")[1]
 	imageArticle, err := DownloadArticle(wikipediaInstance, "File:"+imageName, articleFolder)
 	if err != nil {
-		return "", err
+		return "", true, err
 	}
 
 	// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
@@ -136,12 +138,12 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 	sigolo.Debug(imageUrl)
 
-	cachedFilePath, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
+	cachedFilePath, freshlyDownloaded, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {
-		return "", err
+		return "", freshlyDownloaded, err
 	}
 
-	if svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
+	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
 		err = util.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
 			sigolo.Error("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs.", cachedFilePath)
@@ -149,14 +151,14 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 		}
 	}
 
-	return cachedFilePath, nil
+	return cachedFilePath, freshlyDownloaded, nil
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debug("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
-	cacheFilePath, err := downloadAndCache(urlString, cacheFolder, cacheFile)
+	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
@@ -186,13 +188,13 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	}
 
 	imageSvgUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
-	cachedSvgFile, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+".svg")
+	cachedSvgFile, _, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+".svg")
 	if err != nil {
 		return "", "", err
 	}
 
 	imagePngUrl := "https://wikimedia.org/api/rest_v1/media/math/render/png/" + mathSvgFilename
-	cachedPngFile, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
+	cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
 	if err != nil {
 		return "", "", err
 	}
