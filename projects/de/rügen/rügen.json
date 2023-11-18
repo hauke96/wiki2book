@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "title": "Das schreibt Wikipedia über ... Rügen",
+    "author": "Wikipedia contributors",
+    "license": "Creative Commons Non-Commercial Share Alike 3.0",
+    "language": "de-DE",
+    "date": "2023-08-15"
+  },
+  "wikipedia-domain": "de",
+  "output-file": "rügen.epub",
+  "cover": "cover.png",
+  "style": "../../style.css",
+  "pandoc-data-dir": "../../../pandoc/data",
+  "articles": [
+    "Rügen",
+    "Binz",
+    "Rügensche Kleinbahn"
+  ]
+}
