@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime/pprof"
+	"runtime/trace"
 	"strings"
 	"time"
 	"wiki2book/api"
@@ -19,12 +20,13 @@ import (
 )
 
 var cli struct {
-	Debug               bool   `help:"Enable debug mode." short:"d"`
-	Profiling           bool   `help:"Enable profiling and write results to ./profiling.prof."`
-	ForceRegenerateHtml bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
-	SvgSizeToViewbox    bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
-	Config              string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
-	Standalone          struct {
+	Debug                bool   `help:"Enable debug mode." short:"d"`
+	DiagnosticsProfiling bool   `help:"Enable profiling and write results to ./profiling.prof."`
+	DiagnosticsTrace     bool   `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
+	ForceRegenerateHtml  bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	SvgSizeToViewbox     bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
+	Config               string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
+	Standalone           struct {
 		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
 		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
@@ -57,13 +59,22 @@ func main() {
 		sigolo.FatalCheck(err)
 	}
 
-	if cli.Profiling {
+	if cli.DiagnosticsProfiling {
 		f, err := os.Create("profiling.prof")
 		sigolo.FatalCheck(err)
 
 		err = pprof.StartCPUProfile(f)
 		sigolo.FatalCheck(err)
 		defer pprof.StopCPUProfile()
+	}
+
+	if cli.DiagnosticsTrace {
+		f, err := os.Create("trace.out")
+		sigolo.FatalCheck(err)
+
+		err = trace.Start(f)
+		sigolo.FatalCheck(err)
+		defer trace.Stop()
 	}
 
 	start := time.Now()
