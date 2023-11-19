@@ -221,13 +221,23 @@ func TestIsHeading(t *testing.T) {
 	test.AssertEqual(t, 6, headingDepth("====== abc ======"))
 	test.AssertEqual(t, 7, headingDepth("======= abc ======="))
 
+	test.AssertEqual(t, 3, headingDepth("=== abc==="))
+	test.AssertEqual(t, 3, headingDepth("===abc ==="))
+	test.AssertEqual(t, 3, headingDepth("=== äöü ==="))
+	test.AssertEqual(t, 3, headingDepth("=== äöß ==="))
+	test.AssertEqual(t, 3, headingDepth("=== ä→ß ==="))
+	test.AssertEqual(t, semiHeadingDepth, headingDepth("'''test'''"))
+
 	test.AssertEqual(t, 0, headingDepth("== abc "))
+	test.AssertEqual(t, 0, headingDepth("abc =="))
 	test.AssertEqual(t, 0, headingDepth("=== abc =="))
 	test.AssertEqual(t, 0, headingDepth("== abc ==="))
-	test.AssertEqual(t, 0, headingDepth("abc =="))
 	test.AssertEqual(t, 0, headingDepth("abc"))
 	test.AssertEqual(t, 0, headingDepth(""))
+	test.AssertEqual(t, 0, headingDepth(" == abc =="))
+	test.AssertEqual(t, 0, headingDepth("== abc == "))
 	test.AssertEqual(t, 0, headingDepth(" '''test'''"))
+	test.AssertEqual(t, 0, headingDepth("'''test''' "))
 }
 
 func TestRemoveEmptyListEntries(t *testing.T) {

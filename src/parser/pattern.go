@@ -27,12 +27,6 @@ var (
 	tokenLineRegex = regexp.MustCompile(TOKEN_LINE_REGEX)
 )
 
-// Headings
-var (
-	headingRegex     = regexp.MustCompile(`^(=*)[^=]+(=*)$`)
-	semiHeadingRegex = regexp.MustCompile(`^'''.+'''$`)
-)
-
 // Categories, templates, unwanted HTML
 var (
 	templateNameRegex = regexp.MustCompile(`{{\s*([^\n|}]+)`)

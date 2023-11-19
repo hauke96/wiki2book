@@ -258,20 +258,45 @@ func getTrimmedLine(lines []string, i int) string {
 
 // headingDepth returns the number of "=" characters. When 0 is returned, the line is not a heading.
 func headingDepth(line string) int {
-	matches := headingRegex.FindAllStringSubmatch(line, -1)
-	if len(matches) >= 1 && len(matches[0]) == 3 {
-		lenHeadingPrefix := len(matches[0][1])
-		lenHeadingSuffix := len(matches[0][2])
-		if lenHeadingPrefix > 0 && lenHeadingSuffix > 0 && lenHeadingPrefix == lenHeadingSuffix {
-			return len(matches[0][1])
+	if !strings.HasPrefix(line, "=") || !strings.HasSuffix(line, "=") {
+		// No real heading. But maybe a semi-heading (line with only bold text)?
+		if strings.HasPrefix(line, "'''") && strings.HasSuffix(line, "'''") {
+			return semiHeadingDepth
 		}
+		// Not even semi-heading -> No heading at all
+		return 0
 	}
 
-	lineIsSemiHeading := semiHeadingRegex.MatchString(line)
-	if lineIsSemiHeading {
-		// This is a semi heading: Just bold text in this line -> Interpret this as most insignificant heading
-		return semiHeadingDepth
+	headingDepthCounter := 0
+	lineRunes := []rune(line)
+	lineLength := len(lineRunes)
+	for i, c := range lineRunes {
+		if c != '=' && lineRunes[lineLength-1-i] != '=' {
+			// Valid heading end (prefix and suffix have same length)
+			break
+		} else if c != lineRunes[lineLength-1-i] {
+			// Invalid heading form (prefix and suffix have unequal length)
+			return 0
+		}
+		headingDepthCounter++
 	}
 
-	return 0
+	return headingDepthCounter
+	//
+	//matches := headingRegex.FindAllStringSubmatch(line, -1)
+	//if len(matches) >= 1 && len(matches[0]) == 3 {
+	//	lenHeadingPrefix := len(matches[0][1])
+	//	lenHeadingSuffix := len(matches[0][2])
+	//	if lenHeadingPrefix > 0 && lenHeadingSuffix > 0 && lenHeadingPrefix == lenHeadingSuffix {
+	//		return len(matches[0][1])
+	//	}
+	//}
+	//
+	//lineIsSemiHeading := semiHeadingRegex.MatchString(line)
+	//if lineIsSemiHeading {
+	//	// This is a semi heading: Just bold text in this line -> Interpret this as most insignificant heading
+	//	return semiHeadingDepth
+	//}
+	//
+	//return 0
 }
