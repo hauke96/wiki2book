@@ -165,12 +165,35 @@ func removeUnwantedWikitext(content string) string {
 }
 
 func removeEmptyListEntries(content string) string {
-	emptyListItemMatches := emptyListItemRegex.FindAllStringSubmatch(content, -1)
-	for _, match := range emptyListItemMatches {
-		content = strings.Replace(content, match[1], "", 1)
+	var resultLines []string
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if len(line) == 0 || !isListBeginning(rune(line[0])) {
+			// Line has no list beginning whatsoever -> not a list line -> don't ignore it
+			resultLines = append(resultLines, line)
+			continue
+		}
+
+		numberOfListPrefixChars := 0
+		for _, c := range line {
+			if isListBeginning(c) {
+				numberOfListPrefixChars++
+			}
+		}
+
+		if numberOfListPrefixChars != len(line) {
+			// Number of counted list prefix chars differs from line length -> some other chars in line -> line not empty
+			resultLines = append(resultLines, line)
+		}
 	}
 
-	return content
+	return strings.Join(resultLines, "\n")
+}
+
+func isListBeginning(c rune) bool {
+	return c == '*' || c == '#' || c == ';' || c == ':'
 }
 
 func removeEmptySections(content string) string {

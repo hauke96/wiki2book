@@ -252,6 +252,18 @@ blubb`
 blubb`, removeEmptyListEntries(content))
 }
 
+func TestRemoveEmptyListEntries_nestedLists(t *testing.T) {
+	content := `foo
+*
+*#
+*# bar
+*#  
+blubb`
+	test.AssertEqual(t, `foo
+*# bar
+blubb`, removeEmptyListEntries(content))
+}
+
 func TestRemoveEmptySection_normal(t *testing.T) {
 	content := `foo
 
