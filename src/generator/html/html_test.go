@@ -351,7 +351,7 @@ func TestExpandRefDefinition(t *testing.T) {
 	row, err := generator.expand(tokenKey)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, `[42] f<b>o</b>o<br>`, row)
+	test.AssertEqual(t, `[43] f<b>o</b>o<br>`, row)
 }
 
 func TestExpandRefUsage(t *testing.T) {
@@ -366,5 +366,5 @@ func TestExpandRefUsage(t *testing.T) {
 	row, err := generator.expand(tokenKey)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, `[42]`, row)
+	test.AssertEqual(t, `[43]`, row)
 }

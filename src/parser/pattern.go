@@ -67,9 +67,6 @@ var (
 // References
 var (
 	referenceBlockStartRegex = regexp.MustCompile(`</?references.*?/?>\n?`)
-	namedReferenceRegex      = regexp.MustCompile(`<ref[^>]*?name="?([^"^>]*)"?\s*>((.|\n)*?)</ref>`) // Accept all <ref...name=abc...>...</ref> occurrences. There may be more parameters than "name=..." so we have to consider them as well.
-	namedReferenceUsageRegex = regexp.MustCompile(`<ref name="?([^"^>]*)"?\s*/>`)
-	generalReferenceRegex    = regexp.MustCompile(`<ref[^>]*?(/>|>((.|\n)*?)</ref>)`)
 )
 
 // Math

@@ -398,11 +398,11 @@ func (g *HtmlGenerator) expandRefDefinition(token parser.RefDefinitionToken) (st
 		return "", err
 	}
 
-	return fmt.Sprintf(TEMPLATE_REF_DEF, token.Index, expandedRefContent), nil
+	return fmt.Sprintf(TEMPLATE_REF_DEF, token.Index+1, expandedRefContent), nil
 }
 
 func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) (string, error) {
-	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index), nil
+	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1), nil
 }
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
