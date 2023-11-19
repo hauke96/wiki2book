@@ -83,7 +83,7 @@ func assertEqualStrings(t *testing.T, expected string, actual string) {
 	if len(actualLines) > len(expectedLines) {
 		for i := len(expectedLines); i < len(actualLines); i++ {
 			actualLine := actualLines[i]
-			fmt.Printf("| %50s | %50s |\n", "", "\""+actualLine+"\"")
+			fmt.Printf("| * | %-50s | %-50s |\n", "", "\""+actualLine+"\"")
 		}
 	}
 
