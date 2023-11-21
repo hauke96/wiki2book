@@ -424,7 +424,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
-	sigolo.Trace("Ensure output folder '%s'", outputFolder)
+	sigolo.Debug("Ensure output folder '%s'", outputFolder)
 	err := os.Mkdir(outputFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
@@ -432,7 +432,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 
 	// Create output file
 	outputFilepath := filepath.Join(outputFolder, title+".html")
-	sigolo.Trace("Ensure output file '%s'", outputFilepath)
+	sigolo.Debug("Ensure output file '%s'", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))

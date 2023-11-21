@@ -282,7 +282,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	pandocDataDir = paths[3]
 
 	// Create cache dir and go into it
-	sigolo.Trace("Ensure cache folder '%s'", cacheDir)
+	sigolo.Debug("Ensure cache folder '%s'", cacheDir)
 	err = os.MkdirAll(cacheDir, os.ModePerm)
 	sigolo.FatalCheck(err)
 
