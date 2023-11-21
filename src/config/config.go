@@ -22,8 +22,8 @@ var Current = &Configuration{
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
 // ignore). Some configurations are mandatory, which means that wiki2book will definitely crash if the config entry is
 // not given. Entries marked as non-mandatory may also cause a crash.
-// The configuration differs from a project-config by the following rule of thumb: Whenever something is equal through
-// all or most of potential projects, then
+// The configuration differs from a project-config by the following rule of thumb: This contains technical and project-
+// independent stuff. Some properties, though, might exist in both, this Configuration and the project.Project struct.
 type Configuration struct {
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.

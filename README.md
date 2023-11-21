@@ -91,6 +91,8 @@ See [configs/de.json](configs/de.json) for an example and [src/config/config.go]
 Some properties can be configured in both, the project and configuration file (such as the Wikipedia URL).
 Entries from the project file are used in case a property is given in both files.
 
+Also take a look at the [config.go](src/config/config.go) source file, which contains a lot of documentation on each config entry.
+
 ### Pandoc version 2 and 3
 
 Pandoc version 2 might internally use CSS3 parameters by default, such as the `gap` property.
