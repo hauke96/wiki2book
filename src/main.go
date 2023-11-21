@@ -29,6 +29,7 @@ var cli struct {
 	Standalone           struct {
 		File          string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType    string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
 		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
@@ -41,6 +42,7 @@ var cli struct {
 	Article struct {
 		ArticleName   string   `help:"The name of the article to render." arg:""`
 		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType    string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
 		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
@@ -88,6 +90,7 @@ func main() {
 		generateStandaloneEbook(
 			cli.Standalone.File,
 			cli.Standalone.OutputFile,
+			cli.Standalone.OutputType,
 			cli.Standalone.CacheDir,
 			cli.Standalone.StyleFile,
 			cli.Standalone.CoverImage,
@@ -102,6 +105,7 @@ func main() {
 		generateArticleEbook(
 			cli.Article.ArticleName,
 			cli.Article.OutputFile,
+			cli.Article.OutputType,
 			cli.Article.CacheDir,
 			cli.Article.StyleFile,
 			cli.Article.CoverImage,
@@ -130,22 +134,13 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 	err = os.Chdir(directory)
 	sigolo.FatalCheck(err)
 
-	project, err := project.LoadProject(projectFile)
+	proj, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
 
-	articles := project.Articles
-	cacheDir := project.CacheDir
-	styleFile := project.Style
-	coverFile := project.Cover
-	metadata := project.Metadata
-	outputFile := project.OutputFile
-	pandocDataDir := project.PandocDataDir
-	fontFiles := project.FontFiles
-
-	generateEpubFromArticles(articles, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, fontFiles, metadata, forceHtmlRecreate, svgSizeToViewbox)
+	generateEpubFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateStandaloneEbook(inputFile string, outputFile string, outputType string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
 	imageCache := "images"
@@ -219,7 +214,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 		Title: title,
 	}
 
-	err = epub.Generate([]string{htmlFile}, outputFile, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	err = epub.Generate([]string{htmlFile}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
@@ -227,35 +222,47 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
-	//var err error
-	// Enable this to create a profiling file. Then use the command "go tool pprof wiki2book ./profiling.prof" and enter "web" to open a diagram in your browser.
-	//f, err := os.Create("profiling.prof")
-	//sigolo.FatalCheck(err)
-	//
-	//err = pprof.StartCPUProfile(f)
-	//sigolo.FatalCheck(err)
-	//defer pprof.StopCPUProfile()
-
+func generateArticleEbook(articleName string, outputFile string, outputType string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articles []string
 	articles = append(articles, articleName)
 
-	generateEpubFromArticles(articles,
-		cacheDir,
-		styleFile,
-		outputFile,
-		coverImageFile,
-		pandocDataDir,
-		fontFiles,
-		project.Metadata{},
+	proj := project.NewWithDefaults()
+	proj.Metadata = project.Metadata{}
+	proj.OutputFile = outputFile
+	proj.OutputType = outputType
+	proj.CacheDir = cacheDir
+	proj.Cover = coverImageFile
+	proj.Style = styleFile
+	proj.PandocDataDir = pandocDataDir
+	proj.Articles = articles
+	proj.FontFiles = fontFiles
+
+	generateEpubFromArticles(
+		proj,
 		forceHtmlRecreate,
 		svgSizeToViewbox,
 	)
 }
 
-func generateEpubFromArticles(articles []string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articleFiles []string
 	var err error
+
+	articles := project.Articles
+	cacheDir := project.CacheDir
+	styleFile := project.Style
+	coverImageFile := project.Cover
+	metadata := project.Metadata
+	outputFile := project.OutputFile
+	outputType := project.OutputType
+	pandocDataDir := project.PandocDataDir
+	fontFiles := project.FontFiles
+
+	imageCache := "images"
+	mathCache := "math"
+	templateCache := "templates"
+	articleCache := "articles"
+	htmlOutputFolder := "html"
 
 	// Make all relevant paths absolute
 	paths, err := util.ToAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
@@ -279,12 +286,6 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 	styleFile = paths[0]
 	outputFile = paths[1]
 	coverImageFile = paths[2]
-
-	imageCache := "images"
-	mathCache := "math"
-	templateCache := "templates"
-	articleCache := "articles"
-	htmlOutputFolder := "html"
 
 	for _, articleName := range articles {
 		sigolo.Info("Start processing article %s", articleName)
@@ -323,7 +324,7 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 	}
 
 	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, outputFile, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)

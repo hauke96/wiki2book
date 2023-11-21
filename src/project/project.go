@@ -12,6 +12,7 @@ type Project struct {
 	Metadata          Metadata `json:"metadata"`
 	WikipediaInstance string   `json:"wikipedia-instance"`
 	OutputFile        string   `json:"output-file"`
+	OutputType        string   `json:"output-type"`
 	CacheDir          string   `json:"cache-dir"`
 	Cover             string   `json:"cover"`
 	Style             string   `json:"style"`
@@ -36,9 +37,7 @@ func LoadProject(file string) (*Project, error) {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error reading project file %s", file))
 	}
 
-	project := &Project{
-		CacheDir: ".wiki2book",
-	}
+	project := NewWithDefaults()
 	err = json.Unmarshal(projectString, project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")
@@ -50,4 +49,11 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	return project, nil
+}
+
+func NewWithDefaults() *Project {
+	return &Project{
+		CacheDir:   ".wiki2book",
+		OutputType: "epub2",
+	}
 }

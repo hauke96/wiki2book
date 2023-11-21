@@ -33,7 +33,7 @@ do
 
 	echo "Copy files for test-$NAME"
 	cp "results/test-$NAME/test-$NAME.filelist" .
-	cp "results/test-$NAME/test-$NAME.html" .
+	cp "results/test-$NAME/html/test-$NAME.html" .
 done
 
 echo "Done"

@@ -5,6 +5,7 @@ results/test-real-article-Schwarzes_Loch/articles/File:Ergosphäre_und_Ereignish
 results/test-real-article-Schwarzes_Loch/articles/File:Flamm.svg.json
 results/test-real-article-Schwarzes_Loch/articles/File:Karl_schwarzschild.portrait.jpg.json
 results/test-real-article-Schwarzes_Loch/articles/File:SgrA-IRS13.jpg.json
+results/test-real-article-Schwarzes_Loch/html/test-real-article-Schwarzes_Loch.html
 results/test-real-article-Schwarzes_Loch/images/01cd24edceffc098f1989f1dce14993da76f1119.png
 results/test-real-article-Schwarzes_Loch/images/01cd24edceffc098f1989f1dce14993da76f1119.svg
 results/test-real-article-Schwarzes_Loch/images/0d3411435fe1c447dc623dd8c869f27c17ef73fa.png
@@ -152,7 +153,6 @@ results/test-real-article-Schwarzes_Loch/templates/00570b16ce382ca0c7dae6a40ec46
 results/test-real-article-Schwarzes_Loch/templates/01924dc20ab1a1841874cc26ddce1599855d89ef
 results/test-real-article-Schwarzes_Loch/templates/0781c6083361c7ba46d5b69d183eddf386509454
 results/test-real-article-Schwarzes_Loch/templates/10b7de7cc54eabbf6d26fbf26678b77467ce4877
-results/test-real-article-Schwarzes_Loch/templates/47cffa03911a86fc12a535e61c167367a6d5ea52
 results/test-real-article-Schwarzes_Loch/templates/5a1707d3f99aa2f89c8350caae31702fcdf489e3
 results/test-real-article-Schwarzes_Loch/templates/631eb9f52588a7fdc965ab4ebf05edf059302bc7
 results/test-real-article-Schwarzes_Loch/templates/67d38406967593c0d7b76285b33fbd36fcd6a23d
@@ -162,6 +162,7 @@ results/test-real-article-Schwarzes_Loch/templates/809500af4795cb6768ccf4a9b8e61
 results/test-real-article-Schwarzes_Loch/templates/85e869013324a12d03c277716b22184252b582d9
 results/test-real-article-Schwarzes_Loch/templates/87ddaf3da52e76d3d93191b1be706d8924e04956
 results/test-real-article-Schwarzes_Loch/templates/90ae60bf521a4113c33f11c78e400118e00fe6af
+results/test-real-article-Schwarzes_Loch/templates/92f64438470c1c7729fa63b3722f084a4cc60549
 results/test-real-article-Schwarzes_Loch/templates/9cbf3a6e857fff423e5273028dd232344ada97e0
 results/test-real-article-Schwarzes_Loch/templates/9d6bc3a20f52b92cb42015038a330802a503ccaf
 results/test-real-article-Schwarzes_Loch/templates/a2d5fe45ace08dfaed07d628a5e3e7f86fba9cf7
@@ -172,4 +173,3 @@ results/test-real-article-Schwarzes_Loch/templates/d0dee3382de59ead960c9dd8c149d
 results/test-real-article-Schwarzes_Loch/templates/f7531302bcfc902e881973c9a72d1a175b444982
 results/test-real-article-Schwarzes_Loch/templates/fe88af4f48e536fc8e5948790034932bd1363cfb
 results/test-real-article-Schwarzes_Loch/test-real-article-Schwarzes_Loch.filelist
-results/test-real-article-Schwarzes_Loch/test-real-article-Schwarzes_Loch.html

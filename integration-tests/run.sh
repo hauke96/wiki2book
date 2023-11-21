@@ -80,12 +80,12 @@ function run()
 		fi
 
 		# Compare HTML files
-		diff -q "test-$1.html" "$OUT/test-$1.html" > /dev/null
+		diff -q "test-$1.html" "$OUT/html/test-$1.html" > /dev/null
 		if [ $? -ne 0 ]
 		then
 			echo "$1: FAIL"
 			echo "$1: HTML differs:"
-			git --no-pager diff --no-index "test-$1.html" "$OUT/test-$1.html"
+			git --no-pager diff --no-index "test-$1.html" "$OUT/html/test-$1.html"
 			FAILED_TESTS_WITH_CAUSE+="$1 [HTML]"$'\n'
 			TEST_FAILED=1
 		fi

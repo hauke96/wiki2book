@@ -1,5 +1,6 @@
 results/test-generic/articles/File:Wikimedia_Servers-0051_19.jpg.json
 results/test-generic/articles/File:Wikipedia-logo-v2.svg.json
+results/test-generic/html/test-generic.html
 results/test-generic/images/241e89bf30991bd082129555304cb82d10322b44.png
 results/test-generic/images/241e89bf30991bd082129555304cb82d10322b44.svg
 results/test-generic/images/25d952c483765aeea66e570a93fb6387c85698f9.png
@@ -11,4 +12,3 @@ results/test-generic/math/f84e22cde14f643628f522ea3819505ba636cade
 results/test-generic/standalone.epub
 results/test-generic/templates/d0d5319b11de0e1b5d3de3a213b7e3dd9efd9267
 results/test-generic/test-generic.filelist
-results/test-generic/test-generic.html

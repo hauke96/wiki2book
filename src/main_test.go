@@ -15,10 +15,12 @@ func TestArticleGermanLong(t *testing.T) {
 	generateArticleEbook(
 		"Commodore 128",
 		"../.wiki2book/profiling.epub",
+		"epub2",
 		"../.wiki2book",
 		"",
 		"",
 		"../pandoc",
+		[]string{},
 		true,
 		true,
 	)
