@@ -56,7 +56,7 @@ Take a look at the `README.md` there.
 
 **Method 2:**
 
-* Run wiki2book with the `--profiling` flag to generate a `profiling.prof` file.
+* Run wiki2book with the `--diagnostics-profiling` flag to generate a `profiling.prof` file.
 * Run `go tool pprof <wiki2book-executable> ./profiling.prof` so that the `pprof` console comes up.
 * Enter `web` for a browser or `evince` for a PDF visualization
 
@@ -69,5 +69,5 @@ The following command uses the `time` command to print the complete execution ti
 This can easily be used in a loop to do some semi-professional performance measurement.
 
 ```
-{ time ./wiki2book article --profiling --cache-dir=.wiki2book-aids -r AIDS; } |& grep real | sed -E 's/[^0-9\.]+//g' | bc
+time ./wiki2book article -r "DB Class VT 11.5"; } |& grep real | sed -E 's/[^0-9\.]+//g' | bc
 ```
