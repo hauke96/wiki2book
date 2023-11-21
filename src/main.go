@@ -27,23 +27,25 @@ var cli struct {
 	SvgSizeToViewbox     bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
 	Config               string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
 	Standalone           struct {
-		File          string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		File          string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
+		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles     []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName   string `help:"The name of the article to render." arg:""`
-		OutputFile    string `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		CacheDir      string `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile     string `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage    string `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir string `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		ArticleName   string   `help:"The name of the article to render." arg:""`
+		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles     []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -90,6 +92,7 @@ func main() {
 			cli.Standalone.StyleFile,
 			cli.Standalone.CoverImage,
 			cli.Standalone.PandocDataDir,
+			cli.Standalone.FontFiles,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
 		)
@@ -103,6 +106,7 @@ func main() {
 			cli.Article.StyleFile,
 			cli.Article.CoverImage,
 			cli.Article.PandocDataDir,
+			cli.Article.FontFiles,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
 		)
@@ -136,11 +140,12 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 	metadata := project.Metadata
 	outputFile := project.OutputFile
 	pandocDataDir := project.PandocDataDir
+	fontFiles := project.FontFiles
 
-	generateEpubFromArticles(articles, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, metadata, forceHtmlRecreate, svgSizeToViewbox)
+	generateEpubFromArticles(articles, cacheDir, styleFile, outputFile, coverFile, pandocDataDir, fontFiles, metadata, forceHtmlRecreate, svgSizeToViewbox)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateStandaloneEbook(inputFile string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
 	imageCache := "images"
@@ -214,7 +219,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 		Title: title,
 	}
 
-	err = epub.Generate([]string{htmlFile}, outputFile, styleFile, coverImageFile, pandocDataDir, metadata)
+	err = epub.Generate([]string{htmlFile}, outputFile, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
@@ -222,7 +227,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateArticleEbook(articleName string, outputFile string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	//var err error
 	// Enable this to create a profiling file. Then use the command "go tool pprof wiki2book ./profiling.prof" and enter "web" to open a diagram in your browser.
 	//f, err := os.Create("profiling.prof")
@@ -241,13 +246,14 @@ func generateArticleEbook(articleName string, outputFile string, cacheDir string
 		outputFile,
 		coverImageFile,
 		pandocDataDir,
+		fontFiles,
 		project.Metadata{},
 		forceHtmlRecreate,
 		svgSizeToViewbox,
 	)
 }
 
-func generateEpubFromArticles(articles []string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateEpubFromArticles(articles []string, cacheDir string, styleFile string, outputFile string, coverImageFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articleFiles []string
 	var err error
 
@@ -317,7 +323,7 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 	}
 
 	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, outputFile, styleFile, coverImageFile, pandocDataDir, metadata)
+	err = epub.Generate(articleFiles, outputFile, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
