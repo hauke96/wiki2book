@@ -41,7 +41,7 @@ type WikitextDto struct {
 func DownloadArticle(wikipediaInstance string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, escapedTitle)
+	urlString := fmt.Sprintf("%s?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, _, err := downloadAndCache(urlString, cacheFolder, cachedFile)
@@ -156,7 +156,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debug("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
+	urlString := fmt.Sprintf("%s?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaUrl, url.QueryEscape(template))
 	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)

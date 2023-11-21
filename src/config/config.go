@@ -12,7 +12,7 @@ var Current = &Configuration{
 	IgnoredTemplates:               []string{},
 	IgnoredImageParams:             []string{},
 	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
-	WikipediaInstance:              "en",
+	WikipediaUrl:                   "en",
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
@@ -22,6 +22,8 @@ var Current = &Configuration{
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
 // ignore). Some configurations are mandatory, which means that wiki2book will definitely crash if the config entry is
 // not given. Entries marked as non-mandatory may also cause a crash.
+// The configuration differs from a project-config by the following rule of thumb: Whenever something is equal through
+// all or most of potential projects, then
 type Configuration struct {
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
@@ -55,15 +57,15 @@ type Configuration struct {
 	IgnoredImageParams []string `json:"ignored-image-params"`
 
 	/*
-		The URL to the Wikipedia (or generally MediaWiki) instance.
+		The URL to the api.php page of the Wikipedia (or generally MediaWiki) instance.
 
-		Default: "en"
+		Default: "https://en.wikipedia.org/w/api.php"
 		Mandatory: Yes
 
-		JSON example: "wikipedia-instance": "de"
+		JSON example: "wikipedia-url": "https://de.wikipedia.org/w/api.php"
 		This config uses the German Wikipedia.
 	*/
-	WikipediaInstance string `json:"wikipedia-instance"`
+	WikipediaUrl string `json:"wikipedia-url"`
 
 	/*
 		Each image has its own article, which is fetched from these Wikipedia instances (in the given order).

@@ -288,7 +288,7 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
 			sigolo.Info("Download article %s", articleName)
-			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, articleName, articleCache)
+			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaUrl, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
 			sigolo.Info("Tokenize article %s", articleName)

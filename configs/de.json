@@ -1,5 +1,5 @@
 {
-  "wikipedia-instance": "de",
+  "wikipedia-url": "https://de.wikipedia.org/w/api.php",
   "wikipedia-image-article-instances": [
     "commons",
     "de"
