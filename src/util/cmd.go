@@ -14,7 +14,7 @@ func Execute(name string, arg ...string) error {
 	var stderrBuffer strings.Builder
 	cmd.Stderr = &stderrBuffer
 
-	sigolo.Debug("Execute command %s", cmd.String())
+	sigolo.Debug("Execute command: %s", cmd.String())
 	err := cmd.Run()
 
 	if err != nil {

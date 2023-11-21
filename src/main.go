@@ -19,8 +19,10 @@ import (
 	"wiki2book/util"
 )
 
+const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
+
 var cli struct {
-	Debug                bool   `help:"Enable debug mode." short:"d"`
+	Logging              string `help:"Logging verbosity. Possible values: debug, trace" short:"l"`
 	DiagnosticsProfiling bool   `help:"Enable profiling and write results to ./profiling.prof."`
 	DiagnosticsTrace     bool   `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
 	ForceRegenerateHtml  bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
@@ -54,9 +56,13 @@ var cli struct {
 func main() {
 	ctx := kong.Parse(&cli)
 
-	if cli.Debug {
+	if strings.ToLower(cli.Logging) == "debug" {
 		sigolo.LogLevel = sigolo.LOG_DEBUG
+	} else if strings.ToLower(cli.Logging) == "trace" {
+		sigolo.LogLevel = sigolo.LOG_TRACE
 	}
+
+	sigolo.Trace("CLI config:\n%+v", cli)
 
 	if cli.Config != "" {
 		err := config.LoadConfig(cli.Config)
@@ -115,12 +121,15 @@ func main() {
 			cli.SvgSizeToViewbox,
 		)
 	default:
-		sigolo.Fatal("Unknown command: %v\n%#v", ctx.Command(), ctx)
+		if sigolo.LogLevel > sigolo.LOG_DEBUG {
+			sigolo.Trace("CLI config:\n%+v", cli)
+		}
+		sigolo.Fatal("Unknown command: %v", ctx.Command())
 	}
 
 	end := time.Now()
-	sigolo.Debug("Start   : %s", start.Format(time.RFC1123))
-	sigolo.Debug("End     : %s", end.Format(time.RFC1123))
+	sigolo.Debug("Start   : %s", start.Format(RFC1123Millis))
+	sigolo.Debug("End     : %s", end.Format(RFC1123Millis))
 	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
@@ -273,6 +282,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	pandocDataDir = paths[3]
 
 	// Create cache dir and go into it
+	sigolo.Trace("Ensure cache folder '%s'", cacheDir)
 	err = os.MkdirAll(cacheDir, os.ModePerm)
 	sigolo.FatalCheck(err)
 
@@ -288,26 +298,26 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	coverImageFile = paths[2]
 
 	for _, articleName := range articles {
-		sigolo.Info("Start processing article %s", articleName)
+		sigolo.Info("Article '%s': Start processing", articleName)
 
 		htmlFileName := articleName + ".html"
 		if !shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
-			sigolo.Info("HTML for article %s does already exist. Skip parsing and HTML generation.", articleName)
+			sigolo.Info("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
-			sigolo.Info("Download article %s", articleName)
+			sigolo.Info("Article '%s': Download article", articleName)
 			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
-			sigolo.Info("Tokenize article %s", articleName)
+			sigolo.Info("Article '%s': Tokenize content", articleName)
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
 			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 			sigolo.FatalCheck(err)
 
-			sigolo.Info("Download images from article %s", articleName)
+			sigolo.Info("Article '%s': Download images", articleName)
 			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
 			sigolo.FatalCheck(err)
 
-			sigolo.Info("Generate HTML for article %s", articleName)
+			sigolo.Info("Article '%s': Generate HTML", articleName)
 			htmlGenerator := &html.HtmlGenerator{
 				ImageCacheFolder:   imageCache,
 				MathCacheFolder:    mathCache,
@@ -316,10 +326,9 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 			}
 			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
 			sigolo.FatalCheck(err)
-
 		}
 
-		sigolo.Info("Finished processing article %s", articleName)
+		sigolo.Info("Article '%s': Finished processing", articleName)
 		articleFiles = append(articleFiles, htmlFileName)
 	}
 

@@ -171,20 +171,19 @@ func (g *HtmlGenerator) expandString(content string) (string, error) {
 		return content, nil
 	}
 
-	for _, match := range matches {
-		// TODO Only print when --trace is active (-> #35)
-		//sigolo.Debug("Found token %s", match)
-
-		if _, ok := g.TokenMap[match]; !ok {
-			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", match))
+	for _, tokenKey := range matches {
+		tokenContent, hasTokenKey := g.TokenMap[tokenKey]
+		if !hasTokenKey {
+			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", tokenKey))
 		}
+		sigolo.Trace("Found token %s -> %#v", tokenKey, tokenContent)
 
-		html, err := g.expand(g.TokenMap[match])
+		html, err := g.expand(tokenContent)
 		if err != nil {
 			return "", err
 		}
 
-		content = strings.Replace(content, match, html, 1)
+		content = strings.Replace(content, tokenKey, html, 1)
 	}
 
 	return content, nil
@@ -417,7 +416,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 		return "", err
 	}
 
-	sigolo.Debug("File: %s, Width: %s, Height: %s, Style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
+	sigolo.Debug("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
 
 	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
 }
@@ -425,6 +424,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
+	sigolo.Trace("Ensure output folder '%s'", outputFolder)
 	err := os.Mkdir(outputFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
@@ -432,7 +432,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 
 	// Create output file
 	outputFilepath := filepath.Join(outputFolder, title+".html")
-	sigolo.Debug("Write to %s", outputFilepath)
+	sigolo.Trace("Ensure output file '%s'", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))
@@ -440,6 +440,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 	defer outputFile.Close()
 
 	// Write data to file
+	sigolo.Debug("Write to %s", outputFilepath)
 	_, err = outputFile.WriteString(content)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable write data to file %s", outputFilepath))

@@ -72,43 +72,26 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	var err error
 
-	sigolo.Info("Tokenize article %s [1/2]: Evaluate templates", title)
-
+	sigolo.Debug("Tokenize article %s [1/4]: First cleanup", title)
 	content, err = clean(content)
 	if err != nil {
 		return nil, err
 	}
 
+	sigolo.Debug("Tokenize article %s [2/4]: Evaluate templates", title)
 	content, err = t.evaluateTemplates(content)
 	if err != nil {
 		return nil, err
 	}
 
+	sigolo.Debug("Tokenize article %s [3/4]: Second cleanup", title)
 	content, err = clean(content)
 	if err != nil {
 		return nil, err
 	}
 
-	sigolo.Info("Tokenize article %s [2/2]: Tokenize content", title)
+	sigolo.Debug("Tokenize article %s [4/4]: Tokenize content", title)
 	content = t.tokenizeContent(t, content)
-
-	sigolo.Debug("Token map length: %d", len(t.getTokenMap()))
-
-	// print some debug information if wanted
-	// TODO Print these internal information when --trace or similar has been specified (see also #35)
-	//if sigolo.LogLevel <= sigolo.LOG_DEBUG {
-	//	sigolo.Debug(content)
-	//
-	//	keys := make([]string, 0, len(t.getTokenMap()))
-	//	for k := range t.getTokenMap() {
-	//		keys = append(keys, k)
-	//	}
-	//	sort.Strings(keys)
-	//
-	//	for _, k := range keys {
-	//		sigolo.Debug("%s : %s", k, t.getTokenMap()[k])
-	//	}
-	//}
 
 	article := Article{
 		Title:    title,

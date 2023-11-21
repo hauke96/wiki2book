@@ -71,6 +71,7 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
 func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool) error {
+	sigolo.Trace("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
 		var outputFilepath string
@@ -113,8 +114,9 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 // redirects and such a redirect counts as article.
 func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
-	imageName := strings.Split(imageNameWithPrefix, ":")[1]
-	imageArticle, err := DownloadArticle(wikipediaInstance, "File:"+imageName, articleFolder)
+	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
+	sigolo.Trace("Download article file for image '%s' from Wikipedia instance '%s'", imageName, wikipediaInstance)
+	imageArticle, err := DownloadArticle(wikipediaInstance, imageName, articleFolder)
 	if err != nil {
 		return "", true, err
 	}
@@ -130,10 +132,10 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	// TODO Only print when --trace is active (-> #35)
-	//sigolo.Debug("Original image name: %s", originalImageName)
-	//sigolo.Debug("Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
-	//sigolo.Debug("MD5 of redirected image name: %s", md5sum)
+	sigolo.Trace("Download actual image from Wikimedia instance '%s'", wikipediaInstance)
+	sigolo.Trace("  Original name: %s", originalImageName)
+	sigolo.Trace("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
+	sigolo.Trace("  MD5 of redirected image name: %s", md5sum)
 
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
@@ -154,7 +156,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
-	sigolo.Debug("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
+	sigolo.Trace("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
 	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
@@ -177,7 +179,7 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 }
 
 func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
-	sigolo.Debug("Render math %s", mathString)
+	sigolo.Trace("Render math %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
 
@@ -221,7 +223,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 
 	sigolo.Debug("Rendering math %s", util.TruncString(mathString))
 
-	sigolo.Debug("Make GET request to %s", urlString)
+	sigolo.Trace("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)

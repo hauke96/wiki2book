@@ -32,6 +32,7 @@ func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing SVG file "+filename)
 	}
+	sigolo.Trace("Read simple SVG attributes %#v from file '%s'", attributes, filename)
 
 	return attributes, nil
 }
@@ -40,6 +41,8 @@ func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 // the "viewBox" attribute. Only if both attributes (width and height) are already absolute values, nothing will be
 // changed.
 func MakeSvgSizeAbsolute(filename string) error {
+	sigolo.Debug("Make SVG size absolute for image file '%s'", filename)
+
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return errors.Wrap(err, "Error reading SVG file "+filename)
@@ -49,6 +52,7 @@ func MakeSvgSizeAbsolute(filename string) error {
 	if err != nil {
 		return err
 	}
+	sigolo.Trace("Found SVG attributes: %#v", attributes)
 
 	if !strings.HasSuffix(attributes.Width, "%") && strings.HasSuffix(attributes.Height, "%") {
 		// Width and height are already absolute values, nothing to do here.
@@ -87,6 +91,7 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 
 	var viewboxAttributeValues []string
 	viewboxAttributeString := viewboxAttributeContentSlice[1]
+	sigolo.Trace("Found viewBox=%s", viewboxAttributeString)
 	if strings.Contains(viewboxAttributeString, ",") {
 		viewboxAttributeValues = strings.Split(viewboxAttributeString, ",")
 	} else if strings.Contains(viewboxAttributeString, " ") {
@@ -103,6 +108,7 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 		return fileString, nil
 	}
 
+	sigolo.Trace("Replace width=%s -> width=%s and height=%s -> height=%s", oldAttributes.Width, viewboxAttributeValues[2], oldAttributes.Height, viewboxAttributeValues[3])
 	fileString = strings.Replace(fileString, "width=\""+oldAttributes.Width+"\"", "width=\""+viewboxAttributeValues[2]+"pt\"", 1)
 	fileString = strings.Replace(fileString, "height=\""+oldAttributes.Height+"\"", "height=\""+viewboxAttributeValues[3]+"pt\"", 1)
 	return fileString, nil
