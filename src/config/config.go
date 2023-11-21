@@ -12,7 +12,7 @@ var Current = &Configuration{
 	IgnoredTemplates:               []string{},
 	IgnoredImageParams:             []string{},
 	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
-	WikipediaUrl:                   "en",
+	WikipediaInstance:              "en",
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
@@ -57,15 +57,15 @@ type Configuration struct {
 	IgnoredImageParams []string `json:"ignored-image-params"`
 
 	/*
-		The URL to the api.php page of the Wikipedia (or generally MediaWiki) instance.
+		The URL to the Wikipedia (or generally MediaWiki) instance.
 
-		Default: "https://en.wikipedia.org/w/api.php"
+		Default: "en"
 		Mandatory: Yes
 
-		JSON example: "wikipedia-url": "https://de.wikipedia.org/w/api.php"
+		JSON example: "wikipedia-instance": "de"
 		This config uses the German Wikipedia.
 	*/
-	WikipediaUrl string `json:"wikipedia-url"`
+	WikipediaInstance string `json:"wikipedia-instance"`
 
 	/*
 		Each image has its own article, which is fetched from these Wikipedia instances (in the given order).

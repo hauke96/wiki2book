@@ -10,7 +10,7 @@ import (
 
 type Project struct {
 	Metadata      Metadata `json:"metadata"`
-	WikipediaUrl  string   `json:"wikipedia-url"`
+	Domain        string   `json:"wikipedia-domain"`
 	OutputFile    string   `json:"output-file"`
 	CacheDir      string   `json:"cache-dir"`
 	Cover         string   `json:"cover"`
@@ -45,9 +45,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	// Override default configs with project specific ones
-	if project.WikipediaUrl != "" {
-		config.Current.WikipediaUrl = project.WikipediaUrl
-	}
+	config.Current.WikipediaInstance = project.Domain
 
 	return project, nil
 }
