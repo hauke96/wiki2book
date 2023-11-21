@@ -9,15 +9,15 @@ import (
 )
 
 type Project struct {
-	Metadata      Metadata `json:"metadata"`
-	Domain        string   `json:"wikipedia-domain"`
-	OutputFile    string   `json:"output-file"`
-	CacheDir      string   `json:"cache-dir"`
-	Cover         string   `json:"cover"`
-	Style         string   `json:"style"`
-	PandocDataDir string   `json:"pandoc-data-dir"`
-	Articles      []string `json:"articles"`
-	FontFiles     []string `json:"font-files"`
+	Metadata          Metadata `json:"metadata"`
+	WikipediaInstance string   `json:"wikipedia-instance"`
+	OutputFile        string   `json:"output-file"`
+	CacheDir          string   `json:"cache-dir"`
+	Cover             string   `json:"cover"`
+	Style             string   `json:"style"`
+	PandocDataDir     string   `json:"pandoc-data-dir"`
+	Articles          []string `json:"articles"`
+	FontFiles         []string `json:"font-files"`
 }
 
 type Metadata struct {
@@ -45,7 +45,9 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	// Override default configs with project specific ones
-	config.Current.WikipediaInstance = project.Domain
+	if project.WikipediaInstance != "" {
+		config.Current.WikipediaInstance = project.WikipediaInstance
+	}
 
 	return project, nil
 }

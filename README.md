@@ -60,7 +60,7 @@ When using a project, the mentioned `project.json` is a configuration for a proj
     "math": "math",
     "articles": "articles"
   },
-  "wikipedia-domain": "de",
+  "wikipedia-instance": "de",
   "output-file": "my-book.epub",
   "cover": "cover.png",
   "style": "style.css",
@@ -76,9 +76,12 @@ When using a project, the mentioned `project.json` is a configuration for a proj
 The `caches` object is completely optional and in this example the default values are shown.
 All values are folders, which don't need to exist, they will be created.
 
-**Notice:** Currently only the German Wikipedia is supported.
-However, you can specify `en` as `wikipedia-domain` to download articles from the English Wikipedia.
-But because a lot of German template-strings are removed while parsing, the English strings remain and result in unwanted stuff in the eBook.
+#### Use a different Wikipedia instance
+
+Per default, the english wikipedia is used.
+However, you can change the `wikipedia-instance` entry in your projects or config file (s. below; project entries take precedence over configuration entries).
+Notice, that you also have to adjust the list of ignore templates and all other language-specific configurations.
+Take a look at the [German config file](configs/de.json) and some [German project files](projects/de/) to get an idea of a switch to a different Wikipedia instance.
 
 ### Configuration
 
