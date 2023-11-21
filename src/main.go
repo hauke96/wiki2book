@@ -147,7 +147,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, cacheDir strin
 	mathCache := "math"
 	templateCache := "templates"
 	articleCache := "articles"
-	htmlOutputFolder := "./"
+	htmlOutputFolder := "html"
 
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
@@ -278,8 +278,8 @@ func generateEpubFromArticles(articles []string, cacheDir string, styleFile stri
 	mathCache := "math"
 	templateCache := "templates"
 	articleCache := "articles"
+	htmlOutputFolder := "html"
 
-	htmlOutputFolder := "./"
 	for _, articleName := range articles {
 		sigolo.Info("Start processing article %s", articleName)
 
