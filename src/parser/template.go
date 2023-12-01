@@ -37,13 +37,14 @@ func (t *Tokenizer) evaluateTemplates(content string) (string, error) {
 	sigolo.Debug("Replace %d template placeholder with evaluated content", len(placeholderToContent))
 	for strings.Contains(content, templatePlaceholderPrefix) {
 		sigolo.Trace("Check content for template placeholders (%d remain)", len(placeholderToContent))
+
 		for key, template := range placeholderToContent {
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
 			containsPlaceholder := strings.Contains(content, placeholder)
 			sigolo.Trace("Check template placeholder %s -> content contains placeholder? %v", key, containsPlaceholder)
+
 			if containsPlaceholder {
 				content = strings.ReplaceAll(content, placeholder, template)
-				delete(placeholderToContent, key)
 				sigolo.Trace("Replaced template placeholder %s in content", key)
 			}
 		}
