@@ -143,7 +143,7 @@ func TestClean(t *testing.T) {
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"
 	content, err = clean(content)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, "Some wikitext", content)
+	test.AssertEqual(t, "<div foo>Some</div> wikitext", content)
 
 	content = " '''test'''"
 	content, err = clean(content)

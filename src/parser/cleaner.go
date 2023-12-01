@@ -14,7 +14,8 @@ func clean(content string) (string, error) {
 	content = removeComments(content)
 	content = removeUnwantedInternalLinks(content)
 	content = removeUnwantedTemplates(content)
-	content = removeUnwantedHtml(content)
+	// Disabled for test purposes is this removal is really necessary.
+	//content = removeUnwantedHtml(content)
 	content = removeUnwantedWikitext(content)
 	content = removeEmptyListEntries(content)
 	content = removeEmptySections(content)
