@@ -210,6 +210,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			imageFilepath := filepath.Join(t.imageFolder, filename)
 
 			tokenType := TOKEN_IMAGE_INLINE
+			hasCaption := false
 			captionToken := CaptionToken{}
 			ySizeInt := -1
 			xSizeInt := -1
@@ -225,6 +226,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			for i, option := range filteredOptions {
 				if util.ElementHasPrefix(option, imageNonInlineParameters) {
 					tokenType = TOKEN_IMAGE
+					hasCaption = true
 				} else if strings.HasSuffix(option, "px") {
 					option = strings.TrimSuffix(option, "px")
 					sizes := strings.Split(option, "x")
@@ -255,11 +257,16 @@ func (t *Tokenizer) parseImages(content string) string {
 					// Too large images should not be considered inline. The exact values are just guesses and may change over time.
 					if ySizeInt >= 50 || xSizeInt >= 100 {
 						tokenType = TOKEN_IMAGE
+						// no change in hasCaption flag, only explicit non-inline images have a caption
 					}
 				} else if i == len(filteredOptions)-1 && tokenType == TOKEN_IMAGE {
 					// Last remaining option is the caption. We ignore captions on inline images.
 					captionToken.Content = t.tokenizeContent(t, option)
 				}
+			}
+
+			if !hasCaption {
+				captionToken = CaptionToken{}
 			}
 
 			var imageToken Token
