@@ -8,7 +8,7 @@ import (
 
 // This file is used to profile the application with the IntelliJ CPU profiler, which only works on test files.
 
-func TestArticleGermanLong(t *testing.T) {
+func testArticleGermanLong(t *testing.T) {
 	err := config.LoadConfig("../configs/de.json")
 	sigolo.FatalCheck(err)
 
@@ -26,7 +26,7 @@ func TestArticleGermanLong(t *testing.T) {
 	)
 }
 
-func TestProjectGerman(t *testing.T) {
+func testProjectGerman(t *testing.T) {
 	err := config.LoadConfig("../configs/de.json")
 	sigolo.FatalCheck(err)
 
