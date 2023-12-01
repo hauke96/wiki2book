@@ -40,6 +40,12 @@ func TestFindCorrespondingCloseToken(t *testing.T) {
 
 	index = findCorrespondingCloseToken("abc[def]ghi", 10, "[", "]")
 	test.AssertEqual(t, -1, index)
+
+	index = findCorrespondingCloseToken("abc[[de[[f]]]]ghi", 5, "[[", "]]")
+	test.AssertEqual(t, 12, index)
+
+	index = findCorrespondingCloseToken("abc[[de[[f]]]]ghi", 9, "[[", "]]")
+	test.AssertEqual(t, 10, index)
 }
 
 func TestFindCorrespondingCloseToken_multiLineStrings(t *testing.T) {

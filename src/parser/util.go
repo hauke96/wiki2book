@@ -25,11 +25,17 @@ func findCorrespondingCloseToken(content string, startIndex int, openingToken st
 
 		if cursorOpeningToken == openingToken {
 			closeTokenCounter++
+
+			// Skip the found opening token. Use the "-1" to compensate the "+1" by the loop
+			i += openingTokenSize - 1
 		} else if cursorClosingToken == closingToken {
 			if closeTokenCounter == 0 {
 				return i
 			} else {
 				closeTokenCounter--
+
+				// Skip the found closing token. Use the "-1" to compensate the "+1" by the loop
+				i += closingTokenSize - 1
 			}
 		}
 	}

@@ -9,36 +9,79 @@ import (
 	"wiki2book/util"
 )
 
-const templatePlaceholderTemplate = "$$TEMPLATE_PLACEHOLDER_%s$$"
+const templatePlaceholderPrefix = "$$TEMPLATE_PLACEHOLDER_"
+const templatePlaceholderTemplate = templatePlaceholderPrefix + "%s$$"
+
+var (
+	templateStartToken    = "{{"
+	templateEndToken      = "}}"
+	templateStartTokenLen = len(templateStartToken)
+	templateEndTokenLen   = len(templateEndToken)
+)
 
 // evaluateTemplates evaluates all templates including nested ones.
 func (t *Tokenizer) evaluateTemplates(content string) (string, error) {
 	// All evaluated templates are stored in this map. Replacing evaluated templates by placeholders reduces the length
 	// of request URLs significantly and prevents errors due to too long URLs.
 	placeholderToContent := map[string]string{}
-	startToken := "{{"
-	endToken := "}}"
 
 	sigolo.Debug("Start evaluating templates and replacing them by placeholders")
-	for i := 0; i < len(content)-2; i++ {
-		cursor := content[i : i+2]
+	content, err := t.replaceTemplateByPlaceholders(content, placeholderToContent)
+	if err != nil {
+		return "", err
+	}
+	sigolo.Debug("Finished finding and evaluating templates")
 
-		if cursor == startToken {
-			endIndex := findCorrespondingCloseToken(content, i+2, startToken, endToken)
+	// Replace all template placeholders with the actual content until no placeholders are unresolved. This is not very
+	// elegant or fast but due to the nesting a simple and working approach.
+	sigolo.Debug("Replace %d template placeholder with evaluated content", len(placeholderToContent))
+	for strings.Contains(content, templatePlaceholderPrefix) {
+		sigolo.Trace("Check content for template placeholders (%d remain)", len(placeholderToContent))
+		for key, template := range placeholderToContent {
+			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
+			containsPlaceholder := strings.Contains(content, placeholder)
+			sigolo.Trace("Check template placeholder %s -> content contains placeholder? %v", key, containsPlaceholder)
+			if containsPlaceholder {
+				content = strings.ReplaceAll(content, placeholder, template)
+				delete(placeholderToContent, key)
+				sigolo.Trace("Replaced template placeholder %s in content", key)
+			}
+		}
+	}
+	sigolo.Debug("Finished replacing template placeholders. Template handling done.")
+
+	return content, nil
+}
+
+func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToContent map[string]string) (string, error) {
+	sigolo.Trace("Replace template tokens in content '%s'", util.TruncString(content))
+	for i := 0; i < len(content)-templateEndTokenLen; i++ {
+		cursor := content[i : i+templateStartTokenLen]
+
+		if cursor == templateStartToken {
+			endIndex := findCorrespondingCloseToken(content, i+templateStartTokenLen, templateStartToken, templateEndToken)
 			if endIndex == -1 {
-				return "", errors.New(fmt.Sprintf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken))
+				return "", errors.New(fmt.Sprintf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", templateStartToken, templateEndToken))
 			}
 
-			templateText := content[i : endIndex+2]
+			originalTemplateText := content[i : endIndex+templateEndTokenLen]
+			templateText := originalTemplateText
+			sigolo.Trace("Found template: %s", util.TruncString(templateText))
 
-			if strings.Contains(templateText[2:], startToken) {
+			if strings.Contains(templateText[templateStartTokenLen:], templateStartToken) {
 				// If the template itself contains a template, then proceed to first evaluate the inner template and
 				// to evaluate the outer template in a later run
-				continue
+				sigolo.Trace("Template contains templates, inner templates are replaced first")
+				newContent, err := t.replaceTemplateByPlaceholders(templateText[templateStartTokenLen:], placeholderToContent)
+				if err != nil {
+					return "", err
+				}
+				templateText = templateStartToken + newContent
 			}
 
 			key := util.Hash(templateText)
 
+			sigolo.Trace("Evaluate template: %s", util.TruncString(templateText))
 			evaluatedTemplate, err := api.EvaluateTemplate(templateText, t.templateFolder, key)
 			if err != nil {
 				return "", err
@@ -48,24 +91,9 @@ func (t *Tokenizer) evaluateTemplates(content string) (string, error) {
 			// evaluated form because nested templates might lead to too long URLs.
 			placeholderToContent[key] = evaluatedTemplate
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
-			content = strings.Replace(content, templateText, placeholder, 1)
+			content = strings.Replace(content, originalTemplateText, placeholder, 1)
 		}
 	}
-	sigolo.Debug("Finished finding and evaluating templates")
-
-	// Replace all template placeholders with the actual content until no placeholders are unresolved. This is not very
-	// elegant or fast but due to the nesting a simple and working approach.
-	sigolo.Debug("Replace %d template placeholder with evaluated content", len(placeholderToContent))
-	for len(placeholderToContent) != 0 {
-		for key, template := range placeholderToContent {
-			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
-			if strings.Contains(content, placeholder) {
-				content = strings.ReplaceAll(content, placeholder, template)
-				delete(placeholderToContent, key)
-			}
-		}
-	}
-	sigolo.Debug("Finished replacing template placeholders. Template handling done.")
-
+	sigolo.Trace("Finished replacing templates in: %s", util.TruncString(content))
 	return content, nil
 }
