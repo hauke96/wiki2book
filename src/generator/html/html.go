@@ -152,6 +152,8 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 		html, err = g.expandRefDefinition(token.(parser.RefDefinitionToken))
 	case parser.RefUsageToken:
 		html, err = g.expandRefUsage(token.(parser.RefUsageToken))
+	case parser.NowikiToken:
+		html, err = g.expandNowiki(token.(parser.NowikiToken))
 	}
 
 	if err != nil {
@@ -419,6 +421,10 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	sigolo.Debug("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
 
 	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
+}
+
+func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {
+	return token.Content, nil
 }
 
 // write returns the output path or an error.

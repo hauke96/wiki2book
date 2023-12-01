@@ -368,3 +368,18 @@ func TestExpandRefUsage(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `[43]`, row)
 }
+
+func TestExpandNowiki(t *testing.T) {
+	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_NOWIKI, 0)
+	tokenMap := map[string]parser.Token{
+		tokenKey: parser.NowikiToken{
+			Content: "something",
+		},
+	}
+	generator.TokenMap = tokenMap
+
+	row, err := generator.expand(tokenKey)
+
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "something", row)
+}

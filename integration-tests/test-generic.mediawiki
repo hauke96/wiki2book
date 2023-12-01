@@ -138,3 +138,13 @@ They will be collected and are visible at the end of the document:<br>
 
 1. Mixing stuff also works:
 2. Planemo = '''''plane'''tary [https://object.de '''m'''ass] '''o'''bject''
+
+= Nowiki keyword =
+
+Some text has the <nowiki>keyword</nowiki>.
+
+It can also be used in the following ways:
+* <nowiki>in lists</nowiki>
+* also with <nowiki>lists</nowiki> containing text
+
+Also in comments: <!-- this <nowiki>part</nowiki> should not be visible -->

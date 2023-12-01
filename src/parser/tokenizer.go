@@ -25,6 +25,8 @@ const TOKEN_REF_DEF = "REF_DEF"
 
 const TOKEN_MATH = "REF_MATH"
 
+const TOKEN_NOWIKI = "HEADINNOWIKI"
+
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
 const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
@@ -127,6 +129,8 @@ func (t *Tokenizer) setRawToken(key string, tokenContent interface{}) {
 func tokenizeContent(t *Tokenizer, content string) string {
 	for {
 		originalContent := content
+
+		content = t.parseNowiki(content)
 
 		content = t.parseBoldAndItalic(content)
 		content = t.parseHeadings(content)
