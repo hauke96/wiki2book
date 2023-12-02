@@ -205,16 +205,15 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
 	sigolo.FatalCheck(err)
 
-	htmlFileName := article.Title + ".html"
-	htmlFile := path.Join(htmlOutputFolder, htmlFileName)
-	if shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
+	htmlFilePath := path.Join(htmlOutputFolder, article.Title+".html")
+	if shouldRecreateHtml(htmlFilePath, forceHtmlRecreate) {
 		htmlGenerator := &html.HtmlGenerator{
 			ImageCacheFolder:   imageCache,
 			MathCacheFolder:    mathCache,
 			ArticleCacheFolder: articleCache,
 			TokenMap:           article.TokenMap,
 		}
-		htmlFile, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
 		sigolo.FatalCheck(err)
 	}
 
@@ -223,7 +222,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 		Title: title,
 	}
 
-	err = epub.Generate([]string{htmlFile}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	err = epub.Generate([]string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
@@ -300,8 +299,8 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	for _, articleName := range articles {
 		sigolo.Info("Article '%s': Start processing", articleName)
 
-		htmlFileName := articleName + ".html"
-		if !shouldRecreateHtml(htmlOutputFolder, htmlFileName, forceHtmlRecreate) {
+		htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
+		if !shouldRecreateHtml(htmlFilePath, forceHtmlRecreate) {
 			sigolo.Info("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
 			sigolo.Info("Article '%s': Download article", articleName)
@@ -324,12 +323,12 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 				ArticleCacheFolder: articleCache,
 				TokenMap:           article.TokenMap,
 			}
-			htmlFileName, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
+			htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
 			sigolo.FatalCheck(err)
 		}
 
 		sigolo.Info("Article '%s': Finished processing", articleName)
-		articleFiles = append(articleFiles, htmlFileName)
+		articleFiles = append(articleFiles, htmlFilePath)
 	}
 
 	sigolo.Info("Start generating EPUB file")
@@ -341,13 +340,12 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func shouldRecreateHtml(htmlOutputFolder string, htmlFileName string, forceHtmlRecreate bool) bool {
+func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 	if forceHtmlRecreate {
 		return true
 	}
 
 	// Check if HTML file already exists. If so, no recreate is wanted.
-	htmlFilePath := filepath.Join(htmlOutputFolder, htmlFileName)
 	_, err := os.Stat(htmlFilePath)
 	htmlFileExists := err == nil
 
