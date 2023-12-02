@@ -10,8 +10,8 @@ assignees: ''
 ## Bug description
 A clear and concise description of what the bug is.
 
-* What was the error message?
-* Attach the complete log to this issue
+**What was the error message?**
+Give the relevant error message(s) and also attach the complete log to this issue.
 
 ## Reproducing the bug
 Steps to reproduce the behavior:
@@ -22,6 +22,8 @@ Steps to reproduce the behavior:
 
 ## Additional information
 
-* The used wiki2book version (or commit-hash)
-* The used pandoc version
-* Any other useful and/or related information
+**The used wiki2book version (or commit-hash)**
+
+**The used pandoc version**
+
+**Any other useful and/or related information**

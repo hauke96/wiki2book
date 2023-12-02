@@ -2,7 +2,7 @@
 name: eBook rendering issue
 about: Report an incorrectly rendered eBook (part)
 title: ''
-labels: feature, rendering
+labels: rendering
 assignees: ''
 
 ---
@@ -23,10 +23,15 @@ If possible, upload the EPUB file of a minimal standalone mediawiki example (s. 
 
 ## Reproducing the issue
 
-* If the eBook was produces using the standalone mode:
-  * Please add a minimal example where the issue also appear (please as uploaded and attached file)
-* If the eBook was produces using the article or project mode:
-  * Please name the articles and the Wikipedia instance
-* Please upload any relevant configurations and parameters you used
-* The used wiki2book version (or commit-hash)
-* The used pandoc version
+**The used wiki2book version (or commit-hash)**
+
+**The used pandoc version**
+
+**Used parameters and configurations** 
+
+**Mediawiki source**
+Please paste a minimal example here. Alternatively mention the problematic article and section.
+
+```
+wikitext goes here
+```
