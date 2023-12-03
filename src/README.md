@@ -2,18 +2,20 @@ Some basic stuff to work with this project.
 
 # Preliminaries
 
-Make sure `go` is installed and then just import the project to your IDE.
-You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `convert` command) to turn HTML into EPUB files.
+Make sure `go` is installed (s. minimal go-version in `go.mod`) and then just import the project to your IDE.
+You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `convert` command) to turn HTML into EPUB files and to process images.
 
 # Build project
 
 `go build -o wiki2book .`
 
+Or `build.sh` in root of this repo.
+
 # Run
 
-To test if everything works, it's easiest to run `./wiki2book article Erde` (it builds an eBook from the German "Erde" article).
+To test if everything works, run `./wiki2book -c ../configs/de.json article Erde` (it builds an eBook from the German "Erde" article).
 
-Use `./wiki2book --help` for all available options.
+Use `./wiki2book --help` for all available CLI options.
 
 # Linting
 
@@ -52,9 +54,11 @@ Take a look at the `README.md` there.
 
 ## Profiling
 
-**Method 1:** Use your IDE.
+### Method 1: IDE
 
-**Method 2:**
+Use your IDE with the `main_test.go` file, which only exists to allow IntelliJ to profile go-code.
+
+### Method 2: CLI & pprof
 
 * Run wiki2book with the `--diagnostics-profiling` flag to generate a `profiling.prof` file.
 * Run `go tool pprof <wiki2book-executable> ./profiling.prof` so that the `pprof` console comes up.
