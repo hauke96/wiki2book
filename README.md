@@ -25,6 +25,11 @@ Most existing tools are furthermore rather general purpose, which is not benefic
 Another feature missing in all of these tools: You cannot turn multiple articles into a ready-to-read eBook.
 But wiki2book has exactly this functionality called "projects" as described below.
 
+# Installation
+
+* Arch Linux: AUR package [`wiki2book`](https://aur.archlinux.org/packages/wiki2book).
+* Others: See the [build instructions](./src#build-project).
+
 # Usage
 
 Currently only a CLI version of wiki2book exists.
