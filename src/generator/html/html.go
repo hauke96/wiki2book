@@ -119,41 +119,41 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 	var err error = nil
 	var html = ""
 
-	switch token.(type) {
+	switch t := token.(type) {
 	case parser.HeadingToken:
-		html, err = g.expandHeadings(token.(parser.HeadingToken))
+		html, err = g.expandHeadings(t)
 	case parser.InlineImageToken:
-		html, err = g.expandInlineImage(token.(parser.InlineImageToken))
+		html, err = g.expandInlineImage(t)
 	case parser.ImageToken:
-		html, err = g.expandImage(token.(parser.ImageToken))
+		html, err = g.expandImage(t)
 	case parser.ExternalLinkToken:
-		html, err = g.expandExternalLink(token.(parser.ExternalLinkToken))
+		html, err = g.expandExternalLink(t)
 	case parser.InternalLinkToken:
-		html, err = g.expandInternalLink(token.(parser.InternalLinkToken))
+		html, err = g.expandInternalLink(t)
 	case parser.UnorderedListToken:
-		html, err = g.expandUnorderedList(token.(parser.UnorderedListToken))
+		html, err = g.expandUnorderedList(t)
 	case parser.OrderedListToken:
-		html, err = g.expandOrderedList(token.(parser.OrderedListToken))
+		html, err = g.expandOrderedList(t)
 	case parser.DescriptionListToken:
-		html, err = g.expandDescriptionList(token.(parser.DescriptionListToken))
+		html, err = g.expandDescriptionList(t)
 	case parser.ListItemToken:
-		html, err = g.expandListItem(token.(parser.ListItemToken))
+		html, err = g.expandListItem(t)
 	case parser.TableToken:
-		html, err = g.expandTable(token.(parser.TableToken))
+		html, err = g.expandTable(t)
 	case parser.TableRowToken:
-		html, err = g.expandTableRow(token.(parser.TableRowToken))
+		html, err = g.expandTableRow(t)
 	case parser.TableColToken:
-		html, err = g.expandTableColumn(token.(parser.TableColToken))
+		html, err = g.expandTableColumn(t)
 	case parser.TableCaptionToken:
-		html, err = g.expandTableCaption(token.(parser.TableCaptionToken))
+		html, err = g.expandTableCaption(t)
 	case parser.MathToken:
-		html, err = g.expandMath(token.(parser.MathToken))
+		html, err = g.expandMath(t)
 	case parser.RefDefinitionToken:
-		html, err = g.expandRefDefinition(token.(parser.RefDefinitionToken))
+		html, err = g.expandRefDefinition(t)
 	case parser.RefUsageToken:
-		html, err = g.expandRefUsage(token.(parser.RefUsageToken))
+		html, err = g.expandRefUsage(t)
 	case parser.NowikiToken:
-		html, err = g.expandNowiki(token.(parser.NowikiToken))
+		html, err = g.expandNowiki(t)
 	}
 
 	if err != nil {
@@ -218,10 +218,7 @@ func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
-	caption := ""
-	var err error = nil
-
-	caption, err = g.expand(token.Caption.Content)
+	caption, err := g.expand(token.Caption.Content)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Error while expanding caption of image %#v", token))
 	}

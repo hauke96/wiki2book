@@ -5,35 +5,40 @@ import (
 	"github.com/hauke96/sigolo"
 )
 
-const TOKEN_HEADING = "HEADING"
+// High-level token types
+const (
+	TOKEN_HEADING = "HEADING"
 
-const TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
-const TOKEN_EXTERNAL_LINK = "EXTERNAL_LINK"
+	TOKEN_INTERNAL_LINK = "INTERNAL_LINK"
+	TOKEN_EXTERNAL_LINK = "EXTERNAL_LINK"
 
-const TOKEN_TABLE = "TABLE"
+	TOKEN_TABLE = "TABLE"
 
-const TOKEN_UNORDERED_LIST = "UNORDERED_LIST"
-const TOKEN_ORDERED_LIST = "ORDERED_LIST"
-const TOKEN_DESCRIPTION_LIST = "DESCRIPTION_LIST"
-const TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
+	TOKEN_UNORDERED_LIST    = "UNORDERED_LIST"
+	TOKEN_ORDERED_LIST      = "ORDERED_LIST"
+	TOKEN_DESCRIPTION_LIST  = "DESCRIPTION_LIST"
+	TOKEN_UNKNOWN_LIST_ITEM = "UNKNOWN_LIST_TYPE_%s" // Template for unknown lists
 
-const TOKEN_IMAGE = "IMAGE"
-const TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
+	TOKEN_IMAGE        = "IMAGE"
+	TOKEN_IMAGE_INLINE = "IMAGE_INLINE"
 
-const TOKEN_REF_USAGE = "REF_USAGE"
-const TOKEN_REF_DEF = "REF_DEF"
+	TOKEN_REF_USAGE = "REF_USAGE"
+	TOKEN_REF_DEF   = "REF_DEF"
 
-const TOKEN_MATH = "REF_MATH"
+	TOKEN_MATH = "REF_MATH"
 
-const TOKEN_NOWIKI = "HEADINNOWIKI"
+	TOKEN_NOWIKI = "HEADINNOWIKI"
+)
 
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
 // and end of a primitive block of content (like a block of bold text)
-const MARKER_BOLD_OPEN = "$$MARKER_BOLD_OPEN$$"
-const MARKER_BOLD_CLOSE = "$$MARKER_BOLD_CLOSE$$"
-const MARKER_ITALIC_OPEN = "$$MARKER_ITALIC_OPEN$$"
-const MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
-const MARKER_PARAGRAPH = "$$MARKER_PARAGRAPH$$"
+const (
+	MARKER_BOLD_OPEN    = "$$MARKER_BOLD_OPEN$$"
+	MARKER_BOLD_CLOSE   = "$$MARKER_BOLD_CLOSE$$"
+	MARKER_ITALIC_OPEN  = "$$MARKER_ITALIC_OPEN$$"
+	MARKER_ITALIC_CLOSE = "$$MARKER_ITALIC_CLOSE$$"
+	MARKER_PARAGRAPH    = "$$MARKER_PARAGRAPH$$"
+)
 
 type Tokenizer struct {
 	tokenMap       map[string]Token
