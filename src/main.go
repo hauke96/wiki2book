@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/alecthomas/kong"
 	"github.com/hauke96/sigolo"
 	"os"
@@ -19,15 +20,17 @@ import (
 	"wiki2book/util"
 )
 
+const VERSION = "v0.1.0"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
 var cli struct {
-	Logging              string `help:"Logging verbosity. Possible values: debug, trace" short:"l"`
-	DiagnosticsProfiling bool   `help:"Enable profiling and write results to ./profiling.prof."`
-	DiagnosticsTrace     bool   `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
-	ForceRegenerateHtml  bool   `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
-	SvgSizeToViewbox     bool   `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
-	Config               string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
+	Logging              string      `help:"Logging verbosity. Possible values: debug, trace" short:"l"`
+	DiagnosticsProfiling bool        `help:"Enable profiling and write results to ./profiling.prof."`
+	DiagnosticsTrace     bool        `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
+	ForceRegenerateHtml  bool        `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	SvgSizeToViewbox     bool        `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
+	Config               string      `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
+	Version              VersionFlag `help:"Print version information and quit" name:"version" short:"v"`
 	Standalone           struct {
 		File          string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
@@ -53,8 +56,25 @@ var cli struct {
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
+type VersionFlag string
+
+func (v VersionFlag) Decode(ctx *kong.DecodeContext) error { return nil }
+func (v VersionFlag) IsBool() bool                         { return true }
+func (v VersionFlag) BeforeApply(app *kong.Kong, vars kong.Vars) error {
+	fmt.Println(vars["version"])
+	app.Exit(0)
+	return nil
+}
+
 func main() {
-	ctx := kong.Parse(&cli)
+	ctx := kong.Parse(
+		&cli,
+		kong.Name("wiki2book"),
+		kong.Description("A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook."),
+		kong.Vars{
+			"version": VERSION,
+		},
+	)
 
 	if strings.ToLower(cli.Logging) == "debug" {
 		sigolo.LogLevel = sigolo.LOG_DEBUG
