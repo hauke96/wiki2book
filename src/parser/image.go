@@ -218,13 +218,13 @@ func (t *Tokenizer) parseImages(content string) string {
 			// Do some cleanup: Remove definitely uninteresting options.
 			var filteredOptions []string
 			for _, option := range options {
-				if !util.ElementHasPrefix(option, config.Current.IgnoredImageParams) {
+				if !util.HasAnyPrefix(option, config.Current.IgnoredImageParams...) {
 					filteredOptions = append(filteredOptions, option)
 				}
 			}
 
 			for i, option := range filteredOptions {
-				if util.ElementHasPrefix(option, imageNonInlineParameters) {
+				if util.HasAnyPrefix(option, imageNonInlineParameters...) {
 					tokenType = TOKEN_IMAGE
 					hasCaption = true
 				} else if strings.HasSuffix(option, "px") {

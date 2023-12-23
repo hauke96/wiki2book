@@ -19,7 +19,7 @@ func RemoveLastChar(s string) string {
 	return s[:len(s)-sizeOfLastChar]
 }
 
-func ElementHasPrefix(element string, prefixes []string) bool {
+func HasAnyPrefix(element string, prefixes ...string) bool {
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(element, prefix) {
 			return true
