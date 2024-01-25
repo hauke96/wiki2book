@@ -87,7 +87,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 func TestExpandImage_onlyOneSizeSpecified(t *testing.T) {
 	// Only width
 	result := `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px;">
+<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: auto;">
 <div class="caption">
 some <b>caption</b>
 </div>
@@ -110,7 +110,7 @@ some <b>caption</b>
 
 	// Only height
 	result = `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; height: 10px;">
+<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: auto; height: 10px;">
 <div class="caption">
 some <b>caption</b>
 </div>

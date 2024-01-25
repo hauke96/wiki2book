@@ -31,6 +31,8 @@ const STYLE_TEMPLATE = `style="%s"`
 const IMAGE_SIZE_ALIGN_TEMPLATE = `vertical-align: middle;`
 const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %dpx;`
 const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %dpx;`
+const IMAGE_SIZE_WIDTH_AUTO_TEMPLATE = `width: auto;`
+const IMAGE_SIZE_HEIGHT_AUTO_TEMPLATE = `height: auto;`
 const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
 <img alt="image" src="./%s" %s>
@@ -232,12 +234,21 @@ func expandSizeTemplate(xSize int, ySize int) string {
 	sizeTemplate := ""
 	if xSize != -1 || ySize != -1 {
 		styles := []string{IMAGE_SIZE_ALIGN_TEMPLATE}
+
 		if xSize != -1 {
-			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_WIDTH_TEMPLATE, int(xSize)))
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_WIDTH_TEMPLATE, xSize))
+		} else {
+			// Allow scaling with correct aspect ratio in case there's no width specified
+			styles = append(styles, IMAGE_SIZE_WIDTH_AUTO_TEMPLATE)
 		}
+
 		if ySize != -1 {
-			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_HEIGHT_TEMPLATE, int(ySize)))
+			styles = append(styles, fmt.Sprintf(IMAGE_SIZE_HEIGHT_TEMPLATE, ySize))
+		} else {
+			// Allow scaling with correct aspect ratio in case there's no height specified
+			styles = append(styles, IMAGE_SIZE_HEIGHT_AUTO_TEMPLATE)
 		}
+
 		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
 	return sizeTemplate
