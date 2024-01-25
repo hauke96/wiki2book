@@ -99,9 +99,20 @@ func TestParseExternalLinks(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseExternalLinks_unknownProtocol(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseExternalLinks("foo [abc://bar.com website]")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_STRING+"_0$$", content)
+	test.AssertMapEqual(t, map[string]Token{
+		"$$TOKEN_" + TOKEN_STRING + "_0$$": StringToken{
+			String: "website",
+		},
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseExternalLinks_simpleBracketsNotRegisteredAsLinks(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
-	content := tokenizer.parseExternalLinks("Simple [brackets] will stay as is.")
-	test.AssertEqual(t, "Simple [brackets] will stay as is.", content)
+	content := tokenizer.parseExternalLinks("[Simple brackets] will stay as is.")
+	test.AssertEqual(t, "[Simple brackets] will stay as is.", content)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }

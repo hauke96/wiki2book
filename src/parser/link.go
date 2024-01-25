@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
@@ -77,6 +78,7 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		if removeSectionReference {
 			linkTarget = strings.SplitN(linkTarget, "#", 2)[0]
 		}
+		linkTarget = strings.TrimSpace(linkTarget)
 
 		var linkText string
 		if len(wikitextElements) == 1 {
@@ -99,22 +101,38 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 				LinkText:    t.tokenizeContent(t, linkText),
 			}
 			linkTokenKey = TOKEN_INTERNAL_LINK
-		} else {
-			token = ExternalLinkToken{
-				URL:      linkTarget,
-				LinkText: t.tokenizeContent(t, linkText),
+		} else if linkType == LINK_TYPE_EXTERNAL {
+			// See https://www.mediawiki.org/wiki/API:Extlinks property "elprotocol" for all possible values that are
+			// supported by MediaWiki. However, these are the most likely ones:
+			if util.HasAnyPrefix(linkTarget, "http://", "https://") {
+				token = ExternalLinkToken{
+					URL:      linkTarget,
+					LinkText: t.tokenizeContent(t, linkText),
+				}
+				linkTokenKey = TOKEN_EXTERNAL_LINK
+			} else if strings.Contains(linkTarget, "://") {
+				token = StringToken{
+					String: t.tokenizeContent(t, linkText),
+				}
+				linkTokenKey = TOKEN_STRING
 			}
-			linkTokenKey = TOKEN_EXTERNAL_LINK
+			// No supported or unsupported protocol -> leave the text as is
 		}
 
-		tokenKey := t.getToken(linkTokenKey)
-		t.setRawToken(tokenKey, token)
+		if token != nil {
+			tokenKey := t.getToken(linkTokenKey)
+			t.setRawToken(tokenKey, token)
 
-		resultSegments = append(resultSegments, tokenKey)
+			resultSegments = append(resultSegments, tokenKey)
+		} else {
+			// No actual link found, just some words in brackets:
+			resultSegments = append(resultSegments, fmt.Sprintf("%s%s%s", openingBrackets, possibleLinkWikitext, closingBrackets))
+		}
 
 		if len(segments) > 1 {
 			// Add all uninteresting segments behind the link
-			resultSegments = append(resultSegments, strings.Join(segments[1:], closingBrackets))
+			contentBehindLink := strings.Join(segments[1:], closingBrackets)
+			resultSegments = append(resultSegments, contentBehindLink)
 		}
 	}
 

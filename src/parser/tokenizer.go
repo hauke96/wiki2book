@@ -28,6 +28,8 @@ const (
 	TOKEN_MATH = "REF_MATH"
 
 	TOKEN_NOWIKI = "HEADINNOWIKI"
+
+	TOKEN_STRING = "STRING"
 )
 
 // Marker do not appear in the token map. A marker does not contain further information, it just marks e.g. the start
