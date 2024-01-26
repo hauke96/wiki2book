@@ -10,7 +10,7 @@ ARCH=amd64
 function usage()
 {
 	cat <<EOF
-Usage: $0 -a <arch> -o <os> [-f <output-file>]
+Usage: $0 -a <arch> -o <os> [-f <output-file>] [-h]
 
 Parameter:
   -a  Architecture of the system as golang uses them (e.g. amd64, arm64). Default: amd64.
