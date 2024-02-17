@@ -282,7 +282,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	coverImageFile := project.Cover
 	metadata := project.Metadata
 	outputFile := project.OutputFile
-	outputType := project.OutputType
+	//outputType := project.OutputType
 	pandocDataDir := project.PandocDataDir
 	fontFiles := project.FontFiles
 
@@ -316,6 +316,8 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	outputFile = paths[1]
 	coverImageFile = paths[2]
 
+	var images []string
+
 	for _, articleName := range articles {
 		sigolo.Info("Article '%s': Start processing", articleName)
 
@@ -331,6 +333,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
 			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 			sigolo.FatalCheck(err)
+			images = append(images, article.Images...)
 
 			sigolo.Info("Article '%s': Download images", articleName)
 			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox)
@@ -343,7 +346,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 				ArticleCacheFolder: articleCache,
 				TokenMap:           article.TokenMap,
 			}
-			htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
+			htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, "../css/style.css")
 			sigolo.FatalCheck(err)
 		}
 
@@ -351,8 +354,12 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 		articleFiles = append(articleFiles, htmlFilePath)
 	}
 
+	images = util.RemoveDuplicates(images)
+
 	sigolo.Info("Start generating EPUB file")
-	err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	// TODO Add switch in CLI/config to decide between pandoc and internal library
+	//err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
