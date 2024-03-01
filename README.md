@@ -56,60 +56,7 @@ Use `wiki2book -h` for more information and `wiki2book <command> -h` for informa
 
 ### Configuration
 
-Next to the project file (s. below), the application reads technical, project-independent and basic configurations from a JSON file (e.g. the templates to ignore), which can be specified with `--config, -c <file>`.
-See [configs/de.json](configs/de.json) for an example and [src/config/config.go](src/config/config.go) for all technical details on each possible value including their defaults.
-
-Some properties can be configured in both, the project and configuration file (such as the Wikipedia URL).
-Entries from the project file are used in case a property is given in both files.
-
-Also take a look at the [config.go](src/config/config.go) source file, which contains a lot of documentation on each config entry.
-
-### Project file
-
-When using a project, the above-mentioned `project.json` is a configuration for this project, containing e.g. the title, cover image and list of articles, and may look like this:
-
-```json
-{
-  "metadata": {
-    "title": "My great book",
-    "author": "Wikipedia contributors",
-    "license": "Creative Commons Non-Commercial Share Alike 3.0",
-    "language": "de-DE",
-    "date": "2021-12-27"
-  },
-  "cache-dir": "./path/to/cache/",
-  "wikipedia-instance": "de",
-  "output-file": "my-book.epub",
-  "output-type": "epub3",
-  "cover": "cover.png",
-  "style": "style.css",
-  "pandoc-data-dir": "./pandoc/data",
-  "articles": [
-    "Hamburg",
-    "Hamburger",
-    "Pannfisch"
-  ],
-  "font-files": [
-    "/path/to/font.ttf",
-    "/path/to/fontBold.ttf",
-    "/path/to/fontItalic.ttf"
-  ]
-}
-```
-
-There are some optional entries:
-
-* `cache-dir` (has the default value `.wiki2book`)
-* `output-type` (has the default value `epub2`)
-* `font-files`
-* `wikipedia-instance` (this value overrides the general configuration (s. above) when given)
-
-#### Use a different Wikipedia instance
-
-Per default, the english wikipedia (`en`) is used.
-However, you can change the `wikipedia-instance` entry in your projects or config file (s. above; project entries take precedence over configuration entries).
-Notice, that you also have to adjust the list of ignore templates and all other language-specific configurations.
-Take a look at the [German config file](configs/de.json) and some [German project files](projects/de/) to get an idea of a switch to a different Wikipedia instance.
+See the [config documentation](./doc/configuration.md).
 
 ### Pandoc version 2 and 3
 
@@ -148,7 +95,7 @@ Use the following command to render the file
 
 # Development
 
-For building, running, testing, etc. take a look at the `src` folder and `src/README.md`.
+For building, running, testing, etc. take a look at [`src/README.md`](src/README.md).
 
 # Long-term goals
 
