@@ -19,6 +19,7 @@ type Project struct {
 	PandocDataDir     string   `json:"pandoc-data-dir"`
 	Articles          []string `json:"articles"`
 	FontFiles         []string `json:"font-files"`
+	ImagesToGrayscale bool     `json:"images-to-grayscale"`
 }
 
 type Metadata struct {
