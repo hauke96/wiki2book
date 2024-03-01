@@ -22,7 +22,7 @@ func processImage(imageFilepath string, toGrayscale bool) error {
 
 	if toGrayscale {
 		sigolo.Trace("Add args to convert '%s' to grayscale", imageFilepath)
-		args = append(args, "-colorspace", "gray", "-separate", "-average")
+		args = append(args, "-colorspace", "gray")
 	}
 
 	args = append(args, imageFilepath)
