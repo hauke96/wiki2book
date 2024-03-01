@@ -20,7 +20,7 @@ import (
 	"wiki2book/util"
 )
 
-const VERSION = "v0.1.0"
+const VERSION = "v0.1.1"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
 var cli struct {
@@ -43,8 +43,15 @@ var cli struct {
 		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
-		// TODO add possibility to override things via CLI args
+		ProjectFile       string   `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
+		OutputFile        string   `help:"The path to the EPUB-file." short:"o" placeholder:"<file>"`
+		OutputType        string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" placeholder:"<type>"`
+		CacheDir          string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
+		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage        string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir     string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
 		ArticleName       string   `help:"The name of the article to render." arg:""`
@@ -54,7 +61,7 @@ var cli struct {
 		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage        string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
 		PandocDataDir     string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
+		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
 		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
@@ -130,7 +137,19 @@ func main() {
 			cli.SvgSizeToViewbox,
 		)
 	case "project <project-file>":
-		generateProjectEbook(cli.Project.ProjectFile, cli.ForceRegenerateHtml, cli.SvgSizeToViewbox)
+		generateProjectEbook(
+			cli.Project.ProjectFile,
+			cli.Project.OutputFile,
+			cli.Project.OutputType,
+			cli.Project.CacheDir,
+			cli.Project.StyleFile,
+			cli.Project.CoverImage,
+			cli.Project.PandocDataDir,
+			cli.Project.FontFiles,
+			cli.Project.ImagesToGrayscale,
+			cli.ForceRegenerateHtml,
+			cli.SvgSizeToViewbox,
+		)
 	case "article <article-name>":
 		generateArticleEbook(
 			cli.Article.ArticleName,
@@ -141,6 +160,7 @@ func main() {
 			cli.Article.CoverImage,
 			cli.Article.PandocDataDir,
 			cli.Article.FontFiles,
+			cli.Article.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
 		)
@@ -157,10 +177,36 @@ func main() {
 	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
-func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateProjectEbook(projectFile string, outputFile string, outputType string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
 	sigolo.Info("Use project file: %s", projectFile)
+
+	sigolo.Debug("Turn paths from CLI arguments into absolute paths before going into the project file directory")
+	if outputFile != "" {
+		outputFile, err = util.ToAbsolutePath(outputFile)
+		sigolo.FatalCheck(err)
+	}
+	if cacheDir != "" {
+		cacheDir, err = util.ToAbsolutePath(cacheDir)
+		sigolo.FatalCheck(err)
+	}
+	if styleFile != "" {
+		styleFile, err = util.ToAbsolutePath(styleFile)
+		sigolo.FatalCheck(err)
+	}
+	if coverImageFile != "" {
+		coverImageFile, err = util.ToAbsolutePath(coverImageFile)
+		sigolo.FatalCheck(err)
+	}
+	if pandocDataDir != "" {
+		pandocDataDir, err = util.ToAbsolutePath(pandocDataDir)
+		sigolo.FatalCheck(err)
+	}
+	if fontFiles != nil && len(fontFiles) > 0 {
+		fontFiles, err = util.ToAbsolutePaths(fontFiles...)
+		sigolo.FatalCheck(err)
+	}
 
 	directory, projectFile := filepath.Split(projectFile)
 	if directory != "" {
@@ -171,6 +217,39 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 
 	proj, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
+
+	if outputFile != "" {
+		sigolo.Trace("Override outputFile from project file with %s", outputFile)
+		proj.OutputFile = outputFile
+	}
+	if outputType != "" {
+		sigolo.Trace("Override outputType from project file with %s", outputType)
+		proj.OutputType = outputType
+	}
+	if cacheDir != "" {
+		sigolo.Trace("Override cacheDir from project file with %s", cacheDir)
+		proj.CacheDir = cacheDir
+	}
+	if styleFile != "" {
+		sigolo.Trace("Override styleFile from project file with %s", styleFile)
+		proj.StyleFile = styleFile
+	}
+	if coverImageFile != "" {
+		sigolo.Trace("Override coverImageFile from project file with %s", coverImageFile)
+		proj.CoverImage = coverImageFile
+	}
+	if pandocDataDir != "" {
+		sigolo.Trace("Override pandocDataDir from project file with %s", pandocDataDir)
+		proj.PandocDataDir = pandocDataDir
+	}
+	if fontFiles != nil && len(fontFiles) > 0 {
+		sigolo.Trace("Override fontFiles from project file with %v", fontFiles)
+		proj.FontFiles = fontFiles
+	}
+	if imagesToGrayscale {
+		sigolo.Trace("Override imagesToGrayscale from project file with %v", imagesToGrayscale)
+		proj.ImagesToGrayscale = imagesToGrayscale
+	}
 
 	generateEpubFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
 }
@@ -202,7 +281,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	}
 
 	// Make all relevant paths absolute
-	paths, err := util.ToAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
+	paths, err := util.ToAbsolutePaths(styleFile, outputFile, coverImageFile, pandocDataDir)
 	sigolo.FatalCheck(err)
 	styleFile = paths[0]
 	outputFile = paths[1]
@@ -218,7 +297,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	paths, err = util.ToRelative(styleFile, outputFile, coverImageFile)
+	paths, err = util.ToRelativePaths(styleFile, outputFile, coverImageFile)
 	sigolo.FatalCheck(err)
 	styleFile = paths[0]
 	outputFile = paths[1]
@@ -251,12 +330,12 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	err = epub.Generate([]string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
-	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
+	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, outputType string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateArticleEbook(articleName string, outputFile string, outputType string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articles []string
 	articles = append(articles, articleName)
 
@@ -270,6 +349,7 @@ func generateArticleEbook(articleName string, outputFile string, outputType stri
 	proj.PandocDataDir = pandocDataDir
 	proj.Articles = articles
 	proj.FontFiles = fontFiles
+	proj.ImagesToGrayscale = imagesToGrayscale
 
 	generateEpubFromArticles(
 		proj,
@@ -300,7 +380,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	htmlOutputFolder := "html"
 
 	// Make all relevant paths absolute
-	paths, err := util.ToAbsolute(styleFile, outputFile, coverImageFile, pandocDataDir)
+	paths, err := util.ToAbsolutePaths(styleFile, outputFile, coverImageFile, pandocDataDir)
 	sigolo.FatalCheck(err)
 	styleFile = paths[0]
 	outputFile = paths[1]
@@ -317,7 +397,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	paths, err = util.ToRelative(styleFile, outputFile, coverImageFile)
+	paths, err = util.ToRelativePaths(styleFile, outputFile, coverImageFile)
 	sigolo.FatalCheck(err)
 	styleFile = paths[0]
 	outputFile = paths[1]
@@ -362,7 +442,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
-	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
+	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
 }

@@ -14,7 +14,7 @@ There are three different places for configurations and they sometimes overlap.
 
 ## Configuration
 
-| Config entry                     | Config file | Project file | CLI arg ¹ | Default ²                                                            | Description                                                                                                                                                            |
+| Config entry                     | Config file | Project file | CLI arg ¹ | Default ² ³                                                          | Description                                                                                                                                                            |
 |----------------------------------|-------------|--------------|-----------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `IgnoredTemplates`               | X           |              |           | `[]`                                                                 | List of template names to be ignored.                                                                                                                                  |
 | `IgnoredImageParams`             | X           |              |           | `[]`                                                                 | List of image parameters to be ignored, e.g. `alt=...`.                                                                                                                |
@@ -43,8 +43,9 @@ There are three different places for configurations and they sometimes overlap.
 | `ForceRegenerateHtml`            |             |              | X         |                                                                      | Forces wiki2book to recreate HTML files even if they exists from a previous run.                                                                                       |
 | `SvgSizeToViewbox`               |             |              | X         |                                                                      | Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.          |
 
-¹ The upper CLI args listed here only apply to the `project` and `article` commands. The ones from `Logging` and below do apply to all commands of wiki2book. Depending on the used command, there might exist additional arguments. Use `wiki2book <command> -h` for further detail.<br>
-² If no entry is given, then no default exists, but the property is not mandatory.
+¹ Depending on the used command, there might exist additional arguments. Use `wiki2book <command> -h` for further detail.<br>
+² If no entry is given, then no default exists, but the property is not mandatory.<br>
+³ The `project` command doesn't have default values for the CLI arguments.
 
 ### Precedences
 
