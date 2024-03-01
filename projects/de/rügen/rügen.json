@@ -8,8 +8,8 @@
   },
   "wikipedia-domain": "de",
   "output-file": "rügen.epub",
-  "cover": "cover.png",
-  "style": "../../style.css",
+  "cover-image": "cover.png",
+  "style-file": "../../style.css",
   "pandoc-data-dir": "../../../pandoc/data",
   "articles": [
     "Rügen",

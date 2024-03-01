@@ -14,8 +14,8 @@ type Project struct {
 	OutputFile        string   `json:"output-file"`
 	OutputType        string   `json:"output-type"`
 	CacheDir          string   `json:"cache-dir"`
-	Cover             string   `json:"cover"`
-	Style             string   `json:"style"`
+	CoverImage        string   `json:"cover-image"`
+	StyleFile         string   `json:"style-file"`
 	PandocDataDir     string   `json:"pandoc-data-dir"`
 	Articles          []string `json:"articles"`
 	FontFiles         []string `json:"font-files"`

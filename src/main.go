@@ -159,9 +159,11 @@ func generateProjectEbook(projectFile string, forceHtmlRecreate bool, svgSizeToV
 	sigolo.Info("Use project file: %s", projectFile)
 
 	directory, projectFile := filepath.Split(projectFile)
-	sigolo.Debug("Go into folder %s", directory)
-	err = os.Chdir(directory)
-	sigolo.FatalCheck(err)
+	if directory != "" {
+		sigolo.Debug("Go into folder %s", directory)
+		err = os.Chdir(directory)
+		sigolo.FatalCheck(err)
+	}
 
 	proj, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
@@ -259,8 +261,8 @@ func generateArticleEbook(articleName string, outputFile string, outputType stri
 	proj.OutputFile = outputFile
 	proj.OutputType = outputType
 	proj.CacheDir = cacheDir
-	proj.Cover = coverImageFile
-	proj.Style = styleFile
+	proj.CoverImage = coverImageFile
+	proj.StyleFile = styleFile
 	proj.PandocDataDir = pandocDataDir
 	proj.Articles = articles
 	proj.FontFiles = fontFiles
@@ -278,8 +280,8 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 
 	articles := project.Articles
 	cacheDir := project.CacheDir
-	styleFile := project.Style
-	coverImageFile := project.Cover
+	styleFile := project.StyleFile
+	coverImageFile := project.CoverImage
 	metadata := project.Metadata
 	outputFile := project.OutputFile
 	outputType := project.OutputType

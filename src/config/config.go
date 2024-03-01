@@ -37,15 +37,6 @@ type Configuration struct {
 	IgnoredTemplates []string `json:"ignored-templates"`
 
 	/*
-		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
-		for a book.
-
-		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
-		Mandatory: No
-	*/
-	IgnoredMediaTypes []string `json:"ignored-media-types"`
-
-	/*
 		Parameters of images that should be ignored. The list must be in lower case.
 
 		Default: Empty list
@@ -55,6 +46,15 @@ type Configuration struct {
 		This ignores the image parameters "alt" and "center" including any parameter values like "alt"="some alt text".
 	*/
 	IgnoredImageParams []string `json:"ignored-image-params"`
+
+	/*
+		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
+		for a book.
+
+		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
+		Mandatory: No
+	*/
+	IgnoredMediaTypes []string `json:"ignored-media-types"`
 
 	/*
 		The URL to the Wikipedia (or generally MediaWiki) instance.

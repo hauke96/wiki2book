@@ -8,8 +8,8 @@
   },
   "wikipedia-domain": "de",
   "output-file": "ernährung.epub",
-  "cover": "cover.png",
-  "style": "../../style.css",
+  "cover-image": "cover.png",
+  "style-file": "../../style.css",
   "pandoc-data-dir": "../../../pandoc/data",
   "articles": [
     "Ernährung des Menschen",
