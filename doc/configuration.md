@@ -5,12 +5,12 @@ This page describes each possible setting and config entry.
 
 There are three different places for configurations and they sometimes overlap.
 
-* **Configuration file.
-  ** This file contains very general settings, e.g. the wikipedia instance or a list of templates to ignore. Some things, like the list of ignored templates, are too large to be configured everytime using CLI arguments. Take a look at the [config.go](../src/config/config.go) source file, which contains a lot of documentation on each config entry. See [configs/de.json](../configs/de.json) for an example.
-* **CLI arguments.
-  ** Can be used to configure things that differ from execution to execution. Use the CLI flag `-h` for further information on the available arguments for a specific command.
-* **Project file.
-  ** Is used to configure project-specific things, e.g. the cover image. See [below](#project-file) or [project.go](../src/project/project.go) for more information. See [astronomie.json](../projects/de/astronomie/astronomie.json) for an example.
+* **Configuration file.**
+  This file contains very general settings, e.g. the wikipedia instance or a list of templates to ignore. Some things, like the list of ignored templates, are too large to be configured everytime using CLI arguments. Take a look at the [config.go](../src/config/config.go) source file, which contains a lot of documentation on each config entry. See [configs/de.json](../configs/de.json) for an example.
+* **CLI arguments.**
+  Can be used to configure things that differ from execution to execution. Use the CLI flag `-h` for further information on the available arguments for a specific command.
+* **Project file.**
+  Is used to configure project-specific things, e.g. the cover image. See [below](#project-file) or [project.go](../src/project/project.go) for more information. See [astronomie.json](../projects/de/astronomie/astronomie.json) for an example.
 
 ## Configuration
 
