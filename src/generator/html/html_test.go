@@ -60,6 +60,30 @@ some <b>caption</b>
 	test.AssertEqual(t, result, actualResult)
 }
 
+func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
+	result := `<div class="figure">
+<img alt="image" src="./foo/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<div class="caption">
+some <b>caption</b>
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.ImageToken{
+		Filename: "foo/\"some'special%chars.jpg",
+		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
+		SizeX:    10,
+		SizeY:    20,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
 func TestExpandImage_noCaption(t *testing.T) {
 	result := `<div class="figure">
 <img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
@@ -137,6 +161,24 @@ func TestExpandImageInline(t *testing.T) {
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
 		Filename: "foo/image.jpg",
+		SizeX:    10,
+		SizeY:    20,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
+func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
+	result := `<img alt="image" class="inline" src="./foo/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
+	token := parser.InlineImageToken{
+		Filename: "foo/\"some'special%chars.jpg",
 		SizeX:    10,
 		SizeY:    20,
 	}

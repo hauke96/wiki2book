@@ -23,6 +23,7 @@ func testArticleGermanLong(t *testing.T) {
 		[]string{},
 		true,
 		true,
+		true,
 	)
 }
 
@@ -32,6 +33,14 @@ func testProjectGerman(t *testing.T) {
 
 	generateProjectEbook(
 		"../projects/de/astronomie/astronomie.json",
+		"../.wiki2book/profiling.epub",
+		"epub2",
+		"../.wiki2book",
+		"",
+		"",
+		"../pandoc",
+		[]string{},
+		true,
 		true,
 		true,
 	)
