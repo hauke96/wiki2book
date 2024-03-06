@@ -10,6 +10,7 @@ import (
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
 	IgnoredTemplates:               []string{},
+	TrailingTemplates:              []string{},
 	IgnoredImageParams:             []string{},
 	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
 	WikipediaInstance:              "en",
@@ -35,6 +36,18 @@ type Configuration struct {
 		This ignores {{foo}} and {{bar}} occurrences in the input text.
 	*/
 	IgnoredTemplates []string `json:"ignored-templates"`
+
+	/*
+		List of templates that will be moved to the end of the document. Theses are e.g. remarks on the article that
+		are important but should be shown as a remark after the actual content of the article.
+
+		Default: Empty list
+		Mandatory: No
+
+		JSON example: "trailing-templates": [ "foo", "bar" ]
+		This moves {{foo}} and {{bar}} to the end of the document.
+	*/
+	TrailingTemplates []string `json:"trailing-templates"`
 
 	/*
 		Parameters of images that should be ignored. The list must be in lower case.
