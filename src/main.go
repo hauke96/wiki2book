@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/alecthomas/kong"
 	"github.com/hauke96/sigolo"
+	"github.com/pkg/errors"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,12 +14,15 @@ import (
 	"time"
 	"wiki2book/api"
 	"wiki2book/config"
+	"wiki2book/generator"
 	"wiki2book/generator/epub"
 	"wiki2book/generator/html"
 	"wiki2book/parser"
 	"wiki2book/project"
 	"wiki2book/util"
 )
+
+// TODO Make this file less epub-specific (in texts etc.)
 
 const VERSION = "v0.1.0"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
@@ -34,7 +38,8 @@ var cli struct {
 	Standalone           struct {
 		File          string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType    string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputType    string   `help:"The EPUB type. Possible values are \"epub2\" and \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputDriver  string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
 		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
@@ -43,11 +48,13 @@ var cli struct {
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
 		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
+		EpubDriver  string `help:"The method to generate the .epub file. Available driver: \"pandoc\", \"internal\" (experimental!)" short:"d" placeholder:"<driver>"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
 		ArticleName   string   `help:"The name of the article to render." arg:""`
 		OutputFile    string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType    string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputType    string   `help:"The EPUB type. Possible values are \"epub2\" and \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputDriver  string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
 		CacheDir      string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile     string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage    string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
@@ -113,6 +120,8 @@ func main() {
 	case "standalone <file>":
 		util.AssertFileExists(cli.Standalone.StyleFile)
 		util.AssertFileExists(cli.Standalone.CoverImage)
+		err := generator.VerifyOutputAndDriver(cli.Standalone.OutputType, cli.Standalone.OutputDriver)
+		sigolo.FatalCheck(err)
 		generateStandaloneEbook(
 			cli.Standalone.File,
 			cli.Standalone.OutputFile,
@@ -126,8 +135,11 @@ func main() {
 			cli.SvgSizeToViewbox,
 		)
 	case "project <project-file>":
+		// TODO add output type and driver check
 		generateProjectEbook(cli.Project.ProjectFile, cli.ForceRegenerateHtml, cli.SvgSizeToViewbox)
 	case "article <article-name>":
+		err := generator.VerifyOutputAndDriver(cli.Article.OutputType, cli.Article.OutputDriver)
+		sigolo.FatalCheck(err)
 		generateArticleEbook(
 			cli.Article.ArticleName,
 			cli.Article.OutputFile,
@@ -282,7 +294,8 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	coverImageFile := project.Cover
 	metadata := project.Metadata
 	outputFile := project.OutputFile
-	//outputType := project.OutputType
+	outputType := project.OutputType
+	outputDriver := project.OutputDriver
 	pandocDataDir := project.PandocDataDir
 	fontFiles := project.FontFiles
 
@@ -356,15 +369,28 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 
 	images = util.RemoveDuplicates(images)
 
-	sigolo.Info("Start generating EPUB file")
-	// TODO Add switch in CLI/config to decide between pandoc and internal library
-	//err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
-	err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
+	sigolo.Info("Start generating %s file", outputType)
+	err = Generate(outputDriver, articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.MakePathAbsolute(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
+	sigolo.Info("Successfully created %s file %s", outputType, absoluteOutputFile)
+}
+
+func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata) error {
+	var err error
+
+	switch outputDriver {
+	case generator.OutputDriverPandoc:
+		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	case generator.OutputDriverInternal:
+		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
+	default:
+		err = errors.Errorf("No implementation found for output driver %s", outputDriver)
+	}
+
+	return err
 }
 
 func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {

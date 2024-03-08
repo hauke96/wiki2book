@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"wiki2book/config"
+	"wiki2book/generator"
 )
 
 type Project struct {
@@ -13,6 +14,7 @@ type Project struct {
 	WikipediaInstance string   `json:"wikipedia-instance"`
 	OutputFile        string   `json:"output-file"`
 	OutputType        string   `json:"output-type"`
+	OutputDriver      string   `json:"output-driver"`
 	CacheDir          string   `json:"cache-dir"`
 	Cover             string   `json:"cover"`
 	Style             string   `json:"style"`
@@ -53,7 +55,8 @@ func LoadProject(file string) (*Project, error) {
 
 func NewWithDefaults() *Project {
 	return &Project{
-		CacheDir:   ".wiki2book",
-		OutputType: "epub2",
+		CacheDir:     ".wiki2book",
+		OutputType:   "epub2",
+		OutputDriver: generator.OutputDriverPandoc,
 	}
 }
