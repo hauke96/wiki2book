@@ -24,6 +24,6 @@ Steps to reproduce the behavior:
 
 **The used wiki2book version (or commit-hash)**
 
-**The used pandoc version**
+**Used output driver (when using `pandoc` output driver: The used pandoc version)**
 
 **Any other useful and/or related information**

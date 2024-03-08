@@ -41,9 +41,9 @@ Wiki2book need a configuration file (s. the [configs](./configs) folder), curren
 You need the following tools and fonts:
 
 1. ImageMagick (to have the `convert` command)
-2. Pandoc (to have the `pandoc` command). See notes on pandoc versions 2 and 3 below.
-3. *Optional:* DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf`
-    * The DejaVuSans font is used by the default style in this repo but can be replaced to any other font.
+2. *Optional:*
+   * Pandoc (when using the `pandoc` output driver). See notes on pandoc versions 2 and 3 below.
+   * DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (is used by the default style in this repo but can be replaced to any other font).
 
 ## CLI
 
@@ -60,6 +60,8 @@ Use `wiki2book -h` for more information and `wiki2book <command> -h` for informa
 See the [config documentation](./doc/configuration.md).
 
 ### Pandoc version 2 and 3
+
+_Only relevant when using the `pandoc` output driver._
 
 Pandoc version 2 might internally use CSS3 parameters by default, such as the `gap` property.
 This might cause problems on certain eBook readers (e.g. Tolino ones).

@@ -25,8 +25,9 @@ There are three different places for configurations and they sometimes overlap.
 | `FilePrefixe`                    | X           |              |           | `[ "file", "image", "media" ]`                                       | Prefixed of links considered to be files, e.g. `file`.                                                                                                                 |
 | `AllowedLinkPrefixes`            | X           |              |           | `[ "arxiv", "doi" ]`                                                 | Allowed prefixed of special links, such as `arxiv:foobar`.                                                                                                             |
 | `CategoryPrefixes`               | X           |              |           | `[ "category" ]`                                                     | Prefix of categories, e.g. `category`.                                                                                                                                 |
-| `OutputFile`                     |             | X            | X         | (no default, must be specified)                                      | EPUB filename, e.g. `my-book.epub`.                                                                                                                                    |
-| `OutputType`                     |             | X            | X         | `"epub2"`                                                            | Type of EPUB. Allowed: `epub2`, `epub3`.                                                                                                                               |
+| `OutputFile`                     |             | X            | X         | (no default, must be specified)                                      | Output file name, e.g. `my-book.epub`.                                                                                                                                 |
+| `OutputType`                     |             | X            | X         | `"epub2"`                                                            | Type of output file. Allowed: `epub2`, `epub3`.                                                                                                                        |
+| `OutputDriver`                   |             | X            | X         | `"pandoc"`                                                           | Driver to generate the output file. Allowed: `pandoc` (default), `internal` (experimental).                                                                            |
 | `CacheDir`                       |             | X            | X         | `.wiki2book`                                                         | Folder where everything downloaded will be cached.                                                                                                                     |
 | `StyleFile`                      |             | X            | X         |                                                                      | CSS file to style the ebook. Used in the pandoc `--css` argument.                                                                                                      |
 | `CoverImage`                     |             | X            | X         |                                                                      | Cover image file to use. Used in the pandoc `--epub-cover-image` argument.                                                                                             |
@@ -70,6 +71,7 @@ When using a project, the above-mentioned project file is a JSON configuration c
   "wikipedia-instance": "de",
   "output-file": "my-book.epub",
   "output-type": "epub3",
+  "output-driver": "internal",
   "cover-image": "cover.png",
   "style-file": "style.css",
   "pandoc-data-dir": "./pandoc/data",
