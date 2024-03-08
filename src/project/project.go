@@ -16,11 +16,12 @@ type Project struct {
 	OutputType        string   `json:"output-type"`
 	OutputDriver      string   `json:"output-driver"`
 	CacheDir          string   `json:"cache-dir"`
-	Cover             string   `json:"cover"`
-	Style             string   `json:"style"`
+	CoverImage        string   `json:"cover-image"`
+	StyleFile         string   `json:"style-file"`
 	PandocDataDir     string   `json:"pandoc-data-dir"`
 	Articles          []string `json:"articles"`
 	FontFiles         []string `json:"font-files"`
+	ImagesToGrayscale bool     `json:"images-to-grayscale"`
 }
 
 type Metadata struct {

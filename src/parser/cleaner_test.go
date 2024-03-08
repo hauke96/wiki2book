@@ -118,15 +118,19 @@ func TestRemoveUnwantedTemplates(t *testing.T) {
 	content := `{{siehe auch}}{{GRAPH:CHART
 |$ome+µeird-string}}{{let this template stay}}{{
 toc }}`
-	content = removeUnwantedTemplates(content)
+	content = handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "{{let this template stay}}", content)
 }
 
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
 	config.Current.IgnoredTemplates = []string{"naviblock"}
 
-	content := "foo\n{{NaviBlock\n|Navigationsleiste Monde\n|Navigationsleiste_Sonnensystem}}\nbar"
-	content = removeUnwantedTemplates(content)
+	content := `foo
+{{NaviBlock
+|Navigationsleiste Monde
+|Navigationsleiste_Sonnensystem}}
+bar`
+	content = handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "foo\n\nbar", content)
 }
 
@@ -134,6 +138,14 @@ func TestRemoveUnwantedHtml(t *testing.T) {
 	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
 	content = removeUnwantedHtml(content)
 	test.AssertEqual(t, "Some noice HTML", content)
+}
+
+func TestMoveTrailingTemplatesDown(t *testing.T) {
+	config.Current.TrailingTemplates = []string{"FOO", "bar"}
+
+	content := `{{siehe auch}}{{foo}}{{foo}}{{let this template stay}}{{bar}}`
+	content = handleUnwantedAndTrailingTemplates(content)
+	test.AssertEqual(t, "{{siehe auch}}{{let this template stay}}\n{{foo}}\n{{foo}}\n{{bar}}", content)
 }
 
 func TestClean(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hauke96/sigolo"
 	"github.com/pkg/errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -216,7 +217,7 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, token.Filename, sizeTemplate), nil
+	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(token.Filename), sizeTemplate), nil
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
@@ -227,7 +228,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, token.Filename, sizeTemplate, caption), nil
+	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(token.Filename), sizeTemplate, caption), nil
 }
 
 func expandSizeTemplate(xSize int, ySize int) string {
@@ -428,7 +429,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 
 	sigolo.Debug("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
 
-	return fmt.Sprintf(MATH_TEMPLATE, pngFilename, svg.Width, svg.Height, svg.Style), nil
+	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngFilename), svg.Width, svg.Height, svg.Style), nil
 }
 
 func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {
@@ -461,4 +462,12 @@ func write(title string, outputFolder string, content string) (string, error) {
 	}
 
 	return outputFilepath, nil
+}
+
+func escapePathComponents(path string) string {
+	parts := strings.Split(path, "/")
+	for i, part := range parts {
+		parts[i] = url.QueryEscape(part)
+	}
+	return strings.Join(parts, "/")
 }

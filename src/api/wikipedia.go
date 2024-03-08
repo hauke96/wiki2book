@@ -70,7 +70,7 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool) error {
 	sigolo.Debug("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
@@ -92,7 +92,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 
 			// If the file is new, rescale it using ImageMagick.
 			if freshlyDownloaded && outputFilepath != "" && !strings.HasSuffix(strings.ToLower(outputFilepath), ".svg") {
-				err2 := processImage(outputFilepath)
+				err2 := processImage(outputFilepath, toGrayscale)
 				if err2 != nil {
 					return err2
 				}

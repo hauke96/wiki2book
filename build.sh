@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get latest tag for this commit
-VERSION=$(git describe --tags --abbrev=0)
+VERSION=$(grep --color=never -Po "v[\d\.]+" src/main.go)
 
 # Some default value
 OS=linux

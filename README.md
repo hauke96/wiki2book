@@ -29,11 +29,12 @@ But wiki2book has exactly this functionality called "projects" as described belo
 
 * Arch Linux: AUR package [`wiki2book`](https://aur.archlinux.org/packages/wiki2book).
   * Default style and configs can be found in ` /usr/share/wiki2book`.
-* Others: See the [build instructions](./src#build-project).
+* Others: See the [current releases](https://github.com/hauke96/wiki2book/releases) or [build instructions](./src#build-project).
 
 # Usage
 
-Currently only a CLI version of wiki2book exists.
+Currently only a CLI (_command line interface_) version of wiki2book exists, so nothing with a GUI.
+Wiki2book need a configuration file (s. the [configs](./configs) folder), currently only a German config file exists.
 
 ## Preliminaries
 
@@ -46,7 +47,7 @@ You need the following tools and fonts:
 
 ## CLI
 
-The current CLI is pretty simple and has three sub-commands:
+The CLI contains three sub-commands that generate an EPUB file from different sources (s. below for examples and details on each sub-command):
 
 1. Project: `wiki2book project ./path/to/project.json`
 2. Article: `wiki2book article "article name"`
@@ -56,60 +57,7 @@ Use `wiki2book -h` for more information and `wiki2book <command> -h` for informa
 
 ### Configuration
 
-Next to the project file (s. below), the application reads technical, project-independent and basic configurations from a JSON file (e.g. the templates to ignore), which can be specified with `--config, -c <file>`.
-See [configs/de.json](configs/de.json) for an example and [src/config/config.go](src/config/config.go) for all technical details on each possible value including their defaults.
-
-Some properties can be configured in both, the project and configuration file (such as the Wikipedia URL).
-Entries from the project file are used in case a property is given in both files.
-
-Also take a look at the [config.go](src/config/config.go) source file, which contains a lot of documentation on each config entry.
-
-### Project file
-
-When using a project, the above-mentioned `project.json` is a configuration for this project, containing e.g. the title, cover image and list of articles, and may look like this:
-
-```json
-{
-  "metadata": {
-    "title": "My great book",
-    "author": "Wikipedia contributors",
-    "license": "Creative Commons Non-Commercial Share Alike 3.0",
-    "language": "de-DE",
-    "date": "2021-12-27"
-  },
-  "cache-dir": "./path/to/cache/",
-  "wikipedia-instance": "de",
-  "output-file": "my-book.epub",
-  "output-type": "epub3",
-  "cover": "cover.png",
-  "style": "style.css",
-  "pandoc-data-dir": "./pandoc/data",
-  "articles": [
-    "Hamburg",
-    "Hamburger",
-    "Pannfisch"
-  ],
-  "font-files": [
-    "/path/to/font.ttf",
-    "/path/to/fontBold.ttf",
-    "/path/to/fontItalic.ttf"
-  ]
-}
-```
-
-There are some optional entries:
-
-* `cache-dir` (has the default value `.wiki2book`)
-* `output-type` (has the default value `epub2`)
-* `font-files`
-* `wikipedia-instance` (this value overrides the general configuration (s. above) when given)
-
-#### Use a different Wikipedia instance
-
-Per default, the english wikipedia (`en`) is used.
-However, you can change the `wikipedia-instance` entry in your projects or config file (s. above; project entries take precedence over configuration entries).
-Notice, that you also have to adjust the list of ignore templates and all other language-specific configurations.
-Take a look at the [German config file](configs/de.json) and some [German project files](projects/de/) to get an idea of a switch to a different Wikipedia instance.
+See the [config documentation](./doc/configuration.md).
 
 ### Pandoc version 2 and 3
 
@@ -146,9 +94,18 @@ Use the following command to render the file
 
 `./wiki2book standalone -c configs/de.json -s projects/style.css ./integration-tests/test-real-article-Erde.mediawiki`
 
-# Development
+# Contribute
 
-For building, running, testing, etc. take a look at the `src` folder and `src/README.md`.
+## Issues, bugs, ideas
+
+Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/choose).
+But keep in mind:
+This is a hobby-project and my time is limited.
+Things with less or no use for me personally will get a lower priority.
+
+## Development
+
+For building, running, testing, etc. take a look at [`src/README.md`](src/README.md).
 
 # Long-term goals
 
