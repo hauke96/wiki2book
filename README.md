@@ -29,11 +29,12 @@ But wiki2book has exactly this functionality called "projects" as described belo
 
 * Arch Linux: AUR package [`wiki2book`](https://aur.archlinux.org/packages/wiki2book).
   * Default style and configs can be found in ` /usr/share/wiki2book`.
-* Others: See the [build instructions](./src#build-project).
+* Others: See the [current releases](https://github.com/hauke96/wiki2book/releases) or [build instructions](./src#build-project).
 
 # Usage
 
-Currently only a CLI version of wiki2book exists.
+Currently only a CLI (_command line interface_) version of wiki2book exists, so nothing with a GUI.
+Wiki2book need a configuration file (s. the [configs](./configs) folder), currently only a German config file exists.
 
 ## Preliminaries
 
@@ -46,7 +47,7 @@ You need the following tools and fonts:
 
 ## CLI
 
-The current CLI is pretty simple and has three sub-commands:
+The CLI contains three sub-commands that generate an EPUB file from different sources (s. below for examples and details on each sub-command):
 
 1. Project: `wiki2book project ./path/to/project.json`
 2. Article: `wiki2book article "article name"`
@@ -93,7 +94,16 @@ Use the following command to render the file
 
 `./wiki2book standalone -c configs/de.json -s projects/style.css ./integration-tests/test-real-article-Erde.mediawiki`
 
-# Development
+# Contribute
+
+## Issues, bugs, ideas
+
+Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/choose).
+But keep in mind:
+This is a hobby-project and my time is limited.
+Things with less or no use for me personally will get a lower priority.
+
+## Development
 
 For building, running, testing, etc. take a look at [`src/README.md`](src/README.md).
 
