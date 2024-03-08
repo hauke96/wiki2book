@@ -22,8 +22,6 @@ import (
 	"wiki2book/util"
 )
 
-// TODO Make this file less epub-specific (in texts etc.)
-
 const VERSION = "v0.1.1"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
@@ -37,8 +35,8 @@ var cli struct {
 	Version              VersionFlag `help:"Print version information and quit" name:"version" short:"v"`
 	Standalone           struct {
 		File              string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile        string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType        string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
 		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
 		CacheDir          string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
@@ -49,8 +47,8 @@ var cli struct {
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
 		ProjectFile       string   `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
-		OutputFile        string   `help:"The path to the EPUB-file." short:"o" placeholder:"<file>"`
-		OutputType        string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" placeholder:"<type>"`
+		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
 		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
 		CacheDir          string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
 		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
@@ -61,8 +59,8 @@ var cli struct {
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
 		ArticleName       string   `help:"The name of the article to render." arg:""`
-		OutputFile        string   `help:"The path to the EPUB-file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType        string   `help:"The EPUB type. Possible values are epub2 and epub3, see pandoc '-t' parameter." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
 		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
 		CacheDir          string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
 		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
@@ -263,7 +261,7 @@ func generateProjectEbook(projectFile string, outputFile string, outputType stri
 		proj.ImagesToGrayscale = imagesToGrayscale
 	}
 
-	generateEpubFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
+	generateBookFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
 }
 
 func generateStandaloneEbook(inputFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
@@ -290,11 +288,12 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	file, err := os.Open(outputFile)
 	sigolo.FatalCheck(err)
 
-	// Assign default EPUB file name if given path is a directory
+	// Assign default output file name if given path is a directory
 	fileInfo, err := file.Stat()
 	sigolo.FatalCheck(err)
 
 	if fileInfo.IsDir() {
+		// TODO Adjust this when additional non-epub output types are supported.
 		outputFile = path.Join(outputFile, "standalone.epub")
 	}
 
@@ -328,6 +327,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox, imagesToGrayscale)
 	sigolo.FatalCheck(err)
 
+	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(htmlOutputFolder, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, forceHtmlRecreate) {
 		htmlGenerator := &html.HtmlGenerator{
@@ -340,17 +340,17 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Info("Start generating EPUB file")
+	sigolo.Info("Start generating %s file", outputType)
 	metadata := project.Metadata{
 		Title: title,
 	}
 
-	err = epub.Generate([]string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	err = Generate(outputDriver, []string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created EPUB file %s", absoluteOutputFile)
+	sigolo.Info("Successfully created %s file %s", outputType, absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
@@ -370,14 +370,14 @@ func generateArticleEbook(articleName string, outputFile string, outputType stri
 	proj.FontFiles = fontFiles
 	proj.ImagesToGrayscale = imagesToGrayscale
 
-	generateEpubFromArticles(
+	generateBookFromArticles(
 		proj,
 		forceHtmlRecreate,
 		svgSizeToViewbox,
 	)
 }
 
-func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var articleFiles []string
 	var err error
 
@@ -452,6 +452,7 @@ func generateEpubFromArticles(project *project.Project, forceHtmlRecreate bool, 
 			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox, imagesToGrayscale)
 			sigolo.FatalCheck(err)
 
+			// TODO Adjust this when additional non-epub output types are supported.
 			sigolo.Info("Article '%s': Generate HTML", articleName)
 			htmlGenerator := &html.HtmlGenerator{
 				ImageCacheFolder:   imageCache,
