@@ -3,7 +3,7 @@ package epub
 import (
 	"fmt"
 	"github.com/go-shiori/go-epub"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
 	"regexp"
@@ -74,7 +74,7 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 	headingTitleRegex := regexp.MustCompile(`(?s)<h1>(.*)</h1>`)
 	var fileBytes []byte
 	for _, sourceFile := range sourceFiles {
-		sigolo.Debug("Add source file %s to EPUB object", sourceFile)
+		sigolo.Debugf("Add source file %s to EPUB object", sourceFile)
 		fileBytes, err = os.ReadFile(sourceFile)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Error reading source file %s to add it to the EPUB object", sourceFile))
@@ -100,7 +100,7 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 	//for _, image := range images {
 	//	image = strings.Split(image, ":")[1] // Remove whatever prefix (e.g. "File:" or "Datei:") this image has
 	//	imageFilepath := filepath.Join(imageCache, image)
-	//	sigolo.Debug("Add image file %s to EPUB object", imageFilepath)
+	//	sigolo.Debugf("Add image file %s to EPUB object", imageFilepath)
 	//	_, err = epubObj.AddImage(imageFilepath, imageFilepath)
 	//	if err != nil {
 	//		return errors.Wrap(err, fmt.Sprintf("Error adding image file %s to EPUB object", image))
@@ -109,7 +109,7 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 
 	// TODO Test if this if working. The name in the CSS style and the name inside the EPUB probably need to match.
 	for _, fontFile := range fontFiles {
-		sigolo.Debug("Add font file %s to EPUB object", fontFile)
+		sigolo.Debugf("Add font file %s to EPUB object", fontFile)
 		_, err = epubObj.AddFont(fontFile, fontFile)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Error adding font file %s to EPUB object", fontFile))

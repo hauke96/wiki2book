@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"strings"
 	"wiki2book/util"
@@ -29,7 +29,7 @@ var (
 
 // VerifyOutputAndDriver returns an error if the output type and driver are not compatible and returns nil if they are.
 func VerifyOutputAndDriver(outputType string, outputDriver string) error {
-	sigolo.Debug("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
+	sigolo.Debugf("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
 
 	if !util.Contains(AllOutputDrivers, outputDriver) {
 		return errors.Errorf("Unknown output driver '%s'. Known driver: '%s'", outputDriver, strings.Join(AllOutputDrivers, ", "))

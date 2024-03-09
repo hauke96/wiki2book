@@ -2,7 +2,7 @@ package html
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"net/url"
 	"os"
@@ -181,7 +181,7 @@ func (g *HtmlGenerator) expandString(content string) (string, error) {
 		if !hasTokenKey {
 			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", tokenKey))
 		}
-		sigolo.Trace("Found token %s -> %#v", tokenKey, tokenContent)
+		sigolo.Tracef("Found token %s -> %#v", tokenKey, tokenContent)
 
 		html, err := g.expand(tokenContent)
 		if err != nil {
@@ -427,7 +427,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 		return "", err
 	}
 
-	sigolo.Debug("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
+	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
 
 	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngFilename), svg.Width, svg.Height, svg.Style), nil
 }
@@ -439,7 +439,7 @@ func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
 	// Create the output folder
-	sigolo.Debug("Ensure output folder '%s'", outputFolder)
+	sigolo.Debugf("Ensure output folder '%s'", outputFolder)
 	err := os.Mkdir(outputFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
@@ -447,7 +447,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 
 	// Create output file
 	outputFilepath := filepath.Join(outputFolder, title+".html")
-	sigolo.Debug("Ensure output file '%s'", outputFilepath)
+	sigolo.Debugf("Ensure output file '%s'", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))
@@ -455,7 +455,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 	defer outputFile.Close()
 
 	// Write data to file
-	sigolo.Debug("Write to %s", outputFilepath)
+	sigolo.Debugf("Write to %s", outputFilepath)
 	_, err = outputFile.WriteString(content)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable write data to file %s", outputFilepath))

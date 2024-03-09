@@ -2,7 +2,7 @@ package test
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"os"
 	"path"
 	"reflect"
@@ -24,7 +24,7 @@ func CleanRun(m *testing.M, subFolderName string) {
 func Cleanup() {
 	err := os.RemoveAll(CacheFolder)
 	if err != nil && !os.IsNotExist(err) {
-		sigolo.Fatal("Removing %s failed: %s", CacheFolder, err.Error())
+		sigolo.Fatalf("Removing %s failed: %s", CacheFolder, err.Error())
 	}
 }
 

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
 	"path"
@@ -26,7 +26,7 @@ const VERSION = "v0.1.1"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
 var cli struct {
-	Logging              string      `help:"Logging verbosity. Possible values: debug, trace" short:"l"`
+	Logging              string      `help:"Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\"." short:"l"`
 	DiagnosticsProfiling bool        `help:"Enable profiling and write results to ./profiling.prof."`
 	DiagnosticsTrace     bool        `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
 	ForceRegenerateHtml  bool        `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
@@ -92,12 +92,18 @@ func main() {
 	)
 
 	if strings.ToLower(cli.Logging) == "debug" {
-		sigolo.LogLevel = sigolo.LOG_DEBUG
+		sigolo.SetDefaultLogLevel(sigolo.LOG_DEBUG)
 	} else if strings.ToLower(cli.Logging) == "trace" {
-		sigolo.LogLevel = sigolo.LOG_TRACE
+		sigolo.SetDefaultLogLevel(sigolo.LOG_TRACE)
+	} else if strings.ToLower(cli.Logging) == "info" {
+		sigolo.SetDefaultLogLevel(sigolo.LOG_INFO)
+		sigolo.SetDefaultFormatFunctionAll(sigolo.LogPlain)
+	} else {
+		sigolo.SetDefaultFormatFunctionAll(sigolo.LogPlain)
+		sigolo.Fatalf("Unknown logging level '%s'", cli.Logging)
 	}
 
-	sigolo.Trace("CLI config:\n%+v", cli)
+	sigolo.Tracef("CLI config:\n%+v", cli)
 
 	if cli.Config != "" {
 		err := config.LoadConfig(cli.Config)
@@ -171,22 +177,22 @@ func main() {
 			cli.SvgSizeToViewbox,
 		)
 	default:
-		if sigolo.LogLevel > sigolo.LOG_DEBUG {
-			sigolo.Trace("CLI config:\n%+v", cli)
+		if sigolo.GetCurrentLogLevel() > sigolo.LOG_DEBUG {
+			sigolo.Tracef("CLI config:\n%+v", cli)
 		}
-		sigolo.Fatal("Unknown command: %v", ctx.Command())
+		sigolo.Fatalf("Unknown command: %v", ctx.Command())
 	}
 
 	end := time.Now()
-	sigolo.Debug("Start   : %s", start.Format(RFC1123Millis))
-	sigolo.Debug("End     : %s", end.Format(RFC1123Millis))
-	sigolo.Debug("Duration: %f seconds", end.Sub(start).Seconds())
+	sigolo.Debugf("Start   : %s", start.Format(RFC1123Millis))
+	sigolo.Debugf("End     : %s", end.Format(RFC1123Millis))
+	sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
 func generateProjectEbook(projectFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
 	var err error
 
-	sigolo.Info("Use project file: %s", projectFile)
+	sigolo.Infof("Use project file: %s", projectFile)
 
 	sigolo.Debug("Turn paths from CLI arguments into absolute paths before going into the project file directory")
 	if outputFile != "" {
@@ -216,7 +222,7 @@ func generateProjectEbook(projectFile string, outputFile string, outputType stri
 
 	directory, projectFile := filepath.Split(projectFile)
 	if directory != "" {
-		sigolo.Debug("Go into folder %s", directory)
+		sigolo.Debugf("Go into folder %s", directory)
 		err = os.Chdir(directory)
 		sigolo.FatalCheck(err)
 	}
@@ -225,39 +231,39 @@ func generateProjectEbook(projectFile string, outputFile string, outputType stri
 	sigolo.FatalCheck(err)
 
 	if outputFile != "" {
-		sigolo.Trace("Override outputFile from project file with %s", outputFile)
+		sigolo.Tracef("Override outputFile from project file with %s", outputFile)
 		proj.OutputFile = outputFile
 	}
 	if outputType != "" {
-		sigolo.Trace("Override outputType from project file with %s", outputType)
+		sigolo.Tracef("Override outputType from project file with %s", outputType)
 		proj.OutputType = outputType
 	}
 	if outputDriver != "" {
-		sigolo.Trace("Override outputDriver from project file with %s", outputDriver)
+		sigolo.Tracef("Override outputDriver from project file with %s", outputDriver)
 		proj.OutputDriver = outputDriver
 	}
 	if cacheDir != "" {
-		sigolo.Trace("Override cacheDir from project file with %s", cacheDir)
+		sigolo.Tracef("Override cacheDir from project file with %s", cacheDir)
 		proj.CacheDir = cacheDir
 	}
 	if styleFile != "" {
-		sigolo.Trace("Override styleFile from project file with %s", styleFile)
+		sigolo.Tracef("Override styleFile from project file with %s", styleFile)
 		proj.StyleFile = styleFile
 	}
 	if coverImageFile != "" {
-		sigolo.Trace("Override coverImageFile from project file with %s", coverImageFile)
+		sigolo.Tracef("Override coverImageFile from project file with %s", coverImageFile)
 		proj.CoverImage = coverImageFile
 	}
 	if pandocDataDir != "" {
-		sigolo.Trace("Override pandocDataDir from project file with %s", pandocDataDir)
+		sigolo.Tracef("Override pandocDataDir from project file with %s", pandocDataDir)
 		proj.PandocDataDir = pandocDataDir
 	}
 	if fontFiles != nil && len(fontFiles) > 0 {
-		sigolo.Trace("Override fontFiles from project file with %v", fontFiles)
+		sigolo.Tracef("Override fontFiles from project file with %v", fontFiles)
 		proj.FontFiles = fontFiles
 	}
 	if imagesToGrayscale {
-		sigolo.Trace("Override imagesToGrayscale from project file with %v", imagesToGrayscale)
+		sigolo.Tracef("Override imagesToGrayscale from project file with %v", imagesToGrayscale)
 		proj.ImagesToGrayscale = imagesToGrayscale
 	}
 
@@ -340,7 +346,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Info("Start generating %s file", outputType)
+	sigolo.Infof("Start generating %s file", outputType)
 	metadata := project.Metadata{
 		Title: title,
 	}
@@ -350,7 +356,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created %s file %s", outputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file %s", outputType, absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
@@ -414,7 +420,7 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	pandocDataDir = paths[3]
 
 	// Create cache dir and go into it
-	sigolo.Debug("Ensure cache folder '%s'", cacheDir)
+	sigolo.Debugf("Ensure cache folder '%s'", cacheDir)
 	err = os.MkdirAll(cacheDir, os.ModePerm)
 	sigolo.FatalCheck(err)
 
@@ -432,28 +438,28 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	var images []string
 
 	for _, articleName := range articles {
-		sigolo.Info("Article '%s': Start processing", articleName)
+		sigolo.Infof("Article '%s': Start processing", articleName)
 
 		htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
 		if !shouldRecreateHtml(htmlFilePath, forceHtmlRecreate) {
-			sigolo.Info("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
+			sigolo.Infof("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
-			sigolo.Info("Article '%s': Download article", articleName)
+			sigolo.Infof("Article '%s': Download article", articleName)
 			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
-			sigolo.Info("Article '%s': Tokenize content", articleName)
+			sigolo.Infof("Article '%s': Tokenize content", articleName)
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
 			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 			sigolo.FatalCheck(err)
 			images = append(images, article.Images...)
 
-			sigolo.Info("Article '%s': Download images", articleName)
+			sigolo.Infof("Article '%s': Download images", articleName)
 			err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox, imagesToGrayscale)
 			sigolo.FatalCheck(err)
 
 			// TODO Adjust this when additional non-epub output types are supported.
-			sigolo.Info("Article '%s': Generate HTML", articleName)
+			sigolo.Infof("Article '%s': Generate HTML", articleName)
 			htmlGenerator := &html.HtmlGenerator{
 				ImageCacheFolder:   imageCache,
 				MathCacheFolder:    mathCache,
@@ -464,19 +470,19 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 			sigolo.FatalCheck(err)
 		}
 
-		sigolo.Info("Article '%s': Finished processing", articleName)
+		sigolo.Infof("Article '%s': Finished processing", articleName)
 		articleFiles = append(articleFiles, htmlFilePath)
 	}
 
 	images = util.RemoveDuplicates(images)
 
-	sigolo.Info("Start generating %s file", outputType)
+	sigolo.Infof("Start generating %s file", outputType)
 	err = Generate(outputDriver, articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Info("Successfully created %s file %s", outputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file %s", outputType, absoluteOutputFile)
 }
 
 func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata) error {

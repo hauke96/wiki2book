@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -59,6 +59,6 @@ func ToAbsolutePath(path string) (string, error) {
 
 func AssertFileExists(path string) {
 	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
-		sigolo.Fatal("File path '%s' does not exist", path)
+		sigolo.Fatalf("File path '%s' does not exist", path)
 	}
 }

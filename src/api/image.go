@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"wiki2book/util"
 )
 
@@ -10,7 +10,7 @@ const imgSize = 600
 
 // processImage will convert and rescale the image so that it's suitable for eBooks.
 func processImage(imageFilepath string, toGrayscale bool) error {
-	sigolo.Trace("Process image '%s'", imageFilepath)
+	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	args := []string{
 		imageFilepath,
@@ -21,7 +21,7 @@ func processImage(imageFilepath string, toGrayscale bool) error {
 	}
 
 	if toGrayscale {
-		sigolo.Trace("Add args to convert '%s' to grayscale", imageFilepath)
+		sigolo.Tracef("Add args to convert '%s' to grayscale", imageFilepath)
 		args = append(args, "-colorspace", "gray")
 	}
 
@@ -30,7 +30,7 @@ func processImage(imageFilepath string, toGrayscale bool) error {
 	err := util.Execute("convert", args...)
 
 	if err != nil {
-		sigolo.Error("Converting image %s failed", imageFilepath)
+		sigolo.Errorf("Converting image %s failed", imageFilepath)
 	}
 
 	return err

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"testing"
 	"wiki2book/config"
 )

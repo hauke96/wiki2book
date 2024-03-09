@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 )
 
 // High-level token types
@@ -81,28 +81,28 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	var err error
 
-	sigolo.Debug("Tokenize article '%s' [1/4]: First cleanup", title)
+	sigolo.Debugf("Tokenize article '%s' [1/4]: First cleanup", title)
 	content, err = clean(content)
 	if err != nil {
 		return nil, err
 	}
 
-	sigolo.Debug("Tokenize article '%s' [2/4]: Evaluate templates", title)
+	sigolo.Debugf("Tokenize article '%s' [2/4]: Evaluate templates", title)
 	content, err = t.evaluateTemplates(content)
 	if err != nil {
 		return nil, err
 	}
 
-	sigolo.Debug("Tokenize article '%s' [3/4]: Second cleanup", title)
+	sigolo.Debugf("Tokenize article '%s' [3/4]: Second cleanup", title)
 	content, err = clean(content)
 	if err != nil {
 		return nil, err
 	}
 
-	sigolo.Debug("Tokenize article '%s' [4/4]: Tokenize content", title)
+	sigolo.Debugf("Tokenize article '%s' [4/4]: Tokenize content", title)
 	content = t.tokenizeContent(t, content)
 
-	sigolo.Debug("Tokenize article '%s': Tokenization done", title)
+	sigolo.Debugf("Tokenize article '%s': Tokenization done", title)
 
 	article := Article{
 		Title:    title,

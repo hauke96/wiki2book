@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"io"
 	"net/url"
@@ -71,7 +71,7 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
 func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool) error {
-	sigolo.Debug("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
+	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
 		var outputFilepath string
@@ -82,10 +82,10 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
-					sigolo.Error("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
+					sigolo.Errorf("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
 				} else {
 					// That an image is not available at one source is a common situation and not an error that needs to be handled.
-					sigolo.Debug("Could not downloading image %s from source %s: %s", image, source, downloadErr.Error())
+					sigolo.Debugf("Could not downloading image %s from source %s: %s", image, source, downloadErr.Error())
 				}
 				continue
 			}
@@ -115,7 +115,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
-	sigolo.Debug("Download article file for image '%s' from Wikipedia instance '%s'", imageName, wikipediaInstance)
+	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s'", imageName, wikipediaInstance)
 	imageArticle, err := DownloadArticle(wikipediaInstance, imageName, articleFolder)
 	if err != nil {
 		return "", true, err
@@ -132,10 +132,10 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	sigolo.Debug("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, wikipediaInstance)
-	sigolo.Trace("  Original name: %s", originalImageName)
-	sigolo.Trace("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
-	sigolo.Trace("  MD5 of redirected image name: %s", md5sum)
+	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, wikipediaInstance)
+	sigolo.Tracef("  Original name: %s", originalImageName)
+	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
+	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
 	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
@@ -147,8 +147,8 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
 		err = util.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			sigolo.Error("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs.", cachedFilePath)
-			sigolo.Error("%+v", err)
+			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs.", cachedFilePath)
+			sigolo.Errorf("%+v", err)
 		}
 	}
 
@@ -156,7 +156,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 }
 
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
-	sigolo.Debug("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
+	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
 	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
@@ -179,8 +179,8 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 }
 
 func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
-	sigolo.Debug("Render math %s", util.TruncString(mathString))
-	sigolo.Trace("  Complete math text: %s", mathString)
+	sigolo.Debugf("Render math %s", util.TruncString(mathString))
+	sigolo.Tracef("  Complete math text: %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
 
@@ -218,13 +218,13 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		if err != nil {
 			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
 		}
-		sigolo.Debug("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debugf("File %s does already exist. Skip.", outputFilepath)
 		return mathSvgFilename, nil
 	}
 
-	sigolo.Debug("Rendering math %s", util.TruncString(mathString))
+	sigolo.Debugf("Rendering math %s", util.TruncString(mathString))
 
-	sigolo.Debug("Make POST request to %s with request data: %s", urlString, requestData)
+	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)

@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
@@ -14,7 +14,7 @@ func Execute(name string, arg ...string) error {
 	var stderrBuffer strings.Builder
 	cmd.Stderr = &stderrBuffer
 
-	sigolo.Debug("Execute command: %s", cmd.String())
+	sigolo.Debugf("Execute command: %s", cmd.String())
 	err := cmd.Run()
 
 	if err != nil {
