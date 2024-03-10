@@ -83,7 +83,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 }
 
 func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
-	sigolo.LogLevel = sigolo.LOG_TRACE
+	sigolo.SetDefaultLogLevel(sigolo.LOG_TRACE)
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
 	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
