@@ -14,6 +14,9 @@ var Current = &Configuration{
 	IgnoredImageParams:             []string{},
 	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
 	WikipediaInstance:              "en",
+	WikipediaHost:                  "wikipedia.org",
+	WikipediaImageHost:             "upload.wikimedia.org",
+	WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
@@ -70,7 +73,7 @@ type Configuration struct {
 	IgnoredMediaTypes []string `json:"ignored-media-types"`
 
 	/*
-		The URL to the Wikipedia (or generally MediaWiki) instance.
+		The subdomain of the Wikipedia instance.
 
 		Default: "en"
 		Mandatory: Yes
@@ -79,6 +82,36 @@ type Configuration struct {
 		This config uses the German Wikipedia.
 	*/
 	WikipediaInstance string `json:"wikipedia-instance"`
+
+	/*
+		The domain of the Wikipedia instance.
+
+		Default: "wikipedia.org"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-host": "my-server.com"
+	*/
+	WikipediaHost string `json:"wikipedia-host"`
+
+	/*
+		The domain of the Wikipedia image instance.
+
+		Default: "wikimedia.org"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-image-host": "my-image-server.com"
+	*/
+	WikipediaImageHost string `json:"wikipedia-image-host"`
+
+	/*
+		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
+
+		Default: "https://wikimedia.org/api/rest_v1/media/math"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
+	*/
+	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
 		Each image has its own article, which is fetched from these Wikipedia instances (in the given order).

@@ -38,10 +38,10 @@ type WikitextDto struct {
 	Content string `json:"wikitext"`
 }
 
-func DownloadArticle(wikipediaInstance string, title string, cacheFolder string) (*WikiArticleDto, error) {
+func DownloadArticle(wikipediaInstance string, wikipediaHost string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, escapedTitle)
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, wikipediaHost, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, _, err := downloadAndCache(urlString, cacheFolder, cachedFile)
@@ -57,7 +57,7 @@ func DownloadArticle(wikipediaInstance string, title string, cacheFolder string)
 	wikiArticleDto := &WikiArticleDto{}
 	err = json.Unmarshal(cachedResponseBytes, wikiArticleDto)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s/%s", wikipediaInstance, title))
+		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s.%s/%s", wikipediaInstance, wikipediaHost, title))
 	}
 
 	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
@@ -77,15 +77,15 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 		var outputFilepath string
 		var freshlyDownloaded bool
 
-		for i, source := range config.Current.WikipediaImageArticleInstances {
+		for i, instance := range config.Current.WikipediaImageArticleInstances {
 			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
-			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, source, svgSizeToViewbox)
+			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, instance, config.Current.WikipediaImageHost, config.Current.WikipediaHost, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
 					sigolo.Errorf("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
 				} else {
 					// That an image is not available at one source is a common situation and not an error that needs to be handled.
-					sigolo.Debugf("Could not downloading image %s from source %s: %s", image, source, downloadErr.Error())
+					sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, config.Current.WikipediaHost, downloadErr.Error())
 				}
 				continue
 			}
@@ -112,11 +112,11 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaInstance string, svgSizeToViewbox bool) (string, bool, error) {
+func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaImageHost string, wikipediaInstance string, wikipediaHost string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
-	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s'", imageName, wikipediaInstance)
-	imageArticle, err := DownloadArticle(wikipediaInstance, imageName, articleFolder)
+	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, wikipediaInstance, wikipediaHost)
+	imageArticle, err := DownloadArticle(wikipediaInstance, wikipediaHost, imageName, articleFolder)
 	if err != nil {
 		return "", true, err
 	}
@@ -137,7 +137,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
-	imageUrl := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/%s/%c/%c%c/%s", wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", wikipediaImageHost, wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
 	cachedFilePath, freshlyDownloaded, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {
@@ -158,7 +158,7 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
-	urlString := fmt.Sprintf("https://%s.wikipedia.org/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, url.QueryEscape(template))
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, config.Current.WikipediaHost, url.QueryEscape(template))
 	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
@@ -183,19 +183,20 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
 	mathString = url.QueryEscape(mathString)
+	mathApiUrl := config.Current.WikipediaMathRestApi
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
 	if err != nil {
 		return "", "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
 	}
 
-	imageSvgUrl := "https://wikimedia.org/api/rest_v1/media/math/render/svg/" + mathSvgFilename
+	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
 	cachedSvgFile, _, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+".svg")
 	if err != nil {
 		return "", "", err
 	}
 
-	imagePngUrl := "https://wikimedia.org/api/rest_v1/media/math/render/png/" + mathSvgFilename
+	imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
 	cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
 	if err != nil {
 		return "", "", err
@@ -206,7 +207,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func getMathResource(mathString string, cacheFolder string) (string, error) {
-	urlString := "https://wikimedia.org/api/rest_v1/media/math/check/tex"
+	urlString := config.Current.WikipediaMathRestApi + "/check/tex"
 	requestData := fmt.Sprintf("q=%s", mathString)
 
 	// If file exists -> ignore

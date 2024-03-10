@@ -10,18 +10,21 @@ import (
 )
 
 type Project struct {
-	Metadata          Metadata `json:"metadata"`
-	WikipediaInstance string   `json:"wikipedia-instance"`
-	OutputFile        string   `json:"output-file"`
-	OutputType        string   `json:"output-type"`
-	OutputDriver      string   `json:"output-driver"`
-	CacheDir          string   `json:"cache-dir"`
-	CoverImage        string   `json:"cover-image"`
-	StyleFile         string   `json:"style-file"`
-	PandocDataDir     string   `json:"pandoc-data-dir"`
-	Articles          []string `json:"articles"`
-	FontFiles         []string `json:"font-files"`
-	ImagesToGrayscale bool     `json:"images-to-grayscale"`
+	Metadata             Metadata `json:"metadata"`
+	WikipediaInstance    string   `json:"wikipedia-instance"`
+	WikipediaHost        string   `json:"wikipedia-host"`
+	WikipediaImageHost   string   `json:"wikipedia-image-host"`
+	WikipediaMathRestApi string   `json:"wikipedia-math-rest-api"`
+	OutputFile           string   `json:"output-file"`
+	OutputType           string   `json:"output-type"`
+	OutputDriver         string   `json:"output-driver"`
+	CacheDir             string   `json:"cache-dir"`
+	CoverImage           string   `json:"cover-image"`
+	StyleFile            string   `json:"style-file"`
+	PandocDataDir        string   `json:"pandoc-data-dir"`
+	Articles             []string `json:"articles"`
+	FontFiles            []string `json:"font-files"`
+	ImagesToGrayscale    bool     `json:"images-to-grayscale"`
 }
 
 type Metadata struct {
@@ -49,6 +52,15 @@ func LoadProject(file string) (*Project, error) {
 	// Override default configs with project specific ones
 	if project.WikipediaInstance != "" {
 		config.Current.WikipediaInstance = project.WikipediaInstance
+	}
+	if project.WikipediaHost != "" {
+		config.Current.WikipediaHost = project.WikipediaHost
+	}
+	if project.WikipediaImageHost != "" {
+		config.Current.WikipediaImageHost = project.WikipediaImageHost
+	}
+	if project.WikipediaMathRestApi != "" {
+		config.Current.WikipediaMathRestApi = project.WikipediaMathRestApi
 	}
 
 	return project, nil

@@ -445,7 +445,7 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 			sigolo.Infof("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
 		} else {
 			sigolo.Infof("Article '%s': Download article", articleName)
-			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, articleName, articleCache)
+			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
 			sigolo.Infof("Article '%s': Tokenize content", articleName)
