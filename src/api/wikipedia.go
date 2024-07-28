@@ -79,7 +79,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 
 		for i, instance := range config.Current.WikipediaImageArticleInstances {
 			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
-			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, instance, config.Current.WikipediaImageHost, config.Current.WikipediaHost, svgSizeToViewbox)
+			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
 					sigolo.Errorf("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
