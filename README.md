@@ -28,7 +28,7 @@ But wiki2book has exactly this functionality called "projects" as described belo
 # Installation
 
 * Arch Linux: AUR package [`wiki2book`](https://aur.archlinux.org/packages/wiki2book).
-  * Default style and configs can be found in ` /usr/share/wiki2book`.
+  * Default style and configs can be found in `/usr/share/wiki2book`.
 * Others: See the [current releases](https://github.com/hauke96/wiki2book/releases) or [build instructions](./src#build-project).
 
 # Usage

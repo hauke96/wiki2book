@@ -25,7 +25,7 @@ I use `golangci-lint` since it combines multiple linters.
 2. Use it `golangci-lint run`
 
 As you may see, the logs are spammed with error messages.
-Not all of them are relevant, but they give you a hint on what could be improved.
+Not all of them are relevant, some are false-positives, some do not relate to this project but to dependencies, but in general, the messages give you a hint on what could be improved.
 
 The configuration `.golangci-lint` contains the list of used linters and some additional configuration of them.
 
