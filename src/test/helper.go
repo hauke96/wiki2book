@@ -2,7 +2,7 @@ package test
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"os"
 	"path"
 	"reflect"
@@ -24,7 +24,7 @@ func CleanRun(m *testing.M, subFolderName string) {
 func Cleanup() {
 	err := os.RemoveAll(CacheFolder)
 	if err != nil && !os.IsNotExist(err) {
-		sigolo.Fatal("Removing %s failed: %s", CacheFolder, err.Error())
+		sigolo.Fatalf("Removing %s failed: %s", CacheFolder, err.Error())
 	}
 }
 
@@ -162,16 +162,16 @@ func getLinePrefix[K comparable, V comparable](otherMap map[K]V, key K, expected
 	return " ", valueIsNotInOtherMap
 }
 
-func AssertNil(t *testing.T, value interface{}) {
-	if !reflect.DeepEqual(nil, value) {
-		sigolo.Errorb(1, "Expect to be 'nil' but was: %+v", value)
+func AssertNil(t *testing.T, value any) {
+	if value != nil && !reflect.ValueOf(value).IsNil() {
+		sigolo.Errorb(1, "Expect to be 'nil' but was: %#v", value)
 		t.Fail()
 	}
 }
 
-func AssertNotNil(t *testing.T, value interface{}) {
-	if nil == value {
-		sigolo.Errorb(1, "Expect NOT to be 'nil' but was: %+v", value)
+func AssertNotNil(t *testing.T, value any) {
+	if value == nil || reflect.ValueOf(value).IsNil() {
+		sigolo.Errorb(1, "Expect NOT to be 'nil' but was: %#v", value)
 		t.Fail()
 	}
 }

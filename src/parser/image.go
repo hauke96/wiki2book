@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -60,7 +60,7 @@ func escapeImages(content string) string {
 		return ""
 	}
 
-	sigolo.Trace("Found image: %s", filename)
+	sigolo.Tracef("Found image: %s", filename)
 
 	// Replace spaces with underscore because wikimedia doesn't know spaces in file names:
 	filename = strings.ReplaceAll(filename, " ", "_")
@@ -241,7 +241,7 @@ func (t *Tokenizer) parseImages(content string) string {
 					if len(sizes) == 2 {
 						ySize = strings.TrimSpace(sizes[1])
 					} else if len(sizes) > 2 {
-						sigolo.Error("Invalid size specification %spx of image %s", option, filename)
+						sigolo.Errorf("Invalid size specification %spx of image %s", option, filename)
 					}
 
 					xSizeInt, err = strconv.Atoi(xSize)

@@ -6,19 +6,25 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"wiki2book/config"
+	"wiki2book/generator"
 )
 
 type Project struct {
-	Metadata          Metadata `json:"metadata"`
-	WikipediaInstance string   `json:"wikipedia-instance"`
-	OutputFile        string   `json:"output-file"`
-	OutputType        string   `json:"output-type"`
-	CacheDir          string   `json:"cache-dir"`
-	Cover             string   `json:"cover"`
-	Style             string   `json:"style"`
-	PandocDataDir     string   `json:"pandoc-data-dir"`
-	Articles          []string `json:"articles"`
-	FontFiles         []string `json:"font-files"`
+	Metadata             Metadata `json:"metadata"`
+	WikipediaInstance    string   `json:"wikipedia-instance"`
+	WikipediaHost        string   `json:"wikipedia-host"`
+	WikipediaImageHost   string   `json:"wikipedia-image-host"`
+	WikipediaMathRestApi string   `json:"wikipedia-math-rest-api"`
+	OutputFile           string   `json:"output-file"`
+	OutputType           string   `json:"output-type"`
+	OutputDriver         string   `json:"output-driver"`
+	CacheDir             string   `json:"cache-dir"`
+	CoverImage           string   `json:"cover-image"`
+	StyleFile            string   `json:"style-file"`
+	PandocDataDir        string   `json:"pandoc-data-dir"`
+	Articles             []string `json:"articles"`
+	FontFiles            []string `json:"font-files"`
+	ImagesToGrayscale    bool     `json:"images-to-grayscale"`
 }
 
 type Metadata struct {
@@ -47,13 +53,23 @@ func LoadProject(file string) (*Project, error) {
 	if project.WikipediaInstance != "" {
 		config.Current.WikipediaInstance = project.WikipediaInstance
 	}
+	if project.WikipediaHost != "" {
+		config.Current.WikipediaHost = project.WikipediaHost
+	}
+	if project.WikipediaImageHost != "" {
+		config.Current.WikipediaImageHost = project.WikipediaImageHost
+	}
+	if project.WikipediaMathRestApi != "" {
+		config.Current.WikipediaMathRestApi = project.WikipediaMathRestApi
+	}
 
 	return project, nil
 }
 
 func NewWithDefaults() *Project {
 	return &Project{
-		CacheDir:   ".wiki2book",
-		OutputType: "epub2",
+		CacheDir:     ".wiki2book",
+		OutputType:   "epub2",
+		OutputDriver: generator.OutputDriverPandoc,
 	}
 }

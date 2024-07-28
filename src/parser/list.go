@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"strings"
 )
 
@@ -270,7 +270,7 @@ func (t *Tokenizer) getListTokenKey(listItemPrefix string) string {
 	case ":":
 		return TOKEN_DESCRIPTION_LIST
 	}
-	sigolo.Error("Unable to get list token key: Unknown list item prefix %s", listItemPrefix)
+	sigolo.Errorf("Unable to get list token key: Unknown list item prefix %s", listItemPrefix)
 	return fmt.Sprintf(TOKEN_UNKNOWN_LIST_ITEM, listItemPrefix)
 }
 
@@ -285,7 +285,7 @@ func (t *Tokenizer) getListItemTypeForList(listItemPrefix string) ListItemTokenT
 	case ":":
 		return DESCRIPTION_ITEM
 	}
-	sigolo.Error("Unable to get list item type from list prefix '%s'", listItemPrefix)
+	sigolo.Errorf("Unable to get list item type from list prefix '%s'", listItemPrefix)
 	return -1
 }
 

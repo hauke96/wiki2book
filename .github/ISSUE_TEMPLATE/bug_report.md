@@ -36,3 +36,10 @@ Steps to reproduce the behavior:
 3. All configurations you used
 4. See error
 
+## Additional information
+
+**The used wiki2book version (or commit-hash)**
+
+**Used output driver (when using `pandoc` output driver: The used pandoc version)**
+
+**Any other useful and/or related information**

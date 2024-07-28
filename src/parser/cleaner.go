@@ -13,7 +13,8 @@ func clean(content string) (string, error) {
 
 	content = removeComments(content)
 	content = removeUnwantedInternalLinks(content)
-	content = removeUnwantedTemplates(content)
+	content = handleUnwantedAndTrailingTemplates(content)
+	//content = moveTrailingTemplatesToEnd(content)
 	// Disabled for test purposes is this removal is really necessary.
 	//content = removeUnwantedHtml(content)
 	content = removeUnwantedWikitext(content)
@@ -110,49 +111,58 @@ func removeUnwantedInternalLinks(content string) string {
 	return content
 }
 
-func removeUnwantedTemplates(content string) string {
+func handleUnwantedAndTrailingTemplates(content string) string {
 	// All lower case. Makes things easier below.
 	ignoreTemplates := util.AllToLower(config.Current.IgnoredTemplates)
+	trailingTemplates := util.AllToLower(config.Current.TrailingTemplates)
+	var foundTrailingTemplates []string
 
-	for {
-		originalContent := content
+	for i := 0; i < len(content)-1; i++ {
+		cursor := content[i : i+2]
 
-		for i := 0; i < len(content)-1; i++ {
-			cursor := content[i : i+2]
+		if cursor == "{{" {
+			// Get the index on which the template is closed
+			closedTemplateIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+			if closedTemplateIndex == -1 {
+				// no closing tag found -> move on in the normal text
+				continue
+			}
 
-			if cursor == "{{" {
-				// Get the index on which the template is closed
-				closedTemplateIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
-				if closedTemplateIndex == -1 {
-					// no closing tag found -> move on in the normal text
-					continue
+			templateText := content[i : closedTemplateIndex+2]
+			templateNameMatches := templateNameRegex.FindStringSubmatch(templateText)
+			if templateNameMatches == nil {
+				// No match found
+				continue
+			}
+
+			templateName := strings.ToLower(templateNameMatches[1])
+			templateName = strings.TrimSpace(templateName)
+
+			if util.Contains(ignoreTemplates, templateName) || util.Contains(trailingTemplates, templateName) {
+				// Replace the template with an empty string, since it should be ignored.
+				content = strings.Replace(content, templateText, "", 1)
+
+				// Collect templates that should be moved to the bottom of the article
+				if util.Contains(trailingTemplates, templateName) {
+					foundTrailingTemplates = append(foundTrailingTemplates, templateName)
 				}
 
-				templateText := content[i : closedTemplateIndex+2]
-				templateNameMatches := templateNameRegex.FindStringSubmatch(templateText)
-				if templateNameMatches == nil {
-					// No match found
-					continue
-				}
-
-				templateName := strings.ToLower(templateNameMatches[1])
-				templateName = strings.TrimSpace(templateName)
-
-				if util.Contains(ignoreTemplates, templateName) {
-					// Replace the template with an empty string, since it should be ignored.
-					content = strings.Replace(content, templateText, "", 1)
-
-					// Continue from the original template position (only +1 and not +2 to skip the "}}" token, because
-					// of the i++ of the loop)
-					i = closedTemplateIndex + 1
-				}
+				// Because the template was removed, we have to start from the original location again in the next
+				// loop iteration. Therefore, we have to compensate the +1 of the loop counter.
+				i--
 			}
 		}
-
-		if content == originalContent {
-			break
-		}
 	}
+
+	// Re-add trailing templates to the bottom of the article
+	for _, foundTrailingTemplate := range foundTrailingTemplates {
+		content += "\n{{" + foundTrailingTemplate + "}}"
+	}
+
+	return content
+}
+
+func moveTrailingTemplatesToEnd(content string) string {
 
 	return content
 }

@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -64,6 +64,8 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 	// Simplified setup: There are two templates (outer and inner) evaluating to the same static string. This means in
 	// the end, only one of these static strings remains, which is checked below.
 
+	test.Cleanup()
+
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
 	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
@@ -83,7 +85,8 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 }
 
 func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
-	sigolo.LogLevel = sigolo.LOG_TRACE
+	test.Cleanup()
+
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
 	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
@@ -94,7 +97,7 @@ func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
 	// Evaluate content -> no space/separator between first }} and second }}
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}}}}")
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
+	test.AssertEqual(t, 2, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 
 	expectedContent := "Siehe " + expectedTemplateContent

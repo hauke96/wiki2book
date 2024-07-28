@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"testing"
 	"wiki2book/config"
 )
@@ -16,11 +16,13 @@ func testArticleGermanLong(t *testing.T) {
 		"Commodore 128",
 		"../.wiki2book/profiling.epub",
 		"epub2",
+		"pandoc",
 		"../.wiki2book",
 		"",
 		"",
 		"../pandoc",
 		[]string{},
+		true,
 		true,
 		true,
 	)
@@ -32,6 +34,15 @@ func testProjectGerman(t *testing.T) {
 
 	generateProjectEbook(
 		"../projects/de/astronomie/astronomie.json",
+		"../.wiki2book/profiling.epub",
+		"epub2",
+		"pandoc",
+		"../.wiki2book",
+		"",
+		"",
+		"../pandoc",
+		[]string{},
+		true,
 		true,
 		true,
 	)

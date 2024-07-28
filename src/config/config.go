@@ -10,9 +10,13 @@ import (
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
 	IgnoredTemplates:               []string{},
+	TrailingTemplates:              []string{},
 	IgnoredImageParams:             []string{},
 	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
 	WikipediaInstance:              "en",
+	WikipediaHost:                  "wikipedia.org",
+	WikipediaImageHost:             "upload.wikimedia.org",
+	WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
 	WikipediaImageArticleInstances: []string{"commons", "en"},
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
@@ -37,13 +41,16 @@ type Configuration struct {
 	IgnoredTemplates []string `json:"ignored-templates"`
 
 	/*
-		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
-		for a book.
+		List of templates that will be moved to the end of the document. Theses are e.g. remarks on the article that
+		are important but should be shown as a remark after the actual content of the article.
 
-		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
+		Default: Empty list
 		Mandatory: No
+
+		JSON example: "trailing-templates": [ "foo", "bar" ]
+		This moves {{foo}} and {{bar}} to the end of the document.
 	*/
-	IgnoredMediaTypes []string `json:"ignored-media-types"`
+	TrailingTemplates []string `json:"trailing-templates"`
 
 	/*
 		Parameters of images that should be ignored. The list must be in lower case.
@@ -57,7 +64,16 @@ type Configuration struct {
 	IgnoredImageParams []string `json:"ignored-image-params"`
 
 	/*
-		The URL to the Wikipedia (or generally MediaWiki) instance.
+		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
+		for a book.
+
+		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
+		Mandatory: No
+	*/
+	IgnoredMediaTypes []string `json:"ignored-media-types"`
+
+	/*
+		The subdomain of the Wikipedia instance.
 
 		Default: "en"
 		Mandatory: Yes
@@ -66,6 +82,36 @@ type Configuration struct {
 		This config uses the German Wikipedia.
 	*/
 	WikipediaInstance string `json:"wikipedia-instance"`
+
+	/*
+		The domain of the Wikipedia instance.
+
+		Default: "wikipedia.org"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-host": "my-server.com"
+	*/
+	WikipediaHost string `json:"wikipedia-host"`
+
+	/*
+		The domain of the Wikipedia image instance.
+
+		Default: "wikimedia.org"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-image-host": "my-image-server.com"
+	*/
+	WikipediaImageHost string `json:"wikipedia-image-host"`
+
+	/*
+		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
+
+		Default: "https://wikimedia.org/api/rest_v1/media/math"
+		Mandatory: Yes
+
+		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
+	*/
+	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
 		Each image has its own article, which is fetched from these Wikipedia instances (in the given order).

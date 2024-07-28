@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 	"os"
@@ -32,7 +32,7 @@ func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing SVG file "+filename)
 	}
-	sigolo.Trace("Read simple SVG attributes %#v from file '%s'", attributes, filename)
+	sigolo.Tracef("Read simple SVG attributes %#v from file '%s'", attributes, filename)
 
 	return attributes, nil
 }
@@ -41,7 +41,7 @@ func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 // the "viewBox" attribute. Only if both attributes (width and height) are already absolute values, nothing will be
 // changed.
 func MakeSvgSizeAbsolute(filename string) error {
-	sigolo.Debug("Make SVG size absolute for image file '%s'", filename)
+	sigolo.Debugf("Make SVG size absolute for image file '%s'", filename)
 
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
@@ -52,11 +52,11 @@ func MakeSvgSizeAbsolute(filename string) error {
 	if err != nil {
 		return err
 	}
-	sigolo.Trace("Found SVG attributes: %#v", attributes)
+	sigolo.Tracef("Found SVG attributes: %#v", attributes)
 
 	if !strings.HasSuffix(attributes.Width, "%") && strings.HasSuffix(attributes.Height, "%") {
 		// Width and height are already absolute values, nothing to do here.
-		sigolo.Debug("SVG file %s does not relative width and height attributes. Found width=%s and height=%s. File stays unchanged.", filename, attributes.Width, attributes.Height)
+		sigolo.Debugf("SVG file %s does not relative width and height attributes. Found width=%s and height=%s. File stays unchanged.", filename, attributes.Width, attributes.Height)
 		return nil
 	}
 
@@ -78,37 +78,37 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 	viewboxIndex := strings.Index(fileString, "viewBox=\"")
 	if viewboxIndex == -1 {
 		// No "viewbox" attribute specified, so we can't change the width/height.
-		sigolo.Debug("SVG file %s does not contain a 'viewBox' attribute. File stays unchanged.", filename)
+		sigolo.Debugf("SVG file %s does not contain a 'viewBox' attribute. File stays unchanged.", filename)
 		return fileString, nil
 	}
 
 	viewboxAttributeContentSlice := strings.SplitN(fileString[viewboxIndex:], "\"", 3)
 	if len(viewboxAttributeContentSlice) == 1 {
 		// SVG file probably broken, at least we're not able to find a correct value for the viewbox attribute.
-		sigolo.Debug("Unable to find 'viewBox' attribute values in file %s. File stays unchanged.", filename)
+		sigolo.Debugf("Unable to find 'viewBox' attribute values in file %s. File stays unchanged.", filename)
 		return fileString, nil
 	}
 
 	var viewboxAttributeValues []string
 	viewboxAttributeString := viewboxAttributeContentSlice[1]
-	sigolo.Trace("Found viewBox=%s", viewboxAttributeString)
+	sigolo.Tracef("Found viewBox=%s", viewboxAttributeString)
 	if strings.Contains(viewboxAttributeString, ",") {
 		viewboxAttributeValues = strings.Split(viewboxAttributeString, ",")
 	} else if strings.Contains(viewboxAttributeString, " ") {
 		viewboxAttributeValues = strings.Split(viewboxAttributeString, " ")
 	} else {
 		// No supportes separator found
-		sigolo.Debug("Unsupported separator for 'viewBox' attribute values in file %s, file stays unchanged. Expected comma or space in attribute 'viewbox=\"%s\"'", filename, viewboxAttributeString)
+		sigolo.Debugf("Unsupported separator for 'viewBox' attribute values in file %s, file stays unchanged. Expected comma or space in attribute 'viewbox=\"%s\"'", filename, viewboxAttributeString)
 		return fileString, nil
 	}
 
 	if len(viewboxAttributeValues) != 4 {
 		// Wrong number of elements in viewbox
-		sigolo.Debug("Wrong number of 'viewBox' attribute values in file %s: Expected 4 but got %d. File stays unchanged.", filename, len(viewboxAttributeValues))
+		sigolo.Debugf("Wrong number of 'viewBox' attribute values in file %s: Expected 4 but got %d. File stays unchanged.", filename, len(viewboxAttributeValues))
 		return fileString, nil
 	}
 
-	sigolo.Trace("Replace width=%s -> width=%s and height=%s -> height=%s", oldAttributes.Width, viewboxAttributeValues[2], oldAttributes.Height, viewboxAttributeValues[3])
+	sigolo.Tracef("Replace width=%s -> width=%s and height=%s -> height=%s", oldAttributes.Width, viewboxAttributeValues[2], oldAttributes.Height, viewboxAttributeValues[3])
 	fileString = strings.Replace(fileString, "width=\""+oldAttributes.Width+"\"", "width=\""+viewboxAttributeValues[2]+"pt\"", 1)
 	fileString = strings.Replace(fileString, "height=\""+oldAttributes.Height+"\"", "height=\""+viewboxAttributeValues[3]+"pt\"", 1)
 	return fileString, nil

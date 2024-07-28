@@ -69,6 +69,9 @@
     "wikisource",
     "wiktionary"
   ],
+  "trailing-templates": [
+    "gesundheitshinweis"
+  ],
   "ignored-image-params": [
     "alt",
     "alternativtext",

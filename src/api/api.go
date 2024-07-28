@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
@@ -19,10 +19,10 @@ var httpClient = GetDefaultHttpClient()
 func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
-	sigolo.Debug("Try to find already cached file '%s'", outputFilepath)
+	sigolo.Debugf("Try to find already cached file '%s'", outputFilepath)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
-		sigolo.Debug("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debugf("File %s does already exist. Skip.", outputFilepath)
 		return outputFilepath, false, nil
 	}
 	sigolo.Debug("File not cached, download fresh one")
@@ -49,13 +49,13 @@ func download(url string, filename string) (io.ReadCloser, error) {
 	var err error
 
 	for {
-		sigolo.Debug("Make GET request to %s", url)
+		sigolo.Debugf("Make GET request to %s", url)
 		response, err = httpClient.Get(url)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
 
-		sigolo.Trace("Response: %#v", response)
+		sigolo.Tracef("Response: %#v", response)
 
 		// Handle 429 (too many requests): wait a bit and retry
 		if response.StatusCode == 429 {
@@ -78,7 +78,7 @@ func download(url string, filename string) (io.ReadCloser, error) {
 
 func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
 	// Create the output folder
-	sigolo.Debug("Ensure cache folder '%s'", cacheFolder)
+	sigolo.Debugf("Ensure cache folder '%s'", cacheFolder)
 	err := os.MkdirAll(cacheFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolder))
@@ -87,7 +87,7 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 	outputFilepath := filepath.Join(cacheFolder, filename)
 
 	// Create the output file
-	sigolo.Debug("Create cached file '%s'", outputFilepath)
+	sigolo.Debugf("Create cached file '%s'", outputFilepath)
 	outputFile, err := os.Create(outputFilepath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for file '%s'", outputFilepath))
@@ -101,7 +101,7 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file '%s'", outputFilepath))
 	}
 
-	sigolo.Debug("Cached file '%s' to '%s'", filename, outputFilepath)
+	sigolo.Debugf("Cached file '%s' to '%s'", filename, outputFilepath)
 
 	return nil
 }
