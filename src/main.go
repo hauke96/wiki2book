@@ -26,7 +26,7 @@ const VERSION = "v0.1.1"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
 var cli struct {
-	Logging              string      `help:"Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\"." short:"l"`
+	Logging              string      `help:"Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\"." short:"l" default:"info"`
 	DiagnosticsProfiling bool        `help:"Enable profiling and write results to ./profiling.prof."`
 	DiagnosticsTrace     bool        `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
 	ForceRegenerateHtml  bool        `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
