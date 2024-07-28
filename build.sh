@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get latest tag for this commit
-VERSION=$(grep --color=never -Po "v[\d\.]+" src/main.go)
+VERSION=$(grep --color=never "VERSION = " src/main.go | grep --color=never -Po "v[\d\.]+")
 
 # Some default value
 OS=linux
