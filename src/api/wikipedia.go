@@ -7,6 +7,7 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -182,7 +183,6 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
-	mathString = url.QueryEscape(mathString)
 	mathApiUrl := config.Current.WikipediaMathRestApi
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
@@ -208,7 +208,11 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func getMathResource(mathString string, cacheFolder string) (string, error) {
 	urlString := config.Current.WikipediaMathRestApi + "/check/tex"
-	requestData := fmt.Sprintf("q=%s", mathString)
+
+	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
+	// formulae as in the original article. This is not only nice for debugging but also might increase speed due to
+	// caching on the Wikimedia servers.
+	requestData := "q=" + url.QueryEscape(fmt.Sprintf(`{\displaystyle %s}`, mathString))
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
@@ -228,16 +232,19 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Errorf("Rendering Math: Response returned with status code %d", response.StatusCode)
 	}
 
 	locationHeader := response.Header.Get("x-resource-location")
 	if locationHeader == "" {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Errorf("Unable to get location header for math %s", mathString)
 	}
 
@@ -247,4 +254,14 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	}
 
 	return locationHeader, nil
+}
+
+func logMathResponseBodyAsError(response *http.Response, urlString string, mathString string) {
+	if response != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, response.Body)
+		if err == nil {
+			sigolo.Errorf("Response body for url %s and math string %s:\n%s", urlString, util.TruncString(mathString), buf.String())
+		}
+	}
 }

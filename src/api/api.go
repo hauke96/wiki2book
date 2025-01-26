@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -28,13 +29,14 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	sigolo.Debug("File not cached, download fresh one")
 
 	// Get the data
-	reader, err := download(url, filename)
+	responseBodyReader, err := download(url, filename)
 	if err != nil {
+		logResponseBodyAsError(responseBodyReader, url)
 		return "", true, err
 	}
-	defer reader.Close()
+	defer responseBodyReader.Close()
 
-	err = cacheToFile(cacheFolder, filename, reader)
+	err = cacheToFile(cacheFolder, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}
@@ -63,10 +65,12 @@ func download(url string, filename string) (io.ReadCloser, error) {
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != 200 {
+			logResponseBodyAsError(response.Body, url)
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
 			responseErrorHeader := response.Header.Get("mediawiki-api-error")
 			if responseErrorHeader != "" {
+				logResponseBodyAsError(response.Body, url)
 				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' for url %s", filename, responseErrorHeader, url)
 			}
 		}
@@ -104,4 +108,14 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 	sigolo.Debugf("Cached file '%s' to '%s'", filename, outputFilepath)
 
 	return nil
+}
+
+func logResponseBodyAsError(bodyReader io.Reader, urlString string) {
+	if bodyReader != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, bodyReader)
+		if err == nil {
+			sigolo.Errorf("Response body for url %s:\n%s", urlString, buf.String())
+		}
+	}
 }
