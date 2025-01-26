@@ -167,7 +167,7 @@ after`
 					},
 				},
 			},
-			TableRowToken{
+			{
 				Columns: []TableColToken{
 					{
 						Attributes: TableColAttributeToken{},
@@ -179,7 +179,7 @@ after`
 					},
 				},
 			},
-			TableRowToken{
+			{
 				Columns: []TableColToken{
 					{
 						Attributes: TableColAttributeToken{
@@ -208,6 +208,92 @@ after`
 			ArticleName: "internal",
 			LinkText:    "internal",
 		},
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseTable_rowAndColSpan(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `before
+{| class="wikitable"
+|-
+| A1
+| B1
+| C1
+|-
+| rowspan="2" colspan=2 style="text-align:left;" | A2 B2
+| C2
+|-
+| C3
+|-
+| A4
+| B4
+| C4
+|}
+after`
+	tokenizedTable := tokenizer.parseTables(content)
+
+	test.AssertEqual(t, fmt.Sprintf("before\n"+TOKEN_TEMPLATE+"\nafter", TOKEN_TABLE, 0), tokenizedTable)
+	expectedTableToken := TableToken{
+		Caption: TableCaptionToken{},
+		Rows: []TableRowToken{
+			{
+				Columns: []TableColToken{
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "A1",
+					},
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "B1",
+					},
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "C1",
+					},
+				},
+			},
+			{
+				Columns: []TableColToken{
+					{
+						Attributes: TableColAttributeToken{
+							Attributes: []string{`rowspan="2"`, `colspan=2`, `style="text-align:left;"`},
+						},
+						Content: "A2 B2",
+					},
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "C2",
+					},
+				},
+			},
+			{
+				Columns: []TableColToken{
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "C3",
+					},
+				},
+			},
+			{
+				Columns: []TableColToken{
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "A4",
+					},
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "B4",
+					},
+					{
+						Attributes: TableColAttributeToken{},
+						Content:    "C4",
+					},
+				},
+			},
+		},
+	}
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_TABLE, 0): expectedTableToken,
 	}, tokenizer.getTokenMap())
 }
 
@@ -430,7 +516,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 		"|-",
 	}
 
-	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
+	actualRowToken, i := tokenizer.tokenizeTableRow(lines, 0)
 
 	expectedRowToken := TableRowToken{
 		Columns: []TableColToken{
@@ -446,7 +532,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 			},
 		},
 	}
-	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
+	test.AssertEqual(t, expectedRowToken, actualRowToken)
 	test.AssertEqual(t, 1, i)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
@@ -462,7 +548,7 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 		"| this row should be ignored",
 	}
 
-	tokenizedColumn, i := tokenizer.tokenizeTableRow(lines, 0)
+	actualRowToken, i := tokenizer.tokenizeTableRow(lines, 0)
 
 	expectedRowToken := TableRowToken{
 		Columns: []TableColToken{
@@ -483,8 +569,39 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 		},
 	}
 
-	test.AssertEqual(t, expectedRowToken, tokenizedColumn)
+	test.AssertEqual(t, expectedRowToken, actualRowToken)
 	test.AssertEqual(t, 3, i)
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
+}
+
+func TestTokenizeTableRow_withRowAndColSpan(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	lines := []string{
+		"| rowspan=\"2\" colspan=\"2\" style=\"text-align:left;\" | A2 B2",
+		"| C2",
+		"|-",
+		"| C3",
+	}
+
+	actualRowToken, i := tokenizer.tokenizeTableRow(lines, 0)
+
+	expectedRowToken := TableRowToken{
+		Columns: []TableColToken{
+			{
+				Attributes: TableColAttributeToken{
+					Attributes: []string{`rowspan="2"`, `colspan="2"`, `style="text-align:left;"`},
+				},
+				Content: "A2 B2",
+			},
+			{
+				Attributes: TableColAttributeToken{},
+				Content:    "C2",
+			},
+		},
+	}
+
+	test.AssertEqual(t, expectedRowToken, actualRowToken)
+	test.AssertEqual(t, 1, i)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
@@ -492,7 +609,7 @@ func TestTokenizeTableColumn(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `colspan="2" style="text-align:center; background:Lightgray;" | ''foo'' bar`
 
-	tokenizedColumn, attributeToken := tokenizer.tokenizeTableEntry(content)
+	actualAttributeToken, attributeToken := tokenizer.tokenizeTableEntry(content)
 
 	expectedAttributeToken := TableColAttributeToken{
 		Attributes: []string{
@@ -501,6 +618,6 @@ func TestTokenizeTableColumn(t *testing.T) {
 		},
 	}
 	test.AssertEqual(t, expectedAttributeToken, attributeToken)
-	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), tokenizedColumn)
+	test.AssertEqual(t, fmt.Sprintf(" %sfoo%s bar", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE), actualAttributeToken)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }

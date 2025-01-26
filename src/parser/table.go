@@ -251,9 +251,11 @@ func (t *Tokenizer) tokenizeTableEntry(content string) (string, TableColAttribut
 
 	var relevantTags []string
 
-	rowAndColspanMatch := tableRowAndColspanRegex.FindStringSubmatch(attributeString)
-	if len(rowAndColspanMatch) > 1 {
-		relevantTags = append(relevantTags, rowAndColspanMatch[0])
+	rowAndColspanMatch := tableRowAndColspanRegex.FindAllStringSubmatch(attributeString, -1)
+	if len(rowAndColspanMatch) > 0 {
+		for _, match := range rowAndColspanMatch {
+			relevantTags = append(relevantTags, match[0])
+		}
 	}
 
 	alignmentMatch := tableTextAlignRegex.FindStringSubmatch(attributeString)
