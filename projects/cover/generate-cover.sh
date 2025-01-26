@@ -57,7 +57,7 @@ cd .tmp
 # Turn every \ into \\
 ESCAPED_TITLE=${1//\\/\\\\}
 ESCAPED_PRE=${2//\\/\\\\}
-ESCAPED_PST=${3//\\/\\\\}
+ESCAPED_POST=${3//\\/\\\\}
 ESCAPED_FONT=${FONT//\\/\\\\}
 ESCAPED_LOGO=${LOGO_BASENAME//\\/\\\\}
 ESCAPED_LOGO=${ESCAPED_LOGO//\//\\/} # Turn / into \/ for sed
