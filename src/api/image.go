@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
+	"wiki2book/config"
 	"wiki2book/util"
 )
 
@@ -31,6 +32,24 @@ func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s failed", imageFilepath)
+	}
+
+	return err
+}
+
+func convertSvgToPng(svgFile string, pngFile string) error {
+	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
+
+	args := []string{
+		"-s", config.Current.RsvgMathStylesheet,
+		"-o", pngFile,
+		svgFile,
+	}
+
+	err := util.Execute("rsvg-convert", args...)
+
+	if err != nil {
+		sigolo.Errorf("Converting image %s to PNG failed", svgFile)
 	}
 
 	return err

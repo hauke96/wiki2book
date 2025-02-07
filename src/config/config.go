@@ -3,8 +3,17 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
+	"path/filepath"
+	"wiki2book/util"
+)
+
+const (
+	MathConverterNone      = "none"
+	MathConverterWikimedia = "wikimedia"
+	MathConverterRsvg      = "rsvg"
 )
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
@@ -21,6 +30,8 @@ var Current = &Configuration{
 	FilePrefixe:                    []string{"file", "image", "media"},
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 	CategoryPrefixes:               []string{"category"},
+	MathConverter:                  "wikimedia",
+	RsvgMathStylesheet:             "rsvg-math.css",
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -152,6 +163,35 @@ type Configuration struct {
 		Mandatory: No
 	*/
 	CategoryPrefixes []string `json:"category-prefixes"`
+
+	/*
+		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
+			- "none": Uses no converter, instead the plain SVG file is inserted into the ebook.
+			- "wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.
+			- "rsvg": Uses "rsvg-convert" to convert SVG files to PNGs.
+
+		Default: [ "wikimedia" ]
+		Mandatory: No
+	*/
+	MathConverter string `json:"math-converter"`
+
+	/*
+		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
+		"rsvg-convert" command. Relative paths are relative to the config file.
+
+		Default: [ "rsvg-math.css" ]
+		Mandatory: No
+	*/
+	RsvgMathStylesheet string `json:"rsvg-math-stylesheet"`
+}
+
+func (c *Configuration) MakePathsRelativeToConfig(file string) {
+	absoluteConfigPath, err := util.ToAbsolutePath(file)
+	sigolo.FatalCheck(err)
+
+	absRsvgMathStylesheet, err := util.ToAbsolutePath(filepath.Join(filepath.Dir(absoluteConfigPath), c.RsvgMathStylesheet))
+	sigolo.FatalCheck(err)
+	c.RsvgMathStylesheet = absRsvgMathStylesheet
 }
 
 func LoadConfig(file string) error {

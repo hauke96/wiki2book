@@ -52,13 +52,13 @@ func ToAbsolutePath(path string) (string, error) {
 	var err error
 	if path != "" {
 		path, err = filepath.Abs(path)
-		sigolo.FatalCheck(errors.Wrap(err, "Unable to make style file path relative"))
+		err = errors.Wrap(err, "Unable to make style file path relative")
 	}
 	return path, err
 }
 
 func AssertFileExists(path string) {
 	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
-		sigolo.Fatalf("File path '%s' does not exist", path)
+		sigolo.FatalCheck(errors.Errorf("File path '%s' does not exist", path))
 	}
 }

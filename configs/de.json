@@ -107,5 +107,6 @@
     "upright",
     "verweis",
     "zentriert"
-  ]
+  ],
+  "math-converter": "rsvg"
 }

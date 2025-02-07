@@ -417,7 +417,7 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) (string, erro
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, pngFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {
 		return "", err
 	}
@@ -427,9 +427,9 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 		return "", err
 	}
 
-	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
+	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", imageFilename, svg.Width, svg.Height, svg.Style)
 
-	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngFilename), svg.Width, svg.Height, svg.Style), nil
+	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(imageFilename), svg.Width, svg.Height, svg.Style), nil
 }
 
 func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {

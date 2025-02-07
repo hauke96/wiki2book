@@ -196,13 +196,25 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return "", "", err
 	}
 
-	imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-	cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
-	if err != nil {
-		return "", "", err
+	if config.Current.MathConverter == config.MathConverterNone {
+		return cachedSvgFile, cachedSvgFile, nil
+	} else if config.Current.MathConverter == config.MathConverterWikimedia {
+		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
+		cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
+		if err != nil {
+			return "", "", err
+		}
+		return cachedSvgFile, cachedPngFile, nil
+	} else if config.Current.MathConverter == config.MathConverterRsvg {
+		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
+		err := convertSvgToPng(cachedSvgFile, cachedPngFile)
+		if err != nil {
+			return "", "", err
+		}
+		return cachedSvgFile, cachedPngFile, nil
 	}
 
-	return cachedSvgFile, cachedPngFile, nil
+	return "", "", errors.New("No supported math converter found")
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.

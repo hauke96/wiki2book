@@ -25,6 +25,8 @@ type Project struct {
 	Articles             []string `json:"articles"`
 	FontFiles            []string `json:"font-files"`
 	ImagesToGrayscale    bool     `json:"images-to-grayscale"`
+	MathConverter        string   `json:"math-converter"`
+	RsvgMathStylesheet   string   `json:"rsvg-math-stylesheet"`
 }
 
 type Metadata struct {

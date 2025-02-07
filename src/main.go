@@ -34,40 +34,46 @@ var cli struct {
 	Config               string      `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
 	Version              VersionFlag `help:"Print version information and quit" name:"version" short:"v"`
 	Standalone           struct {
-		File              string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir          string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage        string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir     string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
-		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
+		File               string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
+		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
+		CacheDir           string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
+		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
+		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile       string   `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
-		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir          string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
-		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage        string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir     string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
-		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
+		ProjectFile        string   `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
+		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
+		CacheDir           string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
+		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
+		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
+		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName       string   `help:"The name of the article to render." arg:""`
-		OutputFile        string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType        string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver      string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir          string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile         string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage        string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir     string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles         []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
-		ImagesToGrayscale bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
+		ArticleName        string   `help:"The name of the article to render." arg:""`
+		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
+		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
+		CacheDir           string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
+		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
+		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
+		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
 
@@ -110,6 +116,8 @@ func main() {
 		sigolo.FatalCheck(err)
 	}
 
+	config.Current.MakePathsRelativeToConfig(cli.Config)
+
 	if cli.DiagnosticsProfiling {
 		f, err := os.Create("profiling.prof")
 		sigolo.FatalCheck(err)
@@ -145,6 +153,8 @@ func main() {
 			cli.Standalone.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
+			cli.Standalone.MathConverter,
+			cli.Standalone.RsvgMathStylesheet,
 		)
 	case "project <project-file>":
 		generateProjectEbook(
@@ -160,6 +170,8 @@ func main() {
 			cli.Project.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
+			cli.Project.MathConverter,
+			cli.Project.RsvgMathStylesheet,
 		)
 	case "article <article-name>":
 		generateArticleEbook(
@@ -175,6 +187,8 @@ func main() {
 			cli.Article.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
+			cli.Article.MathConverter,
+			cli.Article.RsvgMathStylesheet,
 		)
 	default:
 		if sigolo.GetCurrentLogLevel() > sigolo.LOG_DEBUG {
@@ -189,7 +203,7 @@ func main() {
 	sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
 }
 
-func generateProjectEbook(projectFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateProjectEbook(projectFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
 	var err error
 
 	sigolo.Infof("Use project file: %s", projectFile)
@@ -266,11 +280,19 @@ func generateProjectEbook(projectFile string, outputFile string, outputType stri
 		sigolo.Tracef("Override imagesToGrayscale from project file with %v", imagesToGrayscale)
 		proj.ImagesToGrayscale = imagesToGrayscale
 	}
+	if mathconverter != "" {
+		sigolo.Tracef("Override mathConverter from project file with %s", mathconverter)
+		proj.MathConverter = mathconverter
+	}
+	if rsvgMathStylesheet != "" {
+		sigolo.Tracef("Override rsvgMathStylesheet from project file with %s", rsvgMathStylesheet)
+		proj.RsvgMathStylesheet = rsvgMathStylesheet
+	}
 
 	generateBookFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateStandaloneEbook(inputFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
 	var err error
 
 	imageCache := "images"
@@ -310,6 +332,14 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	outputFile = paths[1]
 	coverImageFile = paths[2]
 	pandocDataDir = paths[3]
+
+	if rsvgMathStylesheet != "" {
+		sigolo.Tracef("Override rsvgMathStylesheet from config file with %s", rsvgMathStylesheet)
+		config.Current.RsvgMathStylesheet = rsvgMathStylesheet
+	}
+	config.Current.RsvgMathStylesheet, err = util.ToAbsolutePath(config.Current.RsvgMathStylesheet)
+	sigolo.FatalCheck(err)
+	util.AssertFileExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
 	err = os.MkdirAll(cacheDir, os.ModePerm)
@@ -359,7 +389,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	sigolo.Infof("Successfully created %s file %s", outputType, absoluteOutputFile)
 }
 
-func generateArticleEbook(articleName string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool) {
+func generateArticleEbook(articleName string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
 	var articles []string
 	articles = append(articles, articleName)
 
@@ -375,6 +405,8 @@ func generateArticleEbook(articleName string, outputFile string, outputType stri
 	proj.Articles = articles
 	proj.FontFiles = fontFiles
 	proj.ImagesToGrayscale = imagesToGrayscale
+	proj.MathConverter = mathconverter
+	proj.RsvgMathStylesheet = rsvgMathStylesheet
 
 	generateBookFromArticles(
 		proj,
@@ -418,6 +450,14 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	outputFile = paths[1]
 	coverImageFile = paths[2]
 	pandocDataDir = paths[3]
+
+	if project.RsvgMathStylesheet != "" {
+		sigolo.Tracef("Override rsvgMathStylesheet from config file with %s", project.RsvgMathStylesheet)
+		config.Current.RsvgMathStylesheet = project.RsvgMathStylesheet
+	}
+	config.Current.RsvgMathStylesheet, err = util.ToAbsolutePath(config.Current.RsvgMathStylesheet)
+	sigolo.FatalCheck(err)
+	util.AssertFileExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
 	sigolo.Debugf("Ensure cache folder '%s'", cacheDir)
