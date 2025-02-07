@@ -61,7 +61,7 @@ func (t *Tokenizer) parseStringForReferences(stringToParse string, nameToRefInde
 
 		This is done by first splitting the content by "<ref" to obtain segments which all start with a reference. There
 		is some additional processing needed to only get relevant lines. The <reference/> tag also starts with <ref but
-		should not be considered. There might be more tags starting with <ref.
+		should not be considered. There might be more tags starting with "<ref" but having nothing to do with references.
 
 		Having all truly valid reference segments, they are parsed to obtain the name (<ref name="some name"...>) and the
 		content/body of the reference (<ref>some content</ref>).
@@ -118,7 +118,7 @@ func (t *Tokenizer) parseStringForReferences(stringToParse string, nameToRefInde
 		// <ref refAttributes>refContent</ref>contentAfterRef
 		var refAttributes string
 		var refContent string
-		var contentAfterRef string //
+		var contentAfterRef string
 
 		if len(segmentParts) == 2 {
 			contentAfterRef = segmentParts[1]

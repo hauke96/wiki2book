@@ -93,7 +93,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 
 			// If the file is new, rescale it using ImageMagick.
 			if freshlyDownloaded && outputFilepath != "" && !strings.HasSuffix(strings.ToLower(outputFilepath), ".svg") {
-				err2 := processImage(outputFilepath, toGrayscale)
+				err2 := resizeAndCompressImage(outputFilepath, toGrayscale)
 				if err2 != nil {
 					return err2
 				}

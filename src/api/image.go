@@ -8,8 +8,8 @@ import (
 
 const imgSize = 600
 
-// processImage will convert and rescale the image so that it's suitable for eBooks.
-func processImage(imageFilepath string, toGrayscale bool) error {
+// resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
+func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	args := []string{
