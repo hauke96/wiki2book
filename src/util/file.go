@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const TempDirName = ".tmp/"
+
 func ToRelativePaths(paths ...string) ([]string, error) {
 	var result = make([]string, len(paths))
 

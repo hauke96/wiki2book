@@ -342,11 +342,11 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	util.AssertFileExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
-	err = os.MkdirAll(cacheDir, os.ModePerm)
-	sigolo.FatalCheck(err)
-
+	ensureDirectory(cacheDir)
 	err = os.Chdir(cacheDir)
 	sigolo.FatalCheck(err)
+
+	ensureDirectory(util.TempDirName)
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
@@ -383,6 +383,11 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 
 	err = Generate(outputDriver, []string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
+
+	err = os.RemoveAll(util.TempDirName)
+	if err != nil {
+		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
@@ -460,12 +465,11 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	util.AssertFileExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
-	sigolo.Debugf("Ensure cache folder '%s'", cacheDir)
-	err = os.MkdirAll(cacheDir, os.ModePerm)
-	sigolo.FatalCheck(err)
-
+	ensureDirectory(cacheDir)
 	err = os.Chdir(cacheDir)
 	sigolo.FatalCheck(err)
+
+	ensureDirectory(util.TempDirName)
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
@@ -520,6 +524,11 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	err = Generate(outputDriver, articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
 	sigolo.FatalCheck(err)
 
+	err = os.RemoveAll(util.TempDirName)
+	if err != nil {
+		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+	}
+
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 	sigolo.Infof("Successfully created %s file %s", outputType, absoluteOutputFile)
@@ -550,4 +559,12 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 	htmlFileExists := err == nil
 
 	return !htmlFileExists
+}
+
+func ensureDirectory(path string) {
+	sigolo.Debugf("Ensure an empty '%s' directory exists", path)
+	err := os.RemoveAll(path)
+	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", path))
+	err = os.MkdirAll(path, os.ModePerm)
+	sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
 }
