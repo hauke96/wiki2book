@@ -42,7 +42,7 @@ var cli struct {
 		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
 		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
 		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
 		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
 		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
@@ -56,7 +56,7 @@ var cli struct {
 		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
 		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
 		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
 		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
 		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
@@ -70,7 +70,7 @@ var cli struct {
 		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
 		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
 		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file> ..."`
+		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
 		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
 		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
 		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
