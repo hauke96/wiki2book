@@ -224,8 +224,7 @@ func mergeCliParametersIntoConfig(cli *Cli) {
 		sigolo.FatalCheck(err)
 		config.Current.PandocDataDir = absolutePath
 	}
-	// TODO check if fontfiles is nil or not when not set
-	if cli.FontFiles != nil && len(cli.FontFiles) > 0 {
+	if cli.FontFiles != nil {
 		absolutePaths, err := util.ToAbsolutePaths(cli.FontFiles...)
 		sigolo.FatalCheck(err)
 		config.Current.FontFiles = absolutePaths
