@@ -116,8 +116,6 @@ func main() {
 		sigolo.FatalCheck(err)
 	}
 
-	config.Current.MakePathsRelativeToConfig(cli.Config)
-
 	if cli.DiagnosticsProfiling {
 		f, err := os.Create("profiling.prof")
 		sigolo.FatalCheck(err)

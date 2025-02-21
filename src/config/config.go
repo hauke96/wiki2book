@@ -14,10 +14,20 @@ const (
 	MathConverterNone      = "none"
 	MathConverterWikimedia = "wikimedia"
 	MathConverterRsvg      = "rsvg"
+
+	OutputTypeEpub2 = "epub2"
+	OutputTypeEpub3 = "epub3"
+
+	OutputDriverPandoc   = "pandoc"
+	OutputDriverInternal = "internal"
 )
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
+	OutputType:                     OutputTypeEpub2,
+	OutputDriver:                   OutputDriverPandoc,
+	CacheDir:                       ".wiki2book",
+	ImagesToGrayscale:              false,
 	IgnoredTemplates:               []string{},
 	TrailingTemplates:              []string{},
 	IgnoredImageParams:             []string{},
@@ -40,6 +50,88 @@ var Current = &Configuration{
 // The configuration differs from a project-config by the following rule of thumb: This contains technical and project-
 // independent stuff. Some properties, though, might exist in both, this Configuration and the project.Project struct.
 type Configuration struct {
+	/*
+		The type of the final result.
+
+		Default: epub2
+		Possible values: epub2, epub3
+		Mandatory: Yes
+
+		JSON example: "output-type": "epub2"
+	*/
+	OutputType string `json:"output-type"`
+
+	/*
+		The way the final output is created.
+
+		Default: pandoc
+		Possible values: pandoc, internal
+		Mandatory: Yes
+
+		JSON example: "output-driver": "pandoc"
+	*/
+	OutputDriver string `json:"output-driver"`
+
+	/*
+		The directory where all intermediate files are stored. Relative paths are relative to the config file.
+
+		Default: .wiki2book
+		Mandatory: Yes
+
+		JSON example: "cache-dir": ".wiki2book"
+	*/
+	CacheDir string `json:"cache-dir"`
+
+	/*
+		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
+
+		Default: ""
+		Mandatory: No
+
+		JSON example: "style-file": "my-style.css"
+	*/
+	StyleFile string `json:"style-file"`
+
+	/*
+		The image file that should be the cover of the eBook. Relative paths are relative to the config file.
+
+		Default: ""
+		Mandatory: No
+
+		JSON example: "cover-image": "nice-picture.jpeg"
+	*/
+	CoverImage string `json:"cover-image"`
+
+	/*
+		The data directory for pandoc. Relative paths are relative to the config file.
+
+		Default: ""
+		Mandatory: No
+
+		JSON example: "pandoc-data-dir": "./my-folder/"
+	*/
+	PandocDataDir string `json:"pandoc-data-dir"`
+
+	/*
+		A list of font files that should be used. They then can be referenced from the style CSS file. Relative paths are relative to the config file.
+
+		Default: []
+		Mandatory: No
+
+		JSON example: "font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]
+	*/
+	FontFiles []string `json:"font-files"`
+
+	/*
+		Set to true in order to convert raster images to grayscale. Relative paths are relative to the config file.
+
+		Default: false
+		Mandatory: No
+
+		JSON example: "images-to-grayscale": true
+	*/
+	ImagesToGrayscale bool `json:"images-to-grayscale"`
+
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
 
@@ -185,13 +277,25 @@ type Configuration struct {
 	RsvgMathStylesheet string `json:"rsvg-math-stylesheet"`
 }
 
-func (c *Configuration) MakePathsRelativeToConfig(file string) {
+func (c *Configuration) makePathsAbsolute(file string) {
 	absoluteConfigPath, err := util.ToAbsolutePath(file)
 	sigolo.FatalCheck(err)
 
 	absRsvgMathStylesheet, err := util.ToAbsolutePath(filepath.Join(filepath.Dir(absoluteConfigPath), c.RsvgMathStylesheet))
 	sigolo.FatalCheck(err)
 	c.RsvgMathStylesheet = absRsvgMathStylesheet
+
+	// TODO make new paths absolute to config
+}
+
+func (c *Configuration) checkValidity() error {
+	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
+		return errors.Errorf("Invalid output type '%s'", c.OutputType)
+	}
+	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
+		return errors.Errorf("Invalid output driver '%s'", c.OutputDriver)
+	}
+	return nil
 }
 
 func LoadConfig(file string) error {
@@ -204,6 +308,11 @@ func LoadConfig(file string) error {
 	if err != nil {
 		return errors.Wrap(err, "Error parsing config file content")
 	}
+
+	Current.makePathsAbsolute(file)
+
+	err = Current.checkValidity()
+	sigolo.FatalCheck(err)
 
 	return nil
 }
