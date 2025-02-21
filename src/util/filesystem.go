@@ -73,3 +73,11 @@ func AssertPathExists(path string) {
 		sigolo.FatalCheck(errors.Errorf("Path '%s' does not exist", path))
 	}
 }
+
+func EnsureDirectory(path string) {
+	sigolo.Debugf("Ensure an empty '%s' directory exists", path)
+	err := os.RemoveAll(path)
+	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", path))
+	err = os.MkdirAll(path, os.ModePerm)
+	sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
+}

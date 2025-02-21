@@ -502,11 +502,11 @@ func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string,
 	outputFile = absolutePath
 
 	// Create cache dir and go into it
-	ensureDirectory(config.Current.CacheDir)
+	util.EnsureDirectory(config.Current.CacheDir)
 	err = os.Chdir(config.Current.CacheDir)
 	sigolo.FatalCheck(err)
 
-	ensureDirectory(util.TempDirName)
+	util.EnsureDirectory(util.TempDirName)
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
@@ -514,12 +514,4 @@ func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string,
 	sigolo.FatalCheck(err)
 
 	return outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile
-}
-
-func ensureDirectory(path string) {
-	sigolo.Debugf("Ensure an empty '%s' directory exists", path)
-	err := os.RemoveAll(path)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", path))
-	err = os.MkdirAll(path, os.ModePerm)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
 }

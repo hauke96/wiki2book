@@ -11,25 +11,31 @@ import (
 	"testing"
 )
 
-const CacheFolder = "../.test-cache"
+const cacheFolder = "../.test-cache"
+const tempDirName = ".tmp/"
 
 func CleanRun(m *testing.M, subFolderName string) {
 	Cleanup()
 	err := os.MkdirAll(GetCacheFolder(subFolderName), os.ModePerm)
 	sigolo.FatalCheck(err)
 
+	err = os.RemoveAll(tempDirName)
+	sigolo.FatalCheck(err)
+	err = os.MkdirAll(tempDirName, os.ModePerm)
+	sigolo.FatalCheck(err)
+
 	m.Run()
 }
 
 func Cleanup() {
-	err := os.RemoveAll(CacheFolder)
+	err := os.RemoveAll(cacheFolder)
 	if err != nil && !os.IsNotExist(err) {
-		sigolo.Fatalf("Removing %s failed: %s", CacheFolder, err.Error())
+		sigolo.Fatalf("Removing %s failed: %s", cacheFolder, err.Error())
 	}
 }
 
 func GetCacheFolder(subFolderName string) string {
-	return path.Join(CacheFolder, subFolderName)
+	return path.Join(cacheFolder, subFolderName)
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
