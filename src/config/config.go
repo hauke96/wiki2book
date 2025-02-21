@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+	"wiki2book/generator"
 	"wiki2book/util"
 )
 
@@ -50,6 +51,26 @@ var Current = &Configuration{
 // The configuration differs from a project-config by the following rule of thumb: This contains technical and project-
 // independent stuff. Some properties, though, might exist in both, this Configuration and the project.Project struct.
 type Configuration struct {
+	/*
+		Forces wiki2book to recreate HTML files even if they exists from a previous run.
+
+		Default: false
+		Mandatory: No
+
+		JSON example: "force-regenerate-html": true
+	*/
+	ForceRegenerateHtml bool `json:"force-regenerate-html"`
+
+	/*
+		Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
+
+		Default: false
+		Mandatory: No
+
+		JSON example: "svg-size-to-viewbox": true
+	*/
+	SvgSizeToViewbox bool `json:"svg-size-to-viewbox"`
+
 	/*
 		The type of the final result.
 
@@ -217,7 +238,8 @@ type Configuration struct {
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
-		Each image has its own article, which is fetched from these Wikipedia instances (in the given order).
+		Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for. Each image has its own article, which is fetched from
+		these Wikipedia instances (in the given order).
 
 		Default: [ "commons", "en" ]
 		Mandatory: Yes
@@ -227,7 +249,7 @@ type Configuration struct {
 	WikipediaImageArticleInstances []string `json:"wikipedia-image-article-instances"`
 
 	/*
-		A list of prefixes for files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
+		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
 		must be in lower case.
 
 		Default: [ "file", "image", "media" ]
@@ -238,9 +260,10 @@ type Configuration struct {
 	FilePrefixe []string `json:"file-prefixe"`
 
 	/*
-		A list of link prefixes that are allowed. All prefixes  specified by "FilePrefixe" are considered to be allowed
-		prefixes. Any other not explicitly allowed prefix of a link causes the link to get removed. This especially
-		happens for inter-wiki-links if the Wikipedia instance is not explicitly allowed using this list.
+		A list of prefixes that are considered links and are therefore not removed. All prefixes  specified by
+		"FilePrefixe" are considered to be allowed prefixes. Any other not explicitly allowed prefix of a link causes
+		the link to get removed. This especially happens for inter-wiki-links if the Wikipedia instance is not
+		explicitly allowed using this list.
 
 		Default: [ "arxiv", "doi" ]
 		Mandatory: No
@@ -288,12 +311,23 @@ func (c *Configuration) makePathsAbsolute(file string) {
 	// TODO make new paths absolute to config
 }
 
+func (c *Configuration) makePathsAbsoluteToWorkingDir() {
+	// TODO
+}
+
 func (c *Configuration) checkValidity() error {
 	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
 		return errors.Errorf("Invalid output type '%s'", c.OutputType)
 	}
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
 		return errors.Errorf("Invalid output driver '%s'", c.OutputDriver)
+	}
+	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
+	if err != nil {
+		return err
+	}
+	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterRsvg {
+		return errors.Errorf("Invalid math converter '%s'", c.OutputDriver)
 	}
 	return nil
 }

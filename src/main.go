@@ -25,57 +25,55 @@ import (
 const VERSION = "v0.2.0"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
-var cli struct {
-	Logging              string      `help:"Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\"." short:"l" default:"info"`
-	DiagnosticsProfiling bool        `help:"Enable profiling and write results to ./profiling.prof."`
-	DiagnosticsTrace     bool        `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
-	ForceRegenerateHtml  bool        `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
-	SvgSizeToViewbox     bool        `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
-	Config               string      `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
-	Version              VersionFlag `help:"Print version information and quit" name:"version" short:"v"`
-	Standalone           struct {
-		File               string   `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
-		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir           string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
-		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
-		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
-		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
+type Cli struct {
+	Version VersionFlag `help:"Print version information and quit" name:"version" short:"v"`
+
+	Config  string `help:"The path to the overall application config. If not specified, default values are used." type:"existingfile" short:"c" placeholder:"<file>"`
+	Logging string `help:"Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\"." short:"l" default:"info"`
+
+	DiagnosticsProfiling bool `help:"Enable profiling and write results to ./profiling.prof."`
+	DiagnosticsTrace     bool `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
+
+	OutputFile string `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+
+	// Can be set via and override config file:
+	ForceRegenerateHtml            bool     `help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	SvgSizeToViewbox               bool     `help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
+	OutputType                     string   `help:"The output file type. Possible values are: \"epub2\" (default), \"epub3\"." short:"t" placeholder:"<type>"`
+	OutputDriver                   string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>"`
+	CacheDir                       string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
+	StyleFile                      string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+	CoverImage                     string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+	PandocDataDir                  string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+	FontFiles                      []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
+	ImagesToGrayscale              bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
+	IgnoredTemplates               []string `help:"List of templates that should be ignored and removed from the input wikitext. The list must be in lower case."`
+	TrailingTemplates              []string `help:"List of templates that will be moved to the end of the document."`
+	IgnoredImageParams             []string `help:"Parameters of images that should be ignored. The list must be in lower case."`
+	IgnoredMediaTypes              []string `help:"List of media types to ignore, i.e. list of file extensions."`
+	WikipediaInstance              string   `help:"The subdomain of the Wikipedia instance."`
+	WikipediaHost                  string   `help:"The domain of the Wikipedia instance."`
+	WikipediaImageHost             string   `help:"The domain of the Wikipedia image instance."`
+	WikipediaMathRestApi           string   `help:"The URL to the math API of wikipedia."`
+	WikipediaImageArticleInstances []string `help:"Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for."`
+	FilePrefixe                    []string `help:"A list of prefixes to detect files, e.g. in \"File:picture.jpg\" the substring \"File\" is the image prefix."`
+	AllowedLinkPrefixes            []string `help:"A list of prefixes that are considered links and are therefore not removed."`
+	CategoryPrefixes               []string `help:"A list of category prefixes, which are technically internals links."`
+	MathConverter                  string   `help:"Converter turning math SVGs into PNGs."`
+	RsvgMathStylesheet             string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
+
+	Standalone struct {
+		File string `help:"A mediawiki file tha should be rendered to an eBook." arg:""`
 	} `cmd:"" help:"Renders a single mediawiki file into an eBook."`
 	Project struct {
-		ProjectFile        string   `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
-		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir           string   `help:"The directory where all cached files will be written to." placeholder:"<dir>"`
-		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
-		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g"`
-		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
-		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
+		ProjectFile string `help:"A project JSON-file tha should be used to create an eBook." type:"existingfile:" arg:"" placeholder:"<file>"`
 	} `cmd:"" help:"Uses a project file to create the eBook."`
 	Article struct {
-		ArticleName        string   `help:"The name of the article to render." arg:""`
-		OutputFile         string   `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
-		OutputType         string   `help:"The output file type. Possible values are: \"epub2\", \"epub3\"." short:"t" default:"epub2" placeholder:"<type>"`
-		OutputDriver       string   `help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>" default:"pandoc"`
-		CacheDir           string   `help:"The directory where all cached files will be written to." default:".wiki2book" placeholder:"<dir>"`
-		StyleFile          string   `help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
-		CoverImage         string   `help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
-		PandocDataDir      string   `help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
-		FontFiles          []string `help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
-		ImagesToGrayscale  bool     `help:"Set to true in order to convert raster images to grayscale." short:"g" default:"false"`
-		MathConverter      string   `help:"Converter turning math SVGs into PNGs." default:"wikimedia" enum:"none,wikimedia,rsvg"`
-		RsvgMathStylesheet string   `help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs."  placeholder:"<file>" default:""`
+		ArticleName string `help:"The name of the article to render." arg:""`
 	} `cmd:"" help:"Renders a single article into an eBook."`
 }
+
+var cli Cli
 
 type VersionFlag string
 
@@ -138,55 +136,47 @@ func main() {
 
 	switch ctx.Command() {
 	case "standalone <file>":
+		mergeCliParametersIntoConfig(&cli)
 		generateStandaloneEbook(
 			cli.Standalone.File,
-			cli.Standalone.OutputFile,
-			cli.Standalone.OutputType,
-			cli.Standalone.OutputDriver,
-			cli.Standalone.CacheDir,
-			cli.Standalone.StyleFile,
-			cli.Standalone.CoverImage,
-			cli.Standalone.PandocDataDir,
-			cli.Standalone.FontFiles,
-			cli.Standalone.ImagesToGrayscale,
-			cli.ForceRegenerateHtml,
-			cli.SvgSizeToViewbox,
-			cli.Standalone.MathConverter,
-			cli.Standalone.RsvgMathStylesheet,
+			cli.OutputFile,
 		)
 	case "project <project-file>":
+		// TODO First merge project into config and then cli args
+		mergeCliParametersIntoConfig(&cli)
 		generateProjectEbook(
 			cli.Project.ProjectFile,
-			cli.Project.OutputFile,
-			cli.Project.OutputType,
-			cli.Project.OutputDriver,
-			cli.Project.CacheDir,
-			cli.Project.StyleFile,
-			cli.Project.CoverImage,
-			cli.Project.PandocDataDir,
-			cli.Project.FontFiles,
-			cli.Project.ImagesToGrayscale,
+			cli.OutputFile,
+			cli.OutputType,
+			cli.OutputDriver,
+			cli.CacheDir,
+			cli.StyleFile,
+			cli.CoverImage,
+			cli.PandocDataDir,
+			cli.FontFiles,
+			cli.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
-			cli.Project.MathConverter,
-			cli.Project.RsvgMathStylesheet,
+			cli.MathConverter,
+			cli.RsvgMathStylesheet,
 		)
 	case "article <article-name>":
+		mergeCliParametersIntoConfig(&cli)
 		generateArticleEbook(
 			cli.Article.ArticleName,
-			cli.Article.OutputFile,
-			cli.Article.OutputType,
-			cli.Article.OutputDriver,
-			cli.Article.CacheDir,
-			cli.Article.StyleFile,
-			cli.Article.CoverImage,
-			cli.Article.PandocDataDir,
-			cli.Article.FontFiles,
-			cli.Article.ImagesToGrayscale,
+			cli.OutputFile,
+			cli.OutputType,
+			cli.OutputDriver,
+			cli.CacheDir,
+			cli.StyleFile,
+			cli.CoverImage,
+			cli.PandocDataDir,
+			cli.FontFiles,
+			cli.ImagesToGrayscale,
 			cli.ForceRegenerateHtml,
 			cli.SvgSizeToViewbox,
-			cli.Article.MathConverter,
-			cli.Article.RsvgMathStylesheet,
+			cli.MathConverter,
+			cli.RsvgMathStylesheet,
 		)
 	default:
 		if sigolo.GetCurrentLogLevel() > sigolo.LOG_DEBUG {
@@ -199,6 +189,82 @@ func main() {
 	sigolo.Debugf("Start   : %s", start.Format(RFC1123Millis))
 	sigolo.Debugf("End     : %s", end.Format(RFC1123Millis))
 	sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
+}
+
+func mergeCliParametersIntoConfig(cli *Cli) {
+	if cli.ForceRegenerateHtml {
+		config.Current.ForceRegenerateHtml = cli.ForceRegenerateHtml
+	}
+	if cli.SvgSizeToViewbox {
+		config.Current.SvgSizeToViewbox = cli.SvgSizeToViewbox
+	}
+	if cli.OutputType != "" {
+		config.Current.OutputType = cli.OutputType
+	}
+	if cli.OutputDriver != "" {
+		config.Current.OutputDriver = cli.OutputDriver
+	}
+	if cli.CacheDir != "" {
+		config.Current.CacheDir = cli.CacheDir
+	}
+	if cli.StyleFile != "" {
+		config.Current.StyleFile = cli.StyleFile
+	}
+	if cli.CoverImage != "" {
+		config.Current.CoverImage = cli.CoverImage
+	}
+	if cli.PandocDataDir != "" {
+		config.Current.PandocDataDir = cli.PandocDataDir
+	}
+	// TODO check if fontfiles is nil or not when not set
+	if cli.FontFiles != nil && len(cli.FontFiles) > 0 {
+		config.Current.FontFiles = cli.FontFiles
+	}
+	if cli.ImagesToGrayscale {
+		config.Current.ImagesToGrayscale = cli.ImagesToGrayscale
+	}
+	if cli.IgnoredTemplates != nil {
+		config.Current.IgnoredTemplates = cli.IgnoredTemplates
+	}
+	if cli.TrailingTemplates != nil {
+		config.Current.TrailingTemplates = cli.TrailingTemplates
+	}
+	if cli.IgnoredImageParams != nil {
+		config.Current.IgnoredImageParams = cli.IgnoredImageParams
+	}
+	if cli.IgnoredMediaTypes != nil {
+		config.Current.IgnoredMediaTypes = cli.IgnoredMediaTypes
+	}
+	if cli.WikipediaInstance != "" {
+		config.Current.WikipediaInstance = cli.WikipediaInstance
+	}
+	if cli.WikipediaHost != "" {
+		config.Current.WikipediaHost = cli.WikipediaHost
+	}
+	if cli.WikipediaImageHost != "" {
+		config.Current.WikipediaImageHost = cli.WikipediaImageHost
+	}
+	if cli.WikipediaMathRestApi != "" {
+		config.Current.WikipediaMathRestApi = cli.WikipediaMathRestApi
+	}
+	if cli.WikipediaImageArticleInstances != nil {
+		config.Current.WikipediaImageArticleInstances = cli.WikipediaImageArticleInstances
+	}
+	if cli.FilePrefixe != nil {
+		config.Current.FilePrefixe = cli.FilePrefixe
+	}
+	if cli.AllowedLinkPrefixes != nil {
+		config.Current.AllowedLinkPrefixes = cli.AllowedLinkPrefixes
+	}
+	if cli.CategoryPrefixes != nil {
+		config.Current.CategoryPrefixes = cli.CategoryPrefixes
+	}
+	if cli.MathConverter != "" {
+		config.Current.MathConverter = cli.MathConverter
+	}
+	if cli.RsvgMathStylesheet != "" {
+		config.Current.RsvgMathStylesheet = cli.RsvgMathStylesheet
+	}
 }
 
 func generateProjectEbook(projectFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
@@ -290,7 +356,7 @@ func generateProjectEbook(projectFile string, outputFile string, outputType stri
 	generateBookFromArticles(proj, forceHtmlRecreate, svgSizeToViewbox)
 }
 
-func generateStandaloneEbook(inputFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
+func generateStandaloneEbook(inputFile string, outputFile string) {
 	var err error
 
 	imageCache := "images"
@@ -299,10 +365,24 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	articleCache := "articles"
 	htmlOutputFolder := "html"
 
-	util.AssertFileExists(styleFile)
-	util.AssertFileExists(coverImageFile)
+	//var outputType = config.Current.OutputType
+	//var outputDriver = config.Current.OutputDriver
+	//var cacheDir = config.Current.
+	//var styleFile = config.Current.
+	//var coverImageFile = config.Current.
+	//var pandocDataDir = config.Current.
+	//var fontFiles = config.Current.
+	//var imagesToGrayscale = config.Current.
+	//var forceHtmlRecreate = config.Current.
+	//var svgSizeToViewbox = config.Current.
+	//var mathconverter = config.Current.
+	//var rsvgMathStylesheet = config.Current.
 
-	err = generator.VerifyOutputAndDriver(outputType, outputDriver)
+	// TODO Maybe move verifications up?
+	util.AssertFileExists(config.Current.StyleFile)
+	util.AssertFileExists(config.Current.CoverImage)
+
+	err = generator.VerifyOutputAndDriver(config.Current.OutputType, config.Current.OutputDriver)
 	sigolo.FatalCheck(err)
 
 	_, inputFileName := path.Split(inputFile)
@@ -324,62 +404,60 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 	}
 
 	// Make all relevant paths absolute
-	paths, err := util.ToAbsolutePaths(styleFile, outputFile, coverImageFile, pandocDataDir)
+	// TODO Use function from config here
+	paths, err := util.ToAbsolutePaths(config.Current.StyleFile, outputFile, config.Current.CoverImage, config.Current.PandocDataDir)
 	sigolo.FatalCheck(err)
-	styleFile = paths[0]
+	config.Current.StyleFile = paths[0]
 	outputFile = paths[1]
-	coverImageFile = paths[2]
-	pandocDataDir = paths[3]
-
-	if rsvgMathStylesheet != "" {
-		sigolo.Tracef("Override rsvgMathStylesheet from config file with %s", rsvgMathStylesheet)
-		config.Current.RsvgMathStylesheet = rsvgMathStylesheet
-	}
+	config.Current.CoverImage = paths[2]
+	config.Current.PandocDataDir = paths[3]
 	config.Current.RsvgMathStylesheet, err = util.ToAbsolutePath(config.Current.RsvgMathStylesheet)
+
 	sigolo.FatalCheck(err)
 	util.AssertFileExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
-	ensureDirectory(cacheDir)
-	err = os.Chdir(cacheDir)
+	ensureDirectory(config.Current.CacheDir)
+	err = os.Chdir(config.Current.CacheDir)
 	sigolo.FatalCheck(err)
 
 	ensureDirectory(util.TempDirName)
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	paths, err = util.ToRelativePaths(styleFile, outputFile, coverImageFile)
+	paths, err = util.ToRelativePaths(config.Current.StyleFile, outputFile, config.Current.CoverImage)
 	sigolo.FatalCheck(err)
-	styleFile = paths[0]
+	var relativeStyleFile = paths[0]
 	outputFile = paths[1]
-	coverImageFile = paths[2]
+	//var relativeCoverImageFile = paths[2]
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = api.DownloadImages(article.Images, imageCache, articleCache, svgSizeToViewbox, imagesToGrayscale)
+	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(htmlOutputFolder, article.Title+".html")
-	if shouldRecreateHtml(htmlFilePath, forceHtmlRecreate) {
+	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &html.HtmlGenerator{
 			ImageCacheFolder:   imageCache,
 			MathCacheFolder:    mathCache,
 			ArticleCacheFolder: articleCache,
 			TokenMap:           article.TokenMap,
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, styleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Infof("Start generating %s file", outputType)
+	sigolo.Infof("Start generating %s file", config.Current.OutputType)
 	metadata := project.Metadata{
 		Title: title,
 	}
 
-	err = Generate(outputDriver, []string{htmlFilePath}, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+	// TODO check if relative paths shoule be used here
+	err = Generate(config.Current.OutputDriver, []string{htmlFilePath}, outputFile, config.Current.OutputType, config.Current.StyleFile, config.Current.CoverImage, config.Current.PandocDataDir, config.Current.FontFiles, metadata)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(util.TempDirName)
@@ -389,7 +467,7 @@ func generateStandaloneEbook(inputFile string, outputFile string, outputType str
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file %s", outputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
