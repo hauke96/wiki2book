@@ -181,6 +181,30 @@ func mergeConfigIntoMainConfig(c *config.Configuration) {
 		sigolo.Tracef("Override CoverImage from project file with %s", absolutePath)
 		config.Current.CoverImage = absolutePath
 	}
+	if c.RsvgConvertExecutable != "" {
+		absolutePath, err := util.ToAbsolutePath(c.RsvgConvertExecutable)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override RsvgConvertExecutable from project file with %s", c.RsvgConvertExecutable)
+		config.Current.RsvgConvertExecutable = absolutePath
+	}
+	if c.RsvgMathStylesheet != "" {
+		absolutePath, err := util.ToAbsolutePath(c.RsvgMathStylesheet)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override RsvgMathStylesheet from project file with %s", c.RsvgMathStylesheet)
+		config.Current.RsvgMathStylesheet = absolutePath
+	}
+	if c.ImageMagickExecutable != "" {
+		absolutePath, err := util.ToAbsolutePath(c.ImageMagickExecutable)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override ImageMagickExecutable from project file with %s", c.ImageMagickExecutable)
+		config.Current.ImageMagickExecutable = absolutePath
+	}
+	if c.PandocExecutable != "" {
+		absolutePath, err := util.ToAbsolutePath(c.PandocExecutable)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override PandocExecutable from project file with %s", c.PandocExecutable)
+		config.Current.PandocExecutable = absolutePath
+	}
 	if c.PandocDataDir != "" {
 		absolutePath, err := util.ToAbsolutePath(c.PandocDataDir)
 		sigolo.FatalCheck(err)
@@ -248,12 +272,6 @@ func mergeConfigIntoMainConfig(c *config.Configuration) {
 	if c.MathConverter != "" {
 		sigolo.Tracef("Override MathConverter from project file with %s", c.MathConverter)
 		config.Current.MathConverter = c.MathConverter
-	}
-	if c.RsvgMathStylesheet != "" {
-		absolutePath, err := util.ToAbsolutePath(c.RsvgMathStylesheet)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override RsvgMathStylesheet from project file with %s", c.RsvgMathStylesheet)
-		config.Current.RsvgMathStylesheet = absolutePath
 	}
 
 	config.Current.MakePathsAbsoluteToWorkingDir()

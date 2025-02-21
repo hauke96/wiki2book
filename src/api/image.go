@@ -28,7 +28,7 @@ func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 
 	args = append(args, imageFilepath)
 
-	err := util.Execute("convert", args...)
+	err := util.Execute(config.Current.ImageMagickExecutable, args...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s failed", imageFilepath)
@@ -46,7 +46,7 @@ func convertSvgToPng(svgFile string, pngFile string) error {
 		svgFile,
 	}
 
-	err := util.Execute("rsvg-convert", args...)
+	err := util.Execute(config.Current.RsvgConvertExecutable, args...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s to PNG failed", svgFile)

@@ -42,7 +42,10 @@ var Current = &Configuration{
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
+	RsvgConvertExecutable:          "rsvg-convert",
 	RsvgMathStylesheet:             "rsvg-math.css",
+	ImageMagickExecutable:          "convert",
+	PandocExecutable:               "pandoc",
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -122,6 +125,45 @@ type Configuration struct {
 		JSON example: "cover-image": "nice-picture.jpeg"
 	*/
 	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+
+	/*
+		The executable name or file for rsvg-convert.
+
+		Default: "rsvg-convert"
+		Mandatory: No
+
+		JSON example: "rsvg-convert-executable": "/path/to/rsvg-convert"
+	*/
+	RsvgConvertExecutable string `json:"rsvg-convert-executable" help:"The executable name or file for rsvg-convert." placeholder:"<file>"`
+
+	/*
+		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
+		"rsvg-convert" command. Relative paths are relative to the config file.
+
+		Default: [ "rsvg-math.css" ]
+		Mandatory: No
+	*/
+	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
+
+	/*
+		The executable name or file for ImageMagick.
+
+		Default: "convert"
+		Mandatory: No
+
+		JSON example: "imagemagick-executable": "/path/to/imagemagick"
+	*/
+	ImageMagickExecutable string `json:"imagemagick-executable" help:"The executable name or file for ImageMagick." placeholder:"<file>"`
+
+	/*
+		The executable name or file for pandoc.
+
+		Default: "pandoc"
+		Mandatory: No
+
+		JSON example: "pandoc-executable": "/path/to/pandoc"
+	*/
+	PandocExecutable string `json:"pandoc-executable" help:"The executable name or file for pandoc." placeholder:"<file>"`
 
 	/*
 		The data directory for pandoc. Relative paths are relative to the config file.
@@ -289,15 +331,6 @@ type Configuration struct {
 		Mandatory: No
 	*/
 	MathConverter string `json:"math-converter" help:"Converter turning math SVGs into PNGs."`
-
-	/*
-		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
-		"rsvg-convert" command. Relative paths are relative to the config file.
-
-		Default: [ "rsvg-math.css" ]
-		Mandatory: No
-	*/
-	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
 }
 
 func (c *Configuration) makePathsAbsolute(file string) {
@@ -306,11 +339,20 @@ func (c *Configuration) makePathsAbsolute(file string) {
 
 	absoluteConfigDir := filepath.Dir(absoluteConfigPath)
 
-	c.CacheDir = filepath.Join(absoluteConfigDir, c.CacheDir)
-	c.StyleFile = filepath.Join(absoluteConfigDir, c.StyleFile)
-	c.CoverImage = filepath.Join(absoluteConfigDir, c.CoverImage)
-	c.PandocDataDir = filepath.Join(absoluteConfigDir, c.PandocDataDir)
-	c.RsvgMathStylesheet = filepath.Join(absoluteConfigDir, c.RsvgMathStylesheet)
+	c.CacheDir, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.CacheDir)
+	sigolo.FatalCheck(err)
+
+	c.StyleFile, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.StyleFile)
+	sigolo.FatalCheck(err)
+
+	c.CoverImage, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.CoverImage)
+	sigolo.FatalCheck(err)
+
+	c.PandocDataDir, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.PandocDataDir)
+	sigolo.FatalCheck(err)
+
+	c.RsvgMathStylesheet, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.RsvgMathStylesheet)
+	sigolo.FatalCheck(err)
 
 	for i, f := range c.FontFiles {
 		absoluteFile := filepath.Join(absoluteConfigDir, f)

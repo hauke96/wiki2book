@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"regexp"
+	"wiki2book/config"
 	"wiki2book/project"
 	"wiki2book/util"
 )
@@ -42,7 +43,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 
 	args = append(args, sourceFiles...)
 
-	err := util.Execute("pandoc", args...)
+	err := util.Execute(config.Current.PandocExecutable, args...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
 	}
