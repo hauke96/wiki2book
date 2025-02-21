@@ -29,7 +29,7 @@ var (
 
 // VerifyOutputAndDriver returns an error if the output type and driver are not compatible and returns nil if they are.
 func VerifyOutputAndDriver(outputType string, outputDriver string) error {
-	sigolo.Debugf("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
+	sigolo.Tracef("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
 
 	if !util.Contains(AllOutputDrivers, outputDriver) {
 		return errors.Errorf("Unknown output driver '%s'. Known driver: '%s'", outputDriver, strings.Join(AllOutputDrivers, ", "))

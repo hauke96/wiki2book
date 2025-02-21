@@ -6,27 +6,13 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"wiki2book/config"
-	"wiki2book/generator"
 )
 
 type Project struct {
-	Metadata             Metadata `json:"metadata"`
-	WikipediaInstance    string   `json:"wikipedia-instance"`
-	WikipediaHost        string   `json:"wikipedia-host"`
-	WikipediaImageHost   string   `json:"wikipedia-image-host"`
-	WikipediaMathRestApi string   `json:"wikipedia-math-rest-api"`
-	OutputFile           string   `json:"output-file"`
-	OutputType           string   `json:"output-type"`
-	OutputDriver         string   `json:"output-driver"`
-	CacheDir             string   `json:"cache-dir"`
-	CoverImage           string   `json:"cover-image"`
-	StyleFile            string   `json:"style-file"`
-	PandocDataDir        string   `json:"pandoc-data-dir"`
-	Articles             []string `json:"articles"`
-	FontFiles            []string `json:"font-files"`
-	ImagesToGrayscale    bool     `json:"images-to-grayscale"`
-	MathConverter        string   `json:"math-converter"`
-	RsvgMathStylesheet   string   `json:"rsvg-math-stylesheet"`
+	Metadata   Metadata `json:"metadata"`
+	OutputFile string   `json:"output-file"`
+	Articles   []string `json:"articles"`
+	config.Configuration
 }
 
 type Metadata struct {
@@ -45,33 +31,11 @@ func LoadProject(file string) (*Project, error) {
 		return nil, errors.Wrap(err, fmt.Sprintf("Error reading project file %s", file))
 	}
 
-	project := NewWithDefaults()
+	project := &Project{}
 	err = json.Unmarshal(projectString, project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")
 	}
 
-	// Override default configs with project specific ones
-	if project.WikipediaInstance != "" {
-		config.Current.WikipediaInstance = project.WikipediaInstance
-	}
-	if project.WikipediaHost != "" {
-		config.Current.WikipediaHost = project.WikipediaHost
-	}
-	if project.WikipediaImageHost != "" {
-		config.Current.WikipediaImageHost = project.WikipediaImageHost
-	}
-	if project.WikipediaMathRestApi != "" {
-		config.Current.WikipediaMathRestApi = project.WikipediaMathRestApi
-	}
-
 	return project, nil
-}
-
-func NewWithDefaults() *Project {
-	return &Project{
-		CacheDir:     ".wiki2book",
-		OutputType:   "epub2",
-		OutputDriver: generator.OutputDriverPandoc,
-	}
 }

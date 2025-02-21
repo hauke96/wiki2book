@@ -98,10 +98,10 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 
 	// Create the output file
 	tempFile, err := os.CreateTemp(util.TempDirName, filename)
-	tempFilepath := tempFile.Name()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", tempFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(util.TempDirName, filename)))
 	}
+	tempFilepath := tempFile.Name()
 	defer os.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
 
