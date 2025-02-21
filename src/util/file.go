@@ -59,8 +59,8 @@ func ToAbsolutePath(path string) (string, error) {
 	return path, err
 }
 
-func AssertFileExists(path string) {
+func AssertPathExists(path string) {
 	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
-		sigolo.FatalCheck(errors.Errorf("File path '%s' does not exist", path))
+		sigolo.FatalCheck(errors.Errorf("Path '%s' does not exist", path))
 	}
 }

@@ -205,20 +205,30 @@ func mergeCliParametersIntoConfig(cli *Cli) {
 		config.Current.OutputDriver = cli.OutputDriver
 	}
 	if cli.CacheDir != "" {
-		config.Current.CacheDir = cli.CacheDir
+		absolutePath, err := util.ToAbsolutePath(cli.CacheDir)
+		sigolo.FatalCheck(err)
+		config.Current.CacheDir = absolutePath
 	}
 	if cli.StyleFile != "" {
-		config.Current.StyleFile = cli.StyleFile
+		absolutePath, err := util.ToAbsolutePath(cli.StyleFile)
+		sigolo.FatalCheck(err)
+		config.Current.StyleFile = absolutePath
 	}
 	if cli.CoverImage != "" {
-		config.Current.CoverImage = cli.CoverImage
+		absolutePath, err := util.ToAbsolutePath(cli.CoverImage)
+		sigolo.FatalCheck(err)
+		config.Current.CoverImage = absolutePath
 	}
 	if cli.PandocDataDir != "" {
-		config.Current.PandocDataDir = cli.PandocDataDir
+		absolutePath, err := util.ToAbsolutePath(cli.PandocDataDir)
+		sigolo.FatalCheck(err)
+		config.Current.PandocDataDir = absolutePath
 	}
 	// TODO check if fontfiles is nil or not when not set
 	if cli.FontFiles != nil && len(cli.FontFiles) > 0 {
-		config.Current.FontFiles = cli.FontFiles
+		absolutePaths, err := util.ToAbsolutePaths(cli.FontFiles...)
+		sigolo.FatalCheck(err)
+		config.Current.FontFiles = absolutePaths
 	}
 	if cli.ImagesToGrayscale {
 		config.Current.ImagesToGrayscale = cli.ImagesToGrayscale
@@ -263,8 +273,12 @@ func mergeCliParametersIntoConfig(cli *Cli) {
 		config.Current.MathConverter = cli.MathConverter
 	}
 	if cli.RsvgMathStylesheet != "" {
-		config.Current.RsvgMathStylesheet = cli.RsvgMathStylesheet
+		absolutePath, err := util.ToAbsolutePath(cli.RsvgMathStylesheet)
+		sigolo.FatalCheck(err)
+		config.Current.RsvgMathStylesheet = absolutePath
 	}
+
+	config.Current.AssertValidity()
 }
 
 func generateProjectEbook(projectFile string, outputFile string, outputType string, outputDriver string, cacheDir string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, imagesToGrayscale bool, forceHtmlRecreate bool, svgSizeToViewbox bool, mathconverter string, rsvgMathStylesheet string) {
@@ -365,26 +379,6 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	articleCache := "articles"
 	htmlOutputFolder := "html"
 
-	//var outputType = config.Current.OutputType
-	//var outputDriver = config.Current.OutputDriver
-	//var cacheDir = config.Current.
-	//var styleFile = config.Current.
-	//var coverImageFile = config.Current.
-	//var pandocDataDir = config.Current.
-	//var fontFiles = config.Current.
-	//var imagesToGrayscale = config.Current.
-	//var forceHtmlRecreate = config.Current.
-	//var svgSizeToViewbox = config.Current.
-	//var mathconverter = config.Current.
-	//var rsvgMathStylesheet = config.Current.
-
-	// TODO Maybe move verifications up?
-	util.AssertFileExists(config.Current.StyleFile)
-	util.AssertFileExists(config.Current.CoverImage)
-
-	err = generator.VerifyOutputAndDriver(config.Current.OutputType, config.Current.OutputDriver)
-	sigolo.FatalCheck(err)
-
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
@@ -404,17 +398,9 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	}
 
 	// Make all relevant paths absolute
-	// TODO Use function from config here
-	paths, err := util.ToAbsolutePaths(config.Current.StyleFile, outputFile, config.Current.CoverImage, config.Current.PandocDataDir)
+	absolutePath, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	config.Current.StyleFile = paths[0]
-	outputFile = paths[1]
-	config.Current.CoverImage = paths[2]
-	config.Current.PandocDataDir = paths[3]
-	config.Current.RsvgMathStylesheet, err = util.ToAbsolutePath(config.Current.RsvgMathStylesheet)
-
-	sigolo.FatalCheck(err)
-	util.AssertFileExists(config.Current.RsvgMathStylesheet)
+	outputFile = absolutePath
 
 	// Create cache dir and go into it
 	ensureDirectory(config.Current.CacheDir)
@@ -425,11 +411,8 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
 	// of the systems' directory structure.
-	paths, err = util.ToRelativePaths(config.Current.StyleFile, outputFile, config.Current.CoverImage)
+	relativeStyleFile, err := util.ToRelativePath(config.Current.StyleFile)
 	sigolo.FatalCheck(err)
-	var relativeStyleFile = paths[0]
-	outputFile = paths[1]
-	//var relativeCoverImageFile = paths[2]
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
@@ -456,7 +439,6 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	// TODO check if relative paths shoule be used here
 	err = Generate(config.Current.OutputDriver, []string{htmlFilePath}, outputFile, config.Current.OutputType, config.Current.StyleFile, config.Current.CoverImage, config.Current.PandocDataDir, config.Current.FontFiles, metadata)
 	sigolo.FatalCheck(err)
 
@@ -518,8 +500,8 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	articleCache := "articles"
 	htmlOutputFolder := "html"
 
-	util.AssertFileExists(styleFile)
-	util.AssertFileExists(coverImageFile)
+	util.AssertPathExists(styleFile)
+	util.AssertPathExists(coverImageFile)
 
 	err = generator.VerifyOutputAndDriver(outputType, outputDriver)
 	sigolo.FatalCheck(err)
@@ -538,7 +520,7 @@ func generateBookFromArticles(project *project.Project, forceHtmlRecreate bool, 
 	}
 	config.Current.RsvgMathStylesheet, err = util.ToAbsolutePath(config.Current.RsvgMathStylesheet)
 	sigolo.FatalCheck(err)
-	util.AssertFileExists(config.Current.RsvgMathStylesheet)
+	util.AssertPathExists(config.Current.RsvgMathStylesheet)
 
 	// Create cache dir and go into it
 	ensureDirectory(cacheDir)

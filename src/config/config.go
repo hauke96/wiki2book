@@ -315,21 +315,33 @@ func (c *Configuration) makePathsAbsoluteToWorkingDir() {
 	// TODO
 }
 
-func (c *Configuration) checkValidity() error {
+func (c *Configuration) assertFilesExists() {
+	util.AssertPathExists(Current.CacheDir)
+	util.AssertPathExists(Current.StyleFile)
+	util.AssertPathExists(Current.CoverImage)
+	util.AssertPathExists(Current.PandocDataDir)
+	util.AssertPathExists(Current.RsvgMathStylesheet)
+	for _, f := range Current.FontFiles {
+		util.AssertPathExists(f)
+	}
+}
+
+func (c *Configuration) AssertValidity() {
 	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
-		return errors.Errorf("Invalid output type '%s'", c.OutputType)
+		sigolo.Fatalf("Invalid output type '%s'", c.OutputType)
 	}
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
-		return errors.Errorf("Invalid output driver '%s'", c.OutputDriver)
+		sigolo.Fatalf("Invalid output driver '%s'", c.OutputDriver)
 	}
 	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
 	if err != nil {
-		return err
+		sigolo.Fatalf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err)
 	}
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterRsvg {
-		return errors.Errorf("Invalid math converter '%s'", c.OutputDriver)
+		sigolo.Fatalf("Invalid math converter '%s'", c.OutputDriver)
 	}
-	return nil
+
+	c.assertFilesExists()
 }
 
 func LoadConfig(file string) error {
@@ -344,9 +356,7 @@ func LoadConfig(file string) error {
 	}
 
 	Current.makePathsAbsolute(file)
-
-	err = Current.checkValidity()
-	sigolo.FatalCheck(err)
+	Current.AssertValidity()
 
 	return nil
 }
