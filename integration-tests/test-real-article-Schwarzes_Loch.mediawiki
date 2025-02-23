@@ -52,7 +52,7 @@ Im Jahr 1971 folgte mit der Entdeckung von [[Cygnus&nbsp;X-1]] der erste beobach
 In den 2000er Jahren entwickelte sich ein Trend, nicht direkt der Beobachtung zugängliche Phänomene wie Hawking-Strahlung an [[Schwarzes-Loch-Analogon|Schwarzes-Loch-Analoga]] experimentell zu untersuchen, wobei es sich nicht um gravitative Systeme handelt, sondern um akustische oder elektromagnetische bzw. optische.
 
 == Physikalische Beschreibung ==
-{{Metriken Schwarzer Löcher}}
+((Metriken Schwarzer Löcher))
 
 === Entstehungsdynamik ===
 [[Datei:Flamm.svg|mini|Äußere [[Schwarzschildlösung]]]]

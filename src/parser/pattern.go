@@ -54,7 +54,9 @@ var (
 
 // References
 var (
-	referenceBlockStartRegex = regexp.MustCompile(`</?references.*?/?>\n?`)
+	referencePlaceholderShortRegex = regexp.MustCompile(`<references.*?/\s*>`) // <references />
+	referencePlaceholderStartRegex = regexp.MustCompile(`<references.*?\s*>`)  // <references group="foo" >
+	referencePlaceholderEndRegex   = regexp.MustCompile(`</references\s*>`)    // </references>
 )
 
 // Math
