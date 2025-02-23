@@ -132,7 +132,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 						}
 					}
 
-					refIndexToContent[refIndex] = content[startEndIndex+1 : refEndIndex]
+					refIndexToContent[refIndex] = t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
 
 					if !cursorWithinReferencePlaceholder {
 						tokenKey := t.getToken(TOKEN_REF_USAGE)

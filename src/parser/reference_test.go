@@ -6,35 +6,6 @@ import (
 	"wiki2book/test"
 )
 
-func TestGetReferenceHeadAndFoot(t *testing.T) {
-	head := "some text<ref>foo</ref> with refs<ref name=\"barbar\">bar</ref>.\n"
-	foot := "foooooooter"
-	content := head + "<references />\n" + foot
-
-	tokenizer := NewTokenizer("foo", "bar")
-	newHead, newBody, newFoot, noRefListFound := tokenizer.getReferenceHeadBodyFoot(content)
-
-	test.AssertEqual(t, head, newHead)
-	test.AssertEqual(t, "", newBody)
-	test.AssertEqual(t, foot, newFoot)
-	test.AssertFalse(t, noRefListFound)
-}
-
-func TestGetReferenceHeadAndFoot_withBody(t *testing.T) {
-	head := "some text<ref>foo</ref> with refs<ref name=\"barbar\">bar</ref>.\n"
-	body := "some body"
-	foot := "foooooooter"
-	content := head + "<references>\n" + body + "</references>\n" + foot
-
-	tokenizer := NewTokenizer("foo", "bar")
-	newHead, newBody, newFoot, noRefListFound := tokenizer.getReferenceHeadBodyFoot(content)
-
-	test.AssertEqual(t, head, newHead)
-	test.AssertEqual(t, body, newBody)
-	test.AssertEqual(t, foot, newFoot)
-	test.AssertFalse(t, noRefListFound)
-}
-
 func TestParseReferences(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `some text<ref>bar</ref>
@@ -60,6 +31,20 @@ some footer`
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3):   RefDefinitionToken{Index: 0, Content: "bar"},
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4):   RefDefinitionToken{Index: 1, Content: "blubbeldy"},
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 5):   RefDefinitionToken{Index: 2, Content: "foo"},
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseReferences_tokenizeRefContent(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := `some text<ref>foo [[bar|Bar]]</ref>.`
+	expectedContent := "some text" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "."
+
+	newContent := tokenizer.parseReferences(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_INTERNAL_LINK, 0): InternalLinkToken{ArticleName: "bar", LinkText: "Bar"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1):     RefUsageToken{Index: 0},
 	}, tokenizer.getTokenMap())
 }
 
