@@ -337,6 +337,27 @@ b<b>a</b>r
 </ol>`, row)
 }
 
+func TestExpandOrderedList_specifyNumberOfItems(t *testing.T) {
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=42> bar"}
+	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=10> another item with custom value   </li>"}
+	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
+
+	row, err := generator.expand(list3)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ol>
+<li>
+foo
+</li>
+<li value=42> bar</li>
+<li value=10> another item with custom value   </li>
+<li>
+b<b>a</b>r
+</li>
+</ol>`, row)
+}
+
 func TestExpandDescriptionList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.DESCRIPTION_HEAD, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}

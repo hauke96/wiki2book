@@ -70,6 +70,7 @@ const TEMPLATE_OL = `<ol>
 const TEMPLATE_DL = `<div class="description-list">
 %s
 </div>` // Use bare div-tags instead of <dl> due to eBook-reader incompatibilities :(
+const TEMPLATE_LI_CLOSING_TAG = `</li>`
 const TEMPLATE_LI = `<li>
 %s
 </li>`
@@ -372,18 +373,6 @@ func (g *HtmlGenerator) expandListItems(items []parser.ListItemToken) (string, e
 }
 
 func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, error) {
-	var template string
-	switch token.Type {
-	case parser.NORMAL_ITEM:
-		template = TEMPLATE_LI
-	case parser.DESCRIPTION_HEAD:
-		template = TEMPLATE_DT
-	case parser.DESCRIPTION_ITEM:
-		template = TEMPLATE_DD
-	default:
-		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
-	}
-
 	var listItemContents []string
 	listItemContent, err := g.expand(token.Content)
 	if err != nil {
@@ -399,7 +388,31 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 		listItemContents = append(listItemContents, expandedSubList)
 	}
 
-	return fmt.Sprintf(template, strings.Join(listItemContents, "\n")), nil
+	listItemString := strings.Join(listItemContents, "\n")
+
+	var template string
+	switch token.Type {
+	case parser.NORMAL_ITEM:
+		if strings.TrimLeft(listItemString, " ")[:3] == "<li" {
+			// The wikitext "# <li value=4> ..." is valid to let the list start/continue with the number 4. The <li>
+			// item of the manual HTML within this list might contain additional arguments, so we use their item
+			// instead of the item from the template.
+			template = "%s"
+			if !strings.Contains(listItemString, "</li") {
+				template += "</li>"
+			}
+		} else {
+			template = TEMPLATE_LI
+		}
+	case parser.DESCRIPTION_HEAD:
+		template = TEMPLATE_DT
+	case parser.DESCRIPTION_ITEM:
+		template = TEMPLATE_DD
+	default:
+		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
+	}
+
+	return fmt.Sprintf(template, listItemString), nil
 }
 
 func (g *HtmlGenerator) expandRefDefinition(token parser.RefDefinitionToken) (string, error) {
