@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/hauke96/sigolo/v2"
 	"strings"
 	"wiki2book/util"
 )
@@ -18,6 +19,144 @@ type RefUsageToken struct {
 }
 
 func (t *Tokenizer) parseReferences(content string) string {
+	/*
+		There are two types of tags we parse here: Reference definitions and references placeholders. Definitions look
+		like "<ref ...>...</ref>" and placeholders like "<references />". There are also usages of already defined
+		references, which have a "name" tag in them like "<ref name="foo" />".
+
+		Structure and wording for reference definitions:
+
+		<ref name="foo" > Foo </ref>
+		|-------A------|B|-C-|--D--|
+
+		A = Start
+		B = Start closing
+		C = Content
+		D = End
+
+		For reference usages like "<ref name="foo" />", there is no start closing and the reference end is "/>".
+	*/
+	refDefStart := "<ref"
+	refDefLongEnd := "</ref>"
+	refPlaceholderEnd := "</re" // Only four characters just as the refDefStart, which defined the cursor size.
+	xmlClosing := ">"
+	refDefStartLen := len(refDefStart)
+	refDefLongEndLen := len(refDefLongEnd)
+
+	refIndexToContent := map[int]string{}
+	nameToRefIndex := map[string]int{}
+	refIndexCounter := 0
+
+	// Whether the current cursor is within a "<references>...</references>" block. Within this block, further reference
+	// definitions might occur. These references will not be turned into any usage-token because they are not used at
+	// that location but just defined.
+	cursorWithinReferencePlaceholder := false
+
+	for i := 0; i < len(content)-refDefStartLen; i++ {
+		cursor := content[i : i+refDefStartLen]
+
+		restOfContent := content[i:]
+		sigolo.Trace(restOfContent)
+
+		if cursor == refDefStart || cursor == refPlaceholderEnd {
+			startEndIndex := findCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
+
+			if referencePlaceholderStartRegex.MatchString(content[i : startEndIndex+1]) {
+				// Tag like "<references group=foo >" found
+				cursorWithinReferencePlaceholder = true
+
+				// Remove tag from content
+				content = content[0:i] + content[startEndIndex+1:]
+			} else if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
+				// Tag like "</references>" or "<references />" found
+
+				cursorWithinReferencePlaceholder = false
+
+				// Remove tag from content
+				contentBefore := strings.TrimRight(content[0:i], "\n") + "\n" // ensure this part ends with a newline
+				contentAfter := content[startEndIndex+1:]
+
+				// Generate list of references
+				for refIndex := 0; refIndex < refIndexCounter; refIndex++ {
+					tokenKey := t.getToken(TOKEN_REF_DEF)
+					t.setRawToken(tokenKey, RefDefinitionToken{
+						Index:   refIndex,
+						Content: refIndexToContent[refIndex],
+					})
+					contentBefore += tokenKey + "\n"
+				}
+
+				content = strings.TrimRight(contentBefore, "\n") + contentAfter
+			} else {
+				// Tag like "<ref name=..." or "<ref>..." found
+				nameAttributeValue := getNameAttribute(content[i+refDefStartLen : startEndIndex])
+
+				isReferenceUsage := content[startEndIndex-1] == '/'
+				if isReferenceUsage {
+					if nameAttributeValue != "" {
+						// Names reference usage
+						refIndex, ok := nameToRefIndex[nameAttributeValue]
+						if !ok {
+							// Name appears the first time, the definition might come later
+							refIndex = refIndexCounter
+							nameToRefIndex[nameAttributeValue] = refIndex
+							refIndexCounter++
+						}
+
+						if !cursorWithinReferencePlaceholder {
+							tokenKey := t.getToken(TOKEN_REF_USAGE)
+							t.setRawToken(tokenKey, RefUsageToken{
+								Index: refIndex,
+							})
+							content = content[0:i] + tokenKey + content[startEndIndex+1:]
+						} else {
+							content = content[0:i] + content[startEndIndex+1:]
+						}
+					} else {
+						sigolo.Warnf("Named reference usage without name-attribute found: %s", content[i:startEndIndex])
+					}
+				} else {
+					// Reference definition like "<ref name=...>Foobar</ref".
+
+					refEndIndex := findCorrespondingCloseToken(content, startEndIndex, refDefStart, refDefLongEnd)
+
+					refIndex := refIndexCounter
+					if nameAttributeValue != "" {
+						if _, ok := nameToRefIndex[nameAttributeValue]; ok {
+							// Ref name already used before, so we use the index of this existing ref usage.
+							refIndex = nameToRefIndex[nameAttributeValue]
+						} else {
+							// Ref name appears for the first time, so we save the current counter value for later
+							// usages of this ref name.
+							nameToRefIndex[nameAttributeValue] = refIndexCounter
+						}
+					}
+
+					refIndexToContent[refIndex] = content[startEndIndex+1 : refEndIndex]
+
+					if !cursorWithinReferencePlaceholder {
+						tokenKey := t.getToken(TOKEN_REF_USAGE)
+						t.setRawToken(tokenKey, RefUsageToken{
+							Index: refIndex,
+						})
+						content = content[0:i] + tokenKey + content[refEndIndex+refDefLongEndLen:]
+					} else {
+						content = content[0:i] + content[refEndIndex+refDefLongEndLen:]
+					}
+
+					if refIndex == refIndexCounter {
+						// We actually used the current count value, so we increase it for the next token.
+						refIndexCounter++
+					}
+				}
+			}
+		}
+	}
+
+	return content
+}
+
+func (t *Tokenizer) _parseReferences(content string) string {
 	// Split content in head, body and foot.
 	// Head is everything before the <references/> or </references> tag.
 	// Body is everything between <references> and </references>.
@@ -213,11 +352,11 @@ func getNameAttribute(content string) string {
 // values are head, body, foot and a boolean which is true if there's no reference list in content.
 func (t *Tokenizer) getReferenceHeadBodyFoot(content string) (string, string, string, bool) {
 	// No reference list found -> abort
-	if !referenceBlockStartRegex.MatchString(content) {
+	if !referencePlaceholderStartRegex.MatchString(content) {
 		return "", "", "", true
 	}
 
-	contentParts := referenceBlockStartRegex.Split(content, -1)
+	contentParts := referencePlaceholderStartRegex.Split(content, -1)
 	// In case of dedicated <references>...</references> block
 	//   part 0 = head : everything before <references...>
 	//   part 1 = body : everything between <references> and </references>
