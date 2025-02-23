@@ -110,7 +110,7 @@ Bar<ref name=foo>some ref but for bar</ref>
 	}, tokenizer.getTokenMap())
 }
 
-func TestParseReferences_multipleReferencesTags(t *testing.T) {
+func TestParseReferences_multipleReferencesPlaceholder(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := `Foo<ref>some ref</ref>
 <references/>

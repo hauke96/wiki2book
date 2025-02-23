@@ -43,9 +43,9 @@ func (t *Tokenizer) parseReferences(content string) string {
 	refDefStartLen := len(refDefStart)
 	refDefLongEndLen := len(refDefLongEnd)
 
-	refIndexToContent := map[int]string{}
-	nameToRefIndex := map[string]int{}
-	refIndexCounter := 0
+	refNumberToContent := map[int]string{}
+	nameToRefNumber := map[string]int{}
+	refNumberCounter := 0
 
 	// Whether the current cursor is within a "<references>...</references>" block. Within this block, further reference
 	// definitions might occur. These references will not be turned into any usage-token because they are not used at
@@ -71,13 +71,21 @@ func (t *Tokenizer) parseReferences(content string) string {
 				contentAfter := content[startEndIndex+1:]
 
 				// Generate list of references
-				for refIndex := 0; refIndex < refIndexCounter; refIndex++ {
+
+				for refNumber := 0; refNumber < refNumberCounter; refNumber++ {
+					if _, ok := refNumberToContent[refNumber]; !ok {
+						continue
+					}
+
 					tokenKey := t.getToken(TOKEN_REF_DEF)
 					t.setRawToken(tokenKey, RefDefinitionToken{
-						Index:   refIndex,
-						Content: refIndexToContent[refIndex],
+						Index:   refNumber,
+						Content: refNumberToContent[refNumber],
 					})
 					contentBefore += tokenKey + "\n"
+
+					// Delete entry to prevent it from being used at the next placeholder again.
+					delete(refNumberToContent, refNumber)
 				}
 
 				content = strings.TrimRight(contentBefore, "\n") + contentAfter
@@ -95,18 +103,18 @@ func (t *Tokenizer) parseReferences(content string) string {
 				if isReferenceUsage {
 					if nameAttributeValue != "" {
 						// Names reference usage
-						refIndex, ok := nameToRefIndex[nameAttributeValue]
+						refNumber, ok := nameToRefNumber[nameAttributeValue]
 						if !ok {
 							// Name appears the first time, the definition might come later
-							refIndex = refIndexCounter
-							nameToRefIndex[nameAttributeValue] = refIndex
-							refIndexCounter++
+							refNumber = refNumberCounter
+							nameToRefNumber[nameAttributeValue] = refNumber
+							refNumberCounter++
 						}
 
 						if !cursorWithinReferencePlaceholder {
 							tokenKey := t.getToken(TOKEN_REF_USAGE)
 							t.setRawToken(tokenKey, RefUsageToken{
-								Index: refIndex,
+								Index: refNumber,
 							})
 							content = content[0:i] + tokenKey + content[startEndIndex+1:]
 						} else {
@@ -120,33 +128,33 @@ func (t *Tokenizer) parseReferences(content string) string {
 
 					refEndIndex := findCorrespondingCloseToken(content, startEndIndex, refDefStart, refDefLongEnd)
 
-					refIndex := refIndexCounter
+					refNumber := refNumberCounter
 					if nameAttributeValue != "" {
-						if _, ok := nameToRefIndex[nameAttributeValue]; ok {
-							// Ref name already used before, so we use the index of this existing ref usage.
-							refIndex = nameToRefIndex[nameAttributeValue]
+						if _, ok := nameToRefNumber[nameAttributeValue]; ok {
+							// Ref name already used before, so we use the number of this existing ref usage.
+							refNumber = nameToRefNumber[nameAttributeValue]
 						} else {
 							// Ref name appears for the first time, so we save the current counter value for later
 							// usages of this ref name.
-							nameToRefIndex[nameAttributeValue] = refIndexCounter
+							nameToRefNumber[nameAttributeValue] = refNumberCounter
 						}
 					}
 
-					refIndexToContent[refIndex] = t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
+					refNumberToContent[refNumber] = t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
 
 					if !cursorWithinReferencePlaceholder {
 						tokenKey := t.getToken(TOKEN_REF_USAGE)
 						t.setRawToken(tokenKey, RefUsageToken{
-							Index: refIndex,
+							Index: refNumber,
 						})
 						content = content[0:i] + tokenKey + content[refEndIndex+refDefLongEndLen:]
 					} else {
 						content = content[0:i] + content[refEndIndex+refDefLongEndLen:]
 					}
 
-					if refIndex == refIndexCounter {
+					if refNumber == refNumberCounter {
 						// We actually used the current count value, so we increase it for the next token.
-						refIndexCounter++
+						refNumberCounter++
 					}
 				}
 			}
