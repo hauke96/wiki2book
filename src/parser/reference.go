@@ -61,13 +61,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 		if cursor == refDefStart || cursor == refPlaceholderEnd {
 			startEndIndex := findCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
 
-			if referencePlaceholderStartRegex.MatchString(content[i : startEndIndex+1]) {
-				// Tag like "<references group=foo >" found
-				cursorWithinReferencePlaceholder = true
-
-				// Remove tag from content
-				content = content[0:i] + content[startEndIndex+1:]
-			} else if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
+			if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
 				// Tag like "</references>" or "<references />" found
 
 				cursorWithinReferencePlaceholder = false
@@ -87,6 +81,12 @@ func (t *Tokenizer) parseReferences(content string) string {
 				}
 
 				content = strings.TrimRight(contentBefore, "\n") + contentAfter
+			} else if referencePlaceholderStartRegex.MatchString(content[i : startEndIndex+1]) {
+				// Tag like "<references group=foo >" found
+				cursorWithinReferencePlaceholder = true
+
+				// Remove tag from content
+				content = content[0:i] + content[startEndIndex+1:]
 			} else {
 				// Tag like "<ref name=..." or "<ref>..." found
 				nameAttributeValue := getNameAttribute(content[i+refDefStartLen : startEndIndex])

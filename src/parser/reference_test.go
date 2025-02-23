@@ -71,7 +71,7 @@ Bar<ref name=bar>This is a quoteless ref for bar.</ref>
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
 		"Bar" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "\n" +
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 2) + "\n" +
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n"
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3)
 
 	newContent := tokenizer.parseReferences(content)
 
@@ -93,7 +93,7 @@ Foobar<ref name="foo"" />
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
 		"Bar" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "\n" +
 		"Foobar" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + "\n" +
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n"
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3)
 
 	newContent := tokenizer.parseReferences(content)
 
@@ -113,7 +113,7 @@ Bar<ref name=foo>some ref but for bar</ref>
 <references/>`
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
 		"Bar" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "\n" +
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 2) + "\n"
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 2)
 
 	newContent := tokenizer.parseReferences(content)
 
@@ -134,7 +134,7 @@ Bar<ref>some other ref</ref>
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
 		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 1) + "\n" +
 		"Bar" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + "\n" +
-		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n"
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3)
 
 	newContent := tokenizer.parseReferences(content)
 
