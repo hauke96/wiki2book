@@ -16,6 +16,9 @@ type RefUsageToken struct {
 	Index int
 }
 
+// This is the default group in which all ungrouped references fall
+const defaultReferenceGroup = "__wiki2book_ungrouped_references_group__"
+
 func (t *Tokenizer) parseReferences(content string) string {
 	/*
 		There are two types of tags we parse here: Reference definitions and references placeholders. Definitions look
@@ -41,14 +44,18 @@ func (t *Tokenizer) parseReferences(content string) string {
 	refDefStartLen := len(refDefStart)
 	refDefLongEndLen := len(refDefLongEnd)
 
-	refNumberToContent := map[int]string{}
-	nameToRefNumber := map[string]int{}
-	refNumberCounter := 0
+	// Store content of references (i.e. their actual text), ref-name to ref-number mapping and the ref-number counters
+	// all per group. Every ref without explicit group is part of the default group.
+	refNumberToContent := map[string]map[int]string{}
+	nameToRefNumber := map[string]map[string]int{}
+	refNumberCounter := map[string]int{}
 
 	// Whether the current cursor is within a "<references>...</references>" block. Within this block, further reference
 	// definitions might occur. These references will not be turned into any usage-token because they are not used at
 	// that location but just defined.
 	cursorWithinReferencePlaceholder := false
+	// The group of the current placeholder, e.g. "foo" for "<references group=foo>...".
+	currentPlaceholderGroup := ""
 
 	for i := 0; i < len(content)-refDefStartLen; i++ {
 		cursor := content[i : i+refDefStartLen]
@@ -61,25 +68,54 @@ func (t *Tokenizer) parseReferences(content string) string {
 
 		if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
 			// Tag like "</references>" or "<references />" found
-			content = t.parseReferenceEndPlaceholder(content, i, startEndIndex, refNumberCounter, refNumberToContent)
+			if currentPlaceholderGroup == "" {
+				currentPlaceholderGroup = getGroupOrDefault(content[i:startEndIndex])
+			}
+
+			if refNumberToContent[currentPlaceholderGroup] == nil {
+				refNumberToContent[currentPlaceholderGroup] = map[int]string{}
+			}
+
+			refNumberCounterForCurrentGroup := refNumberCounter[currentPlaceholderGroup]
+			refNumberToContentForCurrentGroup := refNumberToContent[currentPlaceholderGroup]
+
+			content = t.parseReferenceEndPlaceholder(content, i, startEndIndex, refNumberCounterForCurrentGroup, refNumberToContentForCurrentGroup)
 			cursorWithinReferencePlaceholder = false
+			currentPlaceholderGroup = ""
 		} else if referencePlaceholderStartRegex.MatchString(content[i : startEndIndex+1]) {
 			// Tag like "<references group=foo >" found
+			// TODO indices correct?
+			currentPlaceholderGroup = getGroupOrDefault(content[i:startEndIndex])
 			content = content[0:i] + content[startEndIndex+1:] // Remove tag from content
 			cursorWithinReferencePlaceholder = true
 		} else {
 			// Tag like "<ref name=..." or "<ref>..." found
 			nameAttributeValue := getNameAttribute(content[i+refDefStartLen : startEndIndex])
+			groupName := getGroupOrDefault(content[i+refDefStartLen : startEndIndex])
+
+			if nameToRefNumber[groupName] == nil {
+				nameToRefNumber[groupName] = map[string]int{}
+			}
+
+			if refNumberToContent[groupName] == nil {
+				refNumberToContent[groupName] = map[int]string{}
+			}
+
+			nameToRefNumberForCurrentGroup := nameToRefNumber[groupName]
+			refNumberToContentForCurrentGroup := refNumberToContent[groupName]
+			refNumberCounterForCurrentGroup := refNumberCounter[groupName]
 
 			isReferenceUsage := content[startEndIndex-1] == '/' // Reference definitions end with "/>" instead of "</ref>"
 			if isReferenceUsage {
 				// Reference usage like "<ref name=foo />"
-				refNumberCounter, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumber, refNumberCounter, cursorWithinReferencePlaceholder, startEndIndex)
+				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
 				refEndIndex := findCorrespondingCloseToken(content, startEndIndex, refDefStart, refDefLongEnd)
-				refNumberCounter, content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, refNumberCounter, nameAttributeValue, nameToRefNumber, refNumberToContent, cursorWithinReferencePlaceholder, refDefLongEndLen)
+				refNumberCounterForCurrentGroup, content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, refNumberCounterForCurrentGroup, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
 			}
+
+			refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 		}
 	}
 
@@ -185,34 +221,46 @@ func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndInde
 	return refNumberCounter, content
 }
 
-// getNameAttribute determines the values after "name=" and supports quoted and unquoted attributes. When unquoted
-// attributes are used (e.g. as in name=foobar), the value is only interpreted until a space of slash. For quoted
-// attributes (e.g. as in name="foo bar") everything until the next quote is interpreted as name value.
 func getNameAttribute(content string) string {
-	if strings.Contains(content, " name=\"") {
-		// Name with quotation
+	return getAttribute(content, "name")
+}
+
+func getGroupOrDefault(content string) string {
+	groupAttributeValue := getAttribute(content, "group")
+	if groupAttributeValue != "" {
+		return groupAttributeValue
+	}
+	return defaultReferenceGroup
+}
+
+// getAttribute determines the values after "{attributeName}=" (so e.g. "name=") and supports quoted and unquoted
+// attributes. When unquoted attributes are used (e.g. as in name=foobar), the value is only interpreted until a space
+// of slash. For quoted attributes (e.g. as in name="foo bar") everything until the next quote is interpreted as name value.
+func getAttribute(content string, attributeName string) string {
+	if strings.Contains(content, " "+attributeName+"=\"") {
+		// Attribute with quotation
 		parts := strings.Split(content, "\"")
 		for i, part := range parts {
-			if strings.HasSuffix(part, " name=") {
-				// Found name key, next item is the value which can be returned
+			if strings.HasSuffix(part, " "+attributeName+"=") {
+				// Found attribute key, next item is the value which can be returned
 				return parts[i+1]
 			}
 		}
-	} else if strings.Contains(content, " name=") {
-		// Name without quotation like name=foo
+	} else if strings.Contains(content, " "+attributeName+"=") {
+		// Attribute without quotation like "name=foo"
 		// The value ends with a space (separator for additional attributes) or slash (and of <ref.../>-token).
-		parts := strings.SplitN(content, " name=", 2)
+		parts := strings.SplitN(content, " "+attributeName+"=", 2)
 		var letter rune
-		var resultName string
+		var attributeValue string
 		for _, letter = range []rune(parts[1]) {
 			if letter == '/' || letter == ' ' || letter == '>' {
 				break
 			}
-			resultName += string(letter)
+			attributeValue += string(letter)
 		}
-		return resultName
+		return attributeValue
 	}
 
-	// No name found
+	// Attribut not found
 	return ""
 }

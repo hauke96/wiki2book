@@ -132,13 +132,21 @@ A bit tricky but they work as well:
 
 They will be collected<ref name="another-ref">This is true</ref> and are visible<ref>Some reference</ref> at the end of the document:<ref name="another-ref" /><br>
 
+There are also grouped references possible.<ref group="some-group">Some grouped ref</ref><br>
+Even named<ref group="some-group" name="grouped-ref-name"/> grouped references work!<ref group="some-group" name="grouped-ref-name">Some named grouped ref</ref><br>
+
+Normal refs:<br>
 <references />
 
 Here comes<ref name="yet-another-named-ref" /> additional content.<ref>bar</ref>
 
+Additional refs:<br>
 <references>
 <ref name="yet-another-named-ref">Aaaaaaand another boring reference no one ever reads.</ref>
 </references>
+
+Grouped refs:<br>
+<references group="some-group" />
 
 == Mixing stuff ==
 
