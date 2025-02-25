@@ -206,7 +206,7 @@ type Configuration struct {
 
 		JSON example: "convert-pdfs-to-images": true
 	*/
-	ConvertPDFsToImages bool `json:"convert-pdfs-to-images" help:"Set to true in order to convert referenced PDFs into images."`
+	ConvertPDFsToImages bool `json:"convert-pdfs-to-images" name:"convert-pdfs-to-images" help:"Set to true in order to convert referenced PDFs into images."`
 
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
