@@ -7,23 +7,27 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"regexp"
+	"strconv"
+	"wiki2book/config"
 	"wiki2book/project"
 	"wiki2book/util"
 )
 
-func Generate(sourceFiles []string, outputFile string, outputType string, styleFile string, coverFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata) error {
+func Generate(sourceFiles []string, outputFile string, outputType string, styleFile string, coverFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
 		"-f", "html",
 		"-t", outputType,
 		"-o", outputFile,
-		"--toc",
 		"--metadata", "title=" + metadata.Title,
 		"--metadata", "author=" + metadata.Author,
 		"--metadata", "rights=" + metadata.License,
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
+	}
+	if tocDepth > 0 {
+		args = append(args, "--toc", "--toc-depth", strconv.Itoa(tocDepth))
 	}
 	if pandocDataDir != "" {
 		args = append(args, "--data-dir", pandocDataDir)
@@ -42,7 +46,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 
 	args = append(args, sourceFiles...)
 
-	err := util.Execute("pandoc", args...)
+	err := util.Execute(config.Current.PandocExecutable, args...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
 	}

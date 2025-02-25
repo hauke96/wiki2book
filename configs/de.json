@@ -56,6 +56,7 @@
     "quellen",
     "rechtshinweis",
     "redundanztext",
+    "schwesterprojekte",
     "siehe auch",
     "sortierung",
     "staatslastig",
@@ -106,5 +107,7 @@
     "upright",
     "verweis",
     "zentriert"
-  ]
+  ],
+  "math-converter": "rsvg",
+  "convert-pdfs-to-images": true
 }

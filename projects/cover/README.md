@@ -20,4 +20,4 @@ Arguments:
 
 # Example
 
-`./generate-cover.sh -f lmodern -l ../logo.png "Astronomy" "This is what Wikipedia writes about ..."
+`./generate-cover.sh -f lmodern -l ../logo.png "Astronomy" "This is what Wikipedia writes about ..."`

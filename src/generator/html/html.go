@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"wiki2book/api"
+	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/util"
 )
@@ -228,7 +229,12 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(token.Filename), sizeTemplate, caption), nil
+	filename := token.Filename
+	if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(filename)) == ".pdf" {
+		filename = util.GetPngPathForPdf(filename)
+	}
+
+	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
 }
 
 func expandSizeTemplate(xSize int, ySize int) string {
@@ -372,18 +378,6 @@ func (g *HtmlGenerator) expandListItems(items []parser.ListItemToken) (string, e
 }
 
 func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, error) {
-	var template string
-	switch token.Type {
-	case parser.NORMAL_ITEM:
-		template = TEMPLATE_LI
-	case parser.DESCRIPTION_HEAD:
-		template = TEMPLATE_DT
-	case parser.DESCRIPTION_ITEM:
-		template = TEMPLATE_DD
-	default:
-		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
-	}
-
 	var listItemContents []string
 	listItemContent, err := g.expand(token.Content)
 	if err != nil {
@@ -399,7 +393,31 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 		listItemContents = append(listItemContents, expandedSubList)
 	}
 
-	return fmt.Sprintf(template, strings.Join(listItemContents, "\n")), nil
+	listItemString := strings.Join(listItemContents, "\n")
+
+	var template string
+	switch token.Type {
+	case parser.NORMAL_ITEM:
+		if len(listItemString) >= 3 && strings.TrimLeft(listItemString, " ")[:3] == "<li" {
+			// The wikitext "# <li value=4> ..." is valid to let the list start/continue with the number 4. The <li>
+			// item of the manual HTML within this list might contain additional arguments, so we use their item
+			// instead of the item from the template.
+			template = "%s"
+			if !strings.Contains(listItemString, "</li") {
+				template += "</li>"
+			}
+		} else {
+			template = TEMPLATE_LI
+		}
+	case parser.DESCRIPTION_HEAD:
+		template = TEMPLATE_DT
+	case parser.DESCRIPTION_ITEM:
+		template = TEMPLATE_DD
+	default:
+		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
+	}
+
+	return fmt.Sprintf(template, listItemString), nil
 }
 
 func (g *HtmlGenerator) expandRefDefinition(token parser.RefDefinitionToken) (string, error) {
@@ -417,7 +435,7 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) (string, erro
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, pngFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {
 		return "", err
 	}
@@ -427,9 +445,9 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 		return "", err
 	}
 
-	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", pngFilename, svg.Width, svg.Height, svg.Style)
+	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", imageFilename, svg.Width, svg.Height, svg.Style)
 
-	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngFilename), svg.Width, svg.Height, svg.Style), nil
+	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(imageFilename), svg.Width, svg.Height, svg.Style), nil
 }
 
 func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {

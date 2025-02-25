@@ -7,6 +7,7 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -70,7 +71,7 @@ func DownloadArticle(wikipediaInstance string, wikipediaHost string, title strin
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool, pdfToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
@@ -90,11 +91,22 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 				continue
 			}
 
+			if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
+				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
+				if _, err := os.Stat(outputPngFilepath); err != nil {
+					err = convertPdfToPng(outputFilepath, outputPngFilepath)
+					if err != nil {
+						return err
+					}
+				}
+				outputFilepath = outputPngFilepath
+			}
+
 			// If the file is new, rescale it using ImageMagick.
-			if freshlyDownloaded && outputFilepath != "" && !strings.HasSuffix(strings.ToLower(outputFilepath), ".svg") {
-				err2 := processImage(outputFilepath, toGrayscale)
-				if err2 != nil {
-					return err2
+			if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != ".svg" {
+				err := resizeAndCompressImage(outputFilepath, toGrayscale)
+				if err != nil {
+					return err
 				}
 			}
 
@@ -182,7 +194,6 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
-	mathString = url.QueryEscape(mathString)
 	mathApiUrl := config.Current.WikipediaMathRestApi
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
@@ -196,19 +207,35 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return "", "", err
 	}
 
-	imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-	cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
-	if err != nil {
-		return "", "", err
+	if config.Current.MathConverter == config.MathConverterNone {
+		return cachedSvgFile, cachedSvgFile, nil
+	} else if config.Current.MathConverter == config.MathConverterWikimedia {
+		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
+		cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
+		if err != nil {
+			return "", "", err
+		}
+		return cachedSvgFile, cachedPngFile, nil
+	} else if config.Current.MathConverter == config.MathConverterRsvg {
+		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
+		err := convertSvgToPng(cachedSvgFile, cachedPngFile)
+		if err != nil {
+			return "", "", err
+		}
+		return cachedSvgFile, cachedPngFile, nil
 	}
 
-	return cachedSvgFile, cachedPngFile, nil
+	return "", "", errors.New("No supported math converter found")
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func getMathResource(mathString string, cacheFolder string) (string, error) {
 	urlString := config.Current.WikipediaMathRestApi + "/check/tex"
-	requestData := fmt.Sprintf("q=%s", mathString)
+
+	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
+	// formulae as in the original article. This is not only nice for debugging but also might increase speed due to
+	// caching on the Wikimedia servers.
+	requestData := "q=" + url.QueryEscape(fmt.Sprintf(`{\displaystyle %s}`, mathString))
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
@@ -228,16 +255,19 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 	if err != nil {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Errorf("Rendering Math: Response returned with status code %d", response.StatusCode)
 	}
 
 	locationHeader := response.Header.Get("x-resource-location")
 	if locationHeader == "" {
+		logMathResponseBodyAsError(response, urlString, mathString)
 		return "", errors.Errorf("Unable to get location header for math %s", mathString)
 	}
 
@@ -247,4 +277,14 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	}
 
 	return locationHeader, nil
+}
+
+func logMathResponseBodyAsError(response *http.Response, urlString string, mathString string) {
+	if response != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, response.Body)
+		if err == nil {
+			sigolo.Errorf("Response body for url %s and math string %s:\n%s", urlString, util.TruncString(mathString), buf.String())
+		}
+	}
 }

@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+	"wiki2book/util"
 )
 
 var httpClient = GetDefaultHttpClient()
@@ -28,13 +30,16 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	sigolo.Debug("File not cached, download fresh one")
 
 	// Get the data
-	reader, err := download(url, filename)
+	responseBodyReader, err := download(url, filename)
+	if responseBodyReader != nil {
+		defer responseBodyReader.Close()
+	}
 	if err != nil {
+		logResponseBodyAsError(responseBodyReader, url)
 		return "", true, err
 	}
-	defer reader.Close()
 
-	err = cacheToFile(cacheFolder, filename, reader)
+	err = cacheToFile(cacheFolder, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}
@@ -65,9 +70,10 @@ func download(url string, filename string) (io.ReadCloser, error) {
 		} else if response.StatusCode != 200 {
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
-			responseErrorHeader := response.Header.Get("mediawiki-api-error")
+			errorHeaderName := "mediawiki-api-error"
+			responseErrorHeader := response.Header.Get(errorHeaderName)
 			if responseErrorHeader != "" {
-				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' for url %s", filename, responseErrorHeader, url)
+				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' value '%s' for url %s", filename, errorHeaderName, responseErrorHeader, url)
 			}
 		}
 
@@ -77,31 +83,56 @@ func download(url string, filename string) (io.ReadCloser, error) {
 }
 
 func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
+	outputFilepath := filepath.Join(cacheFolder, filename)
+	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
+
 	// Create the output folder
-	sigolo.Debugf("Ensure cache folder '%s'", cacheFolder)
+	sigolo.Tracef("Ensure cache folder '%s'", cacheFolder)
 	err := os.MkdirAll(cacheFolder, os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolder))
 	}
 
-	outputFilepath := filepath.Join(cacheFolder, filename)
+	//
+	// 1. Write to temporary file. This prevents broken files on disk in case the application exits during writing.
+	//
 
 	// Create the output file
-	sigolo.Debugf("Create cached file '%s'", outputFilepath)
-	outputFile, err := os.Create(outputFilepath)
+	tempFile, err := os.CreateTemp(util.TempDirName, filename)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output file for file '%s'", outputFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(util.TempDirName, filename)))
 	}
-	defer outputFile.Close()
+	tempFilepath := tempFile.Name()
+	defer os.Remove(tempFilepath)
+	sigolo.Tracef("Create temp file '%s'", tempFilepath)
 
 	// Write the body to file
-	sigolo.Debug("Copy data to cached file")
-	_, err = io.Copy(outputFile, reader)
+	sigolo.Trace("Copy data to temp file")
+	_, err = io.Copy(tempFile, reader)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to output file '%s'", outputFilepath))
+		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
 	}
 
-	sigolo.Debugf("Cached file '%s' to '%s'", filename, outputFilepath)
+	//
+	// 2. Move file to actual location
+	//
 
+	sigolo.Tracef("Move temp file '%s' to '%s'", tempFilepath, outputFilepath)
+	err = os.Rename(tempFilepath, outputFilepath)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
+	}
+
+	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
 	return nil
+}
+
+func logResponseBodyAsError(bodyReader io.Reader, urlString string) {
+	if bodyReader != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, bodyReader)
+		if err == nil {
+			sigolo.Errorf("Response body for url %s:\n%s", urlString, buf.String())
+		}
+	}
 }

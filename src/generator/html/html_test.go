@@ -3,6 +3,7 @@ package html
 import (
 	"fmt"
 	"testing"
+	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
 )
@@ -49,6 +50,31 @@ some <b>caption</b>
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    20,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
+func TestExpandImage_usePngFileForPdf(t *testing.T) {
+	config.Current.ConvertPDFsToImages = true
+
+	result := `<div class="figure">
+<img alt="image" src="./foo/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">
+<div class="caption">
+
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.ImageToken{
+		Filename: "foo/document.pdf",
+		SizeX:    200,
+		SizeY:    -1,
 	}
 	tokenMap := map[string]parser.Token{
 		tokenImage: token,
@@ -322,8 +348,10 @@ b<b>a</b>r
 
 func TestExpandOrderedList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
-	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
-	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2}}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "f"} // very short item
+	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: ""}  // empty item
+	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
 
 	row, err := generator.expand(list3)
 	test.AssertNil(t, err)
@@ -331,6 +359,33 @@ func TestExpandOrderedList(t *testing.T) {
 <li>
 foo
 </li>
+<li>
+f
+</li>
+<li>
+
+</li>
+<li>
+b<b>a</b>r
+</li>
+</ol>`, row)
+}
+
+func TestExpandOrderedList_specifyNumberOfItems(t *testing.T) {
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=42> bar"}
+	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=10> another item with custom value   </li>"}
+	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
+
+	row, err := generator.expand(list3)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ol>
+<li>
+foo
+</li>
+<li value=42> bar</li>
+<li value=10> another item with custom value   </li>
 <li>
 b<b>a</b>r
 </li>

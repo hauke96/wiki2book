@@ -12,13 +12,7 @@ import (
 	"wiki2book/test"
 )
 
-const cacheSubFolder = "templates"
-
-var templateFolder = test.GetCacheFolder(cacheSubFolder)
-
-func TestMain(m *testing.M) {
-	test.CleanRun(m, cacheSubFolder)
-}
+var templateFolder = test.GetCacheFolder()
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
 	tokenizer := NewTokenizer("foo", templateFolder)

@@ -3,13 +3,14 @@ package api
 import (
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
+	"wiki2book/config"
 	"wiki2book/util"
 )
 
 const imgSize = 600
 
-// processImage will convert and rescale the image so that it's suitable for eBooks.
-func processImage(imageFilepath string, toGrayscale bool) error {
+// resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
+func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	args := []string{
@@ -27,10 +28,47 @@ func processImage(imageFilepath string, toGrayscale bool) error {
 
 	args = append(args, imageFilepath)
 
-	err := util.Execute("convert", args...)
+	err := util.Execute(config.Current.ImageMagickExecutable, args...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s failed", imageFilepath)
+	}
+
+	return err
+}
+
+// convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
+// rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
+func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
+	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
+
+	args := []string{
+		"-density", "300",
+		inputPdfFilepath,
+		outputPngFilepath,
+	}
+
+	err := util.Execute(config.Current.ImageMagickExecutable, args...)
+	if err != nil {
+		sigolo.Errorf("Converting PNG %s into an PNG image failed", inputPdfFilepath)
+	}
+
+	return err
+}
+
+func convertSvgToPng(svgFile string, pngFile string) error {
+	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
+
+	args := []string{
+		"-s", config.Current.RsvgMathStylesheet,
+		"-o", pngFile,
+		svgFile,
+	}
+
+	err := util.Execute(config.Current.RsvgConvertExecutable, args...)
+
+	if err != nil {
+		sigolo.Errorf("Converting image %s to PNG failed", svgFile)
 	}
 
 	return err

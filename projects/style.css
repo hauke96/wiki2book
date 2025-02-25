@@ -211,3 +211,7 @@ ol, ul {
 .error {
     display: none;
 }
+
+.display-none {
+    display: none;
+}
