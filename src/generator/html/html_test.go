@@ -322,14 +322,22 @@ b<b>a</b>r
 
 func TestExpandOrderedList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
-	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
-	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2}}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "f"} // very short item
+	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: ""}  // empty item
+	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
+	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
 
 	row, err := generator.expand(list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ol>
 <li>
 foo
+</li>
+<li>
+f
+</li>
+<li>
+
 </li>
 <li>
 b<b>a</b>r
