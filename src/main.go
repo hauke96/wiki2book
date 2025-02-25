@@ -385,29 +385,30 @@ func generateBookFromArticles(project *project.Project) {
 
 	var images []string
 
-	for _, articleName := range articles {
-		sigolo.Infof("Article '%s': Start processing", articleName)
+	numberOfArticles := len(articles)
+	for i, articleName := range articles {
+		sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, i, numberOfArticles)
 
 		htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
 		if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-			sigolo.Infof("Article '%s': HTML for article does already exist. Skip parsing and HTML generation.", articleName)
+			sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, i, numberOfArticles)
 		} else {
-			sigolo.Infof("Article '%s': Download article", articleName)
+			sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, i, numberOfArticles)
 			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
 			sigolo.FatalCheck(err)
 
-			sigolo.Infof("Article '%s': Tokenize content", articleName)
+			sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, i, numberOfArticles)
 			tokenizer := parser.NewTokenizer(imageCache, templateCache)
 			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 			sigolo.FatalCheck(err)
 			images = append(images, article.Images...)
 
-			sigolo.Infof("Article '%s': Download images", articleName)
+			sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, i, numberOfArticles)
 			err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale)
 			sigolo.FatalCheck(err)
 
 			// TODO Adjust this when additional non-epub output types are supported.
-			sigolo.Infof("Article '%s': Generate HTML", articleName)
+			sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, i, numberOfArticles)
 			htmlGenerator := &html.HtmlGenerator{
 				ImageCacheFolder:   imageCache,
 				MathCacheFolder:    mathCache,
@@ -418,7 +419,7 @@ func generateBookFromArticles(project *project.Project) {
 			sigolo.FatalCheck(err)
 		}
 
-		sigolo.Infof("Article '%s': Finished processing", articleName)
+		sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, i, numberOfArticles)
 		articleFiles = append(articleFiles, htmlFilePath)
 	}
 

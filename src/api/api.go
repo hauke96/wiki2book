@@ -31,11 +31,13 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 
 	// Get the data
 	responseBodyReader, err := download(url, filename)
+	if responseBodyReader != nil {
+		defer responseBodyReader.Close()
+	}
 	if err != nil {
 		logResponseBodyAsError(responseBodyReader, url)
 		return "", true, err
 	}
-	defer responseBodyReader.Close()
 
 	err = cacheToFile(cacheFolder, filename, responseBodyReader)
 	if err != nil {
@@ -66,13 +68,12 @@ func download(url string, filename string) (io.ReadCloser, error) {
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != 200 {
-			logResponseBodyAsError(response.Body, url)
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
-			responseErrorHeader := response.Header.Get("mediawiki-api-error")
+			errorHeaderName := "mediawiki-api-error"
+			responseErrorHeader := response.Header.Get(errorHeaderName)
 			if responseErrorHeader != "" {
-				logResponseBodyAsError(response.Body, url)
-				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' for url %s", filename, responseErrorHeader, url)
+				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' value '%s' for url %s", filename, errorHeaderName, responseErrorHeader, url)
 			}
 		}
 
