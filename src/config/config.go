@@ -84,7 +84,7 @@ type Configuration struct {
 
 		JSON example: "output-type": "epub2"
 	*/
-	OutputType string `json:"output-type" help:"The output file type. Possible values are: \"epub2\" (default), \"epub3\"." short:"t" placeholder:"<type>"`
+	OutputType string `json:"output-type" help:"The output file type. Possible values are: \"epub2\" (default), \"epub3\"." placeholder:"<type>"`
 
 	/*
 		The way the final output is created.
@@ -95,7 +95,7 @@ type Configuration struct {
 
 		JSON example: "output-driver": "pandoc"
 	*/
-	OutputDriver string `json:"output-driver" help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" short:"d" placeholder:"<driver>"`
+	OutputDriver string `json:"output-driver" help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" placeholder:"<driver>"`
 
 	/*
 		The directory where all intermediate files are stored. Relative paths are relative to the config file.
@@ -115,7 +115,7 @@ type Configuration struct {
 
 		JSON example: "style-file": "my-style.css"
 	*/
-	StyleFile string `json:"style-file" help:"The CSS file that should be used." short:"s" placeholder:"<file>"`
+	StyleFile string `json:"style-file" help:"The CSS file that should be used." placeholder:"<file>"`
 
 	/*
 		The image file that should be the cover of the eBook. Relative paths are relative to the config file.
@@ -125,7 +125,7 @@ type Configuration struct {
 
 		JSON example: "cover-image": "nice-picture.jpeg"
 	*/
-	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." short:"i" placeholder:"<file>"`
+	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." placeholder:"<file>"`
 
 	/*
 		The executable name or file for rsvg-convert.
@@ -174,7 +174,7 @@ type Configuration struct {
 
 		JSON example: "pandoc-data-dir": "./my-folder/"
 	*/
-	PandocDataDir string `json:"pandoc-data-dir" help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." short:"p" placeholder:"<dir>"`
+	PandocDataDir string `json:"pandoc-data-dir" help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." placeholder:"<dir>"`
 
 	/*
 		A list of font files that should be used. They then can be referenced from the style CSS file. Relative paths are relative to the config file.
@@ -184,7 +184,7 @@ type Configuration struct {
 
 		JSON example: "font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]
 	*/
-	FontFiles []string `json:"font-files" help:"A list of font files that should be used. They are references in your style file." short:"f" placeholder:"<file>"`
+	FontFiles []string `json:"font-files" help:"A list of font files that should be used. They are references in your style file." placeholder:"<file>"`
 
 	/*
 		Set to true in order to convert raster images to grayscale. Relative paths are relative to the config file.
@@ -194,7 +194,7 @@ type Configuration struct {
 
 		JSON example: "images-to-grayscale": true
 	*/
-	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale." short:"g"`
+	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale."`
 
 	/*
 		When set to true, references PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
