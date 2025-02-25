@@ -230,7 +230,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
 	filename := token.Filename
-	if config.Current.EmbeddedPdfToImage && filepath.Ext(strings.ToLower(filename)) == ".pdf" {
+	if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(filename)) == ".pdf" {
 		filename = util.GetPngPathForPdf(filename)
 	}
 

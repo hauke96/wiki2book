@@ -28,7 +28,7 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
 	setup()
 
-	config.Current.EmbeddedPdfToImage = true
+	config.Current.ConvertPDFsToImages = true
 
 	var content string
 

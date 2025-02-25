@@ -56,7 +56,7 @@ func escapeImages(content string) string {
 
 	// Check if this media type is unwanted
 	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
-	if fileExtension != "pdf" && util.Contains(config.Current.IgnoredMediaTypes, fileExtension) || fileExtension == "pdf" && !config.Current.EmbeddedPdfToImage {
+	if fileExtension != "pdf" && util.Contains(config.Current.IgnoredMediaTypes, fileExtension) || fileExtension == "pdf" && !config.Current.ConvertPDFsToImages {
 		return ""
 	}
 

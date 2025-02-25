@@ -12,5 +12,5 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	images = []string{}
-	config.Current.EmbeddedPdfToImage = false
+	config.Current.ConvertPDFsToImages = false
 }

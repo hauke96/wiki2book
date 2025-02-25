@@ -109,5 +109,5 @@
     "zentriert"
   ],
   "math-converter": "rsvg",
-  "embedded-pdf-to-image": true
+  "convert-pdfs-to-images": true
 }

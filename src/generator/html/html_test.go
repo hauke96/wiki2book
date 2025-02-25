@@ -62,7 +62,7 @@ some <b>caption</b>
 }
 
 func TestExpandImage_usePngFileForPdf(t *testing.T) {
-	config.Current.EmbeddedPdfToImage = true
+	config.Current.ConvertPDFsToImages = true
 
 	result := `<div class="figure">
 <img alt="image" src="./foo/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">

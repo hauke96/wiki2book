@@ -221,9 +221,9 @@ func mergeConfigIntoMainConfig(c *config.Configuration) {
 		sigolo.Tracef("Override ImagesToGrayscale from project file with %v", c.ImagesToGrayscale)
 		config.Current.ImagesToGrayscale = c.ImagesToGrayscale
 	}
-	if c.EmbeddedPdfToImage {
-		sigolo.Tracef("Override EmbeddedPdfToImage from project file with %v", c.EmbeddedPdfToImage)
-		config.Current.EmbeddedPdfToImage = c.EmbeddedPdfToImage
+	if c.ConvertPDFsToImages {
+		sigolo.Tracef("Override ConvertPDFsToImages from project file with %v", c.ConvertPDFsToImages)
+		config.Current.ConvertPDFsToImages = c.ConvertPDFsToImages
 	}
 	if c.IgnoredTemplates != nil {
 		sigolo.Tracef("Override IgnoredTemplates from project file with %v", c.IgnoredTemplates)
@@ -330,7 +330,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.EmbeddedPdfToImage)
+	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
@@ -408,7 +408,7 @@ func generateBookFromArticles(project *project.Project) {
 			images = append(images, article.Images...)
 
 			sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, i, numberOfArticles)
-			err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.EmbeddedPdfToImage)
+			err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
 			sigolo.FatalCheck(err)
 
 			// TODO Adjust this when additional non-epub output types are supported.
