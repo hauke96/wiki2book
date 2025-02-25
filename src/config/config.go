@@ -23,6 +23,8 @@ const (
 	OutputDriverInternal = "internal"
 )
 
+var tocDepthDefault = 2
+
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
 	OutputType:                     OutputTypeEpub2,
@@ -47,6 +49,7 @@ var Current = &Configuration{
 	RsvgMathStylesheet:             "rsvg-math.css",
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
+	TocDepth:                       &tocDepthDefault,
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -344,6 +347,20 @@ type Configuration struct {
 		Mandatory: No
 	*/
 	MathConverter string `json:"math-converter" help:"Converter turning math SVGs into PNGs."`
+
+	/*
+		Sets the depth of the table of content, i.e. how many sub-headings should be visible.
+
+		Examples:
+			- A value of 1 means only the h1 headings are visible in the table of content.
+			- A value of 3 means h1, h2 and h3 are visible.
+			- A value of 0 means the table of content is not visible at all.
+
+		Default: 2
+		Allowed values: 0 - 6
+		Mandatory: No
+	*/
+	TocDepth *int `json:"toc-depth" help:"Depth of the table of content."`
 }
 
 func (c *Configuration) makePathsAbsolute(file string) {
@@ -423,6 +440,9 @@ func (c *Configuration) AssertValidity() {
 	}
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterRsvg {
 		sigolo.Fatalf("Invalid math converter '%s'", c.OutputDriver)
+	}
+	if *c.TocDepth < 0 || *c.TocDepth > 6 {
+		sigolo.Fatalf("Invalid toc-depth '%d'", c.TocDepth)
 	}
 }
 

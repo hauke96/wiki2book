@@ -69,17 +69,26 @@ func ToAbsolutePathWithBasedir(basedir string, path string) (string, error) {
 }
 
 func AssertPathExists(path string) {
-	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
+	if !PathExists(path) {
 		sigolo.FatalCheck(errors.Errorf("Path '%s' does not exist", path))
 	}
 }
 
+func PathExists(path string) bool {
+	if _, err := os.Stat(path); strings.TrimSpace(path) != "" && err != nil {
+		return false
+	}
+	return true
+}
+
 func EnsureDirectory(path string) {
-	sigolo.Debugf("Ensure an empty '%s' directory exists", path)
-	err := os.RemoveAll(path)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", path))
-	err = os.MkdirAll(path, os.ModePerm)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
+	if !PathExists(path) {
+		sigolo.Debugf("Create directory '%s'", path)
+		err := os.MkdirAll(path, os.ModePerm)
+		sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
+	} else {
+		sigolo.Debugf("Directory '%s' already exists", path)
+	}
 }
 
 // GetPngPathForPdf converts the given path to a PDF file

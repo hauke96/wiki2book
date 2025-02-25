@@ -277,6 +277,10 @@ func mergeConfigIntoMainConfig(c *config.Configuration) {
 		sigolo.Tracef("Override MathConverter from project file with %s", c.MathConverter)
 		config.Current.MathConverter = c.MathConverter
 	}
+	if c.TocDepth != nil {
+		sigolo.Tracef("Override TocDepth from project file with %d", c.TocDepth)
+		config.Current.TocDepth = c.TocDepth
+	}
 
 	config.Current.MakePathsAbsoluteToWorkingDir()
 
@@ -351,7 +355,18 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	err = Generate(config.Current.OutputDriver, []string{htmlFilePath}, outputFile, config.Current.OutputType, config.Current.StyleFile, config.Current.CoverImage, config.Current.PandocDataDir, config.Current.FontFiles, metadata)
+	err = Generate(
+		config.Current.OutputDriver,
+		[]string{htmlFilePath},
+		outputFile,
+		config.Current.OutputType,
+		config.Current.StyleFile,
+		config.Current.CoverImage,
+		config.Current.PandocDataDir,
+		config.Current.FontFiles,
+		*config.Current.TocDepth,
+		metadata,
+	)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(util.TempDirName)
@@ -430,7 +445,18 @@ func generateBookFromArticles(project *project.Project) {
 	images = util.RemoveDuplicates(images)
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	err := Generate(config.Current.OutputDriver, articleFiles, outputFile, config.Current.OutputType, config.Current.StyleFile, config.Current.CoverImage, config.Current.PandocDataDir, config.Current.FontFiles, metadata)
+	err := Generate(
+		config.Current.OutputDriver,
+		articleFiles,
+		outputFile,
+		config.Current.OutputType,
+		config.Current.StyleFile,
+		config.Current.CoverImage,
+		config.Current.PandocDataDir,
+		config.Current.FontFiles,
+		*config.Current.TocDepth,
+		metadata,
+	)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(util.TempDirName)
@@ -443,12 +469,12 @@ func generateBookFromArticles(project *project.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, metadata project.Metadata) error {
+func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
 	var err error
 
 	switch outputDriver {
 	case generator.OutputDriverPandoc:
-		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, metadata)
+		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, tocDepth, metadata)
 	case generator.OutputDriverInternal:
 		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
 	default:
@@ -511,6 +537,8 @@ func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string,
 	err = os.Chdir(config.Current.CacheDir)
 	sigolo.FatalCheck(err)
 
+	err = os.RemoveAll(util.TempDirName)
+	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", util.TempDirName))
 	util.EnsureDirectory(util.TempDirName)
 
 	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
