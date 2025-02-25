@@ -7,7 +7,7 @@ toolchain go1.22.0
 require (
 	github.com/alecthomas/kong v1.6.1
 	github.com/go-shiori/go-epub v1.2.1
-	github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.9
+	github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.11
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.34.0
 )

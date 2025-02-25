@@ -10,8 +10,8 @@ github.com/go-shiori/go-epub v1.2.1 h1:+K/WxrvmfFQY69cpryiObrT6X7WhkwpqhHY65AHs2
 github.com/go-shiori/go-epub v1.2.1/go.mod h1:3rCTODnigEgy2j3ksndClrGT9h/dcz3js9q4yPX7hf8=
 github.com/gofrs/uuid/v5 v5.3.0 h1:m0mUMr+oVYUdxpMLgSYCZiXe7PuVPnI94+OMeVBNedk=
 github.com/gofrs/uuid/v5 v5.3.0/go.mod h1:CDOjlDMVAtN56jqyRUZh58JT31Tiw7/oQyEXZV+9bD8=
-github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.9 h1:ITzbAZTcqiFRg4415mGnSk4pIHIgnORzPIzX4eo2Xc0=
-github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.9/go.mod h1:odU90iYJtFml4vwcTId595tVpuOxPXhXvgcGouMJd58=
+github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.11 h1:sFFYhZ811osM6itn+MlIG/Qste6R6gSdBxXja5Jdlq8=
+github.com/hauke96/sigolo/v2 v2.0.0-SNAPSHOT.11/go.mod h1:zksbzb+DKOo3qI+DcD9L/dtjW1EDzeJQBoqFTyfX2mw=
 github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUqJM=
 github.com/hexops/gotextdiff v1.0.3/go.mod h1:pSWU5MAI3yDq+fZBTazCSJysOMbxWL1BSow5/V2vxeg=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
