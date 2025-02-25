@@ -37,6 +37,25 @@ func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 	return err
 }
 
+// convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
+// rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
+func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
+	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
+
+	args := []string{
+		"-density", "300",
+		inputPdfFilepath,
+		outputPngFilepath,
+	}
+
+	err := util.Execute(config.Current.ImageMagickExecutable, args...)
+	if err != nil {
+		sigolo.Errorf("Converting PNG %s into an PNG image failed", inputPdfFilepath)
+	}
+
+	return err
+}
+
 func convertSvgToPng(svgFile string, pngFile string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 

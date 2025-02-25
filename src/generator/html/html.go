@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"wiki2book/api"
+	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/util"
 )
@@ -70,7 +71,6 @@ const TEMPLATE_OL = `<ol>
 const TEMPLATE_DL = `<div class="description-list">
 %s
 </div>` // Use bare div-tags instead of <dl> due to eBook-reader incompatibilities :(
-const TEMPLATE_LI_CLOSING_TAG = `</li>`
 const TEMPLATE_LI = `<li>
 %s
 </li>`
@@ -229,7 +229,12 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(token.Filename), sizeTemplate, caption), nil
+	filename := token.Filename
+	if config.Current.EmbeddedPdfToImage && filepath.Ext(strings.ToLower(filename)) == ".pdf" {
+		filename = util.GetPngPathForPdf(filename)
+	}
+
+	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
 }
 
 func expandSizeTemplate(xSize int, ySize int) string {

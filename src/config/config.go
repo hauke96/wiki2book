@@ -29,6 +29,7 @@ var Current = &Configuration{
 	OutputDriver:                   OutputDriverPandoc,
 	CacheDir:                       ".wiki2book",
 	ImagesToGrayscale:              false,
+	EmbeddedPdfToImage:             false,
 	IgnoredTemplates:               []string{},
 	TrailingTemplates:              []string{},
 	IgnoredImageParams:             []string{},
@@ -44,7 +45,7 @@ var Current = &Configuration{
 	MathConverter:                  "wikimedia",
 	RsvgConvertExecutable:          "rsvg-convert",
 	RsvgMathStylesheet:             "rsvg-math.css",
-	ImageMagickExecutable:          "convert",
+	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
 }
 
@@ -194,6 +195,17 @@ type Configuration struct {
 		JSON example: "images-to-grayscale": true
 	*/
 	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale." short:"g"`
+
+	/*
+		When set to true, embedded PDF files are treated as images and will be converted into a PNG using ImageMagick.
+		PDFs will still be converted into images, even when the "pdf" media type is present in the IgnoredMediaTypes list.
+
+		Default: false
+		Mandatory: No
+
+		JSON example: "embedded-pdf-to-image": true
+	*/
+	EmbeddedPdfToImage bool `json:"embedded-pdf-to-image" help:"Set to true in order to convert embedded PDFs into images."`
 
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.

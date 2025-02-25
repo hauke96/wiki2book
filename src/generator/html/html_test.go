@@ -3,6 +3,7 @@ package html
 import (
 	"fmt"
 	"testing"
+	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
 )
@@ -49,6 +50,31 @@ some <b>caption</b>
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    20,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
+func TestExpandImage_usePngFileForPdf(t *testing.T) {
+	config.Current.EmbeddedPdfToImage = true
+
+	result := `<div class="figure">
+<img alt="image" src="./foo/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">
+<div class="caption">
+
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.ImageToken{
+		Filename: "foo/document.pdf",
+		SizeX:    200,
+		SizeY:    -1,
 	}
 	tokenMap := map[string]parser.Token{
 		tokenImage: token,

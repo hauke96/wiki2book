@@ -81,3 +81,9 @@ func EnsureDirectory(path string) {
 	err = os.MkdirAll(path, os.ModePerm)
 	sigolo.FatalCheck(errors.Wrapf(err, "Error creating '%s' directory", path))
 }
+
+// GetPngPathForPdf converts the given path to a PDF file
+func GetPngPathForPdf(path string) string {
+	Requiref(filepath.Ext(strings.ToLower(path)) == ".pdf", "Filepath must lead to a PDF file but was '%s'", path)
+	return path + ".png"
+}

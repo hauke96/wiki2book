@@ -25,6 +25,20 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 	}
 }
 
+func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
+	setup()
+
+	config.Current.EmbeddedPdfToImage = true
+
+	var content string
+
+	content = "File:Foo.pdf"
+	escapedContent := escapeImages(content)
+	test.AssertEqual(t, content, escapedContent)
+	test.AssertEqual(t, 1, len(images))
+	test.AssertEqual(t, "File:Foo.pdf", images[0])
+}
+
 func TestEscapeImages_removeVideoWithMultilineCaption(t *testing.T) {
 	setup()
 

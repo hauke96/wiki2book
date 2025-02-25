@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"wiki2book/util"
 )
 
+const tempDirName = ".tmp/"
 const cacheFolder = "../.test-cache"
 
 func CleanRun(m *testing.M) {
@@ -18,9 +18,9 @@ func CleanRun(m *testing.M) {
 	err := os.MkdirAll(GetCacheFolder(), os.ModePerm)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(util.TempDirName)
+	err = os.RemoveAll(tempDirName)
 	sigolo.FatalCheck(err)
-	err = os.MkdirAll(util.TempDirName, os.ModePerm)
+	err = os.MkdirAll(tempDirName, os.ModePerm)
 	sigolo.FatalCheck(err)
 
 	m.Run()
