@@ -292,12 +292,6 @@ func generateProjectEbook(projectFile string, outputFile string) {
 
 	sigolo.Infof("Use project file: %s", projectFile)
 
-	sigolo.Debug("Turn paths from CLI arguments into absolute paths before going into the project file directory")
-	if outputFile != "" {
-		outputFile, err = util.ToAbsolutePath(outputFile)
-		sigolo.FatalCheck(err)
-	}
-
 	directory, projectFile := filepath.Split(projectFile)
 	if directory != "" {
 		sigolo.Debugf("Go into folder %s", directory)
@@ -308,10 +302,14 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	proj, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
 
-	if outputFile != "" {
-		sigolo.Tracef("Override outputFile from project file with %s", outputFile)
+	if proj.OutputFile == "" {
+		sigolo.Tracef("Project has no output file set, so I'll use %s", outputFile)
 		proj.OutputFile = outputFile
 	}
+
+	sigolo.Debug("Turn output file path into absolute path")
+	proj.OutputFile, err = util.ToAbsolutePath(proj.OutputFile)
+	sigolo.FatalCheck(err)
 
 	mergeConfigIntoMainConfig(&proj.Configuration)
 	mergeConfigIntoMainConfig(&cli.Configuration)
