@@ -5,10 +5,8 @@ import (
 	"wiki2book/test"
 )
 
-const cacheSubFolder = "api-cache"
-
-var apiCacheFolder = test.GetCacheFolder(cacheSubFolder)
+var apiCacheFolder = test.GetCacheFolder()
 
 func TestMain(m *testing.M) {
-	test.CleanRun(m, cacheSubFolder)
+	test.CleanRun(m)
 }

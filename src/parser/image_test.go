@@ -8,6 +8,8 @@ import (
 )
 
 func TestEscapeImages_removeVideos(t *testing.T) {
+	setup()
+
 	var content string
 
 	for _, extension := range config.Current.IgnoredMediaTypes {
@@ -24,6 +26,8 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 }
 
 func TestEscapeImages_removeVideoWithMultilineCaption(t *testing.T) {
+	setup()
+
 	content := `file:foo.webm|this caption<br>
 is<br>
 important!`
@@ -39,39 +43,33 @@ important!`
 is<br>
 important!`, content)
 	test.AssertEqual(t, []string{"file:Foo.jpg"}, images)
-
-	// cleanup
-	images = make([]string, 0)
 }
 
 func TestEscapeImages_escapeFileNames(t *testing.T) {
+	setup()
+
 	content := "file:some photo.png|with|properties"
 	content = escapeImages(content)
 	test.AssertEqual(t, "file:Some_photo.png|with|properties", content)
 	test.AssertEqual(t, []string{"file:Some_photo.png"}, images)
-
-	// cleanup
-	images = make([]string, 0)
 }
 
 func TestEscapeImages_leadingNonAscii(t *testing.T) {
+	setup()
+
 	content := "file:öäü.png|with|properties"
 	content = escapeImages(content)
 	test.AssertEqual(t, "file:Öäü.png|with|properties", content)
 	test.AssertEqual(t, []string{"file:Öäü.png"}, images)
-
-	// cleanup
-	images = make([]string, 0)
 }
 
 func TestEscapeImages_leadingSpecialChar(t *testing.T) {
+	setup()
+
 	content := "file:\"öäü\".png|with|properties"
 	content = escapeImages(content)
 	test.AssertEqual(t, "file:\"öäü\".png|with|properties", content)
 	test.AssertEqual(t, []string{"file:\"öäü\".png"}, images)
-
-	// cleanup
-	images = make([]string, 0)
 }
 
 func TestParseGalleries(t *testing.T) {

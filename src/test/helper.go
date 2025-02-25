@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
 	"os"
-	"path"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+	"wiki2book/util"
 )
 
 const cacheFolder = "../.test-cache"
-const tempDirName = ".tmp/"
 
-func CleanRun(m *testing.M, subFolderName string) {
+func CleanRun(m *testing.M) {
 	Cleanup()
-	err := os.MkdirAll(GetCacheFolder(subFolderName), os.ModePerm)
+	err := os.MkdirAll(GetCacheFolder(), os.ModePerm)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(tempDirName)
+	err = os.RemoveAll(util.TempDirName)
 	sigolo.FatalCheck(err)
-	err = os.MkdirAll(tempDirName, os.ModePerm)
+	err = os.MkdirAll(util.TempDirName, os.ModePerm)
 	sigolo.FatalCheck(err)
 
 	m.Run()
@@ -34,8 +33,8 @@ func Cleanup() {
 	}
 }
 
-func GetCacheFolder(subFolderName string) string {
-	return path.Join(cacheFolder, subFolderName)
+func GetCacheFolder() string {
+	return cacheFolder
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
