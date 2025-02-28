@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"wiki2book/generator"
 	"wiki2book/util"
 )
@@ -30,6 +31,7 @@ var Current = &Configuration{
 	OutputType:                     OutputTypeEpub2,
 	OutputDriver:                   OutputDriverPandoc,
 	CacheDir:                       getDefaultCacheDir(),
+	StyleFile:                      getDefaultStyleFile(),
 	ImagesToGrayscale:              false,
 	ConvertPDFsToImages:            false,
 	IgnoredTemplates:               []string{},
@@ -46,7 +48,7 @@ var Current = &Configuration{
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
 	RsvgConvertExecutable:          "rsvg-convert",
-	RsvgMathStylesheet:             "",
+	RsvgMathStylesheet:             getDefaultRsvgStyleFile(),
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
 	TocDepth:                       &tocDepthDefault,
@@ -57,6 +59,22 @@ func getDefaultCacheDir() string {
 	sigolo.FatalCheck(err)
 
 	return filepath.Join(userCacheDir, "wiki2book")
+}
+
+func getDefaultStyleFile() string {
+	linuxDefaultFile := "/usr/share/wiki2book/style.css"
+	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultFile) {
+		return linuxDefaultFile
+	}
+	return ""
+}
+
+func getDefaultRsvgStyleFile() string {
+	linuxDefaultFile := "/usr/share/wiki2book/rsvg-math.css"
+	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultFile) {
+		return linuxDefaultFile
+	}
+	return ""
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -122,7 +140,7 @@ type Configuration struct {
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
 
-		Default: ""
+		Default: "/use/share/wiki2book/style.css" on Linux when it exists; "" otherwise
 		Mandatory: No
 
 		JSON example: "style-file": "my-style.css"
@@ -153,7 +171,7 @@ type Configuration struct {
 		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
 		"rsvg-convert" command. Relative paths are relative to the config file.
 
-		Default: ""
+		Default: "/use/share/wiki2book/rsvg-math.css" on Linux when it exists; "" otherwise
 		Mandatory: No
 	*/
 	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
@@ -453,6 +471,12 @@ func (c *Configuration) AssertValidity() {
 	if *c.TocDepth < 0 || *c.TocDepth > 6 {
 		sigolo.Fatalf("Invalid toc-depth '%d'", c.TocDepth)
 	}
+}
+
+func (c *Configuration) Print() {
+	jsonBytes, err := json.MarshalIndent(c, "", "  ")
+	sigolo.FatalCheck(err)
+	sigolo.Debugf("Configuration:\n%s", string(jsonBytes))
 }
 
 func LoadConfig(file string) error {

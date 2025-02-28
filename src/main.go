@@ -314,10 +314,14 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	mergeConfigIntoMainConfig(&proj.Configuration)
 	mergeConfigIntoMainConfig(&cli.Configuration)
 
+	config.Current.Print()
+
 	generateBookFromArticles(proj)
 }
 
 func generateStandaloneEbook(inputFile string, outputFile string) {
+	config.Current.Print()
+
 	fileContent, err := os.ReadFile(inputFile)
 	sigolo.FatalCheck(err)
 
@@ -385,6 +389,9 @@ func generateArticleEbook(articleName string, outputFile string) {
 	proj.Metadata = project.Metadata{}
 	proj.OutputFile = outputFile
 	proj.Articles = articles
+
+	config.Current.Print()
+	proj.Print()
 
 	generateBookFromArticles(proj)
 }
