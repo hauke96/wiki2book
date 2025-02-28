@@ -34,7 +34,7 @@ type Cli struct {
 	DiagnosticsProfiling bool `help:"Enable profiling and write results to ./profiling.prof."`
 	DiagnosticsTrace     bool `help:"Enable tracing to analyse memory usage and write results to ./trace.out."`
 
-	OutputFile string `help:"The path to the output file." short:"o" default:"ebook.epub" placeholder:"<file>"`
+	OutputFile string `help:"The path to the output file." short:"o" placeholder:"<file>"`
 
 	// Can be set via and override config file:
 	config.Configuration
@@ -302,7 +302,7 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	proj, err := project.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
 
-	if proj.OutputFile == "" {
+	if outputFile != "" {
 		sigolo.Tracef("Project has no output file set, so I'll use %s", outputFile)
 		proj.OutputFile = outputFile
 	}
