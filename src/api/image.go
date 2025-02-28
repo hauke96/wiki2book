@@ -59,11 +59,13 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
 func convertSvgToPng(svgFile string, pngFile string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
-	args := []string{
-		"-s", config.Current.RsvgMathStylesheet,
-		"-o", pngFile,
-		svgFile,
+	var args []string
+
+	if config.Current.RsvgMathStylesheet != "" {
+		args = append(args, "-s", config.Current.RsvgMathStylesheet)
 	}
+
+	args = append(args, "-o", pngFile, svgFile)
 
 	err := util.Execute(config.Current.RsvgConvertExecutable, args...)
 

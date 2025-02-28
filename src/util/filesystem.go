@@ -52,7 +52,7 @@ func ToAbsolutePaths(paths ...string) ([]string, error) {
 
 func ToAbsolutePath(path string) (string, error) {
 	var err error
-	if path != "" {
+	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
 		err = errors.Wrapf(err, "Unable to make file path %s absolute", path)
 	}
@@ -61,7 +61,7 @@ func ToAbsolutePath(path string) (string, error) {
 
 func ToAbsolutePathWithBasedir(basedir string, path string) (string, error) {
 	var err error
-	if path != "" {
+	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(filepath.Join(basedir, path))
 		err = errors.Wrapf(err, "Unable to make file path %s absolute", filepath.Join(basedir, path))
 	}

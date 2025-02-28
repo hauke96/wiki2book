@@ -29,7 +29,7 @@ var tocDepthDefault = 2
 var Current = &Configuration{
 	OutputType:                     OutputTypeEpub2,
 	OutputDriver:                   OutputDriverPandoc,
-	CacheDir:                       ".wiki2book",
+	CacheDir:                       getDefaultCacheDir(),
 	ImagesToGrayscale:              false,
 	ConvertPDFsToImages:            false,
 	IgnoredTemplates:               []string{},
@@ -46,10 +46,17 @@ var Current = &Configuration{
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
 	RsvgConvertExecutable:          "rsvg-convert",
-	RsvgMathStylesheet:             "rsvg-math.css",
+	RsvgMathStylesheet:             "",
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
 	TocDepth:                       &tocDepthDefault,
+}
+
+func getDefaultCacheDir() string {
+	userCacheDir, err := os.UserCacheDir()
+	sigolo.FatalCheck(err)
+
+	return filepath.Join(userCacheDir, "wiki2book")
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -101,12 +108,14 @@ type Configuration struct {
 	OutputDriver string `json:"output-driver" help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" placeholder:"<driver>"`
 
 	/*
-		The directory where all intermediate files are stored. Relative paths are relative to the config file.
+		The directory where all intermediate files are stored. Relative paths are relative to the config file. The
+		default value is empty and therefore uses the default cache directory returned by the golang function
+		os.UserCacheDir().
 
-		Default: .wiki2book
+		Default: "<user-cache-dir>/wiki2book"
 		Mandatory: Yes
 
-		JSON example: "cache-dir": ".wiki2book"
+		JSON example: "cache-dir": "/path/to/cache"
 	*/
 	CacheDir string `json:"cache-dir" help:"The directory where all cached files will be written to." placeholder:"<dir>"`
 
@@ -144,7 +153,7 @@ type Configuration struct {
 		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
 		"rsvg-convert" command. Relative paths are relative to the config file.
 
-		Default: [ "rsvg-math.css" ]
+		Default: ""
 		Mandatory: No
 	*/
 	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
