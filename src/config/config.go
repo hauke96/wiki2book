@@ -152,7 +152,7 @@ type Configuration struct {
 	/*
 		The executable name or file for ImageMagick.
 
-		Default: "convert"
+		Default: "magick"
 		Mandatory: No
 
 		JSON example: "imagemagick-executable": "/path/to/imagemagick"

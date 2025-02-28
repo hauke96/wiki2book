@@ -400,6 +400,7 @@ func generateBookFromArticles(project *project.Project) {
 
 	config.Current.AssertFilesAndPathsExists()
 
+	// TODO Use a map here as set instead if this array and a manual duplicate removal below
 	var images []string
 
 	numberOfArticles := len(articles)
