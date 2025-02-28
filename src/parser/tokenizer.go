@@ -45,6 +45,7 @@ const (
 type Tokenizer struct {
 	tokenMap       map[string]Token
 	tokenCounter   int
+	images         []string
 	imageFolder    string
 	templateFolder string
 
@@ -71,6 +72,7 @@ func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
 	return Tokenizer{
 		tokenMap:       map[string]Token{},
 		tokenCounter:   0,
+		images:         []string{},
 		imageFolder:    imageFolder,
 		templateFolder: templateFolder,
 
@@ -107,7 +109,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	article := Article{
 		Title:    title,
 		TokenMap: t.getTokenMap(),
-		Images:   images,
+		Images:   t.images,
 		Content:  content,
 	}
 	return &article, nil

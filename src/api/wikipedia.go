@@ -78,6 +78,8 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 		var outputFilepath string
 		var freshlyDownloaded bool
 
+		sigolo.Infof("Download image %s", image)
+
 		for i, instance := range config.Current.WikipediaImageArticleInstances {
 			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
 			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
@@ -91,7 +93,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 				continue
 			}
 
-			if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
+			if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
 				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 				if _, err := os.Stat(outputPngFilepath); err != nil {
 					err = convertPdfToPng(outputFilepath, outputPngFilepath)

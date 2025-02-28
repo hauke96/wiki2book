@@ -11,6 +11,7 @@ import (
 	"runtime/pprof"
 	"runtime/trace"
 	"strings"
+	"sync"
 	"time"
 	"wiki2book/api"
 	"wiki2book/config"
@@ -407,48 +408,43 @@ func generateBookFromArticles(project *project.Project) {
 
 	config.Current.AssertFilesAndPathsExists()
 
-	// TODO Use a map here as set instead if this array and a manual duplicate removal below
-	var images []string
-
+	articleFilesMutex := &sync.Mutex{}
 	numberOfArticles := len(articles)
-	for i, articleName := range articles {
-		sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, i, numberOfArticles)
 
-		htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
-		if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-			sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, i, numberOfArticles)
-		} else {
-			sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, i, numberOfArticles)
-			wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
-			sigolo.FatalCheck(err)
+	articleProcessingThreadCount := 10
+	articleChan := make(chan string, articleProcessingThreadCount)
+	articleWaitGroup := &sync.WaitGroup{}
+	sigolo.Debugf("Use %d worker threads to process the articles", articleProcessingThreadCount)
 
-			sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, i, numberOfArticles)
-			tokenizer := parser.NewTokenizer(imageCache, templateCache)
-			article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
-			sigolo.FatalCheck(err)
-			images = append(images, article.Images...)
-
-			sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, i, numberOfArticles)
-			err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
-			sigolo.FatalCheck(err)
-
-			// TODO Adjust this when additional non-epub output types are supported.
-			sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, i, numberOfArticles)
-			htmlGenerator := &html.HtmlGenerator{
-				ImageCacheFolder:   imageCache,
-				MathCacheFolder:    mathCache,
-				ArticleCacheFolder: articleCache,
-				TokenMap:           article.TokenMap,
-			}
-			htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
-			sigolo.FatalCheck(err)
+	go func() {
+		for _, articleName := range articles {
+			articleChan <- articleName
 		}
+		close(articleChan)
+	}()
 
-		sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, i, numberOfArticles)
-		articleFiles = append(articleFiles, htmlFilePath)
+	for article := range articleChan {
+		go func(articleName string) {
+			articleWaitGroup.Add(1)
+
+			i := 0
+			for ; i < len(articles); i++ {
+				if articleName == articles[i] {
+					break
+				}
+			}
+
+			_, thisArticleFile := processArticle(articleName, i, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+
+			articleFilesMutex.Lock()
+			articleFiles = append(articleFiles, thisArticleFile)
+			articleFilesMutex.Unlock()
+
+			articleWaitGroup.Done()
+		}(article)
+
+		articleWaitGroup.Wait()
 	}
-
-	images = util.RemoveDuplicates(images)
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
 	err := Generate(
@@ -473,6 +469,47 @@ func generateBookFromArticles(project *project.Project) {
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
+}
+
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) ([]string, string) {
+	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
+
+	var images []string
+
+	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
+	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
+		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
+	} else {
+		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
+		wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
+		sigolo.FatalCheck(err)
+
+		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
+		tokenizer := parser.NewTokenizer(imageCache, templateCache)
+		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
+		sigolo.FatalCheck(err)
+
+		images = article.Images
+
+		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
+		err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
+		sigolo.FatalCheck(err)
+
+		// TODO Adjust this when additional non-epub output types are supported.
+		sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
+		htmlGenerator := &html.HtmlGenerator{
+			ImageCacheFolder:   imageCache,
+			MathCacheFolder:    mathCache,
+			ArticleCacheFolder: articleCache,
+			TokenMap:           article.TokenMap,
+		}
+		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
+		sigolo.FatalCheck(err)
+	}
+
+	sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
+
+	return images, htmlFilePath
 }
 
 func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
