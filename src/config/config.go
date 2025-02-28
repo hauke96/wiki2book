@@ -87,8 +87,6 @@ type Configuration struct {
 		Forces wiki2book to recreate HTML files even if they exists from a previous run.
 
 		Default: false
-		Mandatory: No
-
 		JSON example: "force-regenerate-html": true
 	*/
 	ForceRegenerateHtml bool `json:"force-regenerate-html" help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
@@ -97,8 +95,6 @@ type Configuration struct {
 		Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
 
 		Default: false
-		Mandatory: No
-
 		JSON example: "svg-size-to-viewbox": true
 	*/
 	SvgSizeToViewbox bool `json:"svg-size-to-viewbox" help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
@@ -108,8 +104,6 @@ type Configuration struct {
 
 		Default: epub2
 		Possible values: epub2, epub3
-		Mandatory: Yes
-
 		JSON example: "output-type": "epub2"
 	*/
 	OutputType string `json:"output-type" help:"The output file type. Possible values are: \"epub2\" (default), \"epub3\"." placeholder:"<type>"`
@@ -119,8 +113,6 @@ type Configuration struct {
 
 		Default: pandoc
 		Possible values: pandoc, internal
-		Mandatory: Yes
-
 		JSON example: "output-driver": "pandoc"
 	*/
 	OutputDriver string `json:"output-driver" help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" placeholder:"<driver>"`
@@ -131,8 +123,6 @@ type Configuration struct {
 		os.UserCacheDir().
 
 		Default: "<user-cache-dir>/wiki2book"
-		Mandatory: Yes
-
 		JSON example: "cache-dir": "/path/to/cache"
 	*/
 	CacheDir string `json:"cache-dir" help:"The directory where all cached files will be written to." placeholder:"<dir>"`
@@ -141,8 +131,6 @@ type Configuration struct {
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
 
 		Default: "/use/share/wiki2book/style.css" on Linux when it exists; "" otherwise
-		Mandatory: No
-
 		JSON example: "style-file": "my-style.css"
 	*/
 	StyleFile string `json:"style-file" help:"The CSS file that should be used." placeholder:"<file>"`
@@ -151,8 +139,6 @@ type Configuration struct {
 		The image file that should be the cover of the eBook. Relative paths are relative to the config file.
 
 		Default: ""
-		Mandatory: No
-
 		JSON example: "cover-image": "nice-picture.jpeg"
 	*/
 	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." placeholder:"<file>"`
@@ -161,8 +147,6 @@ type Configuration struct {
 		The executable name or file for rsvg-convert.
 
 		Default: "rsvg-convert"
-		Mandatory: No
-
 		JSON example: "rsvg-convert-executable": "/path/to/rsvg-convert"
 	*/
 	RsvgConvertExecutable string `json:"rsvg-convert-executable" help:"The executable name or file for rsvg-convert." placeholder:"<file>"`
@@ -172,7 +156,6 @@ type Configuration struct {
 		"rsvg-convert" command. Relative paths are relative to the config file.
 
 		Default: "/use/share/wiki2book/rsvg-math.css" on Linux when it exists; "" otherwise
-		Mandatory: No
 	*/
 	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
 
@@ -180,8 +163,6 @@ type Configuration struct {
 		The executable name or file for ImageMagick.
 
 		Default: "magick"
-		Mandatory: No
-
 		JSON example: "imagemagick-executable": "/path/to/imagemagick"
 	*/
 	ImageMagickExecutable string `json:"imagemagick-executable" help:"The executable name or file for ImageMagick." placeholder:"<file>"`
@@ -190,8 +171,6 @@ type Configuration struct {
 		The executable name or file for pandoc.
 
 		Default: "pandoc"
-		Mandatory: No
-
 		JSON example: "pandoc-executable": "/path/to/pandoc"
 	*/
 	PandocExecutable string `json:"pandoc-executable" help:"The executable name or file for pandoc." placeholder:"<file>"`
@@ -200,8 +179,6 @@ type Configuration struct {
 		The data directory for pandoc. Relative paths are relative to the config file.
 
 		Default: ""
-		Mandatory: No
-
 		JSON example: "pandoc-data-dir": "./my-folder/"
 	*/
 	PandocDataDir string `json:"pandoc-data-dir" help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." placeholder:"<dir>"`
@@ -210,8 +187,6 @@ type Configuration struct {
 		A list of font files that should be used. They then can be referenced from the style CSS file. Relative paths are relative to the config file.
 
 		Default: []
-		Mandatory: No
-
 		JSON example: "font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]
 	*/
 	FontFiles []string `json:"font-files" help:"A list of font files that should be used. They are references in your style file." placeholder:"<file>"`
@@ -220,8 +195,6 @@ type Configuration struct {
 		Set to true in order to convert raster images to grayscale. Relative paths are relative to the config file.
 
 		Default: false
-		Mandatory: No
-
 		JSON example: "images-to-grayscale": true
 	*/
 	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale."`
@@ -232,8 +205,6 @@ type Configuration struct {
 		in the IgnoredMediaTypes list.
 
 		Default: false
-		Mandatory: No
-
 		JSON example: "convert-pdfs-to-images": true
 	*/
 	ConvertPDFsToImages bool `json:"convert-pdfs-to-images" name:"convert-pdfs-to-images" help:"Set to true in order to convert referenced PDFs into images."`
@@ -242,8 +213,6 @@ type Configuration struct {
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
 
 		Default: Empty list
-		Mandatory: No
-
 		JSON example: "ignored-templates": [ "foo", "bar" ]
 		This ignores {{foo}} and {{bar}} occurrences in the input text.
 	*/
@@ -254,8 +223,6 @@ type Configuration struct {
 		are important but should be shown as a remark after the actual content of the article.
 
 		Default: Empty list
-		Mandatory: No
-
 		JSON example: "trailing-templates": [ "foo", "bar" ]
 		This moves {{foo}} and {{bar}} to the end of the document.
 	*/
@@ -265,8 +232,6 @@ type Configuration struct {
 		Parameters of images that should be ignored. The list must be in lower case.
 
 		Default: Empty list
-		Mandatory: No
-
 		JSON example: "ignored-image-params": [ "alt", "center" ]
 		This ignores the image parameters "alt" and "center" including any parameter values like "alt"="some alt text".
 	*/
@@ -277,7 +242,6 @@ type Configuration struct {
 		for a book.
 
 		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
-		Mandatory: No
 	*/
 	IgnoredMediaTypes []string `json:"ignored-media-types" help:"List of media types to ignore, i.e. list of file extensions."`
 
@@ -285,8 +249,6 @@ type Configuration struct {
 		The subdomain of the Wikipedia instance.
 
 		Default: "en"
-		Mandatory: Yes
-
 		JSON example: "wikipedia-instance": "de"
 		This config uses the German Wikipedia.
 	*/
@@ -296,8 +258,6 @@ type Configuration struct {
 		The domain of the Wikipedia instance.
 
 		Default: "wikipedia.org"
-		Mandatory: Yes
-
 		JSON example: "wikipedia-host": "my-server.com"
 	*/
 	WikipediaHost string `json:"wikipedia-host" help:"The domain of the Wikipedia instance."`
@@ -306,8 +266,6 @@ type Configuration struct {
 		The domain of the Wikipedia image instance.
 
 		Default: "wikimedia.org"
-		Mandatory: Yes
-
 		JSON example: "wikipedia-image-host": "my-image-server.com"
 	*/
 	WikipediaImageHost string `json:"wikipedia-image-host" help:"The domain of the Wikipedia image instance."`
@@ -316,8 +274,6 @@ type Configuration struct {
 		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
 
 		Default: "https://wikimedia.org/api/rest_v1/media/math"
-		Mandatory: Yes
-
 		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
 	*/
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api" help:"The URL to the math API of wikipedia."`
@@ -327,8 +283,6 @@ type Configuration struct {
 		these Wikipedia instances (in the given order).
 
 		Default: [ "commons", "en" ]
-		Mandatory: Yes
-
 		JSON example: "wikipedia-image-article-instances": [ "commons", "de" ]
 	*/
 	WikipediaImageArticleInstances []string `json:"wikipedia-image-article-instances" help:"Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for."`
@@ -338,8 +292,6 @@ type Configuration struct {
 		must be in lower case.
 
 		Default: [ "file", "image", "media" ]
-		Mandatory: No
-
 		JSON example: "file-prefixe": [ "file", "datei" ]
 	*/
 	FilePrefixe []string `json:"file-prefixe" help:"A list of prefixes to detect files, e.g. in \"File:picture.jpg\" the substring \"File\" is the image prefix."`
@@ -351,7 +303,6 @@ type Configuration struct {
 		explicitly allowed using this list.
 
 		Default: [ "arxiv", "doi" ]
-		Mandatory: No
 	*/
 	AllowedLinkPrefixes []string `json:"allowed-link-prefixe" help:"A list of prefixes that are considered links and are therefore not removed."`
 
@@ -360,7 +311,6 @@ type Configuration struct {
 		the input wikitext.
 
 		Default: [ "category" ]
-		Mandatory: No
 	*/
 	CategoryPrefixes []string `json:"category-prefixes" help:"A list of category prefixes, which are technically internals links."`
 
@@ -371,7 +321,6 @@ type Configuration struct {
 			- "rsvg": Uses "rsvg-convert" to convert SVG files to PNGs.
 
 		Default: [ "wikimedia" ]
-		Mandatory: No
 	*/
 	MathConverter string `json:"math-converter" help:"Converter turning math SVGs into PNGs."`
 
@@ -385,7 +334,6 @@ type Configuration struct {
 
 		Default: 2
 		Allowed values: 0 - 6
-		Mandatory: No
 	*/
 	TocDepth *int `json:"toc-depth" help:"Depth of the table of content."`
 }
