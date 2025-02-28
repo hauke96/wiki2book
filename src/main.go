@@ -316,6 +316,7 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	mergeConfigIntoMainConfig(&cli.Configuration)
 
 	config.Current.Print()
+	proj.Print()
 
 	generateBookFromArticles(proj)
 }
@@ -392,7 +393,6 @@ func generateArticleEbook(articleName string, outputFile string) {
 	proj.Articles = articles
 
 	config.Current.Print()
-	proj.Print()
 
 	generateBookFromArticles(proj)
 }

@@ -6,14 +6,15 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
+	"strings"
 	"wiki2book/config"
 )
 
 type Project struct {
-	Metadata             Metadata `json:"metadata"`
-	OutputFile           string   `json:"output-file"`
-	Articles             []string `json:"articles"`
-	config.Configuration `json:"-"`
+	config.Configuration
+	Metadata   Metadata `json:"metadata"`
+	OutputFile string   `json:"output-file"`
+	Articles   []string `json:"articles"`
 }
 
 type Metadata struct {
@@ -25,9 +26,9 @@ type Metadata struct {
 }
 
 func (p *Project) Print() {
-	jsonBytes, err := json.MarshalIndent(p, "", "  ")
+	jsonBytes, err := json.MarshalIndent(p.Metadata, "  ", "  ")
 	sigolo.FatalCheck(err)
-	sigolo.Debugf("Project:\n%s", string(jsonBytes))
+	sigolo.Debugf("Project:\n  OutputFile: %s\n  Articles: %v\n  Metadata: %s", p.OutputFile, strings.Join(p.Articles, ", "), string(jsonBytes))
 }
 
 // LoadProject reads the given file and creates a corresponding Project instance. It also alters the config.Current
