@@ -21,13 +21,12 @@ var httpClient = GetDefaultHttpClient()
 func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
-	sigolo.Debugf("Try to find already cached file '%s'", outputFilepath)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
-		sigolo.Debugf("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil
 	}
-	sigolo.Debug("File not cached, download fresh one")
+	sigolo.Debugf("File %s not cached -> download fresh one", outputFilepath)
 
 	// Get the data
 	responseBodyReader, err := download(url, filename)
