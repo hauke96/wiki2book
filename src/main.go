@@ -411,10 +411,9 @@ func generateBookFromArticles(project *project.Project) {
 	articleFilesMutex := &sync.Mutex{}
 	numberOfArticles := len(articles)
 
-	articleProcessingThreadCount := 10
-	articleChan := make(chan string, articleProcessingThreadCount)
+	articleChan := make(chan string, *config.Current.WorkerThreads)
 	articleWaitGroup := &sync.WaitGroup{}
-	sigolo.Debugf("Use %d worker threads to process the articles", articleProcessingThreadCount)
+	sigolo.Debugf("Use %d worker threads to process the articles", *config.Current.WorkerThreads)
 
 	go func() {
 		for _, articleName := range articles {

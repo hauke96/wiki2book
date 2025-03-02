@@ -25,6 +25,7 @@ const (
 )
 
 var tocDepthDefault = 2
+var workerThreadsDefault = 5
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
 var Current = &Configuration{
@@ -52,6 +53,7 @@ var Current = &Configuration{
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
 	TocDepth:                       &tocDepthDefault,
+	WorkerThreads:                  &workerThreadsDefault,
 }
 
 func getDefaultCacheDir() string {
@@ -335,7 +337,18 @@ type Configuration struct {
 		Default: 2
 		Allowed values: 0 - 6
 	*/
-	TocDepth *int `json:"toc-depth" help:"Depth of the table of content."`
+	TocDepth *int `json:"toc-depth" help:"Depth of the table of content. Allowed range is 0 - 6."`
+
+	/*
+		Number of threads to process the articles. Only affects projects but not single articles or the standalone mode.
+		A higher number of threads might increase performance, but it also puts more stress on the Wikipedia API, which
+		might lead to "too many requests"-errors. These errors are handled by wiki2book, but a high thread count might
+		still negatively affect wiki2book. Use a value of 1 to disable parallel processing.
+
+		Default: 5
+		Allowed values: 1 - unlimited
+	*/
+	WorkerThreads *int `json:"worker-threads" help:"Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1."`
 }
 
 func (c *Configuration) makePathsAbsolute(file string) {
@@ -418,6 +431,9 @@ func (c *Configuration) AssertValidity() {
 	}
 	if *c.TocDepth < 0 || *c.TocDepth > 6 {
 		sigolo.Fatalf("Invalid toc-depth '%d'", c.TocDepth)
+	}
+	if *c.WorkerThreads < 1 {
+		sigolo.Fatalf("Invalid number of worker threads '%d'", c.WorkerThreads)
 	}
 }
 
