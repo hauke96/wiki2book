@@ -118,7 +118,7 @@ func main() {
 
 	switch ctx.Command() {
 	case "standalone <file>":
-		mergeConfigIntoMainConfig(&cli.Configuration)
+		config.MergeIntoCurrentConfig(&cli.Configuration)
 		generateStandaloneEbook(
 			cli.Standalone.File,
 			cli.OutputFile,
@@ -129,7 +129,7 @@ func main() {
 			cli.OutputFile,
 		)
 	case "article <article-name>":
-		mergeConfigIntoMainConfig(&cli.Configuration)
+		config.MergeIntoCurrentConfig(&cli.Configuration)
 		generateArticleEbook(
 			cli.Article.ArticleName,
 			cli.OutputFile,
@@ -145,147 +145,6 @@ func main() {
 	sigolo.Debugf("Start   : %s", start.Format(RFC1123Millis))
 	sigolo.Debugf("End     : %s", end.Format(RFC1123Millis))
 	sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
-}
-
-func mergeConfigIntoMainConfig(c *config.Configuration) {
-	if c.ForceRegenerateHtml {
-		sigolo.Tracef("Override outputType from project file with %s", c.OutputType)
-		config.Current.ForceRegenerateHtml = c.ForceRegenerateHtml
-	}
-	if c.SvgSizeToViewbox {
-		sigolo.Tracef("Override svgSizeToViewbox from project file with %v", c.SvgSizeToViewbox)
-		config.Current.SvgSizeToViewbox = c.SvgSizeToViewbox
-	}
-	if c.OutputType != "" {
-		sigolo.Tracef("Override outputType from project file with %s", c.OutputType)
-		config.Current.OutputType = c.OutputType
-	}
-	if c.OutputDriver != "" {
-		sigolo.Tracef("Override OutputDriver from project file with %s", c.OutputDriver)
-		config.Current.OutputDriver = c.OutputDriver
-	}
-	if c.CacheDir != "" {
-		absolutePath, err := util.ToAbsolutePath(c.CacheDir)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CacheDir from project file with %s", absolutePath)
-		config.Current.CacheDir = absolutePath
-	}
-	if c.StyleFile != "" {
-		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override StyleFile from project file with %s", absolutePath)
-		config.Current.StyleFile = absolutePath
-	}
-	if c.CoverImage != "" {
-		absolutePath, err := util.ToAbsolutePath(c.CoverImage)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CoverImage from project file with %s", absolutePath)
-		config.Current.CoverImage = absolutePath
-	}
-	if c.RsvgConvertExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.RsvgConvertExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override RsvgConvertExecutable from project file with %s", c.RsvgConvertExecutable)
-		config.Current.RsvgConvertExecutable = absolutePath
-	}
-	if c.RsvgMathStylesheet != "" {
-		absolutePath, err := util.ToAbsolutePath(c.RsvgMathStylesheet)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override RsvgMathStylesheet from project file with %s", c.RsvgMathStylesheet)
-		config.Current.RsvgMathStylesheet = absolutePath
-	}
-	if c.ImageMagickExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.ImageMagickExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override ImageMagickExecutable from project file with %s", c.ImageMagickExecutable)
-		config.Current.ImageMagickExecutable = absolutePath
-	}
-	if c.PandocExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.PandocExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override PandocExecutable from project file with %s", c.PandocExecutable)
-		config.Current.PandocExecutable = absolutePath
-	}
-	if c.PandocDataDir != "" {
-		absolutePath, err := util.ToAbsolutePath(c.PandocDataDir)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override PandocDataDir from project file with %s", absolutePath)
-		config.Current.PandocDataDir = absolutePath
-	}
-	if c.FontFiles != nil {
-		absolutePaths, err := util.ToAbsolutePaths(c.FontFiles...)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override FontFiles from project file with %v", c.SvgSizeToViewbox)
-		config.Current.FontFiles = absolutePaths
-	}
-	if c.ImagesToGrayscale {
-		sigolo.Tracef("Override ImagesToGrayscale from project file with %v", c.ImagesToGrayscale)
-		config.Current.ImagesToGrayscale = c.ImagesToGrayscale
-	}
-	if c.ConvertPDFsToImages {
-		sigolo.Tracef("Override ConvertPDFsToImages from project file with %v", c.ConvertPDFsToImages)
-		config.Current.ConvertPDFsToImages = c.ConvertPDFsToImages
-	}
-	if c.IgnoredTemplates != nil {
-		sigolo.Tracef("Override IgnoredTemplates from project file with %v", c.IgnoredTemplates)
-		config.Current.IgnoredTemplates = c.IgnoredTemplates
-	}
-	if c.TrailingTemplates != nil {
-		sigolo.Tracef("Override TrailingTemplates from project file with %v", c.TrailingTemplates)
-		config.Current.TrailingTemplates = c.TrailingTemplates
-	}
-	if c.IgnoredImageParams != nil {
-		sigolo.Tracef("Override IgnoredImageParams from project file with %v", c.IgnoredImageParams)
-		config.Current.IgnoredImageParams = c.IgnoredImageParams
-	}
-	if c.IgnoredMediaTypes != nil {
-		sigolo.Tracef("Override IgnoredMediaTypes from project file with %v", c.IgnoredMediaTypes)
-		config.Current.IgnoredMediaTypes = c.IgnoredMediaTypes
-	}
-	if c.WikipediaInstance != "" {
-		sigolo.Tracef("Override WikipediaInstance from project file with %s", c.WikipediaInstance)
-		config.Current.WikipediaInstance = c.WikipediaInstance
-	}
-	if c.WikipediaHost != "" {
-		sigolo.Tracef("Override WikipediaHost from project file with %s", c.WikipediaHost)
-		config.Current.WikipediaHost = c.WikipediaHost
-	}
-	if c.WikipediaImageHost != "" {
-		sigolo.Tracef("Override WikipediaImageHost from project file with %s", c.WikipediaImageHost)
-		config.Current.WikipediaImageHost = c.WikipediaImageHost
-	}
-	if c.WikipediaMathRestApi != "" {
-		sigolo.Tracef("Override WikipediaMathRestApi from project file with %s", c.WikipediaMathRestApi)
-		config.Current.WikipediaMathRestApi = c.WikipediaMathRestApi
-	}
-	if c.WikipediaImageArticleInstances != nil {
-		sigolo.Tracef("Override WikipediaImageArticleInstances from project file with %v", c.WikipediaImageArticleInstances)
-		config.Current.WikipediaImageArticleInstances = c.WikipediaImageArticleInstances
-	}
-	if c.FilePrefixe != nil {
-		sigolo.Tracef("Override FilePrefixe from project file with %v", c.FilePrefixe)
-		config.Current.FilePrefixe = c.FilePrefixe
-	}
-	if c.AllowedLinkPrefixes != nil {
-		sigolo.Tracef("Override AllowedLinkPrefixes from project file with %v", c.AllowedLinkPrefixes)
-		config.Current.AllowedLinkPrefixes = c.AllowedLinkPrefixes
-	}
-	if c.CategoryPrefixes != nil {
-		sigolo.Tracef("Override CategoryPrefixes from project file with %v", c.CategoryPrefixes)
-		config.Current.CategoryPrefixes = c.CategoryPrefixes
-	}
-	if c.MathConverter != "" {
-		sigolo.Tracef("Override MathConverter from project file with %s", c.MathConverter)
-		config.Current.MathConverter = c.MathConverter
-	}
-	if c.TocDepth != nil {
-		sigolo.Tracef("Override TocDepth from project file with %d", c.TocDepth)
-		config.Current.TocDepth = c.TocDepth
-	}
-
-	config.Current.MakePathsAbsoluteToWorkingDir()
-
-	config.Current.AssertValidity()
 }
 
 func generateProjectEbook(projectFile string, outputFile string) {
@@ -312,8 +171,8 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	proj.OutputFile, err = util.ToAbsolutePath(proj.OutputFile)
 	sigolo.FatalCheck(err)
 
-	mergeConfigIntoMainConfig(&proj.Configuration)
-	mergeConfigIntoMainConfig(&cli.Configuration)
+	config.MergeIntoCurrentConfig(&proj.Configuration)
+	config.MergeIntoCurrentConfig(&cli.Configuration)
 
 	config.Current.Print()
 	proj.Print()
