@@ -271,38 +271,49 @@ func generateBookFromArticles(project *project.Project) {
 	numberOfArticles := len(articles)
 
 	articleChan := make(chan string, *config.Current.WorkerThreads)
-	articleWaitGroup := &sync.WaitGroup{}
 	sigolo.Debugf("Use %d worker threads to process the articles", *config.Current.WorkerThreads)
 
-	go func() {
-		for _, articleName := range articles {
-			articleChan <- articleName
-		}
-		close(articleChan)
-	}()
+	// Create a wait-group that is zero when all threads are done
+	threadPoolWaitGroup := &sync.WaitGroup{}
+	threadPoolWaitGroup.Add(*config.Current.WorkerThreads)
 
-	for article := range articleChan {
-		go func(articleName string) {
-			articleWaitGroup.Add(1)
+	// Start threads which pick an article from the channel to work on
+	for i := 0; i < *config.Current.WorkerThreads; i++ {
+		sigolo.Debugf("Start worker thread %s", i)
 
-			i := 0
-			for ; i < len(articles); i++ {
-				if articleName == articles[i] {
-					break
+		go func(threadNumber int) {
+			for articleName := range articleChan {
+				sigolo.Debugf("Processing article %s on thread %d", articleName, threadNumber)
+
+				articleNumber := 0
+				for ; articleNumber < len(articles); articleNumber++ {
+					if articleName == articles[articleNumber] {
+						break
+					}
 				}
+
+				_, thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+
+				articleFilesMutex.Lock()
+				articleFiles = append(articleFiles, thisArticleFile)
+				articleFilesMutex.Unlock()
 			}
 
-			_, thisArticleFile := processArticle(articleName, i, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
-
-			articleFilesMutex.Lock()
-			articleFiles = append(articleFiles, thisArticleFile)
-			articleFilesMutex.Unlock()
-
-			articleWaitGroup.Done()
-		}(article)
-
-		articleWaitGroup.Wait()
+			// This thread will close, so mark it as done in the wait-group
+			threadPoolWaitGroup.Done()
+		}(i)
 	}
+
+	for _, articleName := range articles {
+		sigolo.Debugf("Pass article %s to worker threads", articleName)
+		articleChan <- articleName
+	}
+	close(articleChan)
+
+	// Wait for threads to be done with processing
+	sigolo.Debugf("Wait for threads to finish processing articles ...")
+	threadPoolWaitGroup.Wait()
+	sigolo.Debugf("Worker threads are done processing articles")
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
 	err := Generate(
