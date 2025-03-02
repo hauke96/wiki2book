@@ -279,7 +279,7 @@ func generateBookFromArticles(project *project.Project) {
 
 	// Start threads which pick an article from the channel to work on
 	for i := 0; i < *config.Current.WorkerThreads; i++ {
-		sigolo.Debugf("Start worker thread %s", i)
+		sigolo.Debugf("Start worker thread %d", i)
 
 		go func(threadNumber int) {
 			for articleName := range articleChan {
@@ -300,6 +300,7 @@ func generateBookFromArticles(project *project.Project) {
 			}
 
 			// This thread will close, so mark it as done in the wait-group
+			sigolo.Debugf("Mark thread %d as done", threadNumber)
 			threadPoolWaitGroup.Done()
 		}(i)
 	}
