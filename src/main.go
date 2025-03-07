@@ -257,8 +257,6 @@ func generateArticleEbook(articleName string, outputFile string) {
 }
 
 func generateBookFromArticles(project *project.Project) {
-	var articleFiles []string
-
 	articles := project.Articles
 	metadata := project.Metadata
 	outputFile := project.OutputFile
@@ -267,8 +265,8 @@ func generateBookFromArticles(project *project.Project) {
 
 	config.Current.AssertFilesAndPathsExists()
 
-	articleFilesMutex := &sync.Mutex{}
 	numberOfArticles := len(articles)
+	articleFiles := make([]string, numberOfArticles)
 
 	articleChan := make(chan string, *config.Current.WorkerThreads)
 	sigolo.Debugf("Use %d worker threads to process the articles", *config.Current.WorkerThreads)
@@ -292,11 +290,8 @@ func generateBookFromArticles(project *project.Project) {
 					}
 				}
 
-				_, thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
-
-				articleFilesMutex.Lock()
-				articleFiles = append(articleFiles, thisArticleFile)
-				articleFilesMutex.Unlock()
+				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+				articleFiles[articleNumber] = thisArticleFile
 			}
 
 			// This thread will close, so mark it as done in the wait-group
@@ -341,10 +336,8 @@ func generateBookFromArticles(project *project.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) ([]string, string) {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
-
-	var images []string
 
 	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
@@ -358,8 +351,6 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		tokenizer := parser.NewTokenizer(imageCache, templateCache)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
-
-		images = article.Images
 
 		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
 		err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
@@ -379,7 +370,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 
 	sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
-	return images, htmlFilePath
+	return htmlFilePath
 }
 
 func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
