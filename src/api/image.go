@@ -17,11 +17,7 @@ func resizeAndCompressImage(imageFilepath string, commandTemplate string) error 
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.SizePlaceholder, imgSize)
 
-	commandParts := strings.Split(commandString, " ")
-	commandExecutable := commandParts[0]
-	commandArgs := commandParts[1:]
-
-	err := util.Execute(commandExecutable, commandArgs...)
+	err := util.ExecuteCommandWithArgs(commandString)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s failed", imageFilepath)
@@ -38,11 +34,7 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandT
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputPdfFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, outputPngFilepath)
 
-	commandParts := strings.Split(commandString, " ")
-	commandExecutable := commandParts[0]
-	commandArgs := commandParts[1:]
-
-	err := util.Execute(commandExecutable, commandArgs...)
+	err := util.ExecuteCommandWithArgs(commandString)
 
 	if err != nil {
 		sigolo.Errorf("Converting PNG %s into an PNG image failed", inputPdfFilepath)
@@ -57,11 +49,7 @@ func convertSvgToPng(svgFile string, pngFile string, commandTemplate string) err
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, svgFile)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
-	commandParts := strings.Split(commandString, " ")
-	commandExecutable := commandParts[0]
-	commandArgs := commandParts[1:]
-
-	err := util.Execute(commandExecutable, commandArgs...)
+	err := util.ExecuteCommandWithArgs(commandString)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s to PNG failed", svgFile)
