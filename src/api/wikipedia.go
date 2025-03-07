@@ -71,7 +71,7 @@ func DownloadArticle(wikipediaInstance string, wikipediaHost string, title strin
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool, pdfToPng bool) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
@@ -97,6 +97,15 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 				if _, err := os.Stat(outputPngFilepath); err != nil {
 					err = convertPdfToPng(outputFilepath, outputPngFilepath)
+					if err != nil {
+						return err
+					}
+				}
+				outputFilepath = outputPngFilepath
+			} else if svgToPng && filepath.Ext(strings.ToLower(outputFilepath)) == ".svg" {
+				outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
+				if _, err := os.Stat(outputPngFilepath); err != nil {
+					err = convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.SvgToPngCommandTemplate)
 					if err != nil {
 						return err
 					}
@@ -220,7 +229,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
-		err := convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.MathSvgToPngCommandTemplate)
+		err = convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.MathSvgToPngCommandTemplate)
 		if err != nil {
 			return "", "", err
 		}

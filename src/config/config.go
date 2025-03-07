@@ -55,7 +55,7 @@ var Current = &Configuration{
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
-	RsvgConvertExecutable:          "rsvg-convert",
+	SvgToPngCommandTemplate:        getDefaultSvgToPngCommandTemplate(),
 	MathSvgToPngCommandTemplate:    getDefaultMathSvgToPngCommandTemplate(),
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
@@ -77,11 +77,15 @@ func getDefaultStyleFile() string {
 	return ""
 }
 
+func getDefaultSvgToPngCommandTemplate() string {
+	return "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
+}
+
 func getDefaultMathSvgToPngCommandTemplate() string {
 	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultRsvgMathStyleFile) {
 		return "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	}
-	return "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
+	return getDefaultSvgToPngCommandTemplate()
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -151,13 +155,18 @@ type Configuration struct {
 	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." placeholder:"<file>"`
 
 	/*
-		The executable name or file for rsvg-convert.
+		Specifies the template for the command that should be used to convert the SVG files into PNGs. This command
+		might use additional parameters in comparison to the normal SVG to PNG command template.
 
-		Default: "rsvg-convert"
-		JSON example: "rsvg-convert-executable": "/path/to/rsvg-convert"
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		- {INPUT} : The input SVG file.
+		- {OUTPUT} : The output PNG file.
+
+		Default: "rsvg-convert -o {OUTPUT} {INPUT}"
+		JSON example: "svg-to-png-command-template": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
-	// TODO refactor this into a normal svg to image conversion command template
-	RsvgConvertExecutable string `json:"rsvg-convert-executable" help:"The executable name or file for rsvg-convert." placeholder:"<file>"`
+	SvgToPngCommandTemplate string `json:"svg-to-png-command-template" help:"Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files of math expressions into
@@ -171,6 +180,7 @@ type Configuration struct {
 		Default:
 		- When the specified CSS file exists: "rsvg-convert -s /usr/share/wiki2book/rsvg-math.css -o {OUTPUT} {INPUT}"
 		- Otherwise: "rsvg-convert -o {OUTPUT} {INPUT}"
+		JSON example: "math-svg-to-png-command-template": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
 	MathSvgToPngCommandTemplate string `json:"math-svg-to-png-command-template" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
 
@@ -215,7 +225,7 @@ type Configuration struct {
 	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale."`
 
 	/*
-		When set to true, references PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
+		When set to true, referenced PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
 		into a PNG using ImageMagick. PDFs will still be converted into images, even when the "pdf" media type is present
 		in the IgnoredMediaTypes list.
 
@@ -223,6 +233,16 @@ type Configuration struct {
 		JSON example: "convert-pdfs-to-images": true
 	*/
 	ConvertPDFsToImages bool `json:"convert-pdfs-to-images" name:"convert-pdfs-to-images" help:"Set to true in order to convert referenced PDFs into images."`
+
+	/*
+		When set to true, referenced SVG files, e.g. with "[[File:foo.svg]]" will be converted into a PNG using the
+		configured SvgToPngCommandTemplate. SVGs will still be converted into images, even when the "svg" media type is
+		present in the IgnoredMediaTypes list.
+
+		Default: false
+		JSON example: "convert-svg-to-png": true
+	*/
+	ConvertSvgToPng bool `json:"convert-svg-to-png" help:"Set to true in order to convert referenced SVGs into raster images."`
 
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
@@ -333,7 +353,7 @@ type Configuration struct {
 		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
 			- "none": Uses no converter, instead the plain SVG file is inserted into the ebook.
 			- "wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.
-			- "rsvg": Uses "rsvg-convert" to convert SVG files to PNGs.
+			- "rsvg": Uses the MathSvgToPngCommandTemplate to convert math SVG files to PNGs.
 
 		Default: [ "wikimedia" ]
 	*/
@@ -399,11 +419,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CoverImage from project file with %s", absolutePath)
 		Current.CoverImage = absolutePath
 	}
-	if c.RsvgConvertExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.RsvgConvertExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override RsvgConvertExecutable from project file with %s", c.RsvgConvertExecutable)
-		Current.RsvgConvertExecutable = absolutePath
+	if c.SvgToPngCommandTemplate != "" {
+		sigolo.Tracef("Override SvgToPngCommandTemplate from project file with %s", c.SvgToPngCommandTemplate)
+		Current.SvgToPngCommandTemplate = c.SvgToPngCommandTemplate
 	}
 	if c.MathSvgToPngCommandTemplate != "" {
 		sigolo.Tracef("Override MathSvgToPngCommandTemplate from project file with %s", c.MathSvgToPngCommandTemplate)
@@ -440,6 +458,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.ConvertPDFsToImages {
 		sigolo.Tracef("Override ConvertPDFsToImages from project file with %v", c.ConvertPDFsToImages)
 		Current.ConvertPDFsToImages = c.ConvertPDFsToImages
+	}
+	if c.ConvertSvgToPng {
+		sigolo.Tracef("Override ConvertSvgToPng from project file with %v", c.ConvertSvgToPng)
+		Current.ConvertSvgToPng = c.ConvertSvgToPng
 	}
 	if c.IgnoredTemplates != nil {
 		sigolo.Tracef("Override IgnoredTemplates from project file with %v", c.IgnoredTemplates)

@@ -91,8 +91,14 @@ func EnsureDirectory(path string) {
 	}
 }
 
-// GetPngPathForPdf converts the given path to a PDF file
+// GetPngPathForPdf converts the given path of a PDF file into a PNG file.
 func GetPngPathForPdf(path string) string {
 	Requiref(filepath.Ext(strings.ToLower(path)) == ".pdf", "Filepath must lead to a PDF file but was '%s'", path)
+	return path + ".png"
+}
+
+// GetPngPathForSvg converts the given path of a PDF file into a PNG file.
+func GetPngPathForSvg(path string) string {
+	Requiref(filepath.Ext(strings.ToLower(path)) == ".svg", "Filepath must lead to a SVG file but was '%s'", path)
 	return path + ".png"
 }

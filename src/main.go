@@ -197,7 +197,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
+	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages, config.Current.ConvertSvgToPng)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
@@ -353,7 +353,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages)
+		err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ImagesToGrayscale, config.Current.ConvertPDFsToImages, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.
