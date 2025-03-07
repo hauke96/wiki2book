@@ -11,6 +11,6 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	images = []string{}
 	config.Current.ConvertPDFsToImages = false
+	config.Current.ConvertSvgToPng = false
 }

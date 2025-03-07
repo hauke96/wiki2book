@@ -54,10 +54,14 @@ func (t *Tokenizer) escapeImages(content string) string {
 
 	// Check if this media type is unwanted
 	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
-	if fileExtension != "pdf" && util.Contains(config.Current.IgnoredMediaTypes, fileExtension) ||
-		fileExtension == "pdf" && !config.Current.ConvertPDFsToImages ||
-		fileExtension == "svg" && !config.Current.ConvertSvgToPng {
-		return ""
+	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
+		// This image might should be ignored. However, there are special cases, e.g. when PDFs should be ignored but
+		// also converted into an image. In this case the PDF doesn't count as PDF but as image and can stay.
+		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ConvertPDFsToImages
+		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ConvertSvgToPng
+		if !isPdfAndShouldStay && !isSvgAndShouldStay {
+			return ""
+		}
 	}
 
 	sigolo.Tracef("Found image: %s", filename)
