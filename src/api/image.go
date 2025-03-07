@@ -1,35 +1,27 @@
 package api
 
 import (
-	"fmt"
 	"github.com/hauke96/sigolo/v2"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
 )
 
-const imgSize = 600
+const imgSize = "600"
 
 // resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
-func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
+func resizeAndCompressImage(imageFilepath string, imageProcessingCommandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
-	args := []string{
-		imageFilepath,
-		"-resize", fmt.Sprintf("%dx%d>", imgSize, imgSize),
-		"-quality", "75",
-		"-define", "PNG:compression-level=9",
-		"-define", "PNG:compression-filter=0",
-	}
+	commandString := strings.ReplaceAll(imageProcessingCommandTemplate, config.InputPlaceholder, imageFilepath)
+	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
+	commandString = strings.ReplaceAll(commandString, config.SizePlaceholder, imgSize)
 
-	if toGrayscale {
-		sigolo.Tracef("Add args to convert '%s' to grayscale", imageFilepath)
-		args = append(args, "-colorspace", "gray")
-	}
+	commandParts := strings.Split(commandString, " ")
+	commandExecutable := commandParts[0]
+	commandArgs := commandParts[1:]
 
-	args = append(args, imageFilepath)
-
-	err := util.Execute(config.Current.ImageMagickExecutable, args...)
+	err := util.Execute(commandExecutable, commandArgs...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s failed", imageFilepath)
@@ -40,16 +32,18 @@ func resizeAndCompressImage(imageFilepath string, toGrayscale bool) error {
 
 // convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
 // rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
-func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
+func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, pdfToPngCommandTemplate string) error {
 	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
 
-	args := []string{
-		"-density", "300",
-		inputPdfFilepath,
-		outputPngFilepath,
-	}
+	commandString := strings.ReplaceAll(pdfToPngCommandTemplate, config.InputPlaceholder, inputPdfFilepath)
+	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, outputPngFilepath)
 
-	err := util.Execute(config.Current.ImageMagickExecutable, args...)
+	commandParts := strings.Split(commandString, " ")
+	commandExecutable := commandParts[0]
+	commandArgs := commandParts[1:]
+
+	err := util.Execute(commandExecutable, commandArgs...)
+
 	if err != nil {
 		sigolo.Errorf("Converting PNG %s into an PNG image failed", inputPdfFilepath)
 	}
@@ -60,14 +54,14 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
 func convertSvgToPng(svgFile string, pngFile string, svgToPngCommandTemplate string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
-	svgToPngCommandString := strings.ReplaceAll(svgToPngCommandTemplate, config.InputPlaceholder, svgFile)
-	svgToPngCommandString = strings.ReplaceAll(svgToPngCommandString, config.OutputPlaceholder, pngFile)
+	commandString := strings.ReplaceAll(svgToPngCommandTemplate, config.InputPlaceholder, svgFile)
+	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
-	splitCommand := strings.Split(svgToPngCommandString, " ")
-	svgToPngCommand := splitCommand[0]
-	svgToPngCommandArgs := splitCommand[1:]
+	commandParts := strings.Split(commandString, " ")
+	commandExecutable := commandParts[0]
+	commandArgs := commandParts[1:]
 
-	err := util.Execute(svgToPngCommand, svgToPngCommandArgs...)
+	err := util.Execute(commandExecutable, commandArgs...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s to PNG failed", svgFile)

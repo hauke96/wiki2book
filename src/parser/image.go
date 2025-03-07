@@ -57,7 +57,7 @@ func (t *Tokenizer) escapeImages(content string) string {
 	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
 		// This image might should be ignored. However, there are special cases, e.g. when PDFs should be ignored but
 		// also converted into an image. In this case the PDF doesn't count as PDF but as image and can stay.
-		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ConvertPDFsToImages
+		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ConvertPdfToPng
 		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ConvertSvgToPng
 		if !isPdfAndShouldStay && !isSvgAndShouldStay {
 			return ""

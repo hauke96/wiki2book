@@ -30,7 +30,7 @@ func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
 	setup()
 	tokenizer := NewTokenizer("foo", "bar")
 
-	config.Current.ConvertPDFsToImages = true
+	config.Current.ConvertPdfToPng = true
 
 	var content string
 
@@ -174,7 +174,7 @@ func TestParseImages_inlineHappyPath(t *testing.T) {
 	content := tokenizer.parseImages("foo [[file:image.jpg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 
-	config.Current.ConvertPDFsToImages = false
+	config.Current.ConvertPdfToPng = false
 	content = tokenizer.parseImages("foo [[file:image.pdf]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
 

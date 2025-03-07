@@ -71,7 +71,7 @@ func DownloadArticle(wikipediaInstance string, wikipediaHost string, title strin
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool, pdfToPng bool, svgToPng bool) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		var downloadErr error = nil
@@ -96,7 +96,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
 				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 				if _, err := os.Stat(outputPngFilepath); err != nil {
-					err = convertPdfToPng(outputFilepath, outputPngFilepath)
+					err = convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.PdfToPngCommandTemplate)
 					if err != nil {
 						return err
 					}
@@ -115,7 +115,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 
 			// If the file is new, rescale it using ImageMagick.
 			if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != ".svg" {
-				err := resizeAndCompressImage(outputFilepath, toGrayscale)
+				err := resizeAndCompressImage(outputFilepath, config.Current.ImageProcessingCommandTemplate)
 				if err != nil {
 					return err
 				}

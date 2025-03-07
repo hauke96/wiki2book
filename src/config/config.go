@@ -29,6 +29,12 @@ const (
 
 	InputPlaceholder  = "{INPUT}"
 	OutputPlaceholder = "{OUTPUT}"
+	SizePlaceholder   = "{SIZE}"
+
+	defaultSvgToPngCommandTemplate                   = "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
+	defaultLinuxMathSvgToPngCommandTemplateWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
+	defaultImageProcessingCommandTemplate            = "magick " + InputPlaceholder + " -resize " + SizePlaceholder + "x" + SizePlaceholder + "> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
+	defaultPdfToPngCommandTemplate                   = "magick -density 300 " + InputPlaceholder + " " + OutputPlaceholder
 )
 
 var tocDepthDefault = 2
@@ -40,8 +46,7 @@ var Current = &Configuration{
 	OutputDriver:                   OutputDriverPandoc,
 	CacheDir:                       getDefaultCacheDir(),
 	StyleFile:                      getDefaultStyleFile(),
-	ImagesToGrayscale:              false,
-	ConvertPDFsToImages:            false,
+	ConvertPdfToPng:                false,
 	IgnoredTemplates:               []string{},
 	TrailingTemplates:              []string{},
 	IgnoredImageParams:             []string{},
@@ -55,9 +60,10 @@ var Current = &Configuration{
 	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
-	SvgToPngCommandTemplate:        getDefaultSvgToPngCommandTemplate(),
+	SvgToPngCommandTemplate:        defaultSvgToPngCommandTemplate,
 	MathSvgToPngCommandTemplate:    getDefaultMathSvgToPngCommandTemplate(),
-	ImageMagickExecutable:          "magick",
+	ImageProcessingCommandTemplate: defaultImageProcessingCommandTemplate,
+	PdfToPngCommandTemplate:        defaultPdfToPngCommandTemplate,
 	PandocExecutable:               "pandoc",
 	TocDepth:                       &tocDepthDefault,
 	WorkerThreads:                  &workerThreadsDefault,
@@ -77,15 +83,11 @@ func getDefaultStyleFile() string {
 	return ""
 }
 
-func getDefaultSvgToPngCommandTemplate() string {
-	return "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
-}
-
 func getDefaultMathSvgToPngCommandTemplate() string {
 	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultRsvgMathStyleFile) {
-		return "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
+		return defaultLinuxMathSvgToPngCommandTemplateWithStyle
 	}
-	return getDefaultSvgToPngCommandTemplate()
+	return defaultSvgToPngCommandTemplate
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -185,12 +187,35 @@ type Configuration struct {
 	MathSvgToPngCommandTemplate string `json:"math-svg-to-png-command-template" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
 
 	/*
-		The executable name or file for ImageMagick.
+		Specifies the template for the command that should be used to process images. This will be called for each
+		downloaded image and can be used to e.g. compress or otherwise process the image. An empty value deactivates
+		the processing and the original image will be used.
 
-		Default: "magick"
-		JSON example: "imagemagick-executable": "/path/to/imagemagick"
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		- {INPUT} : The input SVG file.
+		- {OUTPUT} : The output PNG file.
+		- {SIZE} : The maximum width/height of the output image.
+
+		Default:
+		- Otherwise: "magick {INPUT} -resize {SIZE}x{SIZE}> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
+		JSON example: "image-processing-command-template": "my-command --some-arg -i {INPUT} -s {SIZE} -o {OUTPUT}"
 	*/
-	ImageMagickExecutable string `json:"imagemagick-executable" help:"The executable name or file for ImageMagick." placeholder:"<file>"`
+	ImageProcessingCommandTemplate string `json:"image-processing-command-template" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
+
+	/*
+		Specifies the template for the command that should be used to convert PDF into PNG files.
+
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		- {INPUT} : The input PDF file.
+		- {OUTPUT} : The output PNG file.
+
+		Default:
+		- Otherwise: "magick -density 300 {INPUT} {OUTPUT}"
+		JSON example: "pdf-to-png-command-template": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+	*/
+	PdfToPngCommandTemplate string `json:"pdf-to-png-command-template" help:"The executable name or file for ImageMagick." placeholder:"<file>"`
 
 	/*
 		The executable name or file for pandoc.
@@ -217,22 +242,14 @@ type Configuration struct {
 	FontFiles []string `json:"font-files" help:"A list of font files that should be used. They are references in your style file." placeholder:"<file>"`
 
 	/*
-		Set to true in order to convert raster images to grayscale. Relative paths are relative to the config file.
-
-		Default: false
-		JSON example: "images-to-grayscale": true
-	*/
-	ImagesToGrayscale bool `json:"images-to-grayscale" help:"Set to true in order to convert raster images to grayscale."`
-
-	/*
 		When set to true, referenced PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
-		into a PNG using ImageMagick. PDFs will still be converted into images, even when the "pdf" media type is present
-		in the IgnoredMediaTypes list.
+		into a PNG using the PdfToPngCommandTemplate. PDFs will still be converted into images, even when the "pdf"
+		media type is present in the IgnoredMediaTypes list.
 
 		Default: false
-		JSON example: "convert-pdfs-to-images": true
+		JSON example: "convert-pdf-to-png": true
 	*/
-	ConvertPDFsToImages bool `json:"convert-pdfs-to-images" name:"convert-pdfs-to-images" help:"Set to true in order to convert referenced PDFs into images."`
+	ConvertPdfToPng bool `json:"convert-pdf-to-png" help:"Set to true in order to convert referenced PDFs into images."`
 
 	/*
 		When set to true, referenced SVG files, e.g. with "[[File:foo.svg]]" will be converted into a PNG using the
@@ -427,11 +444,13 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override MathSvgToPngCommandTemplate from project file with %s", c.MathSvgToPngCommandTemplate)
 		Current.MathSvgToPngCommandTemplate = c.MathSvgToPngCommandTemplate
 	}
-	if c.ImageMagickExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.ImageMagickExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override ImageMagickExecutable from project file with %s", c.ImageMagickExecutable)
-		Current.ImageMagickExecutable = absolutePath
+	if c.ImageProcessingCommandTemplate != "" {
+		sigolo.Tracef("Override ImageProcessingCommandTemplate from project file with %s", c.ImageProcessingCommandTemplate)
+		Current.ImageProcessingCommandTemplate = c.ImageProcessingCommandTemplate
+	}
+	if c.PdfToPngCommandTemplate != "" {
+		sigolo.Tracef("Override PdfToPngCommandTemplate from project file with %s", c.PdfToPngCommandTemplate)
+		Current.PdfToPngCommandTemplate = c.PdfToPngCommandTemplate
 	}
 	if c.PandocExecutable != "" {
 		absolutePath, err := util.ToAbsolutePath(c.PandocExecutable)
@@ -451,13 +470,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override FontFiles from project file with %v", c.SvgSizeToViewbox)
 		Current.FontFiles = absolutePaths
 	}
-	if c.ImagesToGrayscale {
-		sigolo.Tracef("Override ImagesToGrayscale from project file with %v", c.ImagesToGrayscale)
-		Current.ImagesToGrayscale = c.ImagesToGrayscale
-	}
-	if c.ConvertPDFsToImages {
-		sigolo.Tracef("Override ConvertPDFsToImages from project file with %v", c.ConvertPDFsToImages)
-		Current.ConvertPDFsToImages = c.ConvertPDFsToImages
+	if c.ConvertPdfToPng {
+		sigolo.Tracef("Override ConvertPdfToPng from project file with %v", c.ConvertPdfToPng)
+		Current.ConvertPdfToPng = c.ConvertPdfToPng
 	}
 	if c.ConvertSvgToPng {
 		sigolo.Tracef("Override ConvertSvgToPng from project file with %v", c.ConvertSvgToPng)
@@ -606,6 +621,17 @@ func (c *Configuration) AssertValidity() {
 	if *c.WorkerThreads < 1 {
 		sigolo.Fatalf("Invalid number of worker threads '%d'", c.WorkerThreads)
 	}
+
+	if c.SvgToPngCommandTemplate == "" {
+		sigolo.Fatalf("SvgToPngCommandTemplate must not be empty")
+	}
+	if !strings.Contains(c.SvgToPngCommandTemplate, InputPlaceholder) {
+		sigolo.Fatalf("SvgToPngCommandTemplate must contain the '" + InputPlaceholder + "' placeholder")
+	}
+	if !strings.Contains(c.SvgToPngCommandTemplate, OutputPlaceholder) {
+		sigolo.Fatalf("SvgToPngCommandTemplate must contain the '" + OutputPlaceholder + "' placeholder")
+	}
+
 	if c.MathSvgToPngCommandTemplate == "" {
 		sigolo.Fatalf("MathSvgToPngCommandTemplate must not be empty")
 	}
@@ -614,6 +640,26 @@ func (c *Configuration) AssertValidity() {
 	}
 	if !strings.Contains(c.MathSvgToPngCommandTemplate, OutputPlaceholder) {
 		sigolo.Fatalf("MathSvgToPngCommandTemplate must contain the '" + OutputPlaceholder + "' placeholder")
+	}
+
+	if !strings.Contains(c.ImageProcessingCommandTemplate, InputPlaceholder) {
+		sigolo.Fatalf("ImageProcessingCommandTemplate must contain the '" + InputPlaceholder + "' placeholder")
+	}
+	if !strings.Contains(c.ImageProcessingCommandTemplate, OutputPlaceholder) {
+		sigolo.Fatalf("ImageProcessingCommandTemplate must contain the '" + OutputPlaceholder + "' placeholder")
+	}
+	if !strings.Contains(c.ImageProcessingCommandTemplate, SizePlaceholder) {
+		sigolo.Fatalf("ImageProcessingCommandTemplate must contain the '" + SizePlaceholder + "' placeholder")
+	}
+
+	if c.PdfToPngCommandTemplate == "" {
+		sigolo.Fatalf("PdfToPngCommandTemplate must not be empty")
+	}
+	if !strings.Contains(c.PdfToPngCommandTemplate, InputPlaceholder) {
+		sigolo.Fatalf("PdfToPngCommandTemplate must contain the '" + InputPlaceholder + "' placeholder")
+	}
+	if !strings.Contains(c.PdfToPngCommandTemplate, OutputPlaceholder) {
+		sigolo.Fatalf("PdfToPngCommandTemplate must contain the '" + OutputPlaceholder + "' placeholder")
 	}
 }
 
