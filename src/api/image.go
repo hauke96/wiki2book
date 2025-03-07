@@ -10,10 +10,10 @@ import (
 const imgSize = "600"
 
 // resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
-func resizeAndCompressImage(imageFilepath string, imageProcessingCommandTemplate string) error {
+func resizeAndCompressImage(imageFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
-	commandString := strings.ReplaceAll(imageProcessingCommandTemplate, config.InputPlaceholder, imageFilepath)
+	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.SizePlaceholder, imgSize)
 
@@ -32,10 +32,10 @@ func resizeAndCompressImage(imageFilepath string, imageProcessingCommandTemplate
 
 // convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
 // rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
-func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, pdfToPngCommandTemplate string) error {
+func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
 
-	commandString := strings.ReplaceAll(pdfToPngCommandTemplate, config.InputPlaceholder, inputPdfFilepath)
+	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputPdfFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, outputPngFilepath)
 
 	commandParts := strings.Split(commandString, " ")
@@ -51,10 +51,10 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, pdfToPng
 	return err
 }
 
-func convertSvgToPng(svgFile string, pngFile string, svgToPngCommandTemplate string) error {
+func convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
-	commandString := strings.ReplaceAll(svgToPngCommandTemplate, config.InputPlaceholder, svgFile)
+	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, svgFile)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
 	commandParts := strings.Split(commandString, " ")

@@ -96,7 +96,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
 				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 				if _, err := os.Stat(outputPngFilepath); err != nil {
-					err = convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.PdfToPngCommandTemplate)
+					err = convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
 					if err != nil {
 						return err
 					}
@@ -105,7 +105,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			} else if svgToPng && filepath.Ext(strings.ToLower(outputFilepath)) == ".svg" {
 				outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
 				if _, err := os.Stat(outputPngFilepath); err != nil {
-					err = convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.SvgToPngCommandTemplate)
+					err = convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
 					if err != nil {
 						return err
 					}
@@ -115,7 +115,7 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 
 			// If the file is new, rescale it using ImageMagick.
 			if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != ".svg" {
-				err := resizeAndCompressImage(outputFilepath, config.Current.ImageProcessingCommandTemplate)
+				err := resizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 				if err != nil {
 					return err
 				}
@@ -229,7 +229,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
-		err = convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.MathSvgToPngCommandTemplate)
+		err = convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}
