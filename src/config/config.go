@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"wiki2book/generator"
 	"wiki2book/util"
 )
@@ -15,13 +16,19 @@ import (
 const (
 	MathConverterNone      = "none"
 	MathConverterWikimedia = "wikimedia"
-	MathConverterRsvg      = "rsvg"
+	MathConverterInternal  = "internal"
 
 	OutputTypeEpub2 = "epub2"
 	OutputTypeEpub3 = "epub3"
 
 	OutputDriverPandoc   = "pandoc"
 	OutputDriverInternal = "internal"
+
+	linuxDefaultRsvgMathStyleFile = "/usr/share/wiki2book/rsvg-math.css"
+	linuxDefaultStyleFile         = "/usr/share/wiki2book/style.css"
+
+	InputPlaceholder  = "{INPUT}"
+	OutputPlaceholder = "{OUTPUT}"
 )
 
 var tocDepthDefault = 2
@@ -49,7 +56,7 @@ var Current = &Configuration{
 	CategoryPrefixes:               []string{"category"},
 	MathConverter:                  "wikimedia",
 	RsvgConvertExecutable:          "rsvg-convert",
-	RsvgMathStylesheet:             getDefaultRsvgStyleFile(),
+	MathSvgToPngCommandTemplate:    getDefaultMathSvgToPngCommandTemplate(),
 	ImageMagickExecutable:          "magick",
 	PandocExecutable:               "pandoc",
 	TocDepth:                       &tocDepthDefault,
@@ -64,19 +71,17 @@ func getDefaultCacheDir() string {
 }
 
 func getDefaultStyleFile() string {
-	linuxDefaultFile := "/usr/share/wiki2book/style.css"
-	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultFile) {
-		return linuxDefaultFile
+	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultStyleFile) {
+		return linuxDefaultStyleFile
 	}
 	return ""
 }
 
-func getDefaultRsvgStyleFile() string {
-	linuxDefaultFile := "/usr/share/wiki2book/rsvg-math.css"
-	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultFile) {
-		return linuxDefaultFile
+func getDefaultMathSvgToPngCommandTemplate() string {
+	if runtime.GOOS == "linux" && util.PathExists(linuxDefaultRsvgMathStyleFile) {
+		return "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	}
-	return ""
+	return "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
 }
 
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
@@ -151,15 +156,23 @@ type Configuration struct {
 		Default: "rsvg-convert"
 		JSON example: "rsvg-convert-executable": "/path/to/rsvg-convert"
 	*/
+	// TODO refactor this into a normal svg to image conversion command template
 	RsvgConvertExecutable string `json:"rsvg-convert-executable" help:"The executable name or file for rsvg-convert." placeholder:"<file>"`
 
 	/*
-		Specifies the path of the CSS file that should be used when converting math SVGs to PNGs using the
-		"rsvg-convert" command. Relative paths are relative to the config file.
+		Specifies the template for the command that should be used to convert the SVG files of math expressions into
+		PNGs. This command might use additional parameters in comparison to the normal SVG to PNG command template.
 
-		Default: "/use/share/wiki2book/rsvg-math.css" on Linux when it exists; "" otherwise
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		- {INPUT} : The input SVG file.
+		- {OUTPUT} : The output PNG file.
+
+		Default:
+		- When the specified CSS file exists: "rsvg-convert -s /usr/share/wiki2book/rsvg-math.css -o {OUTPUT} {INPUT}"
+		- Otherwise: "rsvg-convert -o {OUTPUT} {INPUT}"
 	*/
-	RsvgMathStylesheet string `json:"rsvg-math-stylesheet" help:"Stylesheet for rsvg-convert when using the rsvg converter for math SVGs." placeholder:"<file>"`
+	MathSvgToPngCommandTemplate string `json:"math-svg-to-png-command-template" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
 
 	/*
 		The executable name or file for ImageMagick.
@@ -392,11 +405,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override RsvgConvertExecutable from project file with %s", c.RsvgConvertExecutable)
 		Current.RsvgConvertExecutable = absolutePath
 	}
-	if c.RsvgMathStylesheet != "" {
-		absolutePath, err := util.ToAbsolutePath(c.RsvgMathStylesheet)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override RsvgMathStylesheet from project file with %s", c.RsvgMathStylesheet)
-		Current.RsvgMathStylesheet = absolutePath
+	if c.MathSvgToPngCommandTemplate != "" {
+		sigolo.Tracef("Override MathSvgToPngCommandTemplate from project file with %s", c.MathSvgToPngCommandTemplate)
+		Current.MathSvgToPngCommandTemplate = c.MathSvgToPngCommandTemplate
 	}
 	if c.ImageMagickExecutable != "" {
 		absolutePath, err := util.ToAbsolutePath(c.ImageMagickExecutable)
@@ -514,9 +525,6 @@ func (c *Configuration) makePathsAbsolute(file string) {
 	c.PandocDataDir, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.PandocDataDir)
 	sigolo.FatalCheck(err)
 
-	c.RsvgMathStylesheet, err = util.ToAbsolutePathWithBasedir(absoluteConfigDir, c.RsvgMathStylesheet)
-	sigolo.FatalCheck(err)
-
 	for i, f := range c.FontFiles {
 		absoluteFile := filepath.Join(absoluteConfigDir, f)
 		sigolo.FatalCheck(err)
@@ -539,9 +547,6 @@ func (c *Configuration) MakePathsAbsoluteToWorkingDir() {
 	c.PandocDataDir, err = util.ToAbsolutePath(c.PandocDataDir)
 	sigolo.FatalCheck(err)
 
-	c.RsvgMathStylesheet, err = util.ToAbsolutePath(c.RsvgMathStylesheet)
-	sigolo.FatalCheck(err)
-
 	for i, f := range c.FontFiles {
 		absoluteFile, err := util.ToAbsolutePath(f)
 		sigolo.FatalCheck(err)
@@ -554,7 +559,6 @@ func (c *Configuration) AssertFilesAndPathsExists() {
 	util.AssertPathExists(Current.StyleFile)
 	util.AssertPathExists(Current.CoverImage)
 	util.AssertPathExists(Current.PandocDataDir)
-	util.AssertPathExists(Current.RsvgMathStylesheet)
 	for _, f := range Current.FontFiles {
 		util.AssertPathExists(f)
 	}
@@ -571,7 +575,7 @@ func (c *Configuration) AssertValidity() {
 	if err != nil {
 		sigolo.Fatalf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err)
 	}
-	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterRsvg {
+	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterInternal {
 		sigolo.Fatalf("Invalid math converter '%s'", c.OutputDriver)
 	}
 	if *c.TocDepth < 0 || *c.TocDepth > 6 {
@@ -579,6 +583,15 @@ func (c *Configuration) AssertValidity() {
 	}
 	if *c.WorkerThreads < 1 {
 		sigolo.Fatalf("Invalid number of worker threads '%d'", c.WorkerThreads)
+	}
+	if c.MathSvgToPngCommandTemplate == "" {
+		sigolo.Fatalf("MathSvgToPngCommandTemplate must not be empty")
+	}
+	if !strings.Contains(c.MathSvgToPngCommandTemplate, InputPlaceholder) {
+		sigolo.Fatalf("MathSvgToPngCommandTemplate must contain the '" + InputPlaceholder + "' placeholder")
+	}
+	if !strings.Contains(c.MathSvgToPngCommandTemplate, OutputPlaceholder) {
+		sigolo.Fatalf("MathSvgToPngCommandTemplate must contain the '" + OutputPlaceholder + "' placeholder")
 	}
 }
 

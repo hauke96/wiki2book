@@ -218,9 +218,9 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
-	} else if config.Current.MathConverter == config.MathConverterRsvg {
+	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
-		err := convertSvgToPng(cachedSvgFile, cachedPngFile)
+		err := convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.MathSvgToPngCommandTemplate)
 		if err != nil {
 			return "", "", err
 		}

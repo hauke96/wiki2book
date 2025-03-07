@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
+	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
 )
@@ -56,18 +57,17 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string) error {
 	return err
 }
 
-func convertSvgToPng(svgFile string, pngFile string) error {
+func convertSvgToPng(svgFile string, pngFile string, svgToPngCommandTemplate string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
-	var args []string
+	svgToPngCommandString := strings.ReplaceAll(svgToPngCommandTemplate, config.InputPlaceholder, svgFile)
+	svgToPngCommandString = strings.ReplaceAll(svgToPngCommandString, config.OutputPlaceholder, pngFile)
 
-	if config.Current.RsvgMathStylesheet != "" {
-		args = append(args, "-s", config.Current.RsvgMathStylesheet)
-	}
+	splitCommand := strings.Split(svgToPngCommandString, " ")
+	svgToPngCommand := splitCommand[0]
+	svgToPngCommandArgs := splitCommand[1:]
 
-	args = append(args, "-o", pngFile, svgFile)
-
-	err := util.Execute(config.Current.RsvgConvertExecutable, args...)
+	err := util.Execute(svgToPngCommand, svgToPngCommandArgs...)
 
 	if err != nil {
 		sigolo.Errorf("Converting image %s to PNG failed", svgFile)
