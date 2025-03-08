@@ -7,7 +7,6 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -85,9 +84,11 @@ func DownloadImages(images []string, outputFolder string, articleFolder string, 
 			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
 			if downloadErr != nil {
 				if isLastSource {
-					sigolo.Errorf("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
+					// We tried every single image source and couldn't find the image.
+					sigolo.Errorf("Could not downloading image %s from any image article source. Error of last image source: %s", image, downloadErr.Error())
 				} else {
-					// That an image is not available at one source is a common situation and not an error that needs to be handled.
+					// This image is not available at the current source. Maybe one of the following sources hold the
+					// image. Therefore, this is not a real error that needs to be handled.
 					sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, config.Current.WikipediaHost, downloadErr.Error())
 				}
 				continue
@@ -209,7 +210,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
+		return "", "", err
 	}
 
 	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
@@ -261,25 +262,33 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		return mathSvgFilename, nil
 	}
 
-	sigolo.Debugf("Rendering math %s", util.TruncString(mathString))
-
 	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
-	if err != nil {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
+
+	responseBodyText := ""
+	if response != nil {
+		responseBodyReader := response.Body
+		if responseBodyReader != nil {
+			defer responseBodyReader.Close()
+		}
+		responseBodyText = util.ReaderToString(response.Body)
 	}
-	defer response.Body.Close()
+
+	if err != nil {
+		return "", errors.Wrapf(err, "Response body for math '%s' on URL %s : %s", mathString, urlString, responseBodyText)
+	}
+
+	if response == nil {
+		return "", errors.Errorf("No error but empty response returned for math '%s' on URL %s", mathString, urlString)
+	}
 
 	if response.StatusCode != 200 {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Errorf("Rendering Math: Response returned with status code %d", response.StatusCode)
+		return "", errors.Errorf("Rendering math failed with status code %d for math '%s' on URL %s with body: %s", response.StatusCode, mathString, urlString, responseBodyText)
 	}
 
 	locationHeader := response.Header.Get("x-resource-location")
 	if locationHeader == "" {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Errorf("Unable to get location header for math %s", mathString)
+		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
 	err = cacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
@@ -288,14 +297,4 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	}
 
 	return locationHeader, nil
-}
-
-func logMathResponseBodyAsError(response *http.Response, urlString string, mathString string) {
-	if response != nil {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, response.Body)
-		if err == nil {
-			sigolo.Errorf("Response body for url %s and math string %s:\n%s", urlString, util.TruncString(mathString), buf.String())
-		}
-	}
 }

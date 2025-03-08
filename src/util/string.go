@@ -1,6 +1,7 @@
 package util
 
 import (
+	"io"
 	"math"
 	"strings"
 	"unicode/utf8"
@@ -36,4 +37,16 @@ func AllToLower(items []string) []string {
 	}
 
 	return result
+}
+
+func ReaderToString(reader io.Reader) string {
+	if reader != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, reader)
+		if err == nil {
+			return buf.String()
+		}
+	}
+
+	return ""
 }

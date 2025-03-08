@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 	"wiki2book/util"
 )
@@ -32,9 +31,12 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 	responseBodyReader, err := download(url, filename)
 	if responseBodyReader != nil {
 		defer responseBodyReader.Close()
+		if err != nil {
+			util.ReaderToString(responseBodyReader)
+			return "", true, err
+		}
 	}
 	if err != nil {
-		logResponseBodyAsError(responseBodyReader, url)
 		return "", true, err
 	}
 
@@ -124,14 +126,4 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 
 	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
 	return nil
-}
-
-func logResponseBodyAsError(bodyReader io.Reader, urlString string) {
-	if bodyReader != nil {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, bodyReader)
-		if err == nil {
-			sigolo.Errorf("Response body for url %s:\n%s", urlString, buf.String())
-		}
-	}
 }
