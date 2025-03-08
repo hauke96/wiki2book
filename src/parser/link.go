@@ -35,9 +35,10 @@ func (t *Tokenizer) parseExternalLinks(content string) string {
 }
 
 // parseLink takes the given bracket type and tries to find the link content in between them and replaces it with a
-// token. The parameter delimiterRequired specified if the link must definitely have two parts (URL/Article and a
-// display text). The parameter removeSectionReference specifies whether everything behind the first "#" should be
-// ignored or not.
+// token. The parameter delimiterRequired specifies if the link must definitely have two parts (URL/Article and a
+// display text) or if the delimiter is optional. The parameter removeSectionReference specifies whether everything
+// behind the first "#" should be ignored or not. Link to e.g. categories start with a ":" and will be treated as normal
+// links, which means, in case of a missing delimiter, the text of the part behind the last ":" is used as link text.
 func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBrackets string, linkDelimiter string, linkType LinkType, delimiterRequired bool, removeSectionReference bool) string {
 	splitContent := strings.Split(content, openingBrackets)
 	var resultSegments []string
@@ -88,8 +89,20 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 				resultSegments = append(resultSegments, splitItem)
 				continue
 			}
-			linkText = linkTarget
+
+			if linkTarget[0] == ':' {
+				// A link starting with ":" indicates e.g. a link to a category. Because we have no delimiter here, the
+				// link text is the part behind the last ":".
+				linkSegments := strings.SplitN(linkTarget, ":", -1)
+				linkText = linkSegments[len(linkSegments)-1]
+			} else {
+				// A normal link but without the delimiter. Therefore, the link text is the whole link content, e.g. the
+				// name of the article.
+				linkText = linkTarget
+			}
 		} else {
+			// We might have a normal link or a link to a category (or other category-like object) here. However, that
+			// is irrelevant, because we have a delimiter and use the content behind the delimiter for the link text.
 			linkText = strings.Join(wikitextElements[1:], linkDelimiter)
 		}
 

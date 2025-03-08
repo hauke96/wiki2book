@@ -79,8 +79,13 @@ func removeUnwantedInternalLinks(content string) string {
 		if cursor == "[[" {
 			endIndex := findCorrespondingCloseToken(content, i+2, "[", "]")
 
-			linkContent := content[i+2 : endIndex]
-			allPrefixes := strings.SplitN(linkContent, ":", -1)
+			totalLinkContent := content[i+2 : endIndex]
+			linkSegments := strings.SplitN(totalLinkContent, ":", -1)
+			allPrefixes := linkSegments[:len(linkSegments)-1]
+
+			// It's possible to link categories with a leading colon, e.g. [[:SomeCategory:SomeLinkText]]. They should
+			// be treated as normal internal links, i.e. the "SomeLinkText" in this example should stay.
+			isNormalLinkToCategory := content[i+2] == ':'
 
 			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixe, strings.ToLower(allPrefixes[0])) {
 				// We found an image. This extra treatment exists because images might contain colons and that would
@@ -88,9 +93,15 @@ func removeUnwantedInternalLinks(content string) string {
 				continue
 			}
 
-			// Go through all prefixes and see if any one is forbidden. Use the "-1" to skip the last element, which is
-			// the actual link/article and not a prefix anymore.
-			for j := 0; j < len(allPrefixes)-1; j++ {
+			if isNormalLinkToCategory {
+				// We found a category (or other category-like object), but it starts with a ":" and should therefore
+				// be treated as normal link. This treatment happens in the parsing of normal links, which means there's
+				// nothing to clean here.
+				continue
+			}
+
+			// Go through all prefixes and see if any one is forbidden.
+			for j := 0; j < len(allPrefixes); j++ {
 				linkPrefix := strings.ToLower(allPrefixes[j])
 
 				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixe, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
