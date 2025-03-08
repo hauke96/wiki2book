@@ -7,15 +7,12 @@ import (
 	"wiki2book/util"
 )
 
-const imgSize = "600"
-
 // resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
 func resizeAndCompressImage(imageFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
-	commandString = strings.ReplaceAll(commandString, config.SizePlaceholder, imgSize)
 
 	err := util.ExecuteCommandWithArgs(commandString)
 

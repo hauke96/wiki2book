@@ -29,11 +29,10 @@ const (
 
 	InputPlaceholder  = "{INPUT}"
 	OutputPlaceholder = "{OUTPUT}"
-	SizePlaceholder   = "{SIZE}"
 
 	defaultCommandTemplateSvgToPng                   = "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateLinuxMathSvgToPngWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
-	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize " + SizePlaceholder + "x" + SizePlaceholder + "> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
+	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
 	defaultCommandTemplatePdfToPng                   = "magick -density 300 " + InputPlaceholder + " " + OutputPlaceholder
 )
 
@@ -195,11 +194,10 @@ type Configuration struct {
 		executing the command:
 		- {INPUT} : The input SVG file.
 		- {OUTPUT} : The output PNG file.
-		- {SIZE} : The maximum width/height of the output image.
 
 		Default:
-		- Otherwise: "magick {INPUT} -resize {SIZE}x{SIZE}> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
-		JSON example: "command-template-image-processing": "my-command --some-arg -i {INPUT} -s {SIZE} -o {OUTPUT}"
+		- Otherwise: "magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
+		JSON example: "command-template-image-processing": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
 	CommandTemplateImageProcessing string `json:"command-template-image-processing" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
 
@@ -647,9 +645,6 @@ func (c *Configuration) AssertValidity() {
 	}
 	if !strings.Contains(c.CommandTemplateImageProcessing, OutputPlaceholder) {
 		sigolo.Fatalf("CommandTemplateImageProcessing must contain the '" + OutputPlaceholder + "' placeholder")
-	}
-	if !strings.Contains(c.CommandTemplateImageProcessing, SizePlaceholder) {
-		sigolo.Fatalf("CommandTemplateImageProcessing must contain the '" + SizePlaceholder + "' placeholder")
 	}
 
 	if c.CommandTemplatePdfToPng == "" {
