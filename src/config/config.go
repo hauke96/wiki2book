@@ -40,32 +40,39 @@ var tocDepthDefault = 2
 var workerThreadsDefault = 5
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
-var Current = &Configuration{
-	OutputType:                     OutputTypeEpub2,
-	OutputDriver:                   OutputDriverPandoc,
-	CacheDir:                       getDefaultCacheDir(),
-	StyleFile:                      getDefaultStyleFile(),
-	ConvertPdfToPng:                false,
-	IgnoredTemplates:               []string{},
-	TrailingTemplates:              []string{},
-	IgnoredImageParams:             []string{},
-	IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
-	WikipediaInstance:              "en",
-	WikipediaHost:                  "wikipedia.org",
-	WikipediaImageHost:             "upload.wikimedia.org",
-	WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
-	WikipediaImageArticleInstances: []string{"commons", "en"},
-	FilePrefixe:                    []string{"file", "image", "media"},
-	AllowedLinkPrefixes:            []string{"arxiv", "doi"},
-	CategoryPrefixes:               []string{"category"},
-	MathConverter:                  "wikimedia",
-	CommandTemplateSvgToPng:        defaultCommandTemplateSvgToPng,
-	CommandTemplateMathSvgToPng:    getDefaultMathSvgToPngCommandTemplate(),
-	CommandTemplateImageProcessing: defaultCommandTemplateImageProcessing,
-	CommandTemplatePdfToPng:        defaultCommandTemplatePdfToPng,
-	PandocExecutable:               "pandoc",
-	TocDepth:                       &tocDepthDefault,
-	WorkerThreads:                  &workerThreadsDefault,
+var Current = NewDefaultConfig()
+
+// Used during merging to only copy values of fields that have non-default values.
+var defaultConfig = NewDefaultConfig()
+
+func NewDefaultConfig() *Configuration {
+	return &Configuration{
+		OutputType:                     OutputTypeEpub2,
+		OutputDriver:                   OutputDriverPandoc,
+		CacheDir:                       getDefaultCacheDir(),
+		StyleFile:                      getDefaultStyleFile(),
+		ConvertPdfToPng:                false,
+		IgnoredTemplates:               []string{},
+		TrailingTemplates:              []string{},
+		IgnoredImageParams:             []string{},
+		IgnoredMediaTypes:              []string{"gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm"},
+		WikipediaInstance:              "en",
+		WikipediaHost:                  "wikipedia.org",
+		WikipediaImageHost:             "upload.wikimedia.org",
+		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
+		WikipediaImageArticleInstances: []string{"commons", "en"},
+		FilePrefixe:                    []string{"file", "image", "media"},
+		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
+		CategoryPrefixes:               []string{"category"},
+		MathConverter:                  "wikimedia",
+		CommandTemplateSvgToPng:        defaultCommandTemplateSvgToPng,
+		CommandTemplateMathSvgToPng:    getDefaultMathSvgToPngCommandTemplate(),
+		CommandTemplateImageProcessing: defaultCommandTemplateImageProcessing,
+		CommandTemplatePdfToPng:        defaultCommandTemplatePdfToPng,
+		PandocExecutable:               "pandoc",
+		TocDepth:                       tocDepthDefault,
+		WorkerThreads:                  workerThreadsDefault,
+	}
 }
 
 func getDefaultCacheDir() string {
@@ -101,7 +108,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "force-regenerate-html": true
 	*/
-	ForceRegenerateHtml bool `json:"force-regenerate-html" help:"Forces wiki2book to recreate HTML files even if they exists from a previous run." short:"r"`
+	ForceRegenerateHtml bool `json:"force-regenerate-html"`
 
 	/*
 		Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
@@ -109,7 +116,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "svg-size-to-viewbox": true
 	*/
-	SvgSizeToViewbox bool `json:"svg-size-to-viewbox" help:"Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers."`
+	SvgSizeToViewbox bool `json:"svg-size-to-viewbox"`
 
 	/*
 		The type of the final result.
@@ -118,7 +125,7 @@ type Configuration struct {
 		Possible values: epub2, epub3
 		JSON example: "output-type": "epub2"
 	*/
-	OutputType string `json:"output-type" help:"The output file type. Possible values are: \"epub2\" (default), \"epub3\"." placeholder:"<type>"`
+	OutputType string `json:"output-type"`
 
 	/*
 		The way the final output is created.
@@ -127,7 +134,7 @@ type Configuration struct {
 		Possible values: pandoc, internal
 		JSON example: "output-driver": "pandoc"
 	*/
-	OutputDriver string `json:"output-driver" help:"The method to generate the output file. Available driver: \"pandoc\" (default), \"internal\" (experimental!)" placeholder:"<driver>"`
+	OutputDriver string `json:"output-driver"`
 
 	/*
 		The directory where all intermediate files are stored. Relative paths are relative to the config file. The
@@ -137,7 +144,7 @@ type Configuration struct {
 		Default: "<user-cache-dir>/wiki2book"
 		JSON example: "cache-dir": "/path/to/cache"
 	*/
-	CacheDir string `json:"cache-dir" help:"The directory where all cached files will be written to." placeholder:"<dir>"`
+	CacheDir string `json:"cache-dir"`
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
@@ -145,7 +152,7 @@ type Configuration struct {
 		Default: "/use/share/wiki2book/style.css" on Linux when it exists; "" otherwise
 		JSON example: "style-file": "my-style.css"
 	*/
-	StyleFile string `json:"style-file" help:"The CSS file that should be used." placeholder:"<file>"`
+	StyleFile string `json:"style-file"`
 
 	/*
 		The image file that should be the cover of the eBook. Relative paths are relative to the config file.
@@ -153,7 +160,7 @@ type Configuration struct {
 		Default: ""
 		JSON example: "cover-image": "nice-picture.jpeg"
 	*/
-	CoverImage string `json:"cover-image" help:"A cover image for the front cover of the eBook." placeholder:"<file>"`
+	CoverImage string `json:"cover-image"`
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files into PNGs. This command
@@ -167,7 +174,7 @@ type Configuration struct {
 		Default: "rsvg-convert -o {OUTPUT} {INPUT}"
 		JSON example: "command-template-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
-	CommandTemplateSvgToPng string `json:"command-template-svg-to-png" help:"Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
+	CommandTemplateSvgToPng string `json:"command-template-svg-to-png"`
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files of math expressions into
@@ -183,7 +190,7 @@ type Configuration struct {
 		- Otherwise: "rsvg-convert -o {OUTPUT} {INPUT}"
 		JSON example: "command-template-math-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
-	CommandTemplateMathSvgToPng string `json:"command-template-math-svg-to-png" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
+	CommandTemplateMathSvgToPng string `json:"command-template-math-svg-to-png"`
 
 	/*
 		Specifies the template for the command that should be used to process images. This will be called for each
@@ -199,7 +206,7 @@ type Configuration struct {
 		- Otherwise: "magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
 		JSON example: "command-template-image-processing": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
-	CommandTemplateImageProcessing string `json:"command-template-image-processing" help:"Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'."`
+	CommandTemplateImageProcessing string `json:"command-template-image-processing"`
 
 	/*
 		Specifies the template for the command that should be used to convert PDF into PNG files.
@@ -213,7 +220,7 @@ type Configuration struct {
 		- Otherwise: "magick -density 300 {INPUT} {OUTPUT}"
 		JSON example: "command-template-pdf-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
-	CommandTemplatePdfToPng string `json:"command-template-pdf-to-png" help:"The executable name or file for ImageMagick." placeholder:"<file>"`
+	CommandTemplatePdfToPng string `json:"command-template-pdf-to-png"`
 
 	/*
 		The executable name or file for pandoc.
@@ -221,7 +228,7 @@ type Configuration struct {
 		Default: "pandoc"
 		JSON example: "pandoc-executable": "/path/to/pandoc"
 	*/
-	PandocExecutable string `json:"pandoc-executable" help:"The executable name or file for pandoc." placeholder:"<file>"`
+	PandocExecutable string `json:"pandoc-executable"`
 
 	/*
 		The data directory for pandoc. Relative paths are relative to the config file.
@@ -229,7 +236,7 @@ type Configuration struct {
 		Default: ""
 		JSON example: "pandoc-data-dir": "./my-folder/"
 	*/
-	PandocDataDir string `json:"pandoc-data-dir" help:"The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation." placeholder:"<dir>"`
+	PandocDataDir string `json:"pandoc-data-dir"`
 
 	/*
 		A list of font files that should be used. They then can be referenced from the style CSS file. Relative paths are relative to the config file.
@@ -237,7 +244,7 @@ type Configuration struct {
 		Default: []
 		JSON example: "font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]
 	*/
-	FontFiles []string `json:"font-files" help:"A list of font files that should be used. They are references in your style file." placeholder:"<file>"`
+	FontFiles []string `json:"font-files"`
 
 	/*
 		When set to true, referenced PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
@@ -247,7 +254,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "convert-pdf-to-png": true
 	*/
-	ConvertPdfToPng bool `json:"convert-pdf-to-png" help:"Set to true in order to convert referenced PDFs into images."`
+	ConvertPdfToPng bool `json:"convert-pdf-to-png"`
 
 	/*
 		When set to true, referenced SVG files, e.g. with "[[File:foo.svg]]" will be converted into a PNG using the
@@ -257,7 +264,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "convert-svg-to-png": true
 	*/
-	ConvertSvgToPng bool `json:"convert-svg-to-png" help:"Set to true in order to convert referenced SVGs into raster images."`
+	ConvertSvgToPng bool `json:"convert-svg-to-png"`
 
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
@@ -266,7 +273,7 @@ type Configuration struct {
 		JSON example: "ignored-templates": [ "foo", "bar" ]
 		This ignores {{foo}} and {{bar}} occurrences in the input text.
 	*/
-	IgnoredTemplates []string `json:"ignored-templates" help:"List of templates that should be ignored and removed from the input wikitext. The list must be in lower case."`
+	IgnoredTemplates []string `json:"ignored-templates"`
 
 	/*
 		List of templates that will be moved to the end of the document. Theses are e.g. remarks on the article that
@@ -276,7 +283,7 @@ type Configuration struct {
 		JSON example: "trailing-templates": [ "foo", "bar" ]
 		This moves {{foo}} and {{bar}} to the end of the document.
 	*/
-	TrailingTemplates []string `json:"trailing-templates" help:"List of templates that will be moved to the end of the document."`
+	TrailingTemplates []string `json:"trailing-templates"`
 
 	/*
 		Parameters of images that should be ignored. The list must be in lower case.
@@ -285,7 +292,7 @@ type Configuration struct {
 		JSON example: "ignored-image-params": [ "alt", "center" ]
 		This ignores the image parameters "alt" and "center" including any parameter values like "alt"="some alt text".
 	*/
-	IgnoredImageParams []string `json:"ignored-image-params" help:"Parameters of images that should be ignored. The list must be in lower case."`
+	IgnoredImageParams []string `json:"ignored-image-params"`
 
 	/*
 		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
@@ -293,7 +300,7 @@ type Configuration struct {
 
 		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
 	*/
-	IgnoredMediaTypes []string `json:"ignored-media-types" help:"List of media types to ignore, i.e. list of file extensions."`
+	IgnoredMediaTypes []string `json:"ignored-media-types"`
 
 	/*
 		The subdomain of the Wikipedia instance.
@@ -302,7 +309,7 @@ type Configuration struct {
 		JSON example: "wikipedia-instance": "de"
 		This config uses the German Wikipedia.
 	*/
-	WikipediaInstance string `json:"wikipedia-instance" help:"The subdomain of the Wikipedia instance."`
+	WikipediaInstance string `json:"wikipedia-instance"`
 
 	/*
 		The domain of the Wikipedia instance.
@@ -310,7 +317,7 @@ type Configuration struct {
 		Default: "wikipedia.org"
 		JSON example: "wikipedia-host": "my-server.com"
 	*/
-	WikipediaHost string `json:"wikipedia-host" help:"The domain of the Wikipedia instance."`
+	WikipediaHost string `json:"wikipedia-host"`
 
 	/*
 		The domain of the Wikipedia image instance.
@@ -318,7 +325,7 @@ type Configuration struct {
 		Default: "wikimedia.org"
 		JSON example: "wikipedia-image-host": "my-image-server.com"
 	*/
-	WikipediaImageHost string `json:"wikipedia-image-host" help:"The domain of the Wikipedia image instance."`
+	WikipediaImageHost string `json:"wikipedia-image-host"`
 
 	/*
 		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
@@ -326,7 +333,7 @@ type Configuration struct {
 		Default: "https://wikimedia.org/api/rest_v1/media/math"
 		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
 	*/
-	WikipediaMathRestApi string `json:"wikipedia-math-rest-api" help:"The URL to the math API of wikipedia."`
+	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
 		Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for. Each image has its own article, which is fetched from
@@ -335,7 +342,7 @@ type Configuration struct {
 		Default: [ "commons", "en" ]
 		JSON example: "wikipedia-image-article-instances": [ "commons", "de" ]
 	*/
-	WikipediaImageArticleInstances []string `json:"wikipedia-image-article-instances" help:"Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for."`
+	WikipediaImageArticleInstances []string `json:"wikipedia-image-article-instances"`
 
 	/*
 		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
@@ -344,7 +351,7 @@ type Configuration struct {
 		Default: [ "file", "image", "media" ]
 		JSON example: "file-prefixe": [ "file", "datei" ]
 	*/
-	FilePrefixe []string `json:"file-prefixe" help:"A list of prefixes to detect files, e.g. in \"File:picture.jpg\" the substring \"File\" is the image prefix."`
+	FilePrefixe []string `json:"file-prefixe"`
 
 	/*
 		A list of prefixes that are considered links and are therefore not removed. All prefixes  specified by
@@ -354,7 +361,7 @@ type Configuration struct {
 
 		Default: [ "arxiv", "doi" ]
 	*/
-	AllowedLinkPrefixes []string `json:"allowed-link-prefixe" help:"A list of prefixes that are considered links and are therefore not removed."`
+	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
 
 	/*
 		A list of category prefixes, which are technically internals links. However, categories will be removed from
@@ -362,7 +369,7 @@ type Configuration struct {
 
 		Default: [ "category" ]
 	*/
-	CategoryPrefixes []string `json:"category-prefixes" help:"A list of category prefixes, which are technically internals links."`
+	CategoryPrefixes []string `json:"category-prefixes"`
 
 	/*
 		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
@@ -372,7 +379,7 @@ type Configuration struct {
 
 		Default: [ "wikimedia" ]
 	*/
-	MathConverter string `json:"math-converter" help:"Converter turning math SVGs into PNGs."`
+	MathConverter string `json:"math-converter"`
 
 	/*
 		Sets the depth of the table of content, i.e. how many sub-headings should be visible.
@@ -385,7 +392,7 @@ type Configuration struct {
 		Default: 2
 		Allowed values: 0 - 6
 	*/
-	TocDepth *int `json:"toc-depth" help:"Depth of the table of content. Allowed range is 0 - 6."`
+	TocDepth int `json:"toc-depth"`
 
 	/*
 		Number of threads to process the articles. Only affects projects but not single articles or the standalone mode.
@@ -396,144 +403,151 @@ type Configuration struct {
 		Default: 5
 		Allowed values: 1 - unlimited
 	*/
-	WorkerThreads *int `json:"worker-threads" help:"Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1."`
+	WorkerThreads int `json:"worker-threads"`
 }
 
+// TODO Handle flags from cobra to check whether a flag has been set (even set to the default value should be considered here)
 func MergeIntoCurrentConfig(c *Configuration) {
-	if c.ForceRegenerateHtml {
-		sigolo.Tracef("Override outputType from project file with %s", c.OutputType)
+	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
+		sigolo.Tracef("Override outputType with %s", c.OutputType)
 		Current.ForceRegenerateHtml = c.ForceRegenerateHtml
 	}
-	if c.SvgSizeToViewbox {
-		sigolo.Tracef("Override svgSizeToViewbox from project file with %v", c.SvgSizeToViewbox)
+	if c.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
+		sigolo.Tracef("Override svgSizeToViewbox with %v", c.SvgSizeToViewbox)
 		Current.SvgSizeToViewbox = c.SvgSizeToViewbox
 	}
-	if c.OutputType != "" {
-		sigolo.Tracef("Override outputType from project file with %s", c.OutputType)
+	if c.OutputType != defaultConfig.OutputType {
+		sigolo.Tracef("Override outputType with %s", c.OutputType)
 		Current.OutputType = c.OutputType
 	}
-	if c.OutputDriver != "" {
-		sigolo.Tracef("Override OutputDriver from project file with %s", c.OutputDriver)
+	if c.OutputDriver != defaultConfig.OutputDriver {
+		sigolo.Tracef("Override OutputDriver with %s", c.OutputDriver)
 		Current.OutputDriver = c.OutputDriver
 	}
-	if c.CacheDir != "" {
+	if c.CacheDir != defaultConfig.CacheDir {
 		absolutePath, err := util.ToAbsolutePath(c.CacheDir)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CacheDir from project file with %s", absolutePath)
+		sigolo.Tracef("Override CacheDir with %s", absolutePath)
 		Current.CacheDir = absolutePath
 	}
-	if c.StyleFile != "" {
+	if c.StyleFile != defaultConfig.StyleFile {
 		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override StyleFile from project file with %s", absolutePath)
+		sigolo.Tracef("Override StyleFile with %s", absolutePath)
 		Current.StyleFile = absolutePath
 	}
-	if c.CoverImage != "" {
+	if c.CoverImage != defaultConfig.CoverImage {
 		absolutePath, err := util.ToAbsolutePath(c.CoverImage)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CoverImage from project file with %s", absolutePath)
+		sigolo.Tracef("Override CoverImage with %s", absolutePath)
 		Current.CoverImage = absolutePath
 	}
-	if c.CommandTemplateSvgToPng != "" {
-		sigolo.Tracef("Override CommandTemplateSvgToPng from project file with %s", c.CommandTemplateSvgToPng)
+	if c.CommandTemplateSvgToPng != defaultConfig.CommandTemplateSvgToPng {
+		sigolo.Tracef("Override CommandTemplateSvgToPng with %s", c.CommandTemplateSvgToPng)
 		Current.CommandTemplateSvgToPng = c.CommandTemplateSvgToPng
 	}
-	if c.CommandTemplateMathSvgToPng != "" {
-		sigolo.Tracef("Override CommandTemplateMathSvgToPng from project file with %s", c.CommandTemplateMathSvgToPng)
+	if c.CommandTemplateMathSvgToPng != defaultConfig.CommandTemplateMathSvgToPng {
+		sigolo.Tracef("Override CommandTemplateMathSvgToPng with %s", c.CommandTemplateMathSvgToPng)
 		Current.CommandTemplateMathSvgToPng = c.CommandTemplateMathSvgToPng
 	}
-	if c.CommandTemplateImageProcessing != "" {
-		sigolo.Tracef("Override CommandTemplateImageProcessing from project file with %s", c.CommandTemplateImageProcessing)
+	if c.CommandTemplateImageProcessing != defaultConfig.CommandTemplateImageProcessing {
+		sigolo.Tracef("Override CommandTemplateImageProcessing with %s", c.CommandTemplateImageProcessing)
 		Current.CommandTemplateImageProcessing = c.CommandTemplateImageProcessing
 	}
-	if c.CommandTemplatePdfToPng != "" {
-		sigolo.Tracef("Override CommandTemplatePdfToPng from project file with %s", c.CommandTemplatePdfToPng)
+	if c.CommandTemplatePdfToPng != defaultConfig.CommandTemplatePdfToPng {
+		sigolo.Tracef("Override CommandTemplatePdfToPng with %s", c.CommandTemplatePdfToPng)
 		Current.CommandTemplatePdfToPng = c.CommandTemplatePdfToPng
 	}
-	if c.PandocExecutable != "" {
-		absolutePath, err := util.ToAbsolutePath(c.PandocExecutable)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override PandocExecutable from project file with %s", c.PandocExecutable)
-		Current.PandocExecutable = absolutePath
+	if c.PandocExecutable != defaultConfig.PandocExecutable {
+		var err error
+		newPath := c.PandocExecutable
+		if strings.Contains(c.PandocExecutable, "/") {
+			// Only convert paths to absolute paths that are actual paths. Just the name of the executable, e.g. just
+			// "pandoc", should of course not be converted into a path.
+			newPath, err = util.ToAbsolutePath(c.PandocExecutable)
+			sigolo.FatalCheck(err)
+		}
+		sigolo.Tracef("Override PandocExecutable with %s", c.PandocExecutable)
+		Current.PandocExecutable = newPath
 	}
-	if c.PandocDataDir != "" {
+	if c.PandocDataDir != defaultConfig.PandocDataDir {
 		absolutePath, err := util.ToAbsolutePath(c.PandocDataDir)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override PandocDataDir from project file with %s", absolutePath)
+		sigolo.Tracef("Override PandocDataDir with %s", absolutePath)
 		Current.PandocDataDir = absolutePath
 	}
-	if c.FontFiles != nil {
+	if !util.EqualsInAnyOrder(c.FontFiles, defaultConfig.FontFiles) {
 		absolutePaths, err := util.ToAbsolutePaths(c.FontFiles...)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override FontFiles from project file with %v", c.SvgSizeToViewbox)
+		sigolo.Tracef("Override FontFiles with %v", c.SvgSizeToViewbox)
 		Current.FontFiles = absolutePaths
 	}
-	if c.ConvertPdfToPng {
-		sigolo.Tracef("Override ConvertPdfToPng from project file with %v", c.ConvertPdfToPng)
+	if c.ConvertPdfToPng != defaultConfig.ConvertPdfToPng {
+		sigolo.Tracef("Override ConvertPdfToPng with %v", c.ConvertPdfToPng)
 		Current.ConvertPdfToPng = c.ConvertPdfToPng
 	}
-	if c.ConvertSvgToPng {
-		sigolo.Tracef("Override ConvertSvgToPng from project file with %v", c.ConvertSvgToPng)
+	if c.ConvertSvgToPng != defaultConfig.ConvertSvgToPng {
+		sigolo.Tracef("Override ConvertSvgToPng with %v", c.ConvertSvgToPng)
 		Current.ConvertSvgToPng = c.ConvertSvgToPng
 	}
-	if c.IgnoredTemplates != nil {
-		sigolo.Tracef("Override IgnoredTemplates from project file with %v", c.IgnoredTemplates)
+	if !util.EqualsInAnyOrder(c.IgnoredTemplates, defaultConfig.IgnoredTemplates) {
+		sigolo.Tracef("Override IgnoredTemplates with %v", c.IgnoredTemplates)
 		Current.IgnoredTemplates = c.IgnoredTemplates
 	}
-	if c.TrailingTemplates != nil {
-		sigolo.Tracef("Override TrailingTemplates from project file with %v", c.TrailingTemplates)
+	if !util.EqualsInAnyOrder(c.TrailingTemplates, defaultConfig.TrailingTemplates) {
+		sigolo.Tracef("Override TrailingTemplates with %v", c.TrailingTemplates)
 		Current.TrailingTemplates = c.TrailingTemplates
 	}
-	if c.IgnoredImageParams != nil {
-		sigolo.Tracef("Override IgnoredImageParams from project file with %v", c.IgnoredImageParams)
+	if !util.EqualsInAnyOrder(c.IgnoredImageParams, defaultConfig.IgnoredImageParams) {
+		sigolo.Tracef("Override IgnoredImageParams with %v", c.IgnoredImageParams)
 		Current.IgnoredImageParams = c.IgnoredImageParams
 	}
-	if c.IgnoredMediaTypes != nil {
-		sigolo.Tracef("Override IgnoredMediaTypes from project file with %v", c.IgnoredMediaTypes)
+	if !util.EqualsInAnyOrder(c.IgnoredMediaTypes, defaultConfig.IgnoredMediaTypes) {
+		sigolo.Tracef("Override IgnoredMediaTypes with %v", c.IgnoredMediaTypes)
 		Current.IgnoredMediaTypes = c.IgnoredMediaTypes
 	}
-	if c.WikipediaInstance != "" {
-		sigolo.Tracef("Override WikipediaInstance from project file with %s", c.WikipediaInstance)
+	if c.WikipediaInstance != defaultConfig.WikipediaInstance {
+		sigolo.Tracef("Override WikipediaInstance with %s", c.WikipediaInstance)
 		Current.WikipediaInstance = c.WikipediaInstance
 	}
-	if c.WikipediaHost != "" {
-		sigolo.Tracef("Override WikipediaHost from project file with %s", c.WikipediaHost)
+	if c.WikipediaHost != defaultConfig.WikipediaHost {
+		sigolo.Tracef("Override WikipediaHost with %s", c.WikipediaHost)
 		Current.WikipediaHost = c.WikipediaHost
 	}
-	if c.WikipediaImageHost != "" {
-		sigolo.Tracef("Override WikipediaImageHost from project file with %s", c.WikipediaImageHost)
+	if c.WikipediaImageHost != defaultConfig.WikipediaImageHost {
+		sigolo.Tracef("Override WikipediaImageHost with %s", c.WikipediaImageHost)
 		Current.WikipediaImageHost = c.WikipediaImageHost
 	}
-	if c.WikipediaMathRestApi != "" {
-		sigolo.Tracef("Override WikipediaMathRestApi from project file with %s", c.WikipediaMathRestApi)
+	if c.WikipediaMathRestApi != defaultConfig.WikipediaMathRestApi {
+		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
 		Current.WikipediaMathRestApi = c.WikipediaMathRestApi
 	}
-	if c.WikipediaImageArticleInstances != nil {
-		sigolo.Tracef("Override WikipediaImageArticleInstances from project file with %v", c.WikipediaImageArticleInstances)
+	if !util.EqualsInAnyOrder(c.WikipediaImageArticleInstances, defaultConfig.WikipediaImageArticleInstances) {
+		sigolo.Tracef("Override WikipediaImageArticleInstances with %v", c.WikipediaImageArticleInstances)
 		Current.WikipediaImageArticleInstances = c.WikipediaImageArticleInstances
 	}
-	if c.FilePrefixe != nil {
-		sigolo.Tracef("Override FilePrefixe from project file with %v", c.FilePrefixe)
+	if !util.EqualsInAnyOrder(c.FilePrefixe, defaultConfig.FilePrefixe) {
+		sigolo.Tracef("Override FilePrefixe with %v", c.FilePrefixe)
 		Current.FilePrefixe = c.FilePrefixe
 	}
-	if c.AllowedLinkPrefixes != nil {
-		sigolo.Tracef("Override AllowedLinkPrefixes from project file with %v", c.AllowedLinkPrefixes)
+	if !util.EqualsInAnyOrder(c.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
+		sigolo.Tracef("Override AllowedLinkPrefixes with %v", c.AllowedLinkPrefixes)
 		Current.AllowedLinkPrefixes = c.AllowedLinkPrefixes
 	}
-	if c.CategoryPrefixes != nil {
-		sigolo.Tracef("Override CategoryPrefixes from project file with %v", c.CategoryPrefixes)
+	if !util.EqualsInAnyOrder(c.CategoryPrefixes, defaultConfig.CategoryPrefixes) {
+		sigolo.Tracef("Override CategoryPrefixes with %v", c.CategoryPrefixes)
 		Current.CategoryPrefixes = c.CategoryPrefixes
 	}
-	if c.MathConverter != "" {
-		sigolo.Tracef("Override MathConverter from project file with %s", c.MathConverter)
+	if c.MathConverter != defaultConfig.MathConverter {
+		sigolo.Tracef("Override MathConverter with %s", c.MathConverter)
 		Current.MathConverter = c.MathConverter
 	}
-	if c.TocDepth != nil {
-		sigolo.Tracef("Override TocDepth from project file with %d", c.TocDepth)
+	if c.TocDepth != defaultConfig.TocDepth {
+		sigolo.Tracef("Override TocDepth with %d", c.TocDepth)
 		Current.TocDepth = c.TocDepth
 	}
-	if c.WorkerThreads != nil {
-		sigolo.Tracef("Override WorkerThreads from project file with %d", c.WorkerThreads)
+	if c.WorkerThreads != defaultConfig.WorkerThreads {
+		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
 		Current.WorkerThreads = c.WorkerThreads
 	}
 
@@ -613,10 +627,10 @@ func (c *Configuration) AssertValidity() {
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterInternal {
 		sigolo.Fatalf("Invalid math converter '%s'", c.OutputDriver)
 	}
-	if *c.TocDepth < 0 || *c.TocDepth > 6 {
+	if c.TocDepth < 0 || c.TocDepth > 6 {
 		sigolo.Fatalf("Invalid toc-depth '%d'", c.TocDepth)
 	}
-	if *c.WorkerThreads < 1 {
+	if c.WorkerThreads < 1 {
 		sigolo.Fatalf("Invalid number of worker threads '%d'", c.WorkerThreads)
 	}
 
@@ -665,6 +679,8 @@ func (c *Configuration) Print() {
 }
 
 func LoadConfig(file string) error {
+	sigolo.Debugf("Load config from file %s", file)
+
 	projectString, err := os.ReadFile(file)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error reading config file %s", file))

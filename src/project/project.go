@@ -40,6 +40,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	project := &Project{}
+	project.Configuration = *config.NewDefaultConfig()
 	err = json.Unmarshal(projectString, project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")
