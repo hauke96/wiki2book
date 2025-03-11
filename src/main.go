@@ -25,15 +25,18 @@ import (
 const VERSION = "v0.3.0"
 const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
 
-var rootCmd = &cobra.Command{
-	Use:   "wiki2book",
-	Short: "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
-	Long:  "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
-}
-
 var cliConfig = config.NewDefaultConfig()
 
 func main() {
+	rootCmd := initCli()
+
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func initCli() *cobra.Command {
 	var cliConfigFile = ""
 	var cliLogging = ""
 	var cliOutputFileArgKey = "output"
@@ -41,6 +44,12 @@ func main() {
 	var cliDiagnosticsProfiling = false
 	var cliDiagnosticsTrace = false
 	var start time.Time
+
+	rootCmd := &cobra.Command{
+		Use:   "wiki2book",
+		Short: "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
+		Long:  "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
+	}
 
 	rootCmd.Version = VERSION
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
@@ -129,10 +138,7 @@ func main() {
 
 	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd)
 
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	return rootCmd
 }
 
 func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFile string, cliDiagnosticsProfiling bool, cliDiagnosticsTrace bool, cliOutputFile string) string {
