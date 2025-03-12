@@ -406,7 +406,8 @@ type Configuration struct {
 	WorkerThreads int `json:"worker-threads"`
 }
 
-// TODO Handle flags from cobra to check whether a flag has been set (even set to the default value should be considered here)
+// MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field
+// in the Current configuration in case the field of the given config is different to the default value.
 func MergeIntoCurrentConfig(c *Configuration) {
 	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
 		sigolo.Tracef("Override outputType with %s", c.OutputType)
@@ -615,60 +616,60 @@ func (c *Configuration) AssertFilesAndPathsExists() {
 
 func (c *Configuration) AssertValidity() {
 	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
-		sigolo.Fatalf("Invalid output type '%s'", c.OutputType)
+		sigolo.FatalCheck(errors.Errorf("Invalid output type '%s'", c.OutputType))
 	}
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
-		sigolo.Fatalf("Invalid output driver '%s'", c.OutputDriver)
+		sigolo.FatalCheck(errors.Errorf("Invalid output driver '%s'", c.OutputDriver))
 	}
 	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
 	if err != nil {
-		sigolo.Fatalf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err)
+		sigolo.FatalCheck(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
 	}
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterInternal {
-		sigolo.Fatalf("Invalid math converter '%s'", c.OutputDriver)
+		sigolo.FatalCheck(errors.Errorf("Invalid math converter '%s'", c.OutputDriver))
 	}
 	if c.TocDepth < 0 || c.TocDepth > 6 {
-		sigolo.Fatalf("Invalid toc-depth '%d'", c.TocDepth)
+		sigolo.FatalCheck(errors.Errorf("Invalid toc-depth '%d'", c.TocDepth))
 	}
 	if c.WorkerThreads < 1 {
-		sigolo.Fatalf("Invalid number of worker threads '%d'", c.WorkerThreads)
+		sigolo.FatalCheck(errors.Errorf("Invalid number of worker threads '%d'", c.WorkerThreads))
 	}
 
 	if c.CommandTemplateSvgToPng == "" {
-		sigolo.Fatalf("CommandTemplateSvgToPng must not be empty")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must not be empty"))
 	}
 	if !strings.Contains(c.CommandTemplateSvgToPng, InputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateSvgToPng must contain the '" + InputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
 	}
 	if !strings.Contains(c.CommandTemplateSvgToPng, OutputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateSvgToPng must contain the '" + OutputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
 	if c.CommandTemplateMathSvgToPng == "" {
-		sigolo.Fatalf("CommandTemplateMathSvgToPng must not be empty")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must not be empty"))
 	}
 	if !strings.Contains(c.CommandTemplateMathSvgToPng, InputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateMathSvgToPng must contain the '" + InputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
 	}
 	if !strings.Contains(c.CommandTemplateMathSvgToPng, OutputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateMathSvgToPng must contain the '" + OutputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
 	if !strings.Contains(c.CommandTemplateImageProcessing, InputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateImageProcessing must contain the '" + InputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing must contain the '" + InputPlaceholder + "' placeholder"))
 	}
 	if !strings.Contains(c.CommandTemplateImageProcessing, OutputPlaceholder) {
-		sigolo.Fatalf("CommandTemplateImageProcessing must contain the '" + OutputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
 	if c.CommandTemplatePdfToPng == "" {
-		sigolo.Fatalf("CommandTemplatePdfToPng must not be empty")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must not be empty"))
 	}
 	if !strings.Contains(c.CommandTemplatePdfToPng, InputPlaceholder) {
-		sigolo.Fatalf("CommandTemplatePdfToPng must contain the '" + InputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + InputPlaceholder + "' placeholder"))
 	}
 	if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
-		sigolo.Fatalf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder")
+		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 }
 
