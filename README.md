@@ -2,28 +2,31 @@
 
 **wiki2book** is a tool to create good-looking eBooks from one or more Wikipedia articles.
 
-The goal is to create eBooks (EPUB files) as beautiful as real books from a couple of Wikipedia articles.
-Therefore, wiki2book is specifically implemented to create such books by implementing awareness for Wikipedia- and website-specific features (more on that below).
+The goal is to create eBooks (EPUB files) as beautiful as real books from a given list of Wikipedia articles.
+To achieve this, wiki2book contains specific treatments of Wikipedia- and website-specific content of the articles and therefore provides different results than general converters (more on this below).
 This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge. 
 
+eBook of the German article about astronomy on a Tolino eBook-reader:
 <p align="center">
-<img src="photo.JPG" alt="eBook of the German article about astronomy on a Tolino eBook-reader."/>
+<img src="photo.JPG"/>
 </p>
 
-### Why not simply using pandoc?
+### Why not simply use pandoc?
 
 Good question.
 
-[Pandoc](https://pandoc.org/epub.html) and others like [wb2pdf](https://mediawiki2latex.wmflabs.org/) or [percollate](https://github.com/danburzo/percollate) as well) are great and yes, they can convert mediawiki to EPUB.
-In fact, wiki2book relies on pandoc to turn HTML into EPUB because pandoc is well known and it's a simple program call.
+[Pandoc](https://pandoc.org/epub.html) and other converters, like [wb2pdf](https://mediawiki2latex.wmflabs.org/) or [percollate](https://github.com/danburzo/percollate), are great and yes, they can convert mediawiki to EPUB.
+In fact, wiki2book relies by default on pandoc to turn HTML into EPUB because pandoc does this quite well.
 
-However, there are always things missing in these tools, for example rendering math, downloading images, evaluating templates or a proper handling of tables.
-They also don't do any eBook-specific assumptions, e.g. ignoring ebook-unsuitable styles or not evaluating Wikipedia-oriented templates.
+However, when converting mediawiki to EPUB, there are always things missing when using these tools.
+For example, the correct rendering math code, downloading and embedding images, evaluating templates or a proper handling of tables.
 
-Most existing tools are furthermore rather general purpose, which is not beneficial for the very specific task of converting Wikipedia articles to beautiful offline eBooks.
+They are also rather general purpose and don't do any eBook-specific assumptions, e.g. ignoring ebook-unsuitable styles or Wikipedia-oriented templates.
 
 Another feature missing in all of these tools: You cannot turn multiple articles into a ready-to-read eBook.
-But wiki2book has exactly this functionality called "projects" as described below.
+This also includes adding a title mage, table-of-content, custom styles, etc.
+
+Wiki2book is a tool adressing all these issues and nice features to generate beautiful looking eBooks.
 
 # Installation
 
@@ -34,20 +37,25 @@ But wiki2book has exactly this functionality called "projects" as described belo
 # Usage
 
 Currently only a CLI (_command line interface_) version of wiki2book exists, so nothing with a GUI.
-Wiki2book need a configuration file (s. the [configs](./configs) folder), currently only a German config file exists.
+Wiki2book uses configuration files, project files and CLI arguments to be configured.
+Use the `--help` flag or the [documentation](./doc/configuration.md) for further information.
 
 ## Preliminaries
 
-You need the following tools and fonts:
+You need the following tools and fonts when using the default configuration and styles:
 
-1. ImageMagick (to have the `convert` command)
-2. *Optional:*
-   * Pandoc (when using the `pandoc` output driver). See notes on pandoc versions 2 and 3 below.
-   * DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (is used by the default style in this repo but can be replaced to any other font).
+* ImageMagick (to have the `convert` command)
+* Pandoc (when using the `pandoc` output driver). See notes on pandoc versions 2 and 3 below.
+* DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (is used by the default style in this repo but can be replaced to any other font).
+
+When enabling the conversion of SVGs to PNGs or when using the math converter "internal", then wiki2book uses the tool `rsvg-convert` by default.
+
+The usage of external tools can be configured, e.g. to use explicit paths to executables or to use a custom script.
+See [doc/configuration](./doc/configuration.md#configure-external-tool-calls) for further details.
 
 ## CLI
 
-The CLI contains three sub-commands that generate an EPUB file from different sources (s. below for examples and details on each sub-command):
+The CLI contains three sub-commands that generate an EPUB file from different sources:
 
 1. Project: `wiki2book project ./path/to/project.json`
 2. Article: `wiki2book article "article name"`
@@ -69,41 +77,15 @@ To overcome this, pass the argument `--pandoc-data-dir ./pandoc/data` to wiki2bo
 
 Alternatively install pandoc 3, which [avoids CSS3 parameters](https://github.com/jgm/pandoc/blob/3.0/data/epub.css#L166:L169).
 
-### Examples
-
-In the following there are working example calls to wiki2book.
-
-The necessary parameters used below (see `./wiki2book -h` for more information):
-
-* `-c`: Wiki2book configuration file
-* `-s`: Specifies an existing style sheet file
-
-#### Project
-
-Use the following command to build the German project about astronomy:
-
-`./wiki2book project -c configs/de.json ./projects/de/astronomie/astronomie.json`
-
-#### Single article
-
-Render a single article by using the `article` sub-command:
-
-`./wiki2book article -c configs/de.json -s projects/style.css "Erde"`
-
-#### Standalone
-
-Use the following command to render the file
-
-`./wiki2book standalone -c configs/de.json -s projects/style.css ./integration-tests/test-real-article-Erde.mediawiki`
-
 # Contribute
 
 ## Issues, bugs, ideas
 
-Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/choose).
-But keep in mind:
-This is a hobby-project and my time is limited.
-Things with less or no use for me personally will get a lower priority.
+Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/choose) and filling out the issue-template.
+
+Please keep in mind:
+1. This is a hobby-project and my time is limited.
+2. Things with less or no use for me personally will get a lower priority.
 
 ## Development
 
