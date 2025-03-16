@@ -109,5 +109,5 @@
     "zentriert"
   ],
   "math-converter": "internal",
-  "convert-svg-to-png": true
+  "convert-svg-to-png": false
 }

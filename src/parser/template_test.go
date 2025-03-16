@@ -58,7 +58,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 	// Simplified setup: There are two templates (outer and inner) evaluating to the same static string. This means in
 	// the end, only one of these static strings remains, which is checked below.
 
-	test.Cleanup()
+	test.Prepare()
 
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
@@ -79,7 +79,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 }
 
 func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
-	test.Cleanup()
+	test.Prepare()
 
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"

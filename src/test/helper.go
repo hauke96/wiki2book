@@ -14,16 +14,21 @@ const TestTempDirName = ".tmp/"
 const TestCacheFolder = "../.test-cache"
 
 func CleanRun(m *testing.M) {
-	Cleanup()
-
-	err := os.MkdirAll(TestCacheFolder, os.ModePerm)
-	sigolo.FatalCheck(err)
-	err = os.MkdirAll(TestTempDirName, os.ModePerm)
-	sigolo.FatalCheck(err)
+	Prepare()
 
 	m.Run()
 
 	Cleanup()
+}
+
+func Prepare() {
+	Cleanup()
+
+	err := os.MkdirAll(TestCacheFolder, os.ModePerm)
+	sigolo.FatalCheck(err)
+
+	err = os.MkdirAll(TestTempDirName, os.ModePerm)
+	sigolo.FatalCheck(err)
 }
 
 func Cleanup() {
