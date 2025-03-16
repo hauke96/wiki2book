@@ -118,27 +118,35 @@ func downloadImageUsingAllSources(image string, outputFolder string, articleFold
 func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
 	if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingPdf {
 		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
-		if _, err := os.Stat(outputPngFilepath); err != nil {
-			err = convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
+		pdfAlreadyExists := util.PathExists(outputPngFilepath)
+		if !pdfAlreadyExists {
+			err := imageProcessingService.convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
 			if err != nil {
 				return err
 			}
+
+			// We pretend this is a fresh download, because the PNG is indeed fresh
+			freshlyDownloaded = true
 		}
 		outputFilepath = outputPngFilepath
 	} else if svgToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingSvg {
 		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
-		if _, err := os.Stat(outputPngFilepath); err != nil {
-			err = convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
+		pngAlreadyExists := util.PathExists(outputPngFilepath)
+		if !pngAlreadyExists {
+			err := imageProcessingService.convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
 			if err != nil {
 				return err
 			}
+
+			// We pretend this is a fresh download, because the PNG is indeed fresh
+			freshlyDownloaded = true
 		}
 		outputFilepath = outputPngFilepath
 	}
 
 	// If the file is new, rescale it using ImageMagick.
 	if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != util.FileEndingSvg {
-		err := resizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
+		err := imageProcessingService.resizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 		if err != nil {
 			return err
 		}
@@ -244,7 +252,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+util.FileEndingPng)
-		err = convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
+		err = imageProcessingService.convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}

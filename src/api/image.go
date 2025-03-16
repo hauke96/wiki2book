@@ -8,8 +8,22 @@ import (
 	"wiki2book/util"
 )
 
+var imageProcessingService = NewImageProcessingService()
+
+type ImageProcessingService interface {
+	resizeAndCompressImage(imageFilepath string, commandTemplate string) error
+	convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error
+	convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error
+}
+
+type ImageProcessingServiceImpl struct{}
+
+func NewImageProcessingService() ImageProcessingService {
+	return &ImageProcessingServiceImpl{}
+}
+
 // resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
-func resizeAndCompressImage(imageFilepath string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) resizeAndCompressImage(imageFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
@@ -21,7 +35,7 @@ func resizeAndCompressImage(imageFilepath string, commandTemplate string) error 
 
 // convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
 // rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
-func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputPdfFilepath)
@@ -31,7 +45,7 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandT
 	return errors.Wrapf(err, "Converting PNG %s into an PNG image failed", inputPdfFilepath)
 }
 
-func convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, svgFile)

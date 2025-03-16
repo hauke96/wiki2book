@@ -10,7 +10,7 @@ func TestDownloadAndCache(t *testing.T) {
 	key := "foobar"
 	content := "some interesting stuff"
 
-	mockHttpClient := MockHttp(content, http.StatusOK)
+	mockHttpClient := NewMockHttp(content, http.StatusOK)
 
 	// First request -> cache file should ve created
 

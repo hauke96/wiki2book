@@ -108,5 +108,6 @@
     "verweis",
     "zentriert"
   ],
-  "math-converter": "internal"
+  "math-converter": "internal",
+  "convert-svg-to-png": true
 }

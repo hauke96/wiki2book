@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-type MockHttpClient struct {
+type mockHttpClient struct {
 	Response   string
 	StatusCode int
 	GetCalls   int
 	PostCalls  int
 }
 
-func (h *MockHttpClient) Get(url string) (*http.Response, error) {
+func (h *mockHttpClient) Get(url string) (*http.Response, error) {
 	h.GetCalls++
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
@@ -21,7 +21,7 @@ func (h *MockHttpClient) Get(url string) (*http.Response, error) {
 	}, nil
 }
 
-func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (*http.Response, error) {
+func (h *mockHttpClient) Post(url, contentType string, body io.Reader) (*http.Response, error) {
 	h.PostCalls++
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
@@ -29,8 +29,8 @@ func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (*http.Re
 	}, nil
 }
 
-func MockHttp(response string, statusCode int) *MockHttpClient {
-	mockedHttpClient := &MockHttpClient{
+func NewMockHttp(response string, statusCode int) *mockHttpClient {
+	mockedHttpClient := &mockHttpClient{
 		response,
 		statusCode,
 		0,
