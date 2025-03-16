@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 	"wiki2book/util"
 )
@@ -21,21 +20,23 @@ var httpClient = GetDefaultHttpClient()
 func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
-	sigolo.Debugf("Try to find already cached file '%s'", outputFilepath)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
-		sigolo.Debugf("File %s does already exist. Skip.", outputFilepath)
+		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil
 	}
-	sigolo.Debug("File not cached, download fresh one")
+	sigolo.Debugf("File %s not cached -> download fresh one", outputFilepath)
 
 	// Get the data
 	responseBodyReader, err := download(url, filename)
 	if responseBodyReader != nil {
 		defer responseBodyReader.Close()
+		if err != nil {
+			util.ReaderToString(responseBodyReader)
+			return "", true, err
+		}
 	}
 	if err != nil {
-		logResponseBodyAsError(responseBodyReader, url)
 		return "", true, err
 	}
 
@@ -63,11 +64,11 @@ func download(url string, filename string) (io.ReadCloser, error) {
 		sigolo.Tracef("Response: %#v", response)
 
 		// Handle 429 (too many requests): wait a bit and retry
-		if response.StatusCode == 429 {
-			sigolo.Trace("Got 429 response (too many requests). Wait some time and try again...")
+		if response.StatusCode == http.StatusTooManyRequests {
+			sigolo.Tracef("Got %d response (too many requests). Wait some time and try again...", http.StatusTooManyRequests)
 			time.Sleep(2 * time.Second)
 			continue
-		} else if response.StatusCode != 200 {
+		} else if response.StatusCode != http.StatusOK {
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
 			errorHeaderName := "mediawiki-api-error"
@@ -125,14 +126,4 @@ func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) erro
 
 	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
 	return nil
-}
-
-func logResponseBodyAsError(bodyReader io.Reader, urlString string) {
-	if bodyReader != nil {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, bodyReader)
-		if err == nil {
-			sigolo.Errorf("Response body for url %s:\n%s", urlString, buf.String())
-		}
-	}
 }

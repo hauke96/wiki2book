@@ -3,16 +3,18 @@ package project
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"os"
+	"strings"
 	"wiki2book/config"
 )
 
 type Project struct {
+	config.Configuration
 	Metadata   Metadata `json:"metadata"`
 	OutputFile string   `json:"output-file"`
 	Articles   []string `json:"articles"`
-	config.Configuration
 }
 
 type Metadata struct {
@@ -21,6 +23,12 @@ type Metadata struct {
 	Author   string `json:"author"`
 	License  string `json:"license"`
 	Date     string `json:"date"`
+}
+
+func (p *Project) Print() {
+	jsonBytes, err := json.MarshalIndent(p.Metadata, "  ", "  ")
+	sigolo.FatalCheck(err)
+	sigolo.Debugf("Project:\n  OutputFile: %s\n  Articles: %v\n  Metadata: %s", p.OutputFile, strings.Join(p.Articles, ", "), string(jsonBytes))
 }
 
 // LoadProject reads the given file and creates a corresponding Project instance. It also alters the config.Current
@@ -32,6 +40,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	project := &Project{}
+	project.Configuration = *config.NewDefaultConfig()
 	err = json.Unmarshal(projectString, project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")

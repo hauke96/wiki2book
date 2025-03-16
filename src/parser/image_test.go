@@ -9,81 +9,102 @@ import (
 
 func TestEscapeImages_removeVideos(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
 	var content string
 
 	for _, extension := range config.Current.IgnoredMediaTypes {
 		content = "file:foo." + extension
-		content = escapeImages(content)
+		content = tokenizer.escapeImages(content)
 		test.AssertEmptyString(t, content)
-		test.AssertEqual(t, 0, len(images))
+		test.AssertEqual(t, 0, len(tokenizer.images))
 
 		content = "File:bar." + extension + "|some|further|settings"
-		content = escapeImages(content)
+		content = tokenizer.escapeImages(content)
 		test.AssertEmptyString(t, content)
-		test.AssertEqual(t, 0, len(images))
+		test.AssertEqual(t, 0, len(tokenizer.images))
 	}
 }
 
 func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
-	config.Current.ConvertPDFsToImages = true
+	config.Current.ConvertPdfToPng = true
 
 	var content string
 
 	content = "File:Foo.pdf"
-	escapedContent := escapeImages(content)
+	escapedContent := tokenizer.escapeImages(content)
 	test.AssertEqual(t, content, escapedContent)
-	test.AssertEqual(t, 1, len(images))
-	test.AssertEqual(t, "File:Foo.pdf", images[0])
+	test.AssertEqual(t, 1, len(tokenizer.images))
+	test.AssertEqual(t, "File:Foo.pdf", tokenizer.images[0])
+}
+
+func TestEscapeImages_keepSvgsEvenWhenIgnored(t *testing.T) {
+	setup()
+	tokenizer := NewTokenizer("foo", "bar")
+
+	config.Current.ConvertSvgToPng = true
+
+	var content string
+
+	content = "File:Foo.svg"
+	escapedContent := tokenizer.escapeImages(content)
+	test.AssertEqual(t, content, escapedContent)
+	test.AssertEqual(t, 1, len(tokenizer.images))
+	test.AssertEqual(t, "File:Foo.svg", tokenizer.images[0])
 }
 
 func TestEscapeImages_removeVideoWithMultilineCaption(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
 	content := `file:foo.webm|this caption<br>
 is<br>
 important!`
-	content = escapeImages(content)
+	content = tokenizer.escapeImages(content)
 	test.AssertEqual(t, "", content)
-	test.AssertEqual(t, 0, len(images))
+	test.AssertEqual(t, 0, len(tokenizer.images))
 
 	content = `file:foo.jpg|this caption<br>
 is<br>
 important!`
-	content = escapeImages(content)
+	content = tokenizer.escapeImages(content)
 	test.AssertEqual(t, `file:Foo.jpg|this caption<br>
 is<br>
 important!`, content)
-	test.AssertEqual(t, []string{"file:Foo.jpg"}, images)
+	test.AssertEqual(t, []string{"file:Foo.jpg"}, tokenizer.images)
 }
 
 func TestEscapeImages_escapeFileNames(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
 	content := "file:some photo.png|with|properties"
-	content = escapeImages(content)
+	content = tokenizer.escapeImages(content)
 	test.AssertEqual(t, "file:Some_photo.png|with|properties", content)
-	test.AssertEqual(t, []string{"file:Some_photo.png"}, images)
+	test.AssertEqual(t, []string{"file:Some_photo.png"}, tokenizer.images)
 }
 
 func TestEscapeImages_leadingNonAscii(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
 	content := "file:öäü.png|with|properties"
-	content = escapeImages(content)
+	content = tokenizer.escapeImages(content)
 	test.AssertEqual(t, "file:Öäü.png|with|properties", content)
-	test.AssertEqual(t, []string{"file:Öäü.png"}, images)
+	test.AssertEqual(t, []string{"file:Öäü.png"}, tokenizer.images)
 }
 
 func TestEscapeImages_leadingSpecialChar(t *testing.T) {
 	setup()
+	tokenizer := NewTokenizer("foo", "bar")
 
 	content := "file:\"öäü\".png|with|properties"
-	content = escapeImages(content)
+	content = tokenizer.escapeImages(content)
 	test.AssertEqual(t, "file:\"öäü\".png|with|properties", content)
-	test.AssertEqual(t, []string{"file:\"öäü\".png"}, images)
+	test.AssertEqual(t, []string{"file:\"öäü\".png"}, tokenizer.images)
 }
 
 func TestParseGalleries(t *testing.T) {
@@ -146,9 +167,20 @@ blubb`, content)
 }
 
 func TestParseImages_inlineHappyPath(t *testing.T) {
+	setup()
 	tokenizer := NewTokenizer("foo", "bar")
+	config.Current.IgnoredMediaTypes = []string{}
+
 	content := tokenizer.parseImages("foo [[file:image.jpg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
+
+	config.Current.ConvertPdfToPng = false
+	content = tokenizer.parseImages("foo [[file:image.pdf]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
+
+	config.Current.ConvertSvgToPng = false
+	content = tokenizer.parseImages("foo [[file:image.svg]] bar")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
 }
 
 func TestParseImages_withEscaping(t *testing.T) {
@@ -164,6 +196,7 @@ func TestParseImages_withEscaping(t *testing.T) {
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizer("foo", "bar")
+	config.Current.IgnoredMediaTypes = []string{"gif"}
 	content = tokenizer.parseImages("foo [[file:nice image.gif]] bar")
 	test.AssertEqual(t, "foo  bar", content)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())

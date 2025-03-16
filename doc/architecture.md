@@ -14,10 +14,10 @@ This is a description of the code structure and architecture.
 
 # Architecture
 
-To generate an EPUB eBook the following high-level steps are executed:
+To generate an eBook based on a project file, the following high-level steps are executed:
 
 1. Read the given project file
-2. For each Wikipedia article in the project, do the following:
+2. This might be executed in parallel, depending on the config: For each Wikipedia article in the project, do the following:
    1. Download the wikitext of the article.
    2. The wikitext is tokenized, resulting in the tokenized text and a token map.
       During this step, templates are evaluated and math is rendered to an SVG.

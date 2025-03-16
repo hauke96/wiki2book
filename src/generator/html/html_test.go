@@ -11,7 +11,6 @@ import (
 var generator = HtmlGenerator{}
 
 func TestExpandMarker(t *testing.T) {
-
 	test.AssertEqual(t, "<b>", generator.expandMarker(parser.MARKER_BOLD_OPEN))
 	test.AssertEqual(t, "</b>", generator.expandMarker(parser.MARKER_BOLD_CLOSE))
 	test.AssertEqual(t, "<i>", generator.expandMarker(parser.MARKER_ITALIC_OPEN))
@@ -62,7 +61,7 @@ some <b>caption</b>
 }
 
 func TestExpandImage_usePngFileForPdf(t *testing.T) {
-	config.Current.ConvertPDFsToImages = true
+	config.Current.ConvertPdfToPng = true
 
 	result := `<div class="figure">
 <img alt="image" src="./foo/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">

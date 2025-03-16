@@ -8,7 +8,13 @@ import (
 	"strings"
 )
 
-const TempDirName = ".tmp/"
+const (
+	TempDirName = ".tmp/"
+
+	FileEndingSvg = ".svg"
+	FileEndingPng = ".png"
+	FileEndingPdf = ".pdf"
+)
 
 func ToRelativePaths(paths ...string) ([]string, error) {
 	var result = make([]string, len(paths))
@@ -52,7 +58,7 @@ func ToAbsolutePaths(paths ...string) ([]string, error) {
 
 func ToAbsolutePath(path string) (string, error) {
 	var err error
-	if path != "" {
+	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
 		err = errors.Wrapf(err, "Unable to make file path %s absolute", path)
 	}
@@ -61,7 +67,7 @@ func ToAbsolutePath(path string) (string, error) {
 
 func ToAbsolutePathWithBasedir(basedir string, path string) (string, error) {
 	var err error
-	if path != "" {
+	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(filepath.Join(basedir, path))
 		err = errors.Wrapf(err, "Unable to make file path %s absolute", filepath.Join(basedir, path))
 	}
@@ -91,8 +97,14 @@ func EnsureDirectory(path string) {
 	}
 }
 
-// GetPngPathForPdf converts the given path to a PDF file
+// GetPngPathForPdf converts the given path of a PDF file into a PNG file.
 func GetPngPathForPdf(path string) string {
-	Requiref(filepath.Ext(strings.ToLower(path)) == ".pdf", "Filepath must lead to a PDF file but was '%s'", path)
-	return path + ".png"
+	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingPdf, "Filepath must lead to a PDF file but was '%s'", path)
+	return path + FileEndingPng
+}
+
+// GetPngPathForSvg converts the given path of a PDF file into a PNG file.
+func GetPngPathForSvg(path string) string {
+	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingSvg, "Filepath must lead to a SVG file but was '%s'", path)
+	return path + FileEndingPng
 }

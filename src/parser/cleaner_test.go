@@ -72,30 +72,36 @@ bar
 `, content)
 }
 
-func TestRemoveUnwantedCategories(t *testing.T) {
+func TestRemoveUnwantedLinks_unwantedCategories(t *testing.T) {
 	content := "[[Category:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
 	content = removeUnwantedInternalLinks(content)
 	test.AssertEmptyString(t, content)
 }
 
+func TestRemoveUnwantedLinks_unwantedCategoriesStayWhenNormalLink(t *testing.T) {
+	content := "[[Category:foo]][[:Category:FOO:This will stay]]"
+	content = removeUnwantedInternalLinks(content)
+	test.AssertEqual(t, "[[:Category:FOO:This will stay]]", content)
+}
+
 func TestRemoveUnwantedLinks(t *testing.T) {
 	config.Current.AllowedLinkPrefixes = []string{"arxiv"}
 
-	content := `[[:de:foo]][[arxiv:whatever]][[:DE:FOO]][[:EN:FOO:BAR
+	content := `[[de:foo]][[arxiv:whatever]][[DE:FOO]][[EN:FOO:BAR
 $ome+µeird-string]]
-[[:should_stay]]
-before[[:de:foo:bar]]after
+[[should_stay]]
+before[[de:foo:bar]]after
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
 	expected := `[[arxiv:whatever]]
-[[:should_stay]]
+[[should_stay]]
 beforeafter
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
 	actual := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 
-	content = "foo[[:de:pic.jpg|mini|With [[nested]]]]bar"
+	content = "foo[[de:pic.jpg|mini|With [[nested]]]]bar"
 	expected = "foobar"
 	actual = removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
@@ -106,7 +112,7 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 	cleanedContent := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, content, cleanedContent)
 
-	content = "foo[[:de:pic.jpg|mini|With [[nested]] link]]bar"
+	content = "foo[[de:pic.jpg|mini|With [[nested]] link]]bar"
 	expected := "foobar"
 	actual := removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)

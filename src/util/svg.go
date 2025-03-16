@@ -60,7 +60,7 @@ func MakeSvgSizeAbsolute(filename string) error {
 		return nil
 	}
 
-	updatedSvgContent, err := replaceRelativeSizeByViewboxSize(string(fileBytes), filename, attributes)
+	updatedSvgContent := replaceRelativeSizeByViewboxSize(string(fileBytes), filename, attributes)
 	if err != nil {
 		return err
 	}
@@ -73,20 +73,20 @@ func MakeSvgSizeAbsolute(filename string) error {
 	return nil
 }
 
-func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAttributes *SimpleSvgAttributes) (string, error) {
+func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAttributes *SimpleSvgAttributes) string {
 	// Find index of "viewbox" attribute
 	viewboxIndex := strings.Index(fileString, "viewBox=\"")
 	if viewboxIndex == -1 {
 		// No "viewbox" attribute specified, so we can't change the width/height.
 		sigolo.Debugf("SVG file %s does not contain a 'viewBox' attribute. File stays unchanged.", filename)
-		return fileString, nil
+		return fileString
 	}
 
 	viewboxAttributeContentSlice := strings.SplitN(fileString[viewboxIndex:], "\"", 3)
 	if len(viewboxAttributeContentSlice) == 1 {
 		// SVG file probably broken, at least we're not able to find a correct value for the viewbox attribute.
 		sigolo.Debugf("Unable to find 'viewBox' attribute values in file %s. File stays unchanged.", filename)
-		return fileString, nil
+		return fileString
 	}
 
 	var viewboxAttributeValues []string
@@ -97,21 +97,21 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 	} else if strings.Contains(viewboxAttributeString, " ") {
 		viewboxAttributeValues = strings.Split(viewboxAttributeString, " ")
 	} else {
-		// No supportes separator found
+		// No supported separator found
 		sigolo.Debugf("Unsupported separator for 'viewBox' attribute values in file %s, file stays unchanged. Expected comma or space in attribute 'viewbox=\"%s\"'", filename, viewboxAttributeString)
-		return fileString, nil
+		return fileString
 	}
 
 	if len(viewboxAttributeValues) != 4 {
 		// Wrong number of elements in viewbox
 		sigolo.Debugf("Wrong number of 'viewBox' attribute values in file %s: Expected 4 but got %d. File stays unchanged.", filename, len(viewboxAttributeValues))
-		return fileString, nil
+		return fileString
 	}
 
 	sigolo.Tracef("Replace width=%s -> width=%s and height=%s -> height=%s", oldAttributes.Width, viewboxAttributeValues[2], oldAttributes.Height, viewboxAttributeValues[3])
 	fileString = strings.Replace(fileString, "width=\""+oldAttributes.Width+"\"", "width=\""+viewboxAttributeValues[2]+"pt\"", 1)
 	fileString = strings.Replace(fileString, "height=\""+oldAttributes.Height+"\"", "height=\""+viewboxAttributeValues[3]+"pt\"", 1)
-	return fileString, nil
+	return fileString
 }
 
 func parseSimpleSvgAttributes(fileContent []byte, filename string) (*SimpleSvgAttributes, error) {

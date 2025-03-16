@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/http"
 	"testing"
 	"wiki2book/test"
 )
@@ -9,7 +10,7 @@ func TestDownloadAndCache(t *testing.T) {
 	key := "foobar"
 	content := "some interesting stuff"
 
-	mockHttpClient := MockHttp(content, 200)
+	mockHttpClient := MockHttp(content, http.StatusOK)
 
 	// First request -> cache file should ve created
 

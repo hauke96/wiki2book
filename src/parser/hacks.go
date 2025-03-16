@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -14,7 +13,6 @@ Some Wikpedia-specific stuff is just to weird or is language specific and has to
 // the "{{BS-table}}" template generates the head of a table, which simply is closed by a "|}". This is very specific to
 // this template, requires knowledge about its evaluation/use and is therefore considered a hack.
 func hackGermanRailwayTemplates(content string, startIndex int) (string, error) {
-
 	// TODO It can happen that a template looks like this: "{{template|args|}}" and the "|}" part confuses this hack function.
 	// This is because it thinks that "|}" is the end of a table, which it isn't in this case.
 
@@ -40,7 +38,7 @@ func hackGermanRailwayTemplates(content string, startIndex int) (string, error) 
 			// Find the end "|}" to remove the both lines
 			endIndex := findCorrespondingCloseToken(content, i+slidingWindowSize, startToken, endToken)
 			if endIndex == -1 {
-				return "", errors.New(fmt.Sprintf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken))
+				return "", errors.Errorf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken)
 			}
 
 			// Remove end token

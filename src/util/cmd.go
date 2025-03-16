@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+func ExecuteCommandWithArgs(commandString string) error {
+	commandParts := strings.Split(commandString, " ")
+	commandExecutable := commandParts[0]
+	commandArgs := commandParts[1:]
+
+	return Execute(commandExecutable, commandArgs...)
+}
+
 func Execute(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 

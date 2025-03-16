@@ -61,6 +61,7 @@ func (t *Tokenizer) parseTables(content string) string {
 // tokenizeTable returns the token of the table and the index of the row where this table ended.
 func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 	var tableLines []string
+	var tableToken string
 	tableLines = append(tableLines, lines[i])
 	i++
 
@@ -70,7 +71,6 @@ func (t *Tokenizer) tokenizeTables(lines []string, i int) (string, int) {
 
 		if strings.HasPrefix(line, "{|") || strings.HasPrefix(line, ":{|") {
 			// another table starts
-			tableToken := ""
 			tableToken, i = t.tokenizeTables(lines, i)
 			tableLines = append(tableLines, tableToken)
 		} else if strings.HasPrefix(line, "|}") {

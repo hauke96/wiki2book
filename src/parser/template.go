@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 	"strings"
 	"wiki2book/api"
 	"wiki2book/util"
@@ -62,7 +62,7 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 		if cursor == templateStartToken {
 			endIndex := findCorrespondingCloseToken(content, i+templateStartTokenLen, templateStartToken, templateEndToken)
 			if endIndex == -1 {
-				return "", errors.New(fmt.Sprintf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", templateStartToken, templateEndToken))
+				return "", errors.Errorf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", templateStartToken, templateEndToken)
 			}
 
 			originalTemplateText := content[i : endIndex+templateEndTokenLen]

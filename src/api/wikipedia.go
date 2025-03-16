@@ -71,52 +71,79 @@ func DownloadArticle(wikipediaInstance string, wikipediaHost string, title strin
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, toGrayscale bool, pdfToPng bool) error {
+func DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
-		var downloadErr error = nil
-		var outputFilepath string
-		var freshlyDownloaded bool
+		sigolo.Infof("Download image %s", image)
 
-		for i, instance := range config.Current.WikipediaImageArticleInstances {
-			isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
-			outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
-			if downloadErr != nil {
-				if isLastSource {
-					sigolo.Errorf("Could not downloading image %s from any image article source: %s\n", image, downloadErr.Error())
-				} else {
-					// That an image is not available at one source is a common situation and not an error that needs to be handled.
-					sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, config.Current.WikipediaHost, downloadErr.Error())
-				}
-				continue
-			}
-
-			if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(outputFilepath)) == ".pdf" {
-				outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
-				if _, err := os.Stat(outputPngFilepath); err != nil {
-					err = convertPdfToPng(outputFilepath, outputPngFilepath)
-					if err != nil {
-						return err
-					}
-				}
-				outputFilepath = outputPngFilepath
-			}
-
-			// If the file is new, rescale it using ImageMagick.
-			if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != ".svg" {
-				err := resizeAndCompressImage(outputFilepath, toGrayscale)
-				if err != nil {
-					return err
-				}
-			}
-
-			break
-		}
-
+		downloadErr := downloadImageUsingAllSources(image, outputFolder, articleFolder, svgSizeToViewbox, pdfToPng, svgToPng)
 		if downloadErr != nil {
 			return downloadErr
 		}
 	}
+	return nil
+}
+
+func downloadImageUsingAllSources(image string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+	var downloadErr error
+
+	for i, instance := range config.Current.WikipediaImageArticleInstances {
+		var outputFilepath string
+		var freshlyDownloaded bool
+		isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
+		outputFilepath, freshlyDownloaded, downloadErr = downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
+		if downloadErr != nil {
+			if isLastSource {
+				// We tried every single image source and couldn't find the image.
+				sigolo.Errorf("Could not downloading image %s from any image article source. Error of last image source: %s", image, downloadErr.Error())
+			} else {
+				// This image is not available at the current source. Maybe one of the following sources hold the
+				// image. Therefore, this is not a real error that needs to be handled.
+				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, config.Current.WikipediaHost, downloadErr.Error())
+			}
+			continue
+		}
+
+		err := postProcessImage(outputFilepath, pdfToPng, svgToPng, freshlyDownloaded)
+		if err != nil {
+			return err
+		}
+
+		break
+	}
+
+	return downloadErr
+}
+
+func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
+	if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingPdf {
+		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
+		if _, err := os.Stat(outputPngFilepath); err != nil {
+			err = convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
+			if err != nil {
+				return err
+			}
+		}
+		outputFilepath = outputPngFilepath
+	} else if svgToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingSvg {
+		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
+		if _, err := os.Stat(outputPngFilepath); err != nil {
+			err = convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
+			if err != nil {
+				return err
+			}
+		}
+		outputFilepath = outputPngFilepath
+	}
+
+	// If the file is new, rescale it using ImageMagick.
+	if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != util.FileEndingSvg {
+		err := resizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -156,11 +183,10 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 		return "", freshlyDownloaded, err
 	}
 
-	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == ".svg" {
+	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = util.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs.", cachedFilePath)
-			sigolo.Errorf("%+v", err)
+			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
 		}
 	}
 
@@ -198,11 +224,11 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 
 	mathSvgFilename, err := getMathResource(mathString, mathCacheFolder)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "Unable to get math resource for math string %s", util.TruncString(mathString))
+		return "", "", err
 	}
 
 	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
-	cachedSvgFile, _, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+".svg")
+	cachedSvgFile, _, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+util.FileEndingSvg)
 	if err != nil {
 		return "", "", err
 	}
@@ -211,14 +237,14 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return cachedSvgFile, cachedSvgFile, nil
 	} else if config.Current.MathConverter == config.MathConverterWikimedia {
 		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-		cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+".png")
+		cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+util.FileEndingPng)
 		if err != nil {
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
-	} else if config.Current.MathConverter == config.MathConverterRsvg {
-		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+".png")
-		err := convertSvgToPng(cachedSvgFile, cachedPngFile)
+	} else if config.Current.MathConverter == config.MathConverterInternal {
+		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+util.FileEndingPng)
+		err = convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}
@@ -250,25 +276,33 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		return mathSvgFilename, nil
 	}
 
-	sigolo.Debugf("Rendering math %s", util.TruncString(mathString))
-
 	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
-	if err != nil {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Wrapf(err, "Unable to call render URL for math %s", mathString)
-	}
-	defer response.Body.Close()
 
-	if response.StatusCode != 200 {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Errorf("Rendering Math: Response returned with status code %d", response.StatusCode)
+	responseBodyText := ""
+	if response != nil {
+		responseBodyReader := response.Body
+		if responseBodyReader != nil {
+			defer responseBodyReader.Close()
+		}
+		responseBodyText = util.ReaderToString(response.Body)
+	}
+
+	if err != nil {
+		return "", errors.Wrapf(err, "Response body for math '%s' on URL %s : %s", mathString, urlString, responseBodyText)
+	}
+
+	if response == nil {
+		return "", errors.Errorf("No error but empty response returned for math '%s' on URL %s", mathString, urlString)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return "", errors.Errorf("Rendering math failed with status code %d for math '%s' on URL %s with body: %s", response.StatusCode, mathString, urlString, responseBodyText)
 	}
 
 	locationHeader := response.Header.Get("x-resource-location")
 	if locationHeader == "" {
-		logMathResponseBodyAsError(response, urlString, mathString)
-		return "", errors.Errorf("Unable to get location header for math %s", mathString)
+		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
 	err = cacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
@@ -277,14 +311,4 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 	}
 
 	return locationHeader, nil
-}
-
-func logMathResponseBodyAsError(response *http.Response, urlString string, mathString string) {
-	if response != nil {
-		buf := new(strings.Builder)
-		_, err := io.Copy(buf, response.Body)
-		if err == nil {
-			sigolo.Errorf("Response body for url %s and math string %s:\n%s", urlString, util.TruncString(mathString), buf.String())
-		}
-	}
 }

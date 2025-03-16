@@ -10,8 +10,6 @@ import (
 	"wiki2book/util"
 )
 
-var images []string
-
 var imageNonInlineParameters = []string{
 	"mini",
 	"thumb",
@@ -40,7 +38,7 @@ type CaptionToken struct {
 // escapeImages escapes the image names in the image specification and returns the updated spec. The spec is expected to
 // be the complete spec, not just the image name, so everything between "[[" and "]]". If the media type if not
 // supported, an empty string is returned.
-func escapeImages(content string) string {
+func (t *Tokenizer) escapeImages(content string) string {
 	segments := strings.Split(content, "|")
 
 	fileSegments := strings.SplitN(segments[0], ":", 2)
@@ -56,8 +54,14 @@ func escapeImages(content string) string {
 
 	// Check if this media type is unwanted
 	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
-	if fileExtension != "pdf" && util.Contains(config.Current.IgnoredMediaTypes, fileExtension) || fileExtension == "pdf" && !config.Current.ConvertPDFsToImages {
-		return ""
+	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
+		// This image might should be ignored. However, there are special cases, e.g. when PDFs should be ignored but
+		// also converted into an image. In this case the PDF doesn't count as PDF but as image and can stay.
+		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ConvertPdfToPng
+		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ConvertSvgToPng
+		if !isPdfAndShouldStay && !isSvgAndShouldStay {
+			return ""
+		}
 	}
 
 	sigolo.Tracef("Found image: %s", filename)
@@ -71,8 +75,9 @@ func escapeImages(content string) string {
 	filename = strings.ToUpper(string(filenameRunes[0])) + string(filenameRunes[1:])
 
 	filenameWithMediaType := mediaType + ":" + filename
-	images = append(images, filenameWithMediaType)
 	segments[0] = filenameWithMediaType
+
+	t.images = append(t.images, filenameWithMediaType)
 
 	return strings.Join(segments, "|")
 }
@@ -130,7 +135,7 @@ func (t *Tokenizer) parseGalleries(content string) string {
 				trimmedLine = strings.Join(newLineSegments, "|")
 			}
 
-			line = escapeImages(trimmedLine)
+			line = t.escapeImages(trimmedLine)
 			if line != "" {
 				line = fmt.Sprintf("[[%s]]", line)
 			}
@@ -176,7 +181,7 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 			}
 
 			// "line" contains definitely the image of the imagemap
-			lines[i] = fmt.Sprintf("[[%s]]", escapeImages(line))
+			lines[i] = fmt.Sprintf("[[%s]]", t.escapeImages(line))
 
 			withinImageMap = true
 			continue
@@ -197,7 +202,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 		imageContent := content[startIndex[1]:endIndex]
 		imageContent = t.tokenizeContent(t, imageContent)
-		imageContent = escapeImages(imageContent)
+		imageContent = t.escapeImages(imageContent)
 
 		filePrefix := strings.ToLower(strings.SplitN(imageContent, ":", 2)[0])
 

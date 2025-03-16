@@ -9,7 +9,7 @@
   "wikipedia-domain": "de",
   "output-file": "geld.epub",
   "cover-image": "cover.png",
-  "style-file": "../../style.css",
+  "style-file": "../../../configs/style.css",
   "pandoc-data-dir": "../../../pandoc/data",
   "articles": [
     "Geld",

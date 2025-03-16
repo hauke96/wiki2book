@@ -108,6 +108,5 @@
     "verweis",
     "zentriert"
   ],
-  "math-converter": "rsvg",
-  "convert-pdfs-to-images": true
+  "math-converter": "internal"
 }

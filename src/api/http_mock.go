@@ -13,7 +13,7 @@ type MockHttpClient struct {
 	PostCalls  int
 }
 
-func (h *MockHttpClient) Get(url string) (resp *http.Response, err error) {
+func (h *MockHttpClient) Get(url string) (*http.Response, error) {
 	h.GetCalls++
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
@@ -21,7 +21,7 @@ func (h *MockHttpClient) Get(url string) (resp *http.Response, err error) {
 	}, nil
 }
 
-func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
+func (h *MockHttpClient) Post(url, contentType string, body io.Reader) (*http.Response, error) {
 	h.PostCalls++
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),

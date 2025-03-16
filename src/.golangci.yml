@@ -7,34 +7,35 @@ issues:
     - path: _test\.go
       linters:
        - dupl
+       - funlen
        - goconst
 linters:
   disable-all: true
   enable:
     - bodyclose
+    - copyloopvar
     - cyclop
     - dogsled
     - dupl
     - errcheck
     - errname
     - errorlint
-    - exportloopref
+    - err113
     - forcetypeassert
     - funlen
     - gocognit
     - goconst
     - gocyclo
-    - goerr113
-    - gomnd
     - gosimple
     - govet
     - ineffassign
     - interfacebloat
     - ireturn
-    - lll
+    # Not really a problem: - lll
     - maintidx
     - makezero
     - misspell
+    # We have too many small inimportant magic numbers, that this results in many false-positives: - mnd
     - musttag
     - nakedret
     # Maybe activate in future? - nestif
@@ -42,7 +43,7 @@ linters:
     - nilnil
     - nonamedreturns
     - nosprintfhostport
-    - prealloc
+    # Conflicts with the suggestions by Goland and it's not really relevant for this project: - prealloc
     - predeclared
     - reassign
     - staticcheck

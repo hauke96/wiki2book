@@ -65,6 +65,22 @@ func TestParseInternalLinks_externalLinkWillNotBeTouched(t *testing.T) {
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
+func TestParseInternalLinks_linkToCategory(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+	content := tokenizer.parseInternalLinks("Some [[:Category:links]] lead to other [[:de:Wikipedia|Wiki]] instances.")
+	test.AssertEqual(t, "Some $$TOKEN_INTERNAL_LINK_0$$ lead to other $$TOKEN_INTERNAL_LINK_1$$ instances.", content)
+	test.AssertMapEqual(t, map[string]Token{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
+			ArticleName: ":Category:links",
+			LinkText:    "links",
+		},
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_1$$": InternalLinkToken{
+			ArticleName: ":de:Wikipedia",
+			LinkText:    "Wiki",
+		},
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseMixedLinks(t *testing.T) {
 	tokenizer := NewTokenizer("foo", "bar")
 	content := tokenizer.parseInternalLinks("foo [http://bar.com Has [[internal link]]]")

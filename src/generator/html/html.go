@@ -116,7 +116,7 @@ func (g *HtmlGenerator) expand(content interface{}) (string, error) {
 		return g.expandToken(content.(parser.Token))
 	}
 
-	return "", errors.New(fmt.Sprintf("Unsupported type to expand: %T", content))
+	return "", errors.Errorf("Unsupported type to expand: %T", content)
 }
 
 func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
@@ -127,7 +127,7 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 	case parser.HeadingToken:
 		html, err = g.expandHeadings(t)
 	case parser.InlineImageToken:
-		html, err = g.expandInlineImage(t)
+		html = g.expandInlineImage(t)
 	case parser.ImageToken:
 		html, err = g.expandImage(t)
 	case parser.ExternalLinkToken:
@@ -155,9 +155,9 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 	case parser.RefDefinitionToken:
 		html, err = g.expandRefDefinition(t)
 	case parser.RefUsageToken:
-		html, err = g.expandRefUsage(t)
+		html = g.expandRefUsage(t)
 	case parser.NowikiToken:
-		html, err = g.expandNowiki(t)
+		html = g.expandNowiki(t)
 	}
 
 	if err != nil {
@@ -180,7 +180,7 @@ func (g *HtmlGenerator) expandString(content string) (string, error) {
 	for _, tokenKey := range matches {
 		tokenContent, hasTokenKey := g.TokenMap[tokenKey]
 		if !hasTokenKey {
-			return "", errors.New(fmt.Sprintf("Token key %s not found in token map", tokenKey))
+			return "", errors.Errorf("Token key %s not found in token map", tokenKey)
 		}
 		sigolo.Tracef("Found token %s -> %#v", tokenKey, tokenContent)
 
@@ -216,9 +216,17 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth))
 }
 
-func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
+func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) string {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(token.Filename), sizeTemplate), nil
+
+	filename := token.Filename
+	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
+		filename = util.GetPngPathForPdf(filename)
+	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
+		filename = util.GetPngPathForSvg(filename)
+	}
+
+	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate)
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
@@ -230,8 +238,10 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
 	filename := token.Filename
-	if config.Current.ConvertPDFsToImages && filepath.Ext(strings.ToLower(filename)) == ".pdf" {
+	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
+	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
+		filename = util.GetPngPathForSvg(filename)
 	}
 
 	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
@@ -277,7 +287,7 @@ func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken) (stri
 }
 
 func (g *HtmlGenerator) expandTable(token parser.TableToken) (string, error) {
-	var expandedRows []string
+	expandedRows := []string{}
 	for _, rowToken := range token.Rows {
 		expandedRow, err := g.expand(rowToken)
 		if err != nil {
@@ -414,7 +424,7 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 	case parser.DESCRIPTION_ITEM:
 		template = TEMPLATE_DD
 	default:
-		return "", errors.New(fmt.Sprintf("Unknown list item type '%d'", token.Type))
+		return "", errors.Errorf("Unknown list item type '%d'", token.Type)
 	}
 
 	return fmt.Sprintf(template, listItemString), nil
@@ -429,8 +439,8 @@ func (g *HtmlGenerator) expandRefDefinition(token parser.RefDefinitionToken) (st
 	return fmt.Sprintf(TEMPLATE_REF_DEF, token.Index+1, expandedRefContent), nil
 }
 
-func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) (string, error) {
-	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1), nil
+func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
+	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1)
 }
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
@@ -450,8 +460,8 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(imageFilename), svg.Width, svg.Height, svg.Style), nil
 }
 
-func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) (string, error) {
-	return token.Content, nil
+func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {
+	return token.Content
 }
 
 // write returns the output path or an error.
