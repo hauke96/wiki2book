@@ -252,7 +252,7 @@ func getAttribute(content string, attributeName string) string {
 		parts := strings.SplitN(content, " "+attributeName+"=", 2)
 		var letter rune
 		var attributeValue string
-		for _, letter = range []rune(parts[1]) {
+		for _, letter = range parts[1] {
 			if letter == '/' || letter == ' ' || letter == '>' {
 				break
 			}

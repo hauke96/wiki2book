@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
@@ -15,12 +16,7 @@ func resizeAndCompressImage(imageFilepath string, commandTemplate string) error 
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 
 	err := util.ExecuteCommandWithArgs(commandString)
-
-	if err != nil {
-		sigolo.Errorf("Converting image %s failed", imageFilepath)
-	}
-
-	return err
+	return errors.Wrapf(err, "Converting image %s failed", imageFilepath)
 }
 
 // convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
@@ -32,12 +28,7 @@ func convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandT
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, outputPngFilepath)
 
 	err := util.ExecuteCommandWithArgs(commandString)
-
-	if err != nil {
-		sigolo.Errorf("Converting PNG %s into an PNG image failed", inputPdfFilepath)
-	}
-
-	return err
+	return errors.Wrapf(err, "Converting PNG %s into an PNG image failed", inputPdfFilepath)
 }
 
 func convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
@@ -47,10 +38,5 @@ func convertSvgToPng(svgFile string, pngFile string, commandTemplate string) err
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
 	err := util.ExecuteCommandWithArgs(commandString)
-
-	if err != nil {
-		sigolo.Errorf("Converting image %s to PNG failed", svgFile)
-	}
-
-	return err
+	return errors.Wrapf(err, "Converting image %s to PNG failed", svgFile)
 }

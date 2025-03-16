@@ -11,7 +11,6 @@ import (
 var generator = HtmlGenerator{}
 
 func TestExpandMarker(t *testing.T) {
-
 	test.AssertEqual(t, "<b>", generator.expandMarker(parser.MARKER_BOLD_OPEN))
 	test.AssertEqual(t, "</b>", generator.expandMarker(parser.MARKER_BOLD_CLOSE))
 	test.AssertEqual(t, "<i>", generator.expandMarker(parser.MARKER_ITALIC_OPEN))

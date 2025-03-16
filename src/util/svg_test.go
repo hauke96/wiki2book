@@ -41,7 +41,7 @@ func TestMakeSvgSizeAbsolute(t *testing.T) {
 	test.AssertEqual(t, attributedBefore.Width, "50%")
 	test.AssertEqual(t, attributedBefore.Height, "100%")
 
-	updatedFileContent, err := replaceRelativeSizeByViewboxSize(string(fileBytes), "../test/image_relative-width-height.svg", attributedBefore)
+	updatedFileContent := replaceRelativeSizeByViewboxSize(string(fileBytes), "../test/image_relative-width-height.svg", attributedBefore)
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.Fail()

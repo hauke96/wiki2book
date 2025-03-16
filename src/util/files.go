@@ -8,7 +8,13 @@ import (
 	"strings"
 )
 
-const TempDirName = ".tmp/"
+const (
+	TempDirName = ".tmp/"
+
+	FileEndingSvg = ".svg"
+	FileEndingPng = ".png"
+	FileEndingPdf = ".pdf"
+)
 
 func ToRelativePaths(paths ...string) ([]string, error) {
 	var result = make([]string, len(paths))
@@ -93,12 +99,12 @@ func EnsureDirectory(path string) {
 
 // GetPngPathForPdf converts the given path of a PDF file into a PNG file.
 func GetPngPathForPdf(path string) string {
-	Requiref(filepath.Ext(strings.ToLower(path)) == ".pdf", "Filepath must lead to a PDF file but was '%s'", path)
-	return path + ".png"
+	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingPdf, "Filepath must lead to a PDF file but was '%s'", path)
+	return path + FileEndingPng
 }
 
 // GetPngPathForSvg converts the given path of a PDF file into a PNG file.
 func GetPngPathForSvg(path string) string {
-	Requiref(filepath.Ext(strings.ToLower(path)) == ".svg", "Filepath must lead to a SVG file but was '%s'", path)
-	return path + ".png"
+	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingSvg, "Filepath must lead to a SVG file but was '%s'", path)
+	return path + FileEndingPng
 }

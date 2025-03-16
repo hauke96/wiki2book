@@ -64,11 +64,11 @@ func download(url string, filename string) (io.ReadCloser, error) {
 		sigolo.Tracef("Response: %#v", response)
 
 		// Handle 429 (too many requests): wait a bit and retry
-		if response.StatusCode == 429 {
-			sigolo.Trace("Got 429 response (too many requests). Wait some time and try again...")
+		if response.StatusCode == http.StatusTooManyRequests {
+			sigolo.Tracef("Got %d response (too many requests). Wait some time and try again...", http.StatusTooManyRequests)
 			time.Sleep(2 * time.Second)
 			continue
-		} else if response.StatusCode != 200 {
+		} else if response.StatusCode != http.StatusOK {
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
 			errorHeaderName := "mediawiki-api-error"

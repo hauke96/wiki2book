@@ -162,8 +162,7 @@ func (t *Tokenizer) tokenizeList(lines []string, startLineIndex int, listPrefix 
 				lineParts := strings.SplitN(line[1:], ":", 2)
 
 				headPart := t.tokenizeContent(t, lineParts[0])
-				var headToken ListItemToken
-				headToken = ListItemToken{
+				headToken := ListItemToken{
 					Type:    DESCRIPTION_HEAD,
 					Content: headPart,
 				}

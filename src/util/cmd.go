@@ -13,8 +13,7 @@ func ExecuteCommandWithArgs(commandString string) error {
 	commandExecutable := commandParts[0]
 	commandArgs := commandParts[1:]
 
-	err := Execute(commandExecutable, commandArgs...)
-	return err
+	return Execute(commandExecutable, commandArgs...)
 }
 
 func Execute(name string, arg ...string) error {

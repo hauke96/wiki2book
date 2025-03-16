@@ -14,8 +14,7 @@ func clean(content string) (string, error) {
 	content = removeComments(content)
 	content = removeUnwantedInternalLinks(content)
 	content = handleUnwantedAndTrailingTemplates(content)
-	//content = moveTrailingTemplatesToEnd(content)
-	// Disabled for test purposes is this removal is really necessary.
+	// Disabled for now. This caused problems, because sometimes the wikitext does contain useful HTML.
 	//content = removeUnwantedHtml(content)
 	content = removeUnwantedWikitext(content)
 	content = removeEmptyListEntries(content)
@@ -169,11 +168,6 @@ func handleUnwantedAndTrailingTemplates(content string) string {
 	for _, foundTrailingTemplate := range foundTrailingTemplates {
 		content += "\n{{" + foundTrailingTemplate + "}}"
 	}
-
-	return content
-}
-
-func moveTrailingTemplatesToEnd(content string) string {
 
 	return content
 }
