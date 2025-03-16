@@ -3,63 +3,43 @@ This page describes each possible setting and config entry.
 
 ## Overview
 
-There are three different places for configurations and they sometimes overlap.
+There are three different places for configurations:
+Configuration file, project file and CLI arguments.
 
-* **Configuration file.**
-  This file contains very general settings, e.g. the wikipedia instance or a list of templates to ignore. Some things, like the list of ignored templates, are too large to be configured everytime using CLI arguments. Take a look at the [config.go](../src/config/config.go) source file, which contains a lot of documentation on each config entry. See [configs/de.json](../configs/de.json) for an example.
-* **CLI arguments.**
-  Can be used to configure things that differ from execution to execution. Use the CLI flag `-h` for further information on the available arguments for a specific command.
-* **Project file.**
-  Is used to configure project-specific things, e.g. the cover image. See [below](#project-file) or [project.go](../src/project/project.go) for more information. See [astronomie.json](../projects/de/astronomie/astronomie.json) for an example.
+They have a large overlap in settings and are evaluated in this order.
+This means a settings from the configuration file can be overwritten by the same settings of a project file and such a setting can be overwritten by a CLI argument.
 
-## Configuration
+## Configuration file
 
-| Config entry                     | Config file | Project file | CLI arg ¹ | Default ² ³                                                          | Description                                                                                                                                                            |
-|----------------------------------|-------------|--------------|-----------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IgnoredTemplates`               | X           |              |           | `[]`                                                                 | List of template names to be ignored.                                                                                                                                  |
-| `TrailingTemplates`              | X           |              |           | `[]`                                                                 | List of templates that should be moved to the end of the document.                                                                                                     |
-| `IgnoredImageParams`             | X           |              |           | `[]`                                                                 | List of image parameters to be ignored, e.g. `alt=...`.                                                                                                                |
-| `IgnoredMediaTypes`              | X           |              |           | `[ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]` | List of media file types to be ignored, e.g. `gif`.                                                                                                                    |
-| `WikipediaImageArticleInstances` | X           |              |           | `[ "commons", "en" ]`                                                | Subdomain of Wikipedia to download images from.                                                                                                                        |
-| `FilePrefixe`                    | X           |              |           | `[ "file", "image", "media" ]`                                       | Prefixed of links considered to be files, e.g. `file`.                                                                                                                 |
-| `AllowedLinkPrefixes`            | X           |              |           | `[ "arxiv", "doi" ]`                                                 | Allowed prefixed of special links, such as `arxiv:foobar`.                                                                                                             |
-| `CategoryPrefixes`               | X           |              |           | `[ "category" ]`                                                     | Prefix of categories, e.g. `category`.                                                                                                                                 |
-| `WikipediaInstance`              | X           | X            |           | `"en"`                                                               | Subdomain of Wikipedia instance to use, e.g. `de` or `en`.                                                                                                             |
-| `WikipediaHost`                  | X           | X            |           | `"wikipedia.org"`                                                    | Host of Wikipedia instance to use.                                                                                                                                     |
-| `WikipediaImageHost`             | X           | X            |           | `"upload.wikimedia.org"`                                             | The domain of the Wikipedia image instance.                                                                                                                            |
-| `WikipediaMathRestApi`           | X           | X            |           | `"https://wikimedia.org/api/rest_v1/media/math"`                     | The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.                                                |
-| `Metadata.Title`                 |             | X            |           |                                                                      | Title of the ebook. Used in the pandoc `--metadata` arguments.                                                                                                         |
-| `Metadata.Language`              |             | X            |           |                                                                      | Language of the book. Used in the pandoc `--metadata` arguments.                                                                                                       |
-| `Metadata.Author`                |             | X            |           |                                                                      | Name of the author(s). Used in the pandoc `--metadata` arguments.                                                                                                      |
-| `Metadata.License`               |             | X            |           |                                                                      | License of the book. Used in the pandoc `--metadata` arguments.                                                                                                        |
-| `Metadata.Date`                  |             | X            |           |                                                                      | Publishing/creation date of the book. Used in the pandoc `--metadata` arguments.                                                                                       |
-| `OutputFile`                     |             | X            | X         | (no default, must be specified)                                      | Output file name, e.g. `my-book.epub`.                                                                                                                                 |
-| `OutputType`                     |             | X            | X         | `"epub2"`                                                            | Type of output file. Allowed: `epub2`, `epub3`.                                                                                                                        |
-| `OutputDriver`                   |             | X            | X         | `"pandoc"`                                                           | Driver to generate the output file. Allowed: `pandoc` (default), `internal` (experimental).                                                                            |
-| `CacheDir`                       |             | X            | X         | `.wiki2book`                                                         | Folder where everything downloaded will be cached.                                                                                                                     |
-| `StyleFile`                      |             | X            | X         |                                                                      | CSS file to style the ebook. Used in the pandoc `--css` argument.                                                                                                      |
-| `CoverImage`                     |             | X            | X         |                                                                      | Cover image file to use. Used in the pandoc `--epub-cover-image` argument.                                                                                             |
-| `PandocDataDir`                  |             | X            | X         |                                                                      | Folder of additional pandoc configurations. Used in the pandoc `--data-dir` argument.                                                                                  |
-| `FontFiles`                      |             | X            | X         |                                                                      | Full path to font files. Used in the pandoc `--epub-embed-font` argumemnt.                                                                                             |
-| `ImagesToGrayscale`              |             | X            | X         | `false`                                                              | When `true`, raster images are converted to grayscale. Note: Images are cached, then this command has been `true` in a previous run, then the images remain grayscale. |
-| `Logging`                        |             |              | X         |                                                                      | Sets the log level. Possible values are `debug` and `trace`.                                                                                                           |
-| `DiagnosticsProfiling`           |             |              | X         |                                                                      | Enable profiling and write results to `./profiling.prof`.                                                                                                              |
-| `DiagnosticsTrace`               |             |              | X         |                                                                      | Enable tracing to analyse memory usage and write results to `./trace.out`.                                                                                             |
-| `ForceRegenerateHtml`            |             |              | X         |                                                                      | Forces wiki2book to recreate HTML files even if they exists from a previous run.                                                                                       |
-| `SvgSizeToViewbox`               |             |              | X         |                                                                      | Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.          |
+A configuration file is a JSON file and might look like this:
 
-¹ Depending on the used command, there might exist additional arguments. Use `wiki2book <command> -h` for further detail.<br>
-² If no entry is given, then no default exists, but the property is not mandatory.<br>
-³ The `project` command doesn't have default values for the CLI arguments.
+```json
+{
+  "cache-dir": "./path/to/cache/",
+  "wikipedia-instance": "de",
+  "output-type": "epub3",
+  "output-driver": "internal"
+}
+```
 
-### Precedences
+Take a look at the `configs/de.json` file for an example file.
+The `src/config/config.go` file contains all fields including documentation and default values.
+The CLI command `wiki2book --help` will also show information and default values for the general configuration entries.
 
-The precedence of properties is as in the table above:
-First, the config-file is used, then entries might be overridden by project files, which can be overridden by CLI arguments.
+## Project files
 
-## Project file
+A project file is also a JSON file and can contain all the properties of a configuration file plus some additional entries, which are the following ones:
 
-When using a project, the above-mentioned project file is a JSON configuration containing e.g. the title, cover image and list of articles, and may look like this:
+* A `"metadata": {...}` object containing the following entries:
+  * `"title"`: The title of the book.
+  * `"language"`: The language of the book.
+  * `"author"`: The author of the book.
+  * `"license"`: The license of the book, which should be based on the Wikipedia articles licenses.
+  * `"date"`: The date of the article.
+* The `"output-file"`, which is a path to the output EPUB file.
+* The `"articles": [...]` array, which is a list of article names, that should be included into this book.
+
+The following example contains project-specific entries at the top and general config entries at the bottom.
 
 ```json
 {
@@ -70,19 +50,20 @@ When using a project, the above-mentioned project file is a JSON configuration c
     "language": "de-DE",
     "date": "2021-12-27"
   },
-  "cache-dir": "./path/to/cache/",
-  "wikipedia-instance": "de",
   "output-file": "my-book.epub",
-  "output-type": "epub3",
-  "output-driver": "internal",
-  "cover-image": "cover.png",
-  "style-file": "style.css",
-  "pandoc-data-dir": "./pandoc/data",
   "articles": [
     "Hamburg",
     "Hamburger",
     "Pannfisch"
   ],
+  
+  "wikipedia-instance": "de",
+  "cache-dir": "./path/to/cache/",
+  "output-type": "epub3",
+  "output-driver": "internal",
+  "cover-image": "cover.png",
+  "style-file": "style.css",
+  "pandoc-data-dir": "./pandoc/data",
   "font-files": [
     "/path/to/font.ttf",
     "/path/to/fontBold.ttf",
@@ -91,9 +72,9 @@ When using a project, the above-mentioned project file is a JSON configuration c
 }
 ```
 
-See the table above for mandatory entries, default values and possibilities to override these.
+Take a look at the `projects` folder for further examples.
 
-### Use a different Wikipedia instance
+## Use a different Wikipedia instance
 
 Per default, the english wikipedia (`en`) is used.
 However, you can change the `wikipedia-instance` entry in your projects or config file (s. above).

@@ -13,9 +13,9 @@ Or `build.sh` (use parameter `-h` for help) in root of this repo.
 
 # Run
 
-To test if everything works, run `./wiki2book -c ../configs/de.json article Erde` (it builds an eBook from the German "Erde" article).
+To test if everything works, run `go run . -c ../configs/de.json article Erde` (it builds an eBook from the German "Erde" article).
 
-Use `./wiki2book --help` for all available CLI options.
+Use `go run --help` for all available CLI options.
 
 # Linting
 
