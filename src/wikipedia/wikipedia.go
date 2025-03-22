@@ -1,4 +1,4 @@
-package api
+package wikipedia
 
 import (
 	"crypto/md5"
@@ -13,8 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 	"wiki2book/config"
+	ownHttp "wiki2book/http"
+	"wiki2book/image"
 	"wiki2book/util"
 )
+
+var imageProcessingService = image.NewImageProcessingService()
+var httpClient = ownHttp.GetDefaultHttpClient()
 
 type WikiArticleDto struct {
 	Parse WikiParseArticleDto `json:"parse"`
@@ -45,7 +50,7 @@ func DownloadArticle(wikipediaInstance string, wikipediaHost string, title strin
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, wikipediaHost, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
-	cachedFilePath, _, err := downloadAndCache(urlString, cacheFolder, cachedFile)
+	cachedFilePath, _, err := ownHttp.DownloadAndCache(urlString, cacheFolder, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
@@ -120,7 +125,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 		pdfAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pdfAlreadyExists {
-			err := imageProcessingService.convertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
+			err := imageProcessingService.ConvertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
 			if err != nil {
 				return err
 			}
@@ -133,7 +138,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
 		pngAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pngAlreadyExists {
-			err := imageProcessingService.convertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
+			err := imageProcessingService.ConvertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
 			if err != nil {
 				return err
 			}
@@ -146,7 +151,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 
 	// If the file is new, rescale it using ImageMagick.
 	if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != util.FileEndingSvg {
-		err := imageProcessingService.resizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
+		err := imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 		if err != nil {
 			return err
 		}
@@ -186,13 +191,13 @@ func downloadImage(imageNameWithPrefix string, outputFolder string, articleFolde
 
 	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", wikipediaImageHost, wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
-	cachedFilePath, freshlyDownloaded, err := downloadAndCache(imageUrl, outputFolder, originalImageName)
+	cachedFilePath, freshlyDownloaded, err := ownHttp.DownloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {
 		return "", freshlyDownloaded, err
 	}
 
 	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
-		err = util.MakeSvgSizeAbsolute(cachedFilePath)
+		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
 			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
 		}
@@ -205,7 +210,7 @@ func EvaluateTemplate(template string, cacheFolder string, cacheFile string) (st
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, config.Current.WikipediaHost, url.QueryEscape(template))
-	cacheFilePath, _, err := downloadAndCache(urlString, cacheFolder, cacheFile)
+	cacheFilePath, _, err := ownHttp.DownloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
@@ -236,7 +241,7 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 	}
 
 	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
-	cachedSvgFile, _, err := downloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+util.FileEndingSvg)
+	cachedSvgFile, _, err := ownHttp.DownloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+util.FileEndingSvg)
 	if err != nil {
 		return "", "", err
 	}
@@ -245,14 +250,14 @@ func RenderMath(mathString string, imageCacheFolder string, mathCacheFolder stri
 		return cachedSvgFile, cachedSvgFile, nil
 	} else if config.Current.MathConverter == config.MathConverterWikimedia {
 		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-		cachedPngFile, _, err := downloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile, _, err := ownHttp.DownloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+util.FileEndingPng)
 		if err != nil {
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+util.FileEndingPng)
-		err = imageProcessingService.convertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
+		err = imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}
@@ -313,7 +318,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	err = ownHttp.CacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

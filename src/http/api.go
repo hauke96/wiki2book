@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"fmt"
@@ -14,10 +14,10 @@ import (
 
 var httpClient = GetDefaultHttpClient()
 
-// downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
+// DownloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
 // cache) or an error. If the file already exists, no HTTP request is made.
-func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
+func DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	_, err := os.Stat(outputFilepath)
@@ -40,7 +40,7 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 		return "", true, err
 	}
 
-	err = cacheToFile(cacheFolder, filename, responseBodyReader)
+	err = CacheToFile(cacheFolder, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}
@@ -83,7 +83,7 @@ func download(url string, filename string) (io.ReadCloser, error) {
 	return response.Body, nil
 }
 
-func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
+func CacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 

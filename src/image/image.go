@@ -1,4 +1,4 @@
-package api
+package image
 
 import (
 	"github.com/hauke96/sigolo/v2"
@@ -8,12 +8,10 @@ import (
 	"wiki2book/util"
 )
 
-var imageProcessingService = NewImageProcessingService()
-
 type ImageProcessingService interface {
-	resizeAndCompressImage(imageFilepath string, commandTemplate string) error
-	convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error
-	convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error
+	ResizeAndCompressImage(imageFilepath string, commandTemplate string) error
+	ConvertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error
+	ConvertSvgToPng(svgFile string, pngFile string, commandTemplate string) error
 }
 
 type ImageProcessingServiceImpl struct{}
@@ -23,7 +21,7 @@ func NewImageProcessingService() ImageProcessingService {
 }
 
 // resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
-func (s *ImageProcessingServiceImpl) resizeAndCompressImage(imageFilepath string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
@@ -35,7 +33,7 @@ func (s *ImageProcessingServiceImpl) resizeAndCompressImage(imageFilepath string
 
 // convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
 // rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
-func (s *ImageProcessingServiceImpl) convertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) ConvertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputPdfFilepath)
@@ -45,7 +43,7 @@ func (s *ImageProcessingServiceImpl) convertPdfToPng(inputPdfFilepath string, ou
 	return errors.Wrapf(err, "Converting PNG %s into an PNG image failed", inputPdfFilepath)
 }
 
-func (s *ImageProcessingServiceImpl) convertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
+func (s *ImageProcessingServiceImpl) ConvertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
 	sigolo.Tracef("Convert SVG %s to PNG %s", svgFile, pngFile)
 
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, svgFile)

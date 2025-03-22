@@ -1,63 +1,64 @@
-package api
+package wikipedia
 
 import (
 	"github.com/hauke96/sigolo/v2"
 	"os"
 	"path/filepath"
 	"testing"
+	"wiki2book/image"
 	"wiki2book/test"
 )
 
 func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	err := postProcessImage("./foo.svg", false, false, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	err := postProcessImage("./foo.svg", false, true, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 1, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 1, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	err := postProcessImage("./foo.svg", true, false, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	err := postProcessImage("./foo.svg", false, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
@@ -67,13 +68,13 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.
 	err = postProcessImage(svgFilepath, false, true, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 1, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 1, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
@@ -87,13 +88,13 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 	err = postProcessImage(svgFilepath, false, true, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
@@ -103,13 +104,13 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.
 	err = postProcessImage(pdfFilepath, true, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 1, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 1, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *testing.T) {
-	serviceMock := newMockImageProcessingService()
+	serviceMock := image.NewMockImageProcessingService()
 	imageProcessingService = serviceMock
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
@@ -123,7 +124,7 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 	err = postProcessImage(pdfFilepath, true, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.resizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.convertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.convertSvgToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
 }

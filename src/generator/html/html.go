@@ -9,10 +9,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"wiki2book/api"
 	"wiki2book/config"
+	"wiki2book/image"
 	"wiki2book/parser"
 	"wiki2book/util"
+	"wiki2book/wikipedia"
 )
 
 const HEADER = `<?xml version="1.0" encoding="UTF-8"?>
@@ -445,12 +446,12 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 
 // TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, imageFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := wikipedia.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {
 		return "", err
 	}
 
-	svg, err := util.ReadSimpleAvgAttributes(svgFilename)
+	svg, err := image.ReadSimpleAvgAttributes(svgFilename)
 	if err != nil {
 		return "", err
 	}
