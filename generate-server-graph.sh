@@ -26,38 +26,32 @@
 		callgraph -algo static -format graphviz . | \
 		grep -P "^( ? ?\".?.?wiki2book.* -> \".?.?wiki2book|digraph.*|})" | \
 		grep -v -P "wiki2book/(util)" | \
-		grep -v -P "\.init" | \
+		grep -vi -P "(\.init|print|config)" | \
 		grep -v -P "parser\.Tokenizer\)\.(getToken|setRawToken)\"" | \
 		sed 's/wiki2book\///g' | \
 		uniq
 	)
 
 	echo "Generate full graph"
-	echo "$OUT" > graph3.dot
-	ls -alh graph3.dot
+	echo "$OUT" > graph-full.dot
+	ls -alh graph-full.dot
 	echo "Turn dot file into PNG"
-	cat graph3.dot | dot -Tpng -o graph3.png
+	cat graph-full.dot | dot -Tpng -o graph-full.png
 
 	echo "Generate high-level graph"
-	echo "$OUT" | grep -v -P "\".?.?(generator|parser|api)" > graph-high-level.dot
+	echo "$OUT" | grep -v -P "\".?.?(generator|parser|http|wikipedia)\." > graph-high-level.dot
 	ls -alh graph-high-level.dot
 	echo "Turn dot file into PNG"
 	cat graph-high-level.dot | dot -Tpng -o graph-high-level.png
 
-	echo "Generate graph with api package"
-	echo "$OUT" | grep -v -P "\".?.?(generator|parser)" > graph-api.dot
-	ls -alh graph-api.dot
-	echo "Turn dot file into PNG"
-	cat graph-api.dot | dot -Tpng -o graph-api.png
-
 	echo "Generate graph with parser package"
-	echo "$OUT" | grep -v -P "\".?.?(generator|api)" > graph-parser.dot
+	echo "$OUT" | grep -v -P "\".?.?(generator|http|wikipedia|wiki2book|image)[/.]" | grep -v "findCorrespondingCloseToken" > graph-parser.dot
 	ls -alh graph-parser.dot
 	echo "Turn dot file into PNG"
 	cat graph-parser.dot | dot -Tpng -o graph-parser.png
 
 	echo "Generate graph with generator package"
-	echo "$OUT" | grep -v -P "\".?.?(parser|api)" > graph-generator.dot
+	echo "$OUT" | grep -v -P "\".?.?(parser|http|wikipedia|wiki2book)[/.]" > graph-generator.dot
 	ls -alh graph-generator.dot
 	echo "Turn dot file into PNG"
 	cat graph-generator.dot | dot -Tpng -o graph-generator.png
