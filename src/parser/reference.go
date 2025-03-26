@@ -69,7 +69,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 		if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
 			// Tag like "</references>" or "<references />" found
 			if currentPlaceholderGroup == "" {
-				currentPlaceholderGroup = getGroupOrDefault(content[i:startEndIndex])
+				currentPlaceholderGroup = t.getGroupOrDefault(content[i:startEndIndex])
 			}
 
 			if refNumberToContent[currentPlaceholderGroup] == nil {
@@ -85,13 +85,13 @@ func (t *Tokenizer) parseReferences(content string) string {
 		} else if referencePlaceholderStartRegex.MatchString(content[i : startEndIndex+1]) {
 			// Tag like "<references group=foo >" found
 			// TODO indices correct?
-			currentPlaceholderGroup = getGroupOrDefault(content[i:startEndIndex])
+			currentPlaceholderGroup = t.getGroupOrDefault(content[i:startEndIndex])
 			content = content[0:i] + content[startEndIndex+1:] // Remove tag from content
 			cursorWithinReferencePlaceholder = true
 		} else {
 			// Tag like "<ref name=..." or "<ref>..." found
-			nameAttributeValue := getNameAttribute(content[i+refDefStartLen : startEndIndex])
-			groupName := getGroupOrDefault(content[i+refDefStartLen : startEndIndex])
+			nameAttributeValue := t.getNameAttribute(content[i+refDefStartLen : startEndIndex])
+			groupName := t.getGroupOrDefault(content[i+refDefStartLen : startEndIndex])
 
 			if nameToRefNumber[groupName] == nil {
 				nameToRefNumber[groupName] = map[string]int{}
@@ -221,12 +221,12 @@ func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndInde
 	return refNumberCounter, content
 }
 
-func getNameAttribute(content string) string {
-	return getAttribute(content, "name")
+func (t *Tokenizer) getNameAttribute(content string) string {
+	return t.getAttribute(content, "name")
 }
 
-func getGroupOrDefault(content string) string {
-	groupAttributeValue := getAttribute(content, "group")
+func (t *Tokenizer) getGroupOrDefault(content string) string {
+	groupAttributeValue := t.getAttribute(content, "group")
 	if groupAttributeValue != "" {
 		return groupAttributeValue
 	}
@@ -236,7 +236,7 @@ func getGroupOrDefault(content string) string {
 // getAttribute determines the values after "{attributeName}=" (so e.g. "name=") and supports quoted and unquoted
 // attributes. When unquoted attributes are used (e.g. as in name=foobar), the value is only interpreted until a space
 // of slash. For quoted attributes (e.g. as in name="foo bar") everything until the next quote is interpreted as name value.
-func getAttribute(content string, attributeName string) string {
+func (t *Tokenizer) getAttribute(content string, attributeName string) string {
 	if strings.Contains(content, " "+attributeName+"=\"") {
 		// Attribute with quotation
 		parts := strings.Split(content, "\"")
