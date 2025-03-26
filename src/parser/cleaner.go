@@ -8,19 +8,19 @@ import (
 
 const semiHeadingDepth = 10
 
-func clean(content string) (string, error) {
+func (t *Tokenizer) clean(content string) (string, error) {
 	var err error
 
-	content = removeComments(content)
-	content = removeUnwantedInternalLinks(content)
-	content = handleUnwantedAndTrailingTemplates(content)
+	content = t.removeComments(content)
+	content = t.removeUnwantedInternalLinks(content)
+	content = t.handleUnwantedAndTrailingTemplates(content)
 	// Disabled for now. This caused problems, because sometimes the wikitext does contain useful HTML.
 	//content = removeUnwantedHtml(content)
-	content = removeUnwantedWikitext(content)
-	content = removeEmptyListEntries(content)
-	content = removeEmptySections(content)
+	content = t.removeUnwantedWikitext(content)
+	content = t.removeEmptyListEntries(content)
+	content = t.removeEmptySections(content)
 
-	content, err = hackGermanRailwayTemplates(content, 0)
+	content, err = t.hackGermanRailwayTemplates(content, 0)
 	if err != nil {
 		return "", err
 	}
@@ -28,7 +28,7 @@ func clean(content string) (string, error) {
 	return content, nil
 }
 
-func removeComments(content string) string {
+func (t *Tokenizer) removeComments(content string) string {
 	// The following steps are performed:
 	//   1. Split by the end token "-->" of comments
 	//   2. For each element in that slice, split by start token "<!--" of comments
@@ -70,7 +70,7 @@ func removeComments(content string) string {
 // removeUnwantedInternalLinks removes all kind of unwanted links. This method leaves all allowed internal links
 // unchanged (links with a certain prefix). Category prefixes and all other not explicitly allowed prefixes are
 // considered unwanted and each such link will be removed.
-func removeUnwantedInternalLinks(content string) string {
+func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 	// Go through all characters with a 2-char sliding window, hence the "-2".
 	for i := 0; i < len(content)-2; i++ {
 		cursor := content[i : i+2]
@@ -121,7 +121,7 @@ func removeUnwantedInternalLinks(content string) string {
 	return content
 }
 
-func handleUnwantedAndTrailingTemplates(content string) string {
+func (t *Tokenizer) handleUnwantedAndTrailingTemplates(content string) string {
 	// All lower case. Makes things easier below.
 	ignoreTemplates := util.AllToLower(config.Current.IgnoredTemplates)
 	trailingTemplates := util.AllToLower(config.Current.TrailingTemplates)
@@ -172,15 +172,15 @@ func handleUnwantedAndTrailingTemplates(content string) string {
 	return content
 }
 
-func removeUnwantedHtml(content string) string {
+func (t *Tokenizer) removeUnwantedHtml(content string) string {
 	return unwantedHtmlRegex.ReplaceAllString(content, "")
 }
 
-func removeUnwantedWikitext(content string) string {
+func (t *Tokenizer) removeUnwantedWikitext(content string) string {
 	return strings.ReplaceAll(content, "__NOTOC__", "")
 }
 
-func removeEmptyListEntries(content string) string {
+func (t *Tokenizer) removeEmptyListEntries(content string) string {
 	var resultLines []string
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
@@ -212,7 +212,7 @@ func isListBeginning(c rune) bool {
 	return c == '*' || c == '#' || c == ';' || c == ':'
 }
 
-func removeEmptySections(content string) string {
+func (t *Tokenizer) removeEmptySections(content string) string {
 	lines := strings.Split(content, "\n")
 	var resultLines []string
 
@@ -220,7 +220,7 @@ func removeEmptySections(content string) string {
 		line := lines[i]
 
 		// Is heading? -> Check if section is empty
-		if currentHeadingDepth := headingDepth(line); currentHeadingDepth > 0 {
+		if currentHeadingDepth := t.headingDepth(line); currentHeadingDepth > 0 {
 			sectionStartIndex := i
 
 			// Get next line after "current heading"
@@ -238,7 +238,7 @@ func removeEmptySections(content string) string {
 			// Go through lines of this "current" section until the end of data has been reached OR the current line is
 			// a heading.
 			var sectionIsEmpty bool
-			i, sectionIsEmpty = walkSection(i, lines, currentHeadingDepth)
+			i, sectionIsEmpty = t.walkSection(i, lines, currentHeadingDepth)
 
 			// If the section was not empty, go back to the first line of the section. This causes the loop to go over
 			// the lines again and this will especially add them to the result list.
@@ -251,7 +251,7 @@ func removeEmptySections(content string) string {
 			// If the section was in deed empty, then we are probably sitting on a new heading (or the end of lines) and
 			// want to parse this next section. To do this, we go one step back to compensate the incrementation of the
 			// outer for loop and to process that heading during the next run of the outer loop.
-			if i < len(lines) && headingDepth(lines[i]) > 0 {
+			if i < len(lines) && t.headingDepth(lines[i]) > 0 {
 				i--
 			}
 		} else {
@@ -264,14 +264,14 @@ func removeEmptySections(content string) string {
 
 // walkSection goes through the lines from index i till the end or the next heading. For i the condition i < len(lines)
 // has to hold.
-func walkSection(i int, lines []string, previousHeadingDepth int) (int, bool) {
+func (t *Tokenizer) walkSection(i int, lines []string, previousHeadingDepth int) (int, bool) {
 	sectionIsEmpty := true
 
 	for i < len(lines) {
-		line := getTrimmedLine(lines, i)
+		line := strings.TrimSpace(lines[i])
 
 		// Is heading? -> We're done in this loop and return
-		if headingDepth := headingDepth(line); headingDepth > 0 {
+		if headingDepth := t.headingDepth(line); headingDepth > 0 {
 			// But if this next heading is a sub-heading of the current one, then ...
 			if headingDepth > previousHeadingDepth {
 				// ... interpret this section as non-empty to keep it, as it structures the document in a helpful way.
@@ -291,12 +291,9 @@ func walkSection(i int, lines []string, previousHeadingDepth int) (int, bool) {
 	return i, sectionIsEmpty
 }
 
-func getTrimmedLine(lines []string, i int) string {
-	return strings.TrimSpace(lines[i])
-}
-
-// headingDepth returns the number of "=" characters. When 0 is returned, the line is not a heading.
-func headingDepth(line string) int {
+// headingDepth returns the number of "=" characters. When 0 is returned, the line is not a heading. In case of a line
+// with just bold text, it's considered a "semi heading" and semiHeadingDepth is returned.
+func (t *Tokenizer) headingDepth(line string) int {
 	if !strings.HasPrefix(line, "=") || !strings.HasSuffix(line, "=") {
 		// No real heading. But maybe a semi-heading (line with only bold text)?
 		if strings.HasPrefix(line, "'''") && strings.HasSuffix(line, "'''") {
@@ -321,21 +318,4 @@ func headingDepth(line string) int {
 	}
 
 	return headingDepthCounter
-	//
-	//matches := headingRegex.FindAllStringSubmatch(line, -1)
-	//if len(matches) >= 1 && len(matches[0]) == 3 {
-	//	lenHeadingPrefix := len(matches[0][1])
-	//	lenHeadingSuffix := len(matches[0][2])
-	//	if lenHeadingPrefix > 0 && lenHeadingSuffix > 0 && lenHeadingPrefix == lenHeadingSuffix {
-	//		return len(matches[0][1])
-	//	}
-	//}
-	//
-	//lineIsSemiHeading := semiHeadingRegex.MatchString(line)
-	//if lineIsSemiHeading {
-	//	// This is a semi heading: Just bold text in this line -> Interpret this as most insignificant heading
-	//	return semiHeadingDepth
-	//}
-	//
-	//return 0
 }
