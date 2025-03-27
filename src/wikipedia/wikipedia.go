@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"wiki2book/cache"
 	"wiki2book/config"
 	ownHttp "wiki2book/http"
 	"wiki2book/image"
@@ -318,7 +319,7 @@ func getMathResource(mathString string, cacheFolder string) (string, error) {
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = ownHttp.CacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	err = cache.CacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}
