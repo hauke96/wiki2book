@@ -8,15 +8,16 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"wiki2book/api"
+	"wiki2book/http"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 var templateFolder = test.TestCacheFolder
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
 	tokenizer := NewTokenizer("foo", templateFolder)
-	mockHttpClient := api.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttp("", 200)
 
 	templateFile, err := os.Create(templateFolder + "/c740539f1a69d048c70ac185407dd5244b56632d")
 	sigolo.FatalCheck(err)
@@ -35,10 +36,10 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	tokenizer := NewTokenizer("foo", templateFolder)
 	key := "7499ae1f1f8e45a9a95bdeb610ebf13cc4157667"
 	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
-	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
+	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
 
-	mockHttpClient := api.NewMockHttp(expectedTemplateFileContent, 200)
+	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
@@ -62,10 +63,10 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
-	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
+	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
 
-	mockHttpClient := api.NewMockHttp(expectedTemplateFileContent, 200)
+	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}} bar}}")
@@ -83,10 +84,10 @@ func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
 
 	tokenizer := NewTokenizer("foo", templateFolder)
 	expectedTemplateContent := "<div>foo</div>"
-	jsonBytes, _ := json.Marshal(&api.WikiExpandedTemplateDto{ExpandTemplate: api.WikitextDto{Content: expectedTemplateContent}})
+	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
 
-	mockHttpClient := api.NewMockHttp(expectedTemplateFileContent, 200)
+	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
 
 	// Evaluate content -> no space/separator between first }} and second }}
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}}}}")

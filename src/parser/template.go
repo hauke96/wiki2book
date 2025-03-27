@@ -5,8 +5,8 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"strings"
-	"wiki2book/api"
 	"wiki2book/util"
+	"wiki2book/wikipedia"
 )
 
 const templatePlaceholderPrefix = "$$TEMPLATE_PLACEHOLDER_"
@@ -83,7 +83,7 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 			key := util.Hash(templateText)
 
 			sigolo.Tracef("Evaluate template: %s", util.TruncString(templateText))
-			evaluatedTemplate, err := api.EvaluateTemplate(templateText, t.templateFolder, key)
+			evaluatedTemplate, err := wikipedia.EvaluateTemplate(templateText, t.templateFolder, key)
 			if err != nil {
 				return "", err
 			}

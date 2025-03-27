@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ func TestDownloadAndCache(t *testing.T) {
 
 	// First request -> cache file should ve created
 
-	cachedFilePath, freshlyDownloaded, err := downloadAndCache("http://foobar", apiCacheFolder, key)
+	cachedFilePath, freshlyDownloaded, err := DownloadAndCache("http://foobar", apiCacheFolder, key)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
@@ -24,7 +24,7 @@ func TestDownloadAndCache(t *testing.T) {
 
 	// Second request -> nothing should change
 
-	cachedFilePath, freshlyDownloaded, err = downloadAndCache("http://foobar", apiCacheFolder, key)
+	cachedFilePath, freshlyDownloaded, err = DownloadAndCache("http://foobar", apiCacheFolder, key)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)

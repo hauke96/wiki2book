@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"wiki2book/api"
 	"wiki2book/config"
 	"wiki2book/generator"
 	"wiki2book/generator/epub"
@@ -20,6 +19,7 @@ import (
 	"wiki2book/parser"
 	"wiki2book/project"
 	"wiki2book/util"
+	"wiki2book/wikipedia"
 )
 
 const VERSION = "v0.4.0"
@@ -246,7 +246,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+	err = wikipedia.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
@@ -393,7 +393,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := api.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
+		wikiArticleDto, err := wikipedia.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
@@ -402,7 +402,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = api.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+		err = wikipedia.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.

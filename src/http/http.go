@@ -1,4 +1,4 @@
-package api
+package http
 
 import (
 	"fmt"
@@ -9,15 +9,25 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/util"
 )
 
+type HttpClient interface {
+	Get(url string) (resp *http.Response, err error)
+	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
+}
+
+func GetDefaultHttpClient() HttpClient {
+	return http.DefaultClient
+}
+
 var httpClient = GetDefaultHttpClient()
 
-// downloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
+// DownloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
 // cache) or an error. If the file already exists, no HTTP request is made.
-func downloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
+func DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	_, err := os.Stat(outputFilepath)
@@ -40,7 +50,7 @@ func downloadAndCache(url string, cacheFolder string, filename string) (string, 
 		return "", true, err
 	}
 
-	err = cacheToFile(cacheFolder, filename, responseBodyReader)
+	err = cache.CacheToFile(cacheFolder, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}
@@ -81,49 +91,4 @@ func download(url string, filename string) (io.ReadCloser, error) {
 		break
 	}
 	return response.Body, nil
-}
-
-func cacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
-	outputFilepath := filepath.Join(cacheFolder, filename)
-	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
-
-	// Create the output folder
-	sigolo.Tracef("Ensure cache folder '%s'", cacheFolder)
-	err := os.MkdirAll(cacheFolder, os.ModePerm)
-	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolder))
-	}
-
-	//
-	// 1. Write to temporary file. This prevents broken files on disk in case the application exits during writing.
-	//
-
-	// Create the output file
-	tempFile, err := os.CreateTemp(util.TempDirName, filename)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(util.TempDirName, filename)))
-	}
-	tempFilepath := tempFile.Name()
-	defer os.Remove(tempFilepath)
-	sigolo.Tracef("Create temp file '%s'", tempFilepath)
-
-	// Write the body to file
-	sigolo.Trace("Copy data to temp file")
-	_, err = io.Copy(tempFile, reader)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
-	}
-
-	//
-	// 2. Move file to actual location
-	//
-
-	sigolo.Tracef("Move temp file '%s' to '%s'", tempFilepath, outputFilepath)
-	err = os.Rename(tempFilepath, outputFilepath)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
-	}
-
-	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
-	return nil
 }
