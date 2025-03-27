@@ -45,6 +45,24 @@ type WikitextDto struct {
 	Content string `json:"wikitext"`
 }
 
+type WikipediaService struct {
+	cacheFolder             string
+	wikipediaInstance       string
+	wikipediaHost           string
+	wikipediaImageInstances []string
+	wikipediaImageHost      string
+}
+
+func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string) *WikipediaService {
+	return &WikipediaService{
+		cacheFolder:             cacheFolder,
+		wikipediaInstance:       wikipediaInstance,
+		wikipediaHost:           wikipediaHost,
+		wikipediaImageInstances: wikipediaImageInstances,
+		wikipediaImageHost:      wikipediaImageHost,
+	}
+}
+
 func DownloadArticle(wikipediaInstance string, wikipediaHost string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
