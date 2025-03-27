@@ -242,11 +242,19 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 
 	config.Current.AssertFilesAndPathsExists()
 
-	tokenizer := parser.NewTokenizer(imageCache, templateCache)
+	wikipediaService := wikipedia.NewWikipediaService(
+		config.Current.CacheDir,
+		config.Current.WikipediaInstance,
+		config.Current.WikipediaHost,
+		config.Current.WikipediaImageArticleInstances,
+		config.Current.WikipediaImageHost,
+	)
+
+	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = wikipedia.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+	err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
@@ -257,6 +265,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 			MathCacheFolder:    mathCache,
 			ArticleCacheFolder: articleCache,
 			TokenMap:           article.TokenMap,
+			WikipediaService:   wikipediaService,
 		}
 		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
 		sigolo.FatalCheck(err)
@@ -320,6 +329,14 @@ func generateBookFromArticles(project *project.Project) {
 	articleChan := make(chan string, config.Current.WorkerThreads)
 	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
 
+	wikipediaService := wikipedia.NewWikipediaService(
+		config.Current.CacheDir,
+		config.Current.WikipediaInstance,
+		config.Current.WikipediaHost,
+		config.Current.WikipediaImageArticleInstances,
+		config.Current.WikipediaImageHost,
+	)
+
 	// Create a wait-group that is zero when all threads are done
 	threadPoolWaitGroup := &sync.WaitGroup{}
 	threadPoolWaitGroup.Add(config.Current.WorkerThreads)
@@ -339,7 +356,7 @@ func generateBookFromArticles(project *project.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, wikipediaService, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
 				articleFiles[articleNumber] = thisArticleFile
 			}
 
@@ -385,7 +402,7 @@ func generateBookFromArticles(project *project.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.WikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
@@ -393,16 +410,16 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := wikipedia.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
+		wikiArticleDto, err := wikipediaService.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
-		tokenizer := parser.NewTokenizer(imageCache, templateCache)
+		tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = wikipedia.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+		err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.
@@ -412,6 +429,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			MathCacheFolder:    mathCache,
 			ArticleCacheFolder: articleCache,
 			TokenMap:           article.TokenMap,
+			WikipediaService:   wikipediaService,
 		}
 		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
 		sigolo.FatalCheck(err)
