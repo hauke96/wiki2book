@@ -445,7 +445,6 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1)
 }
 
-// TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {

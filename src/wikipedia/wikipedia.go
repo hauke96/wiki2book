@@ -52,22 +52,24 @@ type WikipediaService struct {
 	wikipediaHost           string
 	wikipediaImageInstances []string
 	wikipediaImageHost      string
+	wikipediaMathRestApi    string
 }
 
-func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string) *WikipediaService {
+func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string) *WikipediaService {
 	return &WikipediaService{
 		cacheFolder:             cacheFolder,
 		wikipediaInstance:       wikipediaInstance,
 		wikipediaHost:           wikipediaHost,
 		wikipediaImageInstances: wikipediaImageInstances,
 		wikipediaImageHost:      wikipediaImageHost,
+		wikipediaMathRestApi:    wikipediaMathRestApi,
 	}
 }
 
-func (w *WikipediaService) DownloadArticle(wikipediaInstance string, wikipediaHost string, title string, cacheFolder string) (*WikiArticleDto, error) {
+func (w *WikipediaService) DownloadArticle(title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", wikipediaInstance, wikipediaHost, escapedTitle)
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", w.wikipediaInstance, w.wikipediaHost, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, _, err := ownHttp.DownloadAndCache(urlString, cacheFolder, cachedFile)
@@ -83,7 +85,7 @@ func (w *WikipediaService) DownloadArticle(wikipediaInstance string, wikipediaHo
 	wikiArticleDto := &WikiArticleDto{}
 	err = json.Unmarshal(cachedResponseBytes, wikiArticleDto)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s.%s/%s", wikipediaInstance, wikipediaHost, title))
+		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s.%s/%s", w.wikipediaInstance, w.wikipediaHost, title))
 	}
 
 	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
@@ -112,11 +114,11 @@ func (w *WikipediaService) DownloadImages(images []string, outputFolder string, 
 func (w *WikipediaService) downloadImageUsingAllSources(image string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	var downloadErr error
 
-	for i, instance := range config.Current.WikipediaImageArticleInstances {
+	for i, instance := range w.wikipediaImageInstances {
 		var outputFilepath string
 		var freshlyDownloaded bool
-		isLastSource := i == len(config.Current.WikipediaImageArticleInstances)-1
-		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(image, outputFolder, articleFolder, config.Current.WikipediaImageHost, instance, config.Current.WikipediaHost, svgSizeToViewbox)
+		isLastSource := i == len(w.wikipediaImageInstances)-1
+		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(image, outputFolder, articleFolder, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {
 				// We tried every single image source and couldn't find the image.
@@ -124,7 +126,7 @@ func (w *WikipediaService) downloadImageUsingAllSources(image string, outputFold
 			} else {
 				// This image is not available at the current source. Maybe one of the following sources hold the
 				// image. Therefore, this is not a real error that needs to be handled.
-				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, config.Current.WikipediaHost, downloadErr.Error())
+				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, w.wikipediaHost, downloadErr.Error())
 			}
 			continue
 		}
@@ -185,11 +187,11 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, wikipediaImageHost string, wikipediaInstance string, wikipediaHost string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
-	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, wikipediaInstance, wikipediaHost)
-	imageArticle, err := w.DownloadArticle(wikipediaInstance, wikipediaHost, imageName, articleFolder)
+	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, w.wikipediaInstance, w.wikipediaHost)
+	imageArticle, err := w.DownloadArticle(imageName, articleFolder)
 	if err != nil {
 		return "", true, err
 	}
@@ -205,12 +207,12 @@ func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolde
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, wikipediaInstance)
+	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, w.wikipediaInstance)
 	sigolo.Tracef("  Original name: %s", originalImageName)
 	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
-	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", wikipediaImageHost, wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, w.wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
 	cachedFilePath, freshlyDownloaded, err := ownHttp.DownloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {
@@ -230,7 +232,7 @@ func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolde
 func (w *WikipediaService) EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
-	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", config.Current.WikipediaInstance, config.Current.WikipediaHost, url.QueryEscape(template))
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.wikipediaInstance, w.wikipediaHost, url.QueryEscape(template))
 	cacheFilePath, _, err := ownHttp.DownloadAndCache(urlString, cacheFolder, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
@@ -254,7 +256,7 @@ func (w *WikipediaService) RenderMath(mathString string, imageCacheFolder string
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
-	mathApiUrl := config.Current.WikipediaMathRestApi
+	mathApiUrl := w.wikipediaMathRestApi
 
 	mathSvgFilename, err := w.getMathResource(mathString, mathCacheFolder)
 	if err != nil {
@@ -290,7 +292,7 @@ func (w *WikipediaService) RenderMath(mathString string, imageCacheFolder string
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func (w *WikipediaService) getMathResource(mathString string, cacheFolder string) (string, error) {
-	urlString := config.Current.WikipediaMathRestApi + "/check/tex"
+	urlString := w.wikipediaMathRestApi + "/check/tex"
 
 	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
 	// formulae as in the original article. This is not only nice for debugging but also might increase speed due to

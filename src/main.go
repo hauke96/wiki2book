@@ -248,6 +248,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleInstances,
 		config.Current.WikipediaImageHost,
+		config.Current.WikipediaMathRestApi,
 	)
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
@@ -335,6 +336,7 @@ func generateBookFromArticles(project *project.Project) {
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleInstances,
 		config.Current.WikipediaImageHost,
+		config.Current.WikipediaMathRestApi,
 	)
 
 	// Create a wait-group that is zero when all threads are done
@@ -410,7 +412,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := wikipediaService.DownloadArticle(config.Current.WikipediaInstance, config.Current.WikipediaHost, articleName, articleCache)
+		wikiArticleDto, err := wikipediaService.DownloadArticle(articleName, articleCache)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
