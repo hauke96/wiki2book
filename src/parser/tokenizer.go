@@ -84,7 +84,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	var err error
 
 	sigolo.Debugf("Tokenize article '%s' [1/4]: First cleanup", title)
-	content, err = clean(content)
+	content, err = t.clean(content)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	}
 
 	sigolo.Debugf("Tokenize article '%s' [3/4]: Second cleanup", title)
-	content, err = clean(content)
+	content, err = t.clean(content)
 	if err != nil {
 		return nil, err
 	}
