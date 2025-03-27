@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestNowiki(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := "Foo<nowiki>something</nowiki> bar"
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0) + " bar"
 
@@ -20,7 +21,7 @@ func TestNowiki(t *testing.T) {
 }
 
 func TestNowiki_endOfText(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := "Foo<nowiki>something</nowiki>"
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0)
 

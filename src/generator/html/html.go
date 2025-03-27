@@ -94,7 +94,7 @@ type HtmlGenerator struct {
 	MathCacheFolder    string
 	ArticleCacheFolder string
 	TokenMap           map[string]parser.Token
-	WikipediaService   *wikipedia.WikipediaService
+	WikipediaService   *wikipedia.DefaultWikipediaService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.

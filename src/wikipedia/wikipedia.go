@@ -45,8 +45,15 @@ type WikitextDto struct {
 	Content string `json:"wikitext"`
 }
 
+type WikipediaService interface {
+	DownloadArticle(title string, cacheFolder string) (*WikiArticleDto, error)
+	DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
+	EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error)
+	RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error)
+}
+
 // TODO create mock struct for tests
-type WikipediaService struct {
+type DefaultWikipediaService struct {
 	cacheFolder             string
 	wikipediaInstance       string
 	wikipediaHost           string
@@ -55,8 +62,8 @@ type WikipediaService struct {
 	wikipediaMathRestApi    string
 }
 
-func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string) *WikipediaService {
-	return &WikipediaService{
+func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string) *DefaultWikipediaService {
+	return &DefaultWikipediaService{
 		cacheFolder:             cacheFolder,
 		wikipediaInstance:       wikipediaInstance,
 		wikipediaHost:           wikipediaHost,
@@ -66,7 +73,7 @@ func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipedia
 	}
 }
 
-func (w *WikipediaService) DownloadArticle(title string, cacheFolder string) (*WikiArticleDto, error) {
+func (w *DefaultWikipediaService) DownloadArticle(title string, cacheFolder string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", w.wikipediaInstance, w.wikipediaHost, escapedTitle)
@@ -98,7 +105,7 @@ func (w *WikipediaService) DownloadArticle(title string, cacheFolder string) (*W
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func (w *WikipediaService) DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		sigolo.Infof("Download image %s", image)
@@ -111,7 +118,7 @@ func (w *WikipediaService) DownloadImages(images []string, outputFolder string, 
 	return nil
 }
 
-func (w *WikipediaService) downloadImageUsingAllSources(image string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	var downloadErr error
 
 	for i, instance := range w.wikipediaImageInstances {
@@ -187,7 +194,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *DefaultWikipediaService) downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
 	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, w.wikipediaInstance, w.wikipediaHost)
@@ -229,7 +236,7 @@ func (w *WikipediaService) downloadImage(imageNameWithPrefix string, outputFolde
 	return cachedFilePath, freshlyDownloaded, nil
 }
 
-func (w *WikipediaService) EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
+func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.wikipediaInstance, w.wikipediaHost, url.QueryEscape(template))
@@ -252,7 +259,7 @@ func (w *WikipediaService) EvaluateTemplate(template string, cacheFolder string,
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }
 
-func (w *WikipediaService) RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
+func (w *DefaultWikipediaService) RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
@@ -291,7 +298,7 @@ func (w *WikipediaService) RenderMath(mathString string, imageCacheFolder string
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
-func (w *WikipediaService) getMathResource(mathString string, cacheFolder string) (string, error) {
+func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder string) (string, error) {
 	urlString := w.wikipediaMathRestApi + "/check/tex"
 
 	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the

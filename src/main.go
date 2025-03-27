@@ -404,7 +404,7 @@ func generateBookFromArticles(project *project.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.WikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")

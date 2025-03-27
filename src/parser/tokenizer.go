@@ -49,7 +49,7 @@ type Tokenizer struct {
 	images           []string
 	imageFolder      string
 	templateFolder   string
-	wikipediaService *wikipedia.WikipediaService
+	wikipediaService wikipedia.WikipediaService
 
 	tokenizeContent func(tokenizer *Tokenizer, content string) string
 }
@@ -70,7 +70,8 @@ type StringToken struct {
 	String string
 }
 
-func NewTokenizer(imageFolder string, templateFolder string, wikipediaService *wikipedia.WikipediaService) Tokenizer {
+// func NewTokenizer(imageFolder string, templateFolder string, wikipediaService *wikipedia.DefaultWikipediaService) Tokenizer {
+func NewTokenizer(imageFolder string, templateFolder string, wikipediaService wikipedia.WikipediaService) Tokenizer {
 	return Tokenizer{
 		tokenMap:         map[string]Token{},
 		tokenCounter:     0,

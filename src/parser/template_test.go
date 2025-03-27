@@ -16,7 +16,7 @@ import (
 var templateFolder = test.TestCacheFolder
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
-	tokenizer := NewTokenizer("foo", templateFolder)
+	tokenizer := NewTokenizer("foo", templateFolder, &wikipedia.DummyWikipediaService{})
 	mockHttpClient := http.NewMockHttp("", 200)
 
 	templateFile, err := os.Create(templateFolder + "/c740539f1a69d048c70ac185407dd5244b56632d")
@@ -33,7 +33,7 @@ func TestEvaluateTemplate_existingFile(t *testing.T) {
 }
 
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
-	tokenizer := NewTokenizer("foo", templateFolder)
+	tokenizer := NewTokenizer("foo", templateFolder, &wikipedia.DummyWikipediaService{})
 	key := "7499ae1f1f8e45a9a95bdeb610ebf13cc4157667"
 	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
 	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
@@ -61,7 +61,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 
 	test.Prepare()
 
-	tokenizer := NewTokenizer("foo", templateFolder)
+	tokenizer := NewTokenizer("foo", templateFolder, &wikipedia.DummyWikipediaService{})
 	expectedTemplateContent := "<div>foo</div>"
 	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
@@ -82,7 +82,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
 	test.Prepare()
 
-	tokenizer := NewTokenizer("foo", templateFolder)
+	tokenizer := NewTokenizer("foo", templateFolder, &wikipedia.DummyWikipediaService{})
 	expectedTemplateContent := "<div>foo</div>"
 	jsonBytes, _ := json.Marshal(&wikipedia.WikiExpandedTemplateDto{ExpandTemplate: wikipedia.WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
