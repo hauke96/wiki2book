@@ -250,45 +250,49 @@ Other references:
 }
 
 func TestGetNameAttribute(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "some name=foo bar"
-	name := getNameAttribute(content)
+	name := tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=\"foo\" bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=foo"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=\"foo\""
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some <ref name=\"foo\"> bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some <ref name=foo> bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some noname=foo bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "", name)
 
 	content = "some noname=\"foo\" bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "", name)
 }
 
 func TestGetGroupOrDefaultAttribute(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "some group=foo bar"
-	group := getGroupOrDefault(content)
+	group := tokenizer.getGroupOrDefault(content)
 	test.AssertEqual(t, "foo", group)
 
 	content = "some name=foo bar"
-	group = getGroupOrDefault(content)
+	group = tokenizer.getGroupOrDefault(content)
 	test.AssertEqual(t, defaultReferenceGroup, group)
 }

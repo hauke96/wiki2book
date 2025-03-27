@@ -7,48 +7,50 @@ import (
 )
 
 func TestRemoveComments(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "foo bar\nblubb hi"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo bar\nblubb hi", content)
 
 	content = "foo"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo", content)
 
 	content = ""
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "", content)
 
 	content = "foo <!-- bar --> blubb"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo  blubb", content)
 
 	content = "foo <!-- <!-- bar --> --> blubb"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo  --> blubb", content)
 
 	content = "foo <!-- bar -->"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo ", content)
 
 	content = "<!-- bar --> foo"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, " foo", content)
 
 	content = "<!-- bar -->"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "", content)
 
 	content = "<!---->"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "", content)
 
 	content = "<!-- foo"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "<!-- foo", content)
 
 	content = "foo -->"
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, "foo -->", content)
 
 	content = `* foo
@@ -56,7 +58,7 @@ func TestRemoveComments(t *testing.T) {
 -->
 * bar
 `
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, `* foo
 * bar
 `, content)
@@ -65,7 +67,7 @@ func TestRemoveComments(t *testing.T) {
 
 bar
 `
-	content = removeComments(content)
+	content = tokenizer.removeComments(content)
 	test.AssertEqual(t, `* list
 
 bar
@@ -73,18 +75,24 @@ bar
 }
 
 func TestRemoveUnwantedLinks_unwantedCategories(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "[[Category:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
-	content = removeUnwantedInternalLinks(content)
+	content = tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEmptyString(t, content)
 }
 
 func TestRemoveUnwantedLinks_unwantedCategoriesStayWhenNormalLink(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "[[Category:foo]][[:Category:FOO:This will stay]]"
-	content = removeUnwantedInternalLinks(content)
+	content = tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, "[[:Category:FOO:This will stay]]", content)
 }
 
 func TestRemoveUnwantedLinks(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	config.Current.AllowedLinkPrefixes = []string{"arxiv"}
 
 	content := `[[de:foo]][[arxiv:whatever]][[DE:FOO]][[EN:FOO:BAR
@@ -98,37 +106,43 @@ before image [[iMAge:this-should:stay.jpg]] after image`
 beforeafter
 before[[internal]]after
 before image [[iMAge:this-should:stay.jpg]] after image`
-	actual := removeUnwantedInternalLinks(content)
+	actual := tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 
 	content = "foo[[de:pic.jpg|mini|With [[nested]]]]bar"
 	expected = "foobar"
-	actual = removeUnwantedInternalLinks(content)
+	actual = tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 }
 
 func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo[[file:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
-	cleanedContent := removeUnwantedInternalLinks(content)
+	cleanedContent := tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, content, cleanedContent)
 
 	content = "foo[[de:pic.jpg|mini|With [[nested]] link]]bar"
 	expected := "foobar"
-	actual := removeUnwantedInternalLinks(content)
+	actual := tokenizer.removeUnwantedInternalLinks(content)
 	test.AssertEqual(t, expected, actual)
 }
 
 func TestRemoveUnwantedTemplates(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	config.Current.IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
 
 	content := `{{siehe auch}}{{GRAPH:CHART
 |$ome+µeird-string}}{{let this template stay}}{{
 toc }}`
-	content = handleUnwantedAndTrailingTemplates(content)
+	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "{{let this template stay}}", content)
 }
 
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	config.Current.IgnoredTemplates = []string{"naviblock"}
 
 	content := `foo
@@ -136,35 +150,41 @@ func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
 |Navigationsleiste Monde
 |Navigationsleiste_Sonnensystem}}
 bar`
-	content = handleUnwantedAndTrailingTemplates(content)
+	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "foo\n\nbar", content)
 }
 
 func TestRemoveUnwantedHtml(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
-	content = removeUnwantedHtml(content)
+	content = tokenizer.removeUnwantedHtml(content)
 	test.AssertEqual(t, "Some noice HTML", content)
 }
 
 func TestMoveTrailingTemplatesDown(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	config.Current.TrailingTemplates = []string{"FOO", "bar"}
 
 	content := `{{siehe auch}}{{foo}}{{foo}}{{let this template stay}}{{bar}}`
-	content = handleUnwantedAndTrailingTemplates(content)
+	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "{{siehe auch}}{{let this template stay}}\n{{foo}}\n{{foo}}\n{{bar}}", content)
 }
 
 func TestClean(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	config.Current.IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
 	var err error
 
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"
-	content, err = clean(content)
+	content, err = tokenizer.clean(content)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<div foo>Some</div> wikitext", content)
 
 	content = " '''test'''"
-	content, err = clean(content)
+	content, err = tokenizer.clean(content)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, content, content)
 
@@ -181,7 +201,7 @@ func TestClean(t *testing.T) {
 |Navigationsleiste Monde
 }}
 foo`
-	content, err = clean(content)
+	content, err = tokenizer.clean(content)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `
 == Einzelnachweise ==
@@ -199,7 +219,7 @@ foo`, content)
 }}
 
 bar`
-	content, err = clean(content)
+	content, err = tokenizer.clean(content)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `
 == Foo ==
@@ -209,56 +229,39 @@ bar`
 bar`, content)
 }
 
-func TestGetTrimmedLine(t *testing.T) {
-	lines := make([]string, 10)
-	lines[0] = "abc"
-	lines[1] = " abc"
-	lines[2] = "abc "
-	lines[3] = "	abc "
-	lines[4] = "	abc\n "
-	lines[5] = " "
-	lines[6] = "	"
-	lines[7] = "\n"
-
-	test.AssertEqual(t, "abc", getTrimmedLine(lines, 0))
-	test.AssertEqual(t, "abc", getTrimmedLine(lines, 1))
-	test.AssertEqual(t, "abc", getTrimmedLine(lines, 2))
-	test.AssertEqual(t, "abc", getTrimmedLine(lines, 3))
-	test.AssertEqual(t, "abc", getTrimmedLine(lines, 4))
-	test.AssertEqual(t, "", getTrimmedLine(lines, 5))
-	test.AssertEqual(t, "", getTrimmedLine(lines, 6))
-	test.AssertEqual(t, "", getTrimmedLine(lines, 7))
-}
-
 func TestIsHeading(t *testing.T) {
-	test.AssertEqual(t, 1, headingDepth("= abc ="))
-	test.AssertEqual(t, 2, headingDepth("== abc =="))
-	test.AssertEqual(t, 3, headingDepth("=== abc ==="))
-	test.AssertEqual(t, 4, headingDepth("==== abc ===="))
-	test.AssertEqual(t, 5, headingDepth("===== abc ====="))
-	test.AssertEqual(t, 6, headingDepth("====== abc ======"))
-	test.AssertEqual(t, 7, headingDepth("======= abc ======="))
+	tokenizer := NewTokenizer("foo", "bar")
 
-	test.AssertEqual(t, 3, headingDepth("=== abc==="))
-	test.AssertEqual(t, 3, headingDepth("===abc ==="))
-	test.AssertEqual(t, 3, headingDepth("=== äöü ==="))
-	test.AssertEqual(t, 3, headingDepth("=== äöß ==="))
-	test.AssertEqual(t, 3, headingDepth("=== ä→ß ==="))
-	test.AssertEqual(t, semiHeadingDepth, headingDepth("'''test'''"))
+	test.AssertEqual(t, 1, tokenizer.headingDepth("= abc ="))
+	test.AssertEqual(t, 2, tokenizer.headingDepth("== abc =="))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("=== abc ==="))
+	test.AssertEqual(t, 4, tokenizer.headingDepth("==== abc ===="))
+	test.AssertEqual(t, 5, tokenizer.headingDepth("===== abc ====="))
+	test.AssertEqual(t, 6, tokenizer.headingDepth("====== abc ======"))
+	test.AssertEqual(t, 7, tokenizer.headingDepth("======= abc ======="))
 
-	test.AssertEqual(t, 0, headingDepth("== abc "))
-	test.AssertEqual(t, 0, headingDepth("abc =="))
-	test.AssertEqual(t, 0, headingDepth("=== abc =="))
-	test.AssertEqual(t, 0, headingDepth("== abc ==="))
-	test.AssertEqual(t, 0, headingDepth("abc"))
-	test.AssertEqual(t, 0, headingDepth(""))
-	test.AssertEqual(t, 0, headingDepth(" == abc =="))
-	test.AssertEqual(t, 0, headingDepth("== abc == "))
-	test.AssertEqual(t, 0, headingDepth(" '''test'''"))
-	test.AssertEqual(t, 0, headingDepth("'''test''' "))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("=== abc==="))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("===abc ==="))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("=== äöü ==="))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("=== äöß ==="))
+	test.AssertEqual(t, 3, tokenizer.headingDepth("=== ä→ß ==="))
+	test.AssertEqual(t, semiHeadingDepth, tokenizer.headingDepth("'''test'''"))
+
+	test.AssertEqual(t, 0, tokenizer.headingDepth("== abc "))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("abc =="))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("=== abc =="))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("== abc ==="))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("abc"))
+	test.AssertEqual(t, 0, tokenizer.headingDepth(""))
+	test.AssertEqual(t, 0, tokenizer.headingDepth(" == abc =="))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("== abc == "))
+	test.AssertEqual(t, 0, tokenizer.headingDepth(" '''test'''"))
+	test.AssertEqual(t, 0, tokenizer.headingDepth("'''test''' "))
 }
 
 func TestRemoveEmptyListEntries(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 *
 * 
@@ -267,10 +270,12 @@ func TestRemoveEmptyListEntries(t *testing.T) {
 blubb`
 	test.AssertEqual(t, `foo
 * bar
-blubb`, removeEmptyListEntries(content))
+blubb`, tokenizer.removeEmptyListEntries(content))
 }
 
 func TestRemoveEmptyListEntries_nestedLists(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 *
 *#
@@ -279,10 +284,12 @@ func TestRemoveEmptyListEntries_nestedLists(t *testing.T) {
 blubb`
 	test.AssertEqual(t, `foo
 *# bar
-blubb`, removeEmptyListEntries(content))
+blubb`, tokenizer.removeEmptyListEntries(content))
 }
 
 func TestRemoveEmptySection_normal(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 
 == heading ==
@@ -291,10 +298,12 @@ foo
 bar
 `
 
-	test.AssertEqual(t, content, removeEmptySections(content))
+	test.AssertEqual(t, content, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_withEmptySections(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 
 == heading ==
@@ -310,15 +319,19 @@ should remain
 should remain
 `
 
-	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+	test.AssertEqual(t, expectedResult, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_noSection(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := " '''test'''"
-	test.AssertEqual(t, content, removeEmptySections(content))
+	test.AssertEqual(t, content, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 == heading==
 
@@ -330,10 +343,12 @@ func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
 `
 	expectedResult := "foo"
 
-	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+	test.AssertEqual(t, expectedResult, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_superSectionNotRemoved(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 == heading ==
 
@@ -362,10 +377,12 @@ bar
 blubb
 `
 
-	test.AssertEqual(t, expected, removeEmptySections(content))
+	test.AssertEqual(t, expected, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_withSemiSection(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `foo
 
 = heading =
@@ -387,11 +404,13 @@ foo
 bar
 `
 
-	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+	test.AssertEqual(t, expectedResult, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_pureBoldTextShouldNotBeChanged(t *testing.T) {
+	tokenizer := NewTokenizer("foo", "bar")
+
 	content := `'''foo'''`
 	expectedResult := `'''foo'''`
-	test.AssertEqual(t, expectedResult, removeEmptySections(content))
+	test.AssertEqual(t, expectedResult, tokenizer.removeEmptySections(content))
 }
