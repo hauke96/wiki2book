@@ -19,10 +19,6 @@ import (
 	"wiki2book/util"
 )
 
-// TODO move them into WikipediaService
-var imageProcessingService = image.NewImageProcessingService()
-var httpClient = ownHttp.GetDefaultHttpClient()
-
 type WikiArticleDto struct {
 	Parse WikiParseArticleDto `json:"parse"`
 }
@@ -61,9 +57,11 @@ type DefaultWikipediaService struct {
 	wikipediaImageInstances []string
 	wikipediaImageHost      string
 	wikipediaMathRestApi    string
+	imageProcessingService  image.ImageProcessingService
+	httpClient              ownHttp.HttpClient
 }
 
-func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string) *DefaultWikipediaService {
+func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpClient) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
 		cacheFolder:             cacheFolder,
 		wikipediaInstance:       wikipediaInstance,
@@ -71,6 +69,8 @@ func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipedia
 		wikipediaImageInstances: wikipediaImageInstances,
 		wikipediaImageHost:      wikipediaImageHost,
 		wikipediaMathRestApi:    wikipediaMathRestApi,
+		imageProcessingService:  imageProcessingService,
+		httpClient:              httpClient,
 	}
 }
 
@@ -139,7 +139,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, out
 			continue
 		}
 
-		err := postProcessImage(outputFilepath, pdfToPng, svgToPng, freshlyDownloaded)
+		err := w.postProcessImage(outputFilepath, pdfToPng, svgToPng, freshlyDownloaded)
 		if err != nil {
 			return err
 		}
@@ -151,12 +151,12 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, out
 }
 
 // TODO into image package?
-func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
+func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
 	if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingPdf {
 		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 		pdfAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pdfAlreadyExists {
-			err := imageProcessingService.ConvertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
+			err := w.imageProcessingService.ConvertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
 			if err != nil {
 				return err
 			}
@@ -169,7 +169,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
 		pngAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pngAlreadyExists {
-			err := imageProcessingService.ConvertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
+			err := w.imageProcessingService.ConvertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
 			if err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, fresh
 
 	// If the file is new, rescale it using ImageMagick.
 	if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != util.FileEndingSvg {
-		err := imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
+		err := w.imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 		if err != nil {
 			return err
 		}
@@ -288,7 +288,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string, imageCacheFolder
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
 		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+util.FileEndingPng)
-		err = imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
+		err = w.imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}
@@ -321,7 +321,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder
 	}
 
 	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
-	response, err := httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	response, err := w.httpClient.Post(urlString, "application/x-www-form-urlencoded", strings.NewReader(requestData))
 
 	responseBodyText := ""
 	if response != nil {

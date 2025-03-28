@@ -14,72 +14,78 @@ import (
 )
 
 func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
-	err := postProcessImage("./foo.svg", false, false, true)
+	err := wikipediaService.postProcessImage("./foo.svg", false, false, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
-	err := postProcessImage("./foo.svg", false, true, true)
+	err := wikipediaService.postProcessImage("./foo.svg", false, true, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 1, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
-	err := postProcessImage("./foo.svg", true, false, true)
+	err := wikipediaService.postProcessImage("./foo.svg", true, false, true)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
-	err := postProcessImage("./foo.svg", false, false, false)
+	err := wikipediaService.postProcessImage("./foo.svg", false, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
 	_, err := os.OpenFile(svgFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
-	err = postProcessImage(svgFilepath, false, true, false)
+	err = wikipediaService.postProcessImage(svgFilepath, false, true, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 1, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
 	_, err := os.OpenFile(svgFilepath, os.O_RDONLY|os.O_CREATE, 0666)
@@ -89,33 +95,35 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 	_, err = os.OpenFile(pngFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
-	err = postProcessImage(svgFilepath, false, true, false)
+	err = wikipediaService.postProcessImage(svgFilepath, false, true, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
 	_, err := os.OpenFile(pdfFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
-	err = postProcessImage(pdfFilepath, true, false, false)
+	err = wikipediaService.postProcessImage(pdfFilepath, true, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 1, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *testing.T) {
-	serviceMock := image.NewMockImageProcessingService()
-	imageProcessingService = serviceMock
+	mockHttpClient := http.NewMockHttp("", 200)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
 	_, err := os.OpenFile(pdfFilepath, os.O_RDONLY|os.O_CREATE, 0666)
@@ -125,12 +133,12 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 	_, err = os.OpenFile(pngFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
-	err = postProcessImage(pdfFilepath, true, false, false)
+	err = wikipediaService.postProcessImage(pdfFilepath, true, false, false)
 
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
+	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
@@ -140,9 +148,8 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	expectedTemplateFileContent := string(jsonBytes)
 
 	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
-	httpClient = mockHttpClient
-
-	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "")
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
 	// Evaluate content
 	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", test.TestCacheFolder, key)

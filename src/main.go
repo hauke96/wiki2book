@@ -16,6 +16,8 @@ import (
 	"wiki2book/generator"
 	"wiki2book/generator/epub"
 	"wiki2book/generator/html"
+	"wiki2book/http"
+	"wiki2book/image"
 	"wiki2book/parser"
 	"wiki2book/project"
 	"wiki2book/util"
@@ -249,6 +251,8 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.WikipediaImageArticleInstances,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
+		image.NewImageProcessingService(),
+		http.GetDefaultHttpClient(),
 	)
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
@@ -337,6 +341,8 @@ func generateBookFromArticles(project *project.Project) {
 		config.Current.WikipediaImageArticleInstances,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
+		image.NewImageProcessingService(),
+		http.GetDefaultHttpClient(),
 	)
 
 	// Create a wait-group that is zero when all threads are done
