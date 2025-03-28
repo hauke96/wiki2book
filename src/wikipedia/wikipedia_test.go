@@ -1,10 +1,14 @@
 package wikipedia
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"testing"
+	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/test"
 )
@@ -127,4 +131,52 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 	test.AssertEqual(t, 0, serviceMock.ResizeAndCompressImageCalls)
 	test.AssertEqual(t, 0, serviceMock.ConvertPdfToPngCalls)
 	test.AssertEqual(t, 0, serviceMock.ConvertSvgToPngCalls)
+}
+
+func TestEvaluateTemplate_newTemplate(t *testing.T) {
+	key := "7499ae1f1f8e45a9a95bdeb610ebf13cc4157667"
+	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
+	jsonBytes, _ := json.Marshal(&WikiExpandedTemplateDto{ExpandTemplate: WikitextDto{Content: expectedTemplateContent}})
+	expectedTemplateFileContent := string(jsonBytes)
+
+	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
+	httpClient = mockHttpClient
+
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "")
+
+	// Evaluate content
+	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", test.TestCacheFolder, key)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
+	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
+	test.AssertEqual(t, expectedTemplateContent, content)
+	test.AssertTrue(t, hasLocalTemplate(key, test.TestCacheFolder))
+
+	// Read template content from disk
+	expectedContent, err := getLocalTemplate(key, test.TestCacheFolder)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, expectedTemplateFileContent, expectedContent)
+}
+
+func hasLocalTemplate(key string, templateFolder string) bool {
+	templateFilepath := filepath.Join(templateFolder, key)
+
+	file, err := os.Open(templateFilepath)
+	if file == nil || errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	defer file.Close()
+
+	return true
+}
+
+func getLocalTemplate(key string, templateFolder string) (string, error) {
+	templateFilepath := filepath.Join(templateFolder, key)
+
+	content, err := os.ReadFile(templateFilepath)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Error reading template %s from %s", key, templateFilepath))
+	}
+
+	return string(content), nil
 }

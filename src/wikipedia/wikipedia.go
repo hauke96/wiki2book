@@ -19,6 +19,7 @@ import (
 	"wiki2book/util"
 )
 
+// TODO move them into WikipediaService
 var imageProcessingService = image.NewImageProcessingService()
 var httpClient = ownHttp.GetDefaultHttpClient()
 
