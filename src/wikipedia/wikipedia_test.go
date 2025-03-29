@@ -1,12 +1,16 @@
 package wikipedia
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
+	"io"
+	netHttp "net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"wiki2book/http"
 	"wiki2book/image"
@@ -14,7 +18,12 @@ import (
 )
 
 func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -27,7 +36,12 @@ func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
 }
 
 func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -40,7 +54,12 @@ func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
 }
 
 func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -53,7 +72,12 @@ func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
 }
 
 func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -66,7 +90,12 @@ func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -83,7 +112,12 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -104,7 +138,12 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -121,7 +160,12 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttp("", 200)
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", true, nil
+		},
+		nil,
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
@@ -141,21 +185,63 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 }
 
+func TestDownladImage(t *testing.T) {
+	cachedArticleFilepath := filepath.Join(test.TestCacheFolder, "Foo.jpg.json")
+	err := os.WriteFile(cachedArticleFilepath, []byte(`{"parse":{"title":"File:Foo.jpg","pageid":80546,"redirects":[],"wikitext":{"*":""}}}`), 0600)
+	sigolo.FatalCheck(err)
+
+	cachedImageFilepath := filepath.Join(test.TestCacheFolder, "File:foo.jpg")
+	err = os.WriteFile(cachedImageFilepath, []byte(`foobar`), 0600)
+	sigolo.FatalCheck(err)
+
+	mockHttpClient := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			if strings.Contains(url, "page=") {
+				return cachedArticleFilepath, true, nil
+			}
+			return cachedImageFilepath, true, nil
+		},
+		nil,
+	)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
+
+	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("File:foo.jpg", test.TestCacheFolder, test.TestCacheFolder, false)
+
+	test.AssertNil(t, err)
+	test.AssertTrue(t, freshlyDownloaded)
+	test.AssertEqual(t, cachedImageFilepath, downloadImage)
+}
+
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	key := "7499ae1f1f8e45a9a95bdeb610ebf13cc4157667"
 	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
 	jsonBytes, _ := json.Marshal(&WikiExpandedTemplateDto{ExpandTemplate: WikitextDto{Content: expectedTemplateContent}})
 	expectedTemplateFileContent := string(jsonBytes)
 
-	mockHttpClient := http.NewMockHttp(expectedTemplateFileContent, 200)
+	cachedFilepath := filepath.Join(test.TestCacheFolder, key)
+	err := os.WriteFile(cachedFilepath, jsonBytes, 0666)
+	sigolo.FatalCheck(err)
+
+	mockHttpService := http.NewMockHttpService(
+		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return cachedFilepath, true, nil
+		},
+		func(url, contentType string) (resp *netHttp.Response, err error) {
+			return &netHttp.Response{
+				Body:       io.NopCloser(bytes.NewReader(jsonBytes)),
+				StatusCode: netHttp.StatusOK,
+			}, nil
+		},
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpService)
 
 	// Evaluate content
 	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", test.TestCacheFolder, key)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
-	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
+	test.AssertEqual(t, 1, mockHttpService.DownloadAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
 	test.AssertEqual(t, expectedTemplateContent, content)
 	test.AssertTrue(t, hasLocalTemplate(key, test.TestCacheFolder))
 

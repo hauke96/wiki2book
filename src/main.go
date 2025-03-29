@@ -252,7 +252,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),
-		http.GetDefaultHttpClient(),
+		http.NewDefaultHttpService(),
 	)
 
 	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
@@ -342,7 +342,7 @@ func generateBookFromArticles(project *project.Project) {
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),
-		http.GetDefaultHttpClient(),
+		http.NewDefaultHttpService(),
 	)
 
 	// Create a wait-group that is zero when all threads are done
