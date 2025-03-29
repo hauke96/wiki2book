@@ -15,6 +15,7 @@ import (
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/test"
+	"wiki2book/util"
 )
 
 func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
@@ -249,6 +250,64 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	expectedContent, err := getLocalTemplate(key, test.TestCacheFolder)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedTemplateFileContent, expectedContent)
+}
+
+func TestGetMathResource_withoutCachedFile(t *testing.T) {
+	mathString := "x = 42"
+	filename := util.Hash(mathString)
+
+	header := netHttp.Header{}
+	header.Set("x-resource-location", "some-svg-content")
+
+	mockHttpService := http.NewMockHttpService(
+		nil,
+		func(url, contentType string) (resp *netHttp.Response, err error) {
+			return &netHttp.Response{
+				Body:       io.NopCloser(bytes.NewReader([]byte(mathString))),
+				StatusCode: netHttp.StatusOK,
+				Header:     header,
+			}, nil
+		},
+	)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpService)
+
+	locationHeader, err := wikipediaService.getMathResource(mathString, test.TestCacheFolder)
+
+	test.AssertNil(t, err)
+	test.AssertTrue(t, hasLocalTemplate(filename, test.TestCacheFolder))
+
+	expectedContent, err := getLocalTemplate(filename, test.TestCacheFolder)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, expectedContent, locationHeader)
+
+	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
+	test.AssertEqual(t, 1, mockHttpService.PostFormEncodedCounter)
+}
+
+func TestGetMathResource_withCachedFile(t *testing.T) {
+	mathString := "x = 42"
+	filename := util.Hash(mathString)
+
+	err := os.WriteFile(filepath.Join(test.TestCacheFolder, filename), []byte(mathString), 0666)
+	sigolo.FatalCheck(err)
+	test.AssertTrue(t, hasLocalTemplate(filename, test.TestCacheFolder))
+
+	mockHttpService := http.NewMockHttpService(nil, nil)
+	imageProcessingServiceMock := image.NewMockImageProcessingService()
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpService)
+
+	locationHeader, err := wikipediaService.getMathResource(mathString, test.TestCacheFolder)
+
+	test.AssertNil(t, err)
+	test.AssertTrue(t, hasLocalTemplate(filename, test.TestCacheFolder))
+
+	expectedContent, err := getLocalTemplate(filename, test.TestCacheFolder)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, expectedContent, locationHeader)
+
+	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
 }
 
 func hasLocalTemplate(key string, templateFolder string) bool {

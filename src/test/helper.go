@@ -175,7 +175,11 @@ func getLinePrefix[K comparable, V comparable](otherMap map[K]V, key K, expected
 
 func AssertNil(t *testing.T, value any) {
 	if value != nil && !reflect.ValueOf(value).IsNil() {
-		sigolo.Errorb(1, "Expect to be 'nil' but was: %#v", value)
+		if _, ok := value.(error); ok {
+			sigolo.Errorb(1, "Expect error to be 'nil' but was: %+v", value)
+		} else {
+			sigolo.Errorb(1, "Expect to be 'nil' but was: %#v", value)
+		}
 		t.Fail()
 	}
 }
