@@ -1,8 +1,10 @@
 package parser
 
 import (
-	"github.com/hauke96/sigolo/v2"
 	"strings"
+	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 type RefDefinitionToken struct {
@@ -65,6 +67,10 @@ func (t *Tokenizer) parseReferences(content string) string {
 		}
 
 		startEndIndex := findCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
+		if startEndIndex == -1 {
+			// XML for <ref not closed -> broken wikitext
+			sigolo.Errorf("XML element for reference start '%s' not closed (i.e. missing '%s'). Text around this location: ...%s...", refDefStart, xmlClosing, util.GetTextAround(content, i, 50))
+		}
 
 		if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
 			// Tag like "</references>" or "<references />" found
@@ -112,6 +118,10 @@ func (t *Tokenizer) parseReferences(content string) string {
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
 				refEndIndex := findCorrespondingCloseToken(content, startEndIndex, refDefStart, refDefLongEnd)
+				if refEndIndex == -1 {
+					// No end token found -> probably unsupported wikitext syntax (like nested refs)
+					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))
+				}
 				refNumberCounterForCurrentGroup, content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, refNumberCounterForCurrentGroup, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
 			}
 
