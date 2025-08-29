@@ -36,6 +36,8 @@ standalone.mediawiki
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Profiling stuff
+# Misc
 *.prof
 *.pdf
+*.dot
+*.png
