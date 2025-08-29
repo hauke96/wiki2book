@@ -126,7 +126,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, out
 		var outputFilepath string
 		var freshlyDownloaded bool
 		isLastSource := i == len(w.wikipediaImageInstances)-1
-		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(image, outputFolder, articleFolder, svgSizeToViewbox)
+		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(instance, image, outputFolder, articleFolder, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {
 				// We tried every single image source and couldn't find the image.
@@ -194,10 +194,10 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *DefaultWikipediaService) downloadImage(imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *DefaultWikipediaService) downloadImage(imageInstance string, imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
-	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, w.wikipediaInstance, w.wikipediaHost)
+	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, imageInstance, w.wikipediaHost)
 	imageArticle, err := w.DownloadArticle(imageName, articleFolder)
 	if err != nil {
 		return "", true, err
@@ -214,12 +214,12 @@ func (w *DefaultWikipediaService) downloadImage(imageNameWithPrefix string, outp
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, w.wikipediaInstance)
+	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, imageInstance)
 	sigolo.Tracef("  Original name: %s", originalImageName)
 	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
-	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, w.wikipediaInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, imageInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
 	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, outputFolder, originalImageName)
 	if err != nil {

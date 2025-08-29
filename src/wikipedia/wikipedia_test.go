@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"io"
 	netHttp "net/http"
 	"os"
@@ -16,6 +14,9 @@ import (
 	"wiki2book/image"
 	"wiki2book/test"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
@@ -207,7 +208,7 @@ func TestDownladImage(t *testing.T) {
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
 
-	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("File:foo.jpg", test.TestCacheFolder, test.TestCacheFolder, false)
+	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("de", "File:foo.jpg", test.TestCacheFolder, test.TestCacheFolder, false)
 
 	test.AssertNil(t, err)
 	test.AssertTrue(t, freshlyDownloaded)

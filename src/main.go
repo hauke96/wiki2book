@@ -95,7 +95,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaHost, "wikipedia-host", cliConfig.WikipediaHost, "The domain of the Wikipedia instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaImageHost, "wikipedia-image-host", cliConfig.WikipediaImageHost, "The domain of the Wikipedia image instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaMathRestApi, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi, "The URL to the math API of wikipedia.")
-	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageArticleInstances, "wikipedia-image-article-instances", cliConfig.WikipediaImageArticleInstances, "Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for.")
+	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageInstances, "wikipedia-image-instances", cliConfig.WikipediaImageInstances, "Wikipedia instances (subdomains) used to search for images on Wikimedia.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FilePrefixe, "file-prefixe", cliConfig.FilePrefixe, "A list of prefixes to detect files, e.g. in 'File:picture.jpg' the substring 'File' is the image prefix.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.AllowedLinkPrefixes, "allowed-link-prefixe", cliConfig.AllowedLinkPrefixes, "A list of prefixes that are considered links and are therefore not removed.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.CategoryPrefixes, "category-prefixes", cliConfig.CategoryPrefixes, "A list of category prefixes, which are technically internals links.")
@@ -245,7 +245,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
-		config.Current.WikipediaImageArticleInstances,
+		config.Current.WikipediaImageInstances,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),
@@ -335,7 +335,7 @@ func generateBookFromArticles(project *config.Project) {
 		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
-		config.Current.WikipediaImageArticleInstances,
+		config.Current.WikipediaImageInstances,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),

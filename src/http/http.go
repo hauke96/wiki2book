@@ -16,7 +16,6 @@ import (
 )
 
 type HttpClient interface {
-	Get(url string) (resp *http.Response, err error) // TODO remove (mocks an tests might need to be fixed)
 	Do(request *http.Request) (resp *http.Response, err error)
 	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
