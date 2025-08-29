@@ -35,7 +35,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		WikipediaHost:                  "wikipedia-host",
 		WikipediaImageHost:             "wikipedia-image-host",
 		WikipediaMathRestApi:           "wikipedia-math-rest-api",
-		WikipediaImageArticleInstances: []string{"wikipedia-image-article-instances"},
+		WikipediaImageInstances:        []string{"wikipedia-image-instances"},
 		FilePrefixe:                    []string{"file-prefixe"},
 		AllowedLinkPrefixes:            []string{"allowed-link-prefixe"},
 		CategoryPrefixes:               []string{"category-prefixes"},

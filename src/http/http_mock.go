@@ -22,8 +22,12 @@ func NewMockHttpClient(response string, statusCode int) *mockHttpClient {
 	}
 }
 
-func (h *mockHttpClient) Get(url string) (resp *http.Response, err error) {
-	h.GetCalls++
+func (h *mockHttpClient) Do(request *http.Request) (resp *http.Response, err error) {
+	if request.Method == "GET" {
+		h.GetCalls++
+	} else if request.Method == "POST" {
+		h.PostCalls++
+	}
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
 		StatusCode: h.StatusCode,

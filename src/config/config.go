@@ -63,7 +63,7 @@ func NewDefaultConfig() *Configuration {
 		WikipediaHost:                  "wikipedia.org",
 		WikipediaImageHost:             "upload.wikimedia.org",
 		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
-		WikipediaImageArticleInstances: []string{"commons", "en"},
+		WikipediaImageInstances:        []string{"commons", "en"},
 		FilePrefixe:                    []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
@@ -359,13 +359,14 @@ type Configuration struct {
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
-		Wikipedia instances (subdomains) of the wikipedia image host where images should be searched for. Each image has its own article, which is fetched from
-		these Wikipedia instances (in the given order).
+		Wikipedia instances (subdomains) used to search for images on Wikimedia. The URL to the image contains the instance
+		of Wikipedia (i.e. "<host>/wikipedia/en/..." wich "en" being the Wikipedia instance). The retrieving images,
+		all these given values are tried.
 
 		Default: [ "commons", "en" ]
-		JSON example: "wikipedia-image-article-instances": [ "commons", "de" ]
+		JSON example: "wikipedia-image-instances": [ "commons", "de" ]
 	*/
-	WikipediaImageArticleInstances []string `json:"wikipedia-image-article-instances"`
+	WikipediaImageInstances []string `json:"wikipedia-image-instances"`
 
 	/*
 		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
@@ -546,9 +547,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
 		Current.WikipediaMathRestApi = c.WikipediaMathRestApi
 	}
-	if !util.EqualsInAnyOrder(c.WikipediaImageArticleInstances, defaultConfig.WikipediaImageArticleInstances) {
-		sigolo.Tracef("Override WikipediaImageArticleInstances with %v", c.WikipediaImageArticleInstances)
-		Current.WikipediaImageArticleInstances = c.WikipediaImageArticleInstances
+	if !util.EqualsInAnyOrder(c.WikipediaImageInstances, defaultConfig.WikipediaImageInstances) {
+		sigolo.Tracef("Override WikipediaImageInstances with %v", c.WikipediaImageInstances)
+		Current.WikipediaImageInstances = c.WikipediaImageInstances
 	}
 	if !util.EqualsInAnyOrder(c.FilePrefixe, defaultConfig.FilePrefixe) {
 		sigolo.Tracef("Override FilePrefixe with %v", c.FilePrefixe)
