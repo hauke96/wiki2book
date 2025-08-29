@@ -37,9 +37,9 @@ const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %dpx;`
 const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %dpx;`
 const IMAGE_SIZE_WIDTH_AUTO_TEMPLATE = `width: auto;`
 const IMAGE_SIZE_HEIGHT_AUTO_TEMPLATE = `height: auto;`
-const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
+const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
-<img alt="image" src="./%s" %s>
+<img alt="image" src="%s" %s>
 <div class="caption">
 %s
 </div>
@@ -129,7 +129,7 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 	case parser.HeadingToken:
 		html, err = g.expandHeadings(t)
 	case parser.InlineImageToken:
-		html = g.expandInlineImage(t)
+		html, err = g.expandInlineImage(t)
 	case parser.ImageToken:
 		html, err = g.expandImage(t)
 	case parser.ExternalLinkToken:
@@ -218,17 +218,21 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth))
 }
 
-func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) string {
+func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename := token.Filename
+	filename, err := util.ToAbsolutePathWithBasedir(config.Current.CacheDir, token.Filename)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Error getting relative path to image file %s", token.Filename))
+	}
+
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
 		filename = util.GetPngPathForSvg(filename)
 	}
 
-	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate)
+	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate), nil
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
@@ -239,7 +243,11 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename := token.Filename
+	filename, err := util.ToAbsolutePathWithBasedir(config.Current.CacheDir, token.Filename)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("Error getting relative path to image file %s", token.Filename))
+	}
+
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
@@ -467,6 +475,8 @@ func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {
 
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
+	outputFolder = filepath.Join(config.Current.CacheDir, outputFolder)
+
 	// Create the output folder
 	sigolo.Debugf("Ensure output folder '%s'", outputFolder)
 	err := os.Mkdir(outputFolder, os.ModePerm)
