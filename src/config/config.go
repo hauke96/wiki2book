@@ -3,14 +3,15 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"wiki2book/generator"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -50,6 +51,8 @@ func NewDefaultConfig() *Configuration {
 		OutputType:                     OutputTypeEpub2,
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
+		CacheMaxSize:                   5,         // TODO find suitable default value
+		CacheEvictionStrategy:          "largest", // TODO find suitable default value
 		StyleFile:                      getDefaultStyleFile(),
 		ConvertPdfToPng:                false,
 		IgnoredTemplates:               []string{},
@@ -145,6 +148,26 @@ type Configuration struct {
 		JSON example: "cache-dir": "/path/to/cache"
 	*/
 	CacheDir string `json:"cache-dir"`
+
+	/*
+		The maximum size of the file cache in MB.
+
+		Default: 1000
+	*/
+	CacheMaxSize float64 `json:"cache-max-size"`
+
+	// TODO Adjust documentation after implementation is done
+	// TODO Add CLI Args for this
+	// TODO Update markdown documentation
+	/*
+
+		Default:
+		Allowed values:
+			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
+			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.
+			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
+	*/
+	CacheEvictionStrategy string `json:"worker-threads"`
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
@@ -551,6 +574,7 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
 		Current.WorkerThreads = c.WorkerThreads
 	}
+	// TODO caching values
 
 	Current.MakePathsAbsoluteToWorkingDir()
 
@@ -671,6 +695,8 @@ func (c *Configuration) AssertValidity() {
 	if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
 		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
+
+	// TODO caching values
 }
 
 func (c *Configuration) Print() {

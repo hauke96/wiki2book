@@ -51,7 +51,7 @@ type WikipediaService interface {
 }
 
 type DefaultWikipediaService struct {
-	cacheFolder             string
+	cacheFolder             string // TODO can be removed?
 	wikipediaInstance       string
 	wikipediaHost           string
 	wikipediaImageInstances []string
@@ -126,6 +126,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, out
 		var outputFilepath string
 		var freshlyDownloaded bool
 		isLastSource := i == len(w.wikipediaImageInstances)-1
+		// TODO Bug: The image instance is not used to download the image article, which should be the case.
 		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(image, outputFolder, articleFolder, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {

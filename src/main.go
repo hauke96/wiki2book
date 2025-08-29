@@ -24,9 +24,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION = "v0.4.0"
-const RFC1123Millis = "Mon, 02 Jan 2006 15:04:05.999 MST"
-
 var cliConfig = config.NewDefaultConfig()
 
 func main() {
@@ -53,7 +50,7 @@ func initCli() *cobra.Command {
 		Long:  "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
 	}
 
-	rootCmd.Version = VERSION
+	rootCmd.Version = util.VERSION
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cliOutputFile = initialize(cliLogging, cliConfig, cliConfigFile, cliDiagnosticsProfiling, cliDiagnosticsTrace, cliOutputFile)
@@ -61,8 +58,8 @@ func initCli() *cobra.Command {
 	}
 	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
 		end := time.Now()
-		sigolo.Debugf("Start   : %s", start.Format(RFC1123Millis))
-		sigolo.Debugf("End     : %s", end.Format(RFC1123Millis))
+		sigolo.Debugf("Start   : %s", start.Format(util.RFC1123Millis))
+		sigolo.Debugf("End     : %s", end.Format(util.RFC1123Millis))
 		sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
 	}
 
@@ -476,6 +473,8 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 }
 
 func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string, string, string, string, string) {
+	// TODO This method is plain weird. Refactor this. The cache folder names are basically constants and there should be no need to be within the cache folder, since paths should be absolute (aren't they already?).
+
 	imageCache := "images"
 	mathCache := "math"
 	templateCache := "templates"

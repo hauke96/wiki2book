@@ -1,15 +1,16 @@
 package util
 
 import (
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 const (
-	TempDirName = ".tmp/"
+	TempDirName = ".tmp" // TODO Still working? There was a slash here before.
 
 	FileEndingSvg = ".svg"
 	FileEndingPng = ".png"

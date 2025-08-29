@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {
+func CacheToFile_old(cacheFolder string, filename string, reader io.ReadCloser) error {
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
