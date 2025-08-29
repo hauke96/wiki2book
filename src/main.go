@@ -1,9 +1,6 @@
 package main
 
 import (
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,9 +16,12 @@ import (
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/parser"
-	"wiki2book/project"
 	"wiki2book/util"
 	"wiki2book/wikipedia"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 const VERSION = "v0.4.0"
@@ -210,7 +210,7 @@ func generateProjectEbook(projectFile string, outputFile string) {
 		sigolo.FatalCheck(err)
 	}
 
-	proj, err := project.LoadProject(projectFile)
+	proj, err := config.LoadProject(projectFile)
 	sigolo.FatalCheck(err)
 
 	if outputFile != "" {
@@ -277,7 +277,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	}
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	metadata := project.Metadata{
+	metadata := config.Metadata{
 		Title: title,
 	}
 
@@ -309,8 +309,8 @@ func generateArticleEbook(articleName string, outputFile string) {
 	var articles []string
 	articles = append(articles, articleName)
 
-	proj := &project.Project{}
-	proj.Metadata = project.Metadata{}
+	proj := &config.Project{}
+	proj.Metadata = config.Metadata{}
 	proj.OutputFile = outputFile
 	proj.Articles = articles
 
@@ -319,7 +319,7 @@ func generateArticleEbook(articleName string, outputFile string) {
 	generateBookFromArticles(proj)
 }
 
-func generateBookFromArticles(project *project.Project) {
+func generateBookFromArticles(project *config.Project) {
 	articles := project.Articles
 	metadata := project.Metadata
 	outputFile := project.OutputFile
@@ -448,7 +448,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	return htmlFilePath
 }
 
-func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
+func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
 	var err error
 
 	switch outputDriver {

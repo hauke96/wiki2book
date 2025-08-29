@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,6 +15,9 @@ import (
 	ownHttp "wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 type WikiArticleDto struct {
@@ -49,7 +50,6 @@ type WikipediaService interface {
 	RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error)
 }
 
-// TODO create mock struct for tests
 type DefaultWikipediaService struct {
 	cacheFolder             string
 	wikipediaInstance       string
