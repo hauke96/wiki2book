@@ -4,10 +4,11 @@ import (
 	"testing"
 	"wiki2book/config"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestRemoveComments(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := "foo bar\nblubb hi"
 	content = tokenizer.removeComments(content)
@@ -75,7 +76,7 @@ bar
 }
 
 func TestRemoveUnwantedLinks_unwantedCategories(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := "[[Category:foo]][[Category:FOO:BAR\n$ome+µeird-string]]"
 	content = tokenizer.removeUnwantedInternalLinks(content)
@@ -83,7 +84,7 @@ func TestRemoveUnwantedLinks_unwantedCategories(t *testing.T) {
 }
 
 func TestRemoveUnwantedLinks_unwantedCategoriesStayWhenNormalLink(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := "[[Category:foo]][[:Category:FOO:This will stay]]"
 	content = tokenizer.removeUnwantedInternalLinks(content)
@@ -91,7 +92,7 @@ func TestRemoveUnwantedLinks_unwantedCategoriesStayWhenNormalLink(t *testing.T) 
 }
 
 func TestRemoveUnwantedLinks(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	config.Current.AllowedLinkPrefixes = []string{"arxiv"}
 
@@ -116,7 +117,7 @@ before image [[iMAge:this-should:stay.jpg]] after image`
 }
 
 func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo[[file:pic.jpg|mini|Nested [[link|l]]-thingy]]bar`
 	cleanedContent := tokenizer.removeUnwantedInternalLinks(content)
@@ -129,7 +130,7 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 }
 
 func TestRemoveUnwantedTemplates(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	config.Current.IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
 
@@ -141,7 +142,7 @@ toc }}`
 }
 
 func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	config.Current.IgnoredTemplates = []string{"naviblock"}
 
@@ -155,7 +156,7 @@ bar`
 }
 
 func TestRemoveUnwantedHtml(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
 	content = tokenizer.removeUnwantedHtml(content)
@@ -163,7 +164,7 @@ func TestRemoveUnwantedHtml(t *testing.T) {
 }
 
 func TestMoveTrailingTemplatesDown(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	config.Current.TrailingTemplates = []string{"FOO", "bar"}
 
@@ -173,7 +174,7 @@ func TestMoveTrailingTemplatesDown(t *testing.T) {
 }
 
 func TestClean(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	config.Current.IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
 	var err error
@@ -230,7 +231,7 @@ bar`, content)
 }
 
 func TestIsHeading(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	test.AssertEqual(t, 1, tokenizer.headingDepth("= abc ="))
 	test.AssertEqual(t, 2, tokenizer.headingDepth("== abc =="))
@@ -260,7 +261,7 @@ func TestIsHeading(t *testing.T) {
 }
 
 func TestRemoveEmptyListEntries(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 *
@@ -274,7 +275,7 @@ blubb`, tokenizer.removeEmptyListEntries(content))
 }
 
 func TestRemoveEmptyListEntries_nestedLists(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 *
@@ -288,7 +289,7 @@ blubb`, tokenizer.removeEmptyListEntries(content))
 }
 
 func TestRemoveEmptySection_normal(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 
@@ -302,7 +303,7 @@ bar
 }
 
 func TestRemoveEmptySection_withEmptySections(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 
@@ -323,14 +324,14 @@ should remain
 }
 
 func TestRemoveEmptySection_noSection(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := " '''test'''"
 	test.AssertEqual(t, content, tokenizer.removeEmptySections(content))
 }
 
 func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 == heading==
@@ -347,7 +348,7 @@ func TestRemoveEmptySection_linesWithSpaces(t *testing.T) {
 }
 
 func TestRemoveEmptySection_superSectionNotRemoved(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 == heading ==
@@ -381,7 +382,7 @@ blubb
 }
 
 func TestRemoveEmptySection_withSemiSection(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 
@@ -408,7 +409,7 @@ bar
 }
 
 func TestRemoveEmptySection_pureBoldTextShouldNotBeChanged(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `'''foo'''`
 	expectedResult := `'''foo'''`

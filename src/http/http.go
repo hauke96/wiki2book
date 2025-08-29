@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"wiki2book/cache"
 	"wiki2book/util"
@@ -18,16 +19,25 @@ type HttpClient interface {
 	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
-func GetDefaultHttpClient() HttpClient {
-	return http.DefaultClient
+type HttpService interface {
+	PostFormEncoded(url, contentType string) (resp *http.Response, err error)
+	DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error)
 }
 
-var httpClient = GetDefaultHttpClient()
+type DefaultHttpService struct {
+	httpClient HttpClient
+}
+
+func NewDefaultHttpService() *DefaultHttpService {
+	return &DefaultHttpService{
+		httpClient: &http.Client{},
+	}
+}
 
 // DownloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
 // cache) or an error. If the file already exists, no HTTP request is made.
-func DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
+func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
 	// If file exists -> ignore
 	outputFilepath := filepath.Join(cacheFolder, filename)
 	_, err := os.Stat(outputFilepath)
@@ -38,7 +48,7 @@ func DownloadAndCache(url string, cacheFolder string, filename string) (string, 
 	sigolo.Debugf("File %s not cached -> download fresh one", outputFilepath)
 
 	// Get the data
-	responseBodyReader, err := download(url, filename)
+	responseBodyReader, err := d.download(url, filename)
 	if responseBodyReader != nil {
 		defer responseBodyReader.Close()
 		if err != nil {
@@ -58,15 +68,19 @@ func DownloadAndCache(url string, cacheFolder string, filename string) (string, 
 	return outputFilepath, true, nil
 }
 
+func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *http.Response, err error) {
+	return d.httpClient.Post(url, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+}
+
 // download returns the open response body of the GET request for the given URL. The article name is just there for
 // logging purposes.
-func download(url string, filename string) (io.ReadCloser, error) {
+func (d *DefaultHttpService) download(url string, filename string) (io.ReadCloser, error) {
 	var response *http.Response
 	var err error
 
 	for {
 		sigolo.Debugf("Make GET request to %s", url)
-		response, err = httpClient.Get(url)
+		response, err = d.httpClient.Get(url)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}

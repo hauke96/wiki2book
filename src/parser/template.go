@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 	"strings"
 	"wiki2book/util"
-	"wiki2book/wikipedia"
 )
 
 const templatePlaceholderPrefix = "$$TEMPLATE_PLACEHOLDER_"
@@ -83,7 +82,7 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 			key := util.Hash(templateText)
 
 			sigolo.Tracef("Evaluate template: %s", util.TruncString(templateText))
-			evaluatedTemplate, err := wikipedia.EvaluateTemplate(templateText, t.templateFolder, key)
+			evaluatedTemplate, err := t.wikipediaService.EvaluateTemplate(templateText, t.templateFolder, key)
 			if err != nil {
 				return "", err
 			}

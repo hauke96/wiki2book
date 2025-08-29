@@ -10,11 +10,14 @@ func TestDownloadAndCache(t *testing.T) {
 	key := "foobar"
 	content := "some interesting stuff"
 
-	mockHttpClient := NewMockHttp(content, http.StatusOK)
+	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+
+	httpService := NewDefaultHttpService()
+	httpService.httpClient = mockHttpClient
 
 	// First request -> cache file should ve created
 
-	cachedFilePath, freshlyDownloaded, err := DownloadAndCache("http://foobar", apiCacheFolder, key)
+	cachedFilePath, freshlyDownloaded, err := httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
@@ -24,7 +27,7 @@ func TestDownloadAndCache(t *testing.T) {
 
 	// Second request -> nothing should change
 
-	cachedFilePath, freshlyDownloaded, err = DownloadAndCache("http://foobar", apiCacheFolder, key)
+	cachedFilePath, freshlyDownloaded, err = httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)

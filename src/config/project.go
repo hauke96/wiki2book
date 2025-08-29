@@ -1,17 +1,17 @@
-package project
+package config
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"os"
 	"strings"
-	"wiki2book/config"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 type Project struct {
-	config.Configuration
+	Configuration
 	Metadata   Metadata `json:"metadata"`
 	OutputFile string   `json:"output-file"`
 	Articles   []string `json:"articles"`
@@ -40,7 +40,7 @@ func LoadProject(file string) (*Project, error) {
 	}
 
 	project := &Project{}
-	project.Configuration = *config.NewDefaultConfig()
+	project.Configuration = *NewDefaultConfig()
 	err = json.Unmarshal(projectString, project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing project file content")

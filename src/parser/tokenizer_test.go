@@ -3,10 +3,11 @@ package parser
 import (
 	"testing"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestNewTokenizer(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	test.AssertEqual(t, "foo", tokenizer.imageFolder)
 	test.AssertEqual(t, "bar", tokenizer.templateFolder)
 	test.AssertEqual(t, 0, tokenizer.tokenCounter)
@@ -14,7 +15,7 @@ func TestNewTokenizer(t *testing.T) {
 }
 
 func TestSetToken(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 
 	tokenizeContentCallArgument := ""
@@ -29,7 +30,7 @@ func TestSetToken(t *testing.T) {
 }
 
 func TestSetRawToken(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 
 	tokenizer.tokenizeContent = func(tokenizer *Tokenizer, content string) string {
