@@ -2,8 +2,6 @@ package http
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"os"
@@ -12,10 +10,14 @@ import (
 	"time"
 	"wiki2book/cache"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 type HttpClient interface {
-	Get(url string) (resp *http.Response, err error)
+	Get(url string) (resp *http.Response, err error) // TODO remove (mocks an tests might need to be fixed)
+	Do(request *http.Request) (resp *http.Response, err error)
 	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
@@ -52,7 +54,8 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolder string, fi
 	if responseBodyReader != nil {
 		defer responseBodyReader.Close()
 		if err != nil {
-			util.ReaderToString(responseBodyReader)
+			responseBodyText := util.ReaderToString(responseBodyReader)
+			sigolo.Errorf("Response body of failed request:\n%s", responseBodyText)
 			return "", true, err
 		}
 	}
@@ -76,11 +79,19 @@ func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *htt
 // logging purposes.
 func (d *DefaultHttpService) download(url string, filename string) (io.ReadCloser, error) {
 	var response *http.Response
+	var request *http.Request
 	var err error
 
 	for {
 		sigolo.Debugf("Make GET request to %s", url)
-		response, err = d.httpClient.Get(url)
+		request, err = http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to creqte GET request for url %s to download file %s", url, filename))
+		}
+
+		request.Header.Set("User-Agent", fmt.Sprintf("wiki2book %s (https://github.com/hauke96/wiki2book)", util.VERSION))
+
+		response, err = d.httpClient.Do(request)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
 		}
