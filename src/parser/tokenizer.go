@@ -2,8 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
 	"wiki2book/wikipedia"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 // High-level token types
@@ -47,8 +48,6 @@ type Tokenizer struct {
 	tokenMap         map[string]Token
 	tokenCounter     int
 	images           []string
-	imageFolder      string
-	templateFolder   string
 	wikipediaService wikipedia.WikipediaService
 
 	tokenizeContent func(tokenizer *Tokenizer, content string) string
@@ -71,13 +70,11 @@ type StringToken struct {
 }
 
 // func NewTokenizer(imageFolder string, templateFolder string, wikipediaService *wikipedia.DefaultWikipediaService) Tokenizer {
-func NewTokenizer(imageFolder string, templateFolder string, wikipediaService wikipedia.WikipediaService) Tokenizer {
+func NewTokenizer(wikipediaService wikipedia.WikipediaService) Tokenizer {
 	return Tokenizer{
 		tokenMap:         map[string]Token{},
 		tokenCounter:     0,
 		images:           []string{},
-		imageFolder:      imageFolder,
-		templateFolder:   templateFolder,
 		wikipediaService: wikipediaService,
 
 		tokenizeContent: tokenizeContent,

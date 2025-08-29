@@ -237,7 +237,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
-	outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile := ensurePathsAndGoIntoCacheFolder(outputFile)
+	outputFile = ensurePathsAndClearTempDir(outputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
@@ -252,24 +252,21 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		http.NewDefaultHttpService(),
 	)
 
-	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
+	tokenizer := parser.NewTokenizer(wikipediaService)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+	err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
-	htmlFilePath := path.Join(htmlOutputFolder, article.Title+".html")
+	htmlFilePath := path.Join(util.HtmlOutputDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &html.HtmlGenerator{
-			ImageCacheFolder:   imageCache,
-			MathCacheFolder:    mathCache,
-			ArticleCacheFolder: articleCache,
-			TokenMap:           article.TokenMap,
-			WikipediaService:   wikipediaService,
+			TokenMap:         article.TokenMap,
+			WikipediaService: wikipediaService,
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
 
@@ -321,7 +318,7 @@ func generateBookFromArticles(project *config.Project) {
 	metadata := project.Metadata
 	outputFile := project.OutputFile
 
-	outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile := ensurePathsAndGoIntoCacheFolder(outputFile)
+	outputFile = ensurePathsAndClearTempDir(outputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
@@ -361,7 +358,7 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, wikipediaService, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, wikipediaService)
 				articleFiles[articleNumber] = thisArticleFile
 			}
 
@@ -407,36 +404,33 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
-	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
+	htmlFilePath := filepath.Join(util.HtmlOutputDirName, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := wikipediaService.DownloadArticle(articleName, articleCache)
+		wikiArticleDto, err := wikipediaService.DownloadArticle(articleName)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
-		tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
+		tokenizer := parser.NewTokenizer(wikipediaService)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+		err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.
 		sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
 		htmlGenerator := &html.HtmlGenerator{
-			ImageCacheFolder:   imageCache,
-			MathCacheFolder:    mathCache,
-			ArticleCacheFolder: articleCache,
-			TokenMap:           article.TokenMap,
-			WikipediaService:   wikipediaService,
+			TokenMap:         article.TokenMap,
+			WikipediaService: wikipediaService,
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
 
@@ -472,15 +466,9 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 	return !htmlFileExists
 }
 
-func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string, string, string, string, string) {
-	// TODO This method is plain weird. Refactor this. The cache folder names are basically constants and there should be no need to be within the cache folder, since paths should be absolute (aren't they already?).
-
-	imageCache := "images"
-	mathCache := "math"
-	templateCache := "templates"
-	articleCache := "articles"
-	htmlOutputFolder := "html"
-
+// ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
+// temporary files in the temp files folder that might still exist from previous runs.
+func ensurePathsAndClearTempDir(outputFile string) string {
 	var file *os.File
 	if _, err := os.Stat(outputFile); err != nil {
 		// Output file does not exist
@@ -510,19 +498,9 @@ func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string,
 	sigolo.FatalCheck(err)
 	outputFile = absolutePath
 
-	// Create cache dir and go into it
-	util.EnsureDirectory(config.Current.CacheDir)
-	err = os.Chdir(config.Current.CacheDir)
-	sigolo.FatalCheck(err)
-
 	err = os.RemoveAll(util.TempDirName)
 	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", util.TempDirName))
 	util.EnsureDirectory(util.TempDirName)
 
-	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
-	// of the systems' directory structure.
-	relativeStyleFile, err := util.ToRelativePath(config.Current.StyleFile)
-	sigolo.FatalCheck(err)
-
-	return outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile
+	return outputFile
 }

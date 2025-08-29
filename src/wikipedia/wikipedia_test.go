@@ -272,7 +272,7 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpService)
 
-	locationHeader, err := wikipediaService.getMathResource(mathString, test.TestCacheFolder)
+	locationHeader, err := wikipediaService.getMathResource(mathString)
 
 	test.AssertNil(t, err)
 	test.AssertTrue(t, hasLocalTemplate(filename, test.TestCacheFolder))

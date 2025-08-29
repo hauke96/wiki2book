@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"wiki2book/cache"
+	"wiki2book/config"
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
@@ -39,9 +40,9 @@ func NewDefaultHttpService() *DefaultHttpService {
 // DownloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
 // value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
 // cache) or an error. If the file already exists, no HTTP request is made.
-func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
+func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string, filename string) (string, bool, error) {
 	// If file exists -> ignore
-	outputFilepath := filepath.Join(cacheFolder, filename)
+	outputFilepath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
 		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
@@ -63,7 +64,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolder string, fi
 		return "", true, err
 	}
 
-	err = cache.CacheToFile(cacheFolder, filename, responseBodyReader)
+	err = cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}

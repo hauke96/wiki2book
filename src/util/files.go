@@ -10,7 +10,12 @@ import (
 )
 
 const (
-	TempDirName = ".tmp" // TODO Still working? There was a slash here before.
+	TempDirName          = ".tmp" // TODO Still working? There was a slash here before.
+	ImageCacheDirName    = "images"
+	MathCacheDirName     = "math"
+	TemplateCacheDirName = "templates"
+	ArticleCacheDirName  = "articles"
+	HtmlOutputDirName    = "html"
 
 	FileEndingSvg = ".svg"
 	FileEndingPng = ".png"
@@ -41,6 +46,15 @@ func ToRelativePath(path string) (string, error) {
 	}
 
 	return path, err
+}
+
+func ToRelativePathWithBasedir(basedir string, path string) (string, error) {
+	if path != "" {
+		path, err := filepath.Rel(basedir, path)
+		err = errors.Wrapf(err, "Unable to make file path %s relative", path)
+	}
+
+	return path, nil
 }
 
 func ToAbsolutePaths(paths ...string) ([]string, error) {

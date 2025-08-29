@@ -109,5 +109,6 @@
     "zentriert"
   ],
   "math-converter": "internal",
-  "convert-svg-to-png": false
+  "convert-svg-to-png": false,
+  "style-file": "./style.css"
 }

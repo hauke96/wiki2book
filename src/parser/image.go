@@ -2,12 +2,13 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 var imageNonInlineParameters = []string{
@@ -212,7 +213,8 @@ func (t *Tokenizer) parseImages(content string) string {
 			options := strings.Split(imageContent, "|")
 
 			filename := strings.SplitN(options[0], ":", 2)[1]
-			imageFilepath := filepath.Join(t.imageFolder, filename)
+			// TODO should the path really be constructed here in the tokenizer? Maybe the pure filename is enough?
+			imageFilepath := filepath.Join(util.ImageCacheDirName, filename)
 
 			tokenType := TOKEN_IMAGE_INLINE
 			hasCaption := false

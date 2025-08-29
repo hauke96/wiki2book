@@ -2,8 +2,6 @@ package html
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -14,6 +12,9 @@ import (
 	"wiki2book/parser"
 	"wiki2book/util"
 	"wiki2book/wikipedia"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 const HEADER = `<?xml version="1.0" encoding="UTF-8"?>
@@ -90,15 +91,14 @@ var (
 )
 
 type HtmlGenerator struct {
-	ImageCacheFolder   string
-	MathCacheFolder    string
-	ArticleCacheFolder string
-	TokenMap           map[string]parser.Token
-	WikipediaService   *wikipedia.DefaultWikipediaService
+	TokenMap         map[string]parser.Token
+	WikipediaService *wikipedia.DefaultWikipediaService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
-func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder string, styleFile string) (string, error) {
+func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
+	styleFile, err := util.ToRelativePathWithBasedir(config.Current.CacheDir, config.Current.StyleFile)
+	sigolo.FatalCheck(err)
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
 	expandedContent, err := g.expand(wikiArticle.Content)
@@ -107,7 +107,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder strin
 	}
 	content += expandedContent
 	content += FOOTER
-	return write(wikiArticle.Title, outputFolder, content)
+	return write(wikiArticle.Title, util.HtmlOutputDirName, content)
 }
 
 func (g *HtmlGenerator) expand(content interface{}) (string, error) {
@@ -446,7 +446,7 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 }
 
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content)
 	if err != nil {
 		return "", err
 	}
