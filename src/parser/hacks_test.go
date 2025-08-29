@@ -3,10 +3,11 @@ package parser
 import (
 	"testing"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestHackGermanRailwayTemplates_noTable(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 something
@@ -20,7 +21,7 @@ bar`
 }
 
 func TestHackGermanRailwayTemplates_simple(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 {{BS-table}}
@@ -38,7 +39,7 @@ bar`
 }
 
 func TestHackGermanRailwayTemplates_specialCharacter(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `föö
 {{BS-table}}
@@ -56,7 +57,7 @@ bär`
 }
 
 func TestHackGermanRailwayTemplates_nested(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 
 	content := `foo
 {{BS-table}}

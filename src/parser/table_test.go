@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestParseTable_simple(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{|
 | foo || bar
 |-
@@ -50,7 +51,7 @@ func TestParseTable_simple(t *testing.T) {
 }
 
 func TestParseTable_withIndentation(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `  {|
   ! h1
    ! h2
@@ -117,7 +118,7 @@ func TestParseTable_withIndentation(t *testing.T) {
 }
 
 func TestParseTable_complex(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `before
 {| class="wikitable"
 |+ rowspan="2" style="text-align:left;"| capti0n
@@ -212,7 +213,7 @@ after`
 }
 
 func TestParseTable_rowAndColSpan(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `before
 {| class="wikitable"
 |-
@@ -298,7 +299,7 @@ after`
 }
 
 func TestParseTable_tableInTable(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{| class="wikitable"
 |-
 | foo ||
@@ -350,7 +351,7 @@ func TestParseTable_tableInTable(t *testing.T) {
 }
 
 func TestParseTable_withoutExplicitRowStart(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{| class="wikitable"
 |
 | foo
@@ -395,7 +396,7 @@ func TestParseTable_withoutExplicitRowStart(t *testing.T) {
 }
 
 func TestParseTable_withEmptyRows(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{| class="wikitable"
 |-
 | foo
@@ -435,7 +436,7 @@ func TestParseTable_withEmptyRows(t *testing.T) {
 }
 
 func TestParseTable_withEmptyColumn(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{|
 | foo || bar
 |-
@@ -478,7 +479,7 @@ func TestParseTable_withEmptyColumn(t *testing.T) {
 }
 
 func TestParseTable_captionInsideRow(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `{|
 |-
 |+ cap
@@ -509,7 +510,7 @@ func TestParseTable_captionInsideRow(t *testing.T) {
 }
 
 func TestTokenizeTableRow_withHead(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	lines := []string{
 		"! foo",
 		"!bar",
@@ -538,7 +539,7 @@ func TestTokenizeTableRow_withHead(t *testing.T) {
 }
 
 func TestTokenizeTableRow_withColumn(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	lines := []string{
 		"| foo",
 		"|bar",
@@ -575,7 +576,7 @@ func TestTokenizeTableRow_withColumn(t *testing.T) {
 }
 
 func TestTokenizeTableRow_withRowAndColSpan(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	lines := []string{
 		"| rowspan=\"2\" colspan=\"2\" style=\"text-align:left;\" | A2 B2",
 		"| C2",
@@ -606,7 +607,7 @@ func TestTokenizeTableRow_withRowAndColSpan(t *testing.T) {
 }
 
 func TestTokenizeTableColumn(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `colspan="2" style="text-align:center; background:Lightgray;" | ''foo'' bar`
 
 	actualAttributeToken, attributeToken := tokenizer.tokenizeTableEntry(content)

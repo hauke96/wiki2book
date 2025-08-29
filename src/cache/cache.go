@@ -2,12 +2,13 @@ package cache
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"io"
 	"os"
 	"path/filepath"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 func CacheToFile(cacheFolder string, filename string, reader io.ReadCloser) error {

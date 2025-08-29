@@ -94,6 +94,7 @@ type HtmlGenerator struct {
 	MathCacheFolder    string
 	ArticleCacheFolder string
 	TokenMap           map[string]parser.Token
+	WikipediaService   *wikipedia.DefaultWikipediaService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
@@ -444,9 +445,8 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1)
 }
 
-// TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, imageFilename, err := wikipedia.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
 	if err != nil {
 		return "", err
 	}

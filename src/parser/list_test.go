@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 	"wiki2book/test"
+	"wiki2book/wikipedia"
 )
 
 func TestParseList(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `foo
 * a
 bar
@@ -33,7 +34,7 @@ end
 	}, tokenizer.getTokenMap())
 }
 func TestParseList_withIndentation(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `   foo
   * a
    bar
@@ -81,7 +82,7 @@ func TestRemoveListPrefix(t *testing.T) {
 }
 
 func TestParseList_withoutListInContent(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	content := `some
 text
 without list
@@ -98,7 +99,7 @@ func TestTokenizeList(t *testing.T) {
 * bar
 end of list
 `
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
 	item1 := ListItemToken{Type: NORMAL_ITEM, Content: " foo"}
@@ -120,7 +121,7 @@ func TestTokenizeList_twoTypesBelowEachOther(t *testing.T) {
 # B
 end of list
 `
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
 	item1 := ListItemToken{Type: NORMAL_ITEM, Content: " a"}
@@ -143,7 +144,7 @@ func TestTokenizeList_withSubList(t *testing.T) {
 * bar2
 end of list
 `
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 6, i)
 	itemInner1 := ListItemToken{Type: NORMAL_ITEM, Content: fmt.Sprintf(" b%sa%sr", MARKER_ITALIC_OPEN, MARKER_ITALIC_CLOSE)}
@@ -168,7 +169,7 @@ func TestTokenizeList_higherLevelStart(t *testing.T) {
 *** bar
 end of list
 `
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 3, i)
 	item1 := ListItemToken{Type: NORMAL_ITEM, Content: " foo"}
@@ -194,7 +195,7 @@ func TestTokenizeDescriptionList(t *testing.T) {
 ; blubb
 end`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
@@ -216,7 +217,7 @@ func TestTokenizeDescriptionList_headingIsSecondItem(t *testing.T) {
 ; bar
 blubb`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
@@ -237,7 +238,7 @@ func TestTokenizeDescriptionList_withoutHeading(t *testing.T) {
 : bar
 blubb`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 3, i)
@@ -258,7 +259,7 @@ func TestTokenizeDescriptionList_deepBeginning(t *testing.T) {
 ::: bar
 blubb`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ":")
 
 	test.AssertEqual(t, 3, i)
@@ -286,7 +287,7 @@ func TestTokenizeDescriptionList_withEmptyItem(t *testing.T) {
 : bar
 blubb`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 4, i)
@@ -311,7 +312,7 @@ func TestTokenizeDescriptionList_withOtherSubList(t *testing.T) {
 : foo2
 blubb`
 
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, ";")
 
 	test.AssertEqual(t, 6, i)
@@ -339,7 +340,7 @@ func TestTokenizeList_withDescriptionSubList(t *testing.T) {
 * bar
 end of list
 `
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	token, tokenKey, i := tokenizer.tokenizeList(strings.Split(content, "\n"), 1, "*")
 	test.AssertEqual(t, 5, i)
 	innerHead := ListItemToken{Type: DESCRIPTION_HEAD, Content: " descr"}
@@ -358,7 +359,7 @@ end of list
 }
 
 func TestGetListTokenKey(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
 	test.AssertEqual(t, TOKEN_UNORDERED_LIST, tokenizer.getListTokenKey("*"))
 	test.AssertEqual(t, TOKEN_ORDERED_LIST, tokenizer.getListTokenKey("#"))
 	test.AssertEqual(t, TOKEN_DESCRIPTION_LIST, tokenizer.getListTokenKey(";"))
