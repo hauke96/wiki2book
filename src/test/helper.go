@@ -49,8 +49,20 @@ func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	expectedValueType := getType(expected)
 	actualValueType := getType(actual)
 
+	// Turn int into int64 for easier handling below
+	if expectedValueType == "int" {
+		expectedValueType = "int64"
+		expected = int64(expected.(int))
+	}
+	if actualValueType == "int" {
+		actualValueType = "int64"
+		actual = int64(actual.(int))
+	}
+
 	if expectedValueType == "float64" && actualValueType == "float64" {
 		assertEqualFloat64(t, expected.(float64), actual.(float64))
+	} else if expectedValueType == "int64" && actualValueType == "int64" {
+		assertEqualInt64(t, expected.(int64), actual.(int64))
 	} else if !reflect.DeepEqual(expected, actual) {
 		if expectedValueType == "string" && actualValueType == "string" {
 			assertEqualStrings(t, expected.(string), actual.(string))
@@ -67,15 +79,27 @@ func getType(expected interface{}) string {
 		return "string"
 	case float64:
 		return "float64"
+	case int:
+		return "int"
+	case int64:
+		return "int64"
 	}
 	return ""
 }
 
-func assertEqualFloat64(t *testing.T, a float64, b float64) {
+func assertEqualFloat64(t *testing.T, expected float64, actual float64) {
 	errorMargin := 0.0001
-	actualError := math.Abs(a - b)
+	actualError := math.Abs(expected - actual)
 	if actualError > errorMargin {
-		sigolo.Errorf("Expected %f and %f to be equal with error margin of %f, but difference was %f", a, b, errorMargin, actualError)
+		sigolo.Errorf("Expected %f and %f to be equal with error margin of %f, but difference was %f", expected, actual, errorMargin, actualError)
+		sigolo.Errorb(2, "Expect to be equal.\nExpected: %f\n----------\nActual  : %f\n----------\nActual Error   : %f\nTolerated Error: %f", expected, actual, actualError, errorMargin)
+		t.Fail()
+	}
+}
+
+func assertEqualInt64(t *testing.T, expected int64, actual int64) {
+	if expected != actual {
+		sigolo.Errorb(2, "Expect to be equal.\nExpected: %d\n----------\nActual  : %d", expected, actual)
 		t.Fail()
 	}
 }

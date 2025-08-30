@@ -55,7 +55,6 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
 		}
-		cacheSizeInMB := float64(cacheSizeInBytes) / 1024.0 / 1024.0
 
 		var tempFileStat os.FileInfo
 		tempFileStat, err = tempFile.Stat()
@@ -63,9 +62,9 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", filename, tempFilepath))
 		}
 
-		tempFileSizeInMB := float64(tempFileStat.Size()) / 1024.0 / 1024.0
+		tempFileSizeInBytes := tempFileStat.Size()
 		if config.Current.CacheEvictionStrategy == "largest" {
-			err = handleLargestFileEvictionStrategy(cacheFolderName, filename, tempFileSizeInMB, cacheSizeInMB)
+			err = handleLargestFileEvictionStrategy(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
 			if err != nil {
 				return err
 			}
@@ -87,21 +86,19 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	return nil
 }
 
-func handleLargestFileEvictionStrategy(cacheFolderName string, filename string, tempFileSizeInMB float64, cacheSizeInMB float64) error {
+func handleLargestFileEvictionStrategy(cacheFolderName string, filename string, tempFileSizeInBytes int64, cacheSizeInBytes int64) error {
 	util.Requiref(config.Current.CacheEvictionStrategy == "largest", "Cache eviction strategy must be 'largest' but was '%s'", config.Current.CacheEvictionStrategy)
 
-	var netCacheSizeChangeInMB = tempFileSizeInMB
-	var existingFileSizeInMB = -1.0
+	var netCacheSizeChangeInBytes = tempFileSizeInBytes
 	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(filepath.Join(config.Current.CacheDir, cacheFolderName, filename))
 	if err == nil {
-		existingFileSizeInMB = float64(existingFileSizeInBytes) / 1024.0 / 1024.0
-		netCacheSizeChangeInMB = existingFileSizeInMB - tempFileSizeInMB
+		netCacheSizeChangeInBytes = tempFileSizeInBytes - existingFileSizeInBytes
 	}
 
-	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (-1 means there's no existing file); net cache size change: %f MB", config.Current.CacheMaxSize, cacheSizeInMB, tempFileSizeInMB, existingFileSizeInMB, netCacheSizeChangeInMB)
-	for config.Current.CacheMaxSize < cacheSizeInMB+netCacheSizeChangeInMB {
-		sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", tempFileSizeInMB, config.Current.CacheMaxSize, cacheSizeInMB, netCacheSizeChangeInMB, cacheSizeInMB+netCacheSizeChangeInMB)
-		err, cacheSizeInMB = deleteLargestFileFromCache(cacheSizeInMB)
+	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (-1 means there's no existing file); net cache size change: %f MB", util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(tempFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
+	for config.Current.CacheMaxSize <= cacheSizeInBytes+netCacheSizeChangeInBytes {
+		sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", util.ToMB(tempFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
+		err, cacheSizeInBytes = deleteLargestFileFromCache(cacheSizeInBytes)
 		if err != nil {
 			return err
 		}
@@ -110,20 +107,20 @@ func handleLargestFileEvictionStrategy(cacheFolderName string, filename string, 
 	return nil
 }
 
-func deleteLargestFileFromCache(cacheSizeInMB float64) (error, float64) {
+func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
-	var largestFileSizeInMB float64
 	var largestFilePath string
-	err, largestFileSizeInMB, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir)
+	var largestFileSizeInBytes int64
+	err, largestFileSizeInBytes, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", config.Current.CacheDir)), cacheSizeInMB
+		return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
 	}
 
-	sigolo.Debugf("Delete largest file from cache: '%s' (%f MB)", largestFilePath, largestFileSizeInMB)
+	sigolo.Debugf("Delete largest file from cache: '%s' (%f MB)", largestFilePath, util.ToMB(largestFileSizeInBytes))
 	err = util.CurrentFilesystem.Remove(largestFilePath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to remove largest file '%s'", largestFilePath)), cacheSizeInMB
+		return errors.Wrap(err, fmt.Sprintf("Unable to remove largest file '%s'", largestFilePath)), cacheSizeInBytes
 	}
 
-	return err, cacheSizeInMB - largestFileSizeInMB
+	return err, cacheSizeInBytes - largestFileSizeInBytes
 }

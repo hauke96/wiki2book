@@ -124,6 +124,10 @@ func GetPngPathForSvg(path string) string {
 	return path + FileEndingPng
 }
 
+func ToMB(size int64) float64 {
+	return float64(size) / 1024.0 / 1024.0
+}
+
 var CurrentFilesystem Filesystem = &OsFilesystem{}
 
 type Filesystem interface {
@@ -134,7 +138,7 @@ type Filesystem interface {
 	MkdirAll(path string) error
 	CreateTemp(dir, pattern string) (*os.File, error)
 	DirSizeInBytes(path string) (error, int64)
-	FindLargestFile(path string) (error, float64, string)
+	FindLargestFile(path string) (error, int64, string)
 }
 
 type OsFilesystem struct {
@@ -187,7 +191,7 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 	return nil, dirSizeBytes
 }
 
-func (o *OsFilesystem) FindLargestFile(path string) (error, float64, string) {
+func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
 	var currentLargestFile os.FileInfo
 	var currentLargestFilePath string
 
@@ -210,5 +214,5 @@ func (o *OsFilesystem) FindLargestFile(path string) (error, float64, string) {
 		return err, -1, ""
 	}
 
-	return nil, float64(currentLargestFile.Size()) / 1024.0 / 1024.0, currentLargestFilePath
+	return nil, currentLargestFile.Size(), currentLargestFilePath
 }

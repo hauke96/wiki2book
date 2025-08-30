@@ -150,23 +150,21 @@ type Configuration struct {
 	CacheDir string `json:"cache-dir"`
 
 	/*
-		The maximum size of the file cache in MB.
+		The maximum size of the file cache in bytes.
 
-		Default: 1000
+		Default: 100000000 (100 MiB)
 	*/
-	// TODO Change to bytes? Means we don't have to deal with floats anymore
-	CacheMaxSize float64 `json:"cache-max-size"`
+	CacheMaxSize int64 `json:"cache-max-size"`
 
 	// TODO Adjust documentation after implementation is done
 	// TODO Add CLI Args for this
-	// TODO Update markdown documentation
 	/*
 
 		Default:
 		Allowed values:
-			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
-			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.
 			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
+			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.
+			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
 	*/
 	CacheEvictionStrategy string `json:"worker-threads"`
 
