@@ -2,12 +2,14 @@ package test
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
+	"math"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 const TestTempDirName = ".tmp/"
@@ -44,25 +46,37 @@ func rmDir(folder string) {
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
-	expectedIsString := false
-	actualIsString := false
+	expectedValueType := getType(expected)
+	actualValueType := getType(actual)
 
-	switch expected.(type) {
-	case string:
-		expectedIsString = true
-	}
-	switch actual.(type) {
-	case string:
-		actualIsString = true
-	}
-
-	if !reflect.DeepEqual(expected, actual) {
-		if expectedIsString && actualIsString {
+	if expectedValueType == "float64" && actualValueType == "float64" {
+		assertEqualFloat64(t, expected.(float64), actual.(float64))
+	} else if !reflect.DeepEqual(expected, actual) {
+		if expectedValueType == "string" && actualValueType == "string" {
 			assertEqualStrings(t, expected.(string), actual.(string))
 		} else {
 			sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
 			t.Fail()
 		}
+	}
+}
+
+func getType(expected interface{}) string {
+	switch expected.(type) {
+	case string:
+		return "string"
+	case float64:
+		return "float64"
+	}
+	return ""
+}
+
+func assertEqualFloat64(t *testing.T, a float64, b float64) {
+	errorMargin := 0.0001
+	actualError := math.Abs(a - b)
+	if actualError > errorMargin {
+		sigolo.Errorf("Expected %f and %f to be equal with error margin of %f, but difference was %f", a, b, errorMargin, actualError)
+		t.Fail()
 	}
 }
 
