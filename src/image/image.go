@@ -1,11 +1,12 @@
 package image
 
 import (
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 type ImageProcessingService interface {
@@ -20,7 +21,7 @@ func NewImageProcessingService() ImageProcessingService {
 	return &ImageProcessingServiceImpl{}
 }
 
-// resizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
+// ResizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
 func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Process image '%s'", imageFilepath)
 
@@ -31,7 +32,7 @@ func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string
 	return errors.Wrapf(err, "Converting image %s failed", imageFilepath)
 }
 
-// convertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
+// ConvertPdfToPng will convert the given PDF file into a PNG image at the given location. This conversion does neither
 // rescale nor process the image in any other way, use resizeAndCompressImage accordingly.
 func (s *ImageProcessingServiceImpl) ConvertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error {
 	sigolo.Tracef("Convert PDF '%s' to PNG '%s'", inputPdfFilepath, outputPngFilepath)

@@ -65,9 +65,18 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		tempFileSizeInMB := float64(tempFileStat.Size()) / 1024.0 / 1024.0
 		if config.Current.CacheEvictionStrategy == "largest" {
 
-			// TODO Deal with files already being in the cache. The old file will be replaced and may even reduce the overall cache size.
-			for config.Current.CacheMaxSize < cacheSizeInMB+tempFileSizeInMB {
-				sigolo.Debugf("New file would exceed max cache size: Max cache size of %f MB < current size of %f MB + new file size of %f MB = %f MB. Remove largest files until cache is smalle enough.", config.Current.CacheMaxSize, cacheSizeInMB, tempFileSizeInMB, cacheSizeInMB+tempFileSizeInMB)
+			var netCacheSizeChangeInMB = tempFileSizeInMB
+			var existingFileStat os.FileInfo
+			var existingFileSizeInMB = -1.0
+			existingFileStat, err = os.Stat(filepath.Join(config.Current.CacheDir, cacheFolderName, filename))
+			if existingFileStat != nil {
+				existingFileSizeInMB = float64(existingFileStat.Size()) / 1024.0 / 1024.0
+				netCacheSizeChangeInMB = existingFileSizeInMB - tempFileSizeInMB
+			}
+
+			sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (-1 means there's no existing file); net cache size change: %f MB", config.Current.CacheMaxSize, cacheSizeInMB, tempFileSizeInMB, existingFileSizeInMB, netCacheSizeChangeInMB)
+			for config.Current.CacheMaxSize < cacheSizeInMB+netCacheSizeChangeInMB {
+				sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", tempFileSizeInMB, config.Current.CacheMaxSize, cacheSizeInMB, netCacheSizeChangeInMB, cacheSizeInMB+netCacheSizeChangeInMB)
 				var largestFileSizeInMB float64
 				var largestFilePath string
 				err, largestFileSizeInMB, largestFilePath = findLargestFile(config.Current.CacheDir)

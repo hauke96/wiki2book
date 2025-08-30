@@ -51,7 +51,7 @@ func NewDefaultConfig() *Configuration {
 		OutputType:                     OutputTypeEpub2,
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
-		CacheMaxSize:                   1000,      // TODO find suitable default value
+		CacheMaxSize:                   5,         // TODO find suitable default value
 		CacheEvictionStrategy:          "largest", // TODO find suitable default value
 		StyleFile:                      getDefaultStyleFile(),
 		ConvertPdfToPng:                false,
@@ -154,6 +154,7 @@ type Configuration struct {
 
 		Default: 1000
 	*/
+	// TODO Change to bytes? Means we don't have to deal with floats anymore
 	CacheMaxSize float64 `json:"cache-max-size"`
 
 	// TODO Adjust documentation after implementation is done
@@ -168,6 +169,8 @@ type Configuration struct {
 			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
 	*/
 	CacheEvictionStrategy string `json:"worker-threads"`
+
+	// TODO Add max age of cache files
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.

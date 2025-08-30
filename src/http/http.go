@@ -41,6 +41,7 @@ func NewDefaultHttpService() *DefaultHttpService {
 // cache) or an error. If the file already exists, no HTTP request is made.
 func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string, filename string) (string, bool, error) {
 	// If file exists -> ignore
+	// TODO extract to something like "cache.GetFile(cacheFolderName, filename)" returning nil or the file path
 	outputFilepath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 	_, err := os.Stat(outputFilepath)
 	if err == nil {
