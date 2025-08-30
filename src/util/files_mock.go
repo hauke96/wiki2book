@@ -13,6 +13,7 @@ type MockFilesystem struct {
 	CreateTempFunc      func(dir, pattern string) (*os.File, error)
 	DirSizeInBytesFunc  func(path string) (error, int64)
 	FindLargestFileFunc func(path string) (error, int64, string)
+	FindLruFileFunc     func(path string) (error, int64, string)
 }
 
 func (m *MockFilesystem) Exists(path string) bool {
@@ -45,4 +46,8 @@ func (m *MockFilesystem) DirSizeInBytes(path string) (error, int64) {
 
 func (m *MockFilesystem) FindLargestFile(path string) (error, int64, string) {
 	return m.FindLargestFileFunc(path)
+}
+
+func (m *MockFilesystem) FindLruFile(path string) (error, int64, string) {
+	return m.FindLruFileFunc(path)
 }

@@ -139,6 +139,7 @@ type Filesystem interface {
 	CreateTemp(dir, pattern string) (*os.File, error)
 	DirSizeInBytes(path string) (error, int64)
 	FindLargestFile(path string) (error, int64, string)
+	FindLruFile(path string) (error, int64, string)
 }
 
 type OsFilesystem struct {
@@ -215,4 +216,30 @@ func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
 	}
 
 	return nil, currentLargestFile.Size(), currentLargestFilePath
+}
+
+func (o *OsFilesystem) FindLruFile(path string) (error, int64, string) {
+	var currentLruFilePath string
+	var currentLruFile os.FileInfo
+
+	readModTime := func(path string, file os.FileInfo, err error) error {
+		if !file.IsDir() {
+			if currentLruFile == nil || file.ModTime().Before(currentLruFile.ModTime()) {
+				currentLruFile = file
+				currentLruFilePath = path
+			}
+		} else if file.Name() == TempDirName {
+			// The directory for temporary files might be inside the cache folder. This is fine, but we don't want to
+			// count in temporary files then.
+			return filepath.SkipDir
+		}
+		return nil
+	}
+
+	err := filepath.Walk(path, readModTime)
+	if err != nil {
+		return err, -1, ""
+	}
+
+	return nil, currentLruFile.Size(), currentLruFilePath
 }

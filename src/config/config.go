@@ -31,6 +31,10 @@ const (
 	InputPlaceholder  = "{INPUT}"
 	OutputPlaceholder = "{OUTPUT}"
 
+	CacheEvictionStrategyLargest = "largest"
+	CacheEvictionStrategyLru     = "lru"
+	CacheEvictionStrategyNone    = "none"
+
 	defaultCommandTemplateSvgToPng                   = "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateLinuxMathSvgToPngWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
@@ -51,8 +55,8 @@ func NewDefaultConfig() *Configuration {
 		OutputType:                     OutputTypeEpub2,
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
-		CacheMaxSize:                   5,         // TODO find suitable default value
-		CacheEvictionStrategy:          "largest", // TODO find suitable default value
+		CacheMaxSize:                   100_000_000,
+		CacheEvictionStrategy:          CacheEvictionStrategyLru,
 		StyleFile:                      getDefaultStyleFile(),
 		ConvertPdfToPng:                false,
 		IgnoredTemplates:               []string{},
@@ -156,11 +160,11 @@ type Configuration struct {
 	*/
 	CacheMaxSize int64 `json:"cache-max-size"`
 
-	// TODO Adjust documentation after implementation is done
 	// TODO Add CLI Args for this
 	/*
+		The strategy by which files are removed from the case when it's full.
 
-		Default:
+		Default: "lru"
 		Allowed values:
 			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
 			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.

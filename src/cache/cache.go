@@ -49,7 +49,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	// 2. Evict files from cache in case it's overflowing when the new file is added.
 	//
 	sigolo.Tracef("Caching strategy is '%s'", config.Current.CacheEvictionStrategy)
-	if config.Current.CacheEvictionStrategy != "none" {
+	if config.Current.CacheEvictionStrategy != config.CacheEvictionStrategyNone {
 		var cacheSizeInBytes int64
 		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(config.Current.CacheDir)
 		if err != nil {
@@ -63,13 +63,10 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		}
 
 		tempFileSizeInBytes := tempFileStat.Size()
-		if config.Current.CacheEvictionStrategy == "largest" {
-			err = handleLargestFileEvictionStrategy(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
-			if err != nil {
-				return err
-			}
+		err = deleteFilesFromCacheIfNeeded(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
+		if err != nil {
+			return err
 		}
-		// TODO Add LRU support
 	}
 
 	//
@@ -86,19 +83,29 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	return nil
 }
 
-func handleLargestFileEvictionStrategy(cacheFolderName string, filename string, tempFileSizeInBytes int64, cacheSizeInBytes int64) error {
-	util.Requiref(config.Current.CacheEvictionStrategy == "largest", "Cache eviction strategy must be 'largest' but was '%s'", config.Current.CacheEvictionStrategy)
-
-	var netCacheSizeChangeInBytes = tempFileSizeInBytes
-	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(filepath.Join(config.Current.CacheDir, cacheFolderName, filename))
+// deleteFilesFromCacheIfNeeded deletes files from the cache based on the configured cache eviction strategy. When the
+// cache is small enough for the new file, no (further) files will be deleted.
+func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, newFileSizeInBytes int64, cacheSizeInBytes int64) error {
+	// The new file might already exist in an older state (and thus with different size). The file will, therefore, not
+	// just be added to the cache, but instead the old file will be replaced. The cache then grows much less in size or
+	// might even shrink (in case the new file is smaller than the old one).
+	var netCacheSizeChangeInBytes = newFileSizeInBytes
+	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(filepath.Join(config.Current.CacheDir, cacheFolderName, newFileName))
 	if err == nil {
-		netCacheSizeChangeInBytes = tempFileSizeInBytes - existingFileSizeInBytes
+		netCacheSizeChangeInBytes = newFileSizeInBytes - existingFileSizeInBytes
 	}
 
-	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (-1 means there's no existing file); net cache size change: %f MB", util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(tempFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
+	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (-1 means there's no existing file); net cache size change: %f MB", util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(newFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
 	for config.Current.CacheMaxSize <= cacheSizeInBytes+netCacheSizeChangeInBytes {
-		sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", util.ToMB(tempFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
-		err, cacheSizeInBytes = deleteLargestFileFromCache(cacheSizeInBytes)
+		sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", util.ToMB(newFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
+
+		if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLargest {
+			err, cacheSizeInBytes = deleteLargestFileFromCache(cacheSizeInBytes)
+		} else if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLru {
+			err, cacheSizeInBytes = deleteLruFileFromCache(cacheSizeInBytes)
+		} else {
+			sigolo.Fatalf("Unsupported cache eviction strategy '%s'. This is a Bug.", config.Current.CacheEvictionStrategy)
+		}
 		if err != nil {
 			return err
 		}
@@ -123,4 +130,23 @@ func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	}
 
 	return err, cacheSizeInBytes - largestFileSizeInBytes
+}
+
+// TODO Update timestamp on file when using them (i.e. when getting them from cache)
+func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
+	var err error
+	var lruFilePath string
+	var lruFileSizeInBytes int64
+	err, lruFileSizeInBytes, lruFilePath = util.CurrentFilesystem.FindLruFile(config.Current.CacheDir)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to determine least recently used file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
+	}
+
+	sigolo.Debugf("Delete least recently used file from cache: '%s' (%f MB)", lruFilePath, util.ToMB(lruFileSizeInBytes))
+	err = util.CurrentFilesystem.Remove(lruFilePath)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to remove least recently used file '%s'", lruFilePath)), cacheSizeInBytes
+	}
+
+	return err, cacheSizeInBytes - lruFileSizeInBytes
 }

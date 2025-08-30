@@ -34,7 +34,7 @@ func TestDeleteLargestFileFromCache(t *testing.T) {
 	test.AssertEqual(t, expectedPath, actualPath)
 }
 
-func TestDeleteLargestFileFromCache_errorFindingLargestFile(t *testing.T) {
+func TestDeleteLargestFileFromCache_errorFindingFile(t *testing.T) {
 	// Arrange
 	expectedError := errors.New("test error")
 	fsMock := &util.MockFilesystem{
@@ -76,10 +76,76 @@ func TestDeleteLargestFileFromCache_errorRemovingFile(t *testing.T) {
 	test.AssertEqual(t, 1_230_000, newCacheSize)
 }
 
-func TestHandleLargestFileEvictionStrategy(t *testing.T) {
+func TestDeleteLruFromCache(t *testing.T) {
+	// Arrange
+	expectedPath := "some/path/to/file.txt"
+	actualPath := ""
+	fsMock := &util.MockFilesystem{
+		FindLruFileFunc: func(path string) (error, int64, string) {
+			return nil, 120_000, expectedPath
+		},
+		RemoveFunc: func(path string) error {
+			actualPath = path
+			return nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, 1_110_000, newCacheSize)
+	test.AssertEqual(t, expectedPath, actualPath)
+}
+
+func TestDeleteLruFromCache_errorFindingFile(t *testing.T) {
+	// Arrange
+	expectedError := errors.New("test error")
+	fsMock := &util.MockFilesystem{
+		FindLruFileFunc: func(path string) (error, int64, string) {
+			return expectedError, -1, ""
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+
+	// Assert
+	test.AssertNotNil(t, err)
+	test.AssertTrue(t, strings.Contains(err.Error(), expectedError.Error()))
+	test.AssertEqual(t, 1_230_000, newCacheSize)
+}
+
+func TestDeleteLruFromCache_errorRemovingFile(t *testing.T) {
+	// Arrange
+	expectedPath := "some/path/to/file.txt"
+	expectedError := errors.New("test error")
+	fsMock := &util.MockFilesystem{
+		FindLruFileFunc: func(path string) (error, int64, string) {
+			return nil, 120_000, expectedPath
+		},
+		RemoveFunc: func(path string) error {
+			return expectedError
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+
+	// Assert
+	test.AssertNotNil(t, err)
+	test.AssertTrue(t, strings.Contains(err.Error(), expectedError.Error()))
+	test.AssertEqual(t, 1_230_000, newCacheSize)
+}
+
+func TestDeleteFilesFromCacheIfNeeded_largest(t *testing.T) {
 	// Arrange
 	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = "largest"
+	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
 	currentCacheSize := int64(10_000_000)
 	fileSize := int64(3_000_000)
@@ -99,27 +165,125 @@ func TestHandleLargestFileEvictionStrategy(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := handleLargestFileEvictionStrategy("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1_000_000, currentCacheSize)
 }
 
-func TestHandleLargestFileEvictionStrategy_withExistingFile(t *testing.T) {
+func TestDeleteFilesFromCacheIfNeeded_withExistingFileIncreasingCacheSize(t *testing.T) {
 	// Arrange
 	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = "largest"
+	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
-	currentCacheSize := int64(6_000_000)
-	existingFileSize := int64(1500_000)
+	currentCacheSize := int64(6_600_000)
+	existingFileSize := int64(1_500_000)
 	fileSize := int64(2_000_000)
+	removeCalls := 0
 
 	fsMock := &util.MockFilesystem{
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return existingFileSize, nil
 		},
 		FindLargestFileFunc: func(path string) (error, int64, string) {
+			return nil, fileSize, "path/to/file.txt"
+		},
+		RemoveFunc: func(path string) error {
+			removeCalls++
+			currentCacheSize -= fileSize
+			return nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, 2_600_000, currentCacheSize)
+	test.AssertEqual(t, 2, removeCalls)
+}
+
+func TestDeleteFilesFromCacheIfNeeded_withExistingFileReducingCacheSize(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxSize = 5_000_000
+	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+
+	currentCacheSize := int64(6_900_000)
+	existingFileSize := int64(3_000_000)
+	fileSize := int64(2_000_000)
+	removeCalls := 0
+
+	fsMock := &util.MockFilesystem{
+		GetSizeInBytesFunc: func(path string) (int64, error) {
+			return existingFileSize, nil
+		},
+		FindLargestFileFunc: func(path string) (error, int64, string) {
+			return nil, fileSize, "path/to/file.txt"
+		},
+		RemoveFunc: func(path string) error {
+			removeCalls++
+			currentCacheSize -= fileSize
+			return nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, 4_900_000, currentCacheSize)
+	test.AssertEqual(t, 1, removeCalls)
+}
+
+func TestDeleteFilesFromCacheIfNeeded_errorDeletingFile(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxSize = 5_000_000
+	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+
+	currentCacheSize := int64(6_900_000)
+	existingFileSize := int64(3_000_000)
+	fileSize := int64(2_000_000)
+	expectedError := errors.New("test error")
+
+	fsMock := &util.MockFilesystem{
+		GetSizeInBytesFunc: func(path string) (int64, error) {
+			return existingFileSize, nil
+		},
+		FindLargestFileFunc: func(path string) (error, int64, string) {
+			return nil, fileSize, "path/to/file.txt"
+		},
+		RemoveFunc: func(path string) error {
+			return expectedError
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+
+	// Assert
+	test.AssertTrue(t, strings.Contains(err.Error(), expectedError.Error()))
+	test.AssertEqual(t, 6_900_000, currentCacheSize)
+}
+
+func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxSize = 5_000_000
+	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLru
+
+	currentCacheSize := int64(10_000_000)
+	fileSize := int64(3_000_000)
+
+	fsMock := &util.MockFilesystem{
+		GetSizeInBytesFunc: func(path string) (int64, error) {
+			return 0, errors.New("test error: no existing file")
+		},
+		FindLruFileFunc: func(path string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {
@@ -130,9 +294,9 @@ func TestHandleLargestFileEvictionStrategy_withExistingFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := handleLargestFileEvictionStrategy("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 4_000_000, currentCacheSize)
+	test.AssertEqual(t, 1_000_000, currentCacheSize)
 }
