@@ -123,3 +123,92 @@ func GetPngPathForSvg(path string) string {
 	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingSvg, "Filepath must lead to a SVG file but was '%s'", path)
 	return path + FileEndingPng
 }
+
+var CurrentFilesystem Filesystem = &OsFilesystem{}
+
+type Filesystem interface {
+	Exists(path string) bool
+	GetSizeInBytes(path string) (int64, error)
+	Rename(oldPath string, newPath string) error
+	Remove(name string) error
+	MkdirAll(path string) error
+	CreateTemp(dir, pattern string) (*os.File, error)
+	DirSizeInBytes(path string) (error, int64)
+	FindLargestFile(path string) (error, float64, string)
+}
+
+type OsFilesystem struct {
+}
+
+func (o *OsFilesystem) Exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return -1, err
+	}
+	return stat.Size(), nil
+}
+
+func (o *OsFilesystem) Rename(oldPath string, newPath string) error {
+	return os.Rename(oldPath, newPath)
+}
+
+func (o *OsFilesystem) MkdirAll(path string) error {
+	return os.MkdirAll(path, os.ModePerm)
+}
+
+func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (*os.File, error) {
+	return os.CreateTemp(dir, filenamePattern)
+}
+
+func (o *OsFilesystem) Remove(path string) error {
+	return os.Remove(path)
+}
+
+func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
+	var dirSizeBytes int64 = 0
+
+	readSize := func(path string, file os.FileInfo, err error) error {
+		if !file.IsDir() {
+			dirSizeBytes += file.Size()
+		}
+		return nil
+	}
+
+	err := filepath.Walk(path, readSize)
+	if err != nil {
+		return err, -1
+	}
+
+	return nil, dirSizeBytes
+}
+
+func (o *OsFilesystem) FindLargestFile(path string) (error, float64, string) {
+	var currentLargestFile os.FileInfo
+	var currentLargestFilePath string
+
+	readSize := func(path string, file os.FileInfo, err error) error {
+		if !file.IsDir() {
+			if currentLargestFile == nil || file.Size() > currentLargestFile.Size() {
+				currentLargestFile = file
+				currentLargestFilePath = path
+			}
+		} else if file.Name() == TempDirName {
+			// The directory for temporary files might be inside the cache folder. This is fine, but we don't want to
+			// count in temporary files then.
+			return filepath.SkipDir
+		}
+		return nil
+	}
+
+	err := filepath.Walk(path, readSize)
+	if err != nil {
+		return err, -1, ""
+	}
+
+	return nil, float64(currentLargestFile.Size()) / 1024.0 / 1024.0, currentLargestFilePath
+}

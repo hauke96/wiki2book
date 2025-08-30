@@ -20,7 +20,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 
 	// Create the output folder
 	sigolo.Tracef("Ensure cache folder '%s'", cacheFolderName)
-	err := os.MkdirAll(cacheFolderName, os.ModePerm)
+	err := util.CurrentFilesystem.MkdirAll(cacheFolderName)
 	if err != nil && !os.IsExist(err) {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolderName))
 	}
@@ -30,12 +30,12 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	//
 
 	// Create the output file
-	tempFile, err := os.CreateTemp(util.TempDirName, filename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(util.TempDirName, filename)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(util.TempDirName, filename)))
 	}
 	tempFilepath := tempFile.Name()
-	defer os.Remove(tempFilepath)
+	defer util.CurrentFilesystem.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
 
 	// Write the body to file
@@ -50,11 +50,12 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	//
 	sigolo.Tracef("Caching strategy is '%s'", config.Current.CacheEvictionStrategy)
 	if config.Current.CacheEvictionStrategy != "none" {
-		var cacheSizeInMB float64
-		err, cacheSizeInMB = dirSizeMB(config.Current.CacheDir)
+		var cacheSizeInBytes int64
+		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(config.Current.CacheDir)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
 		}
+		cacheSizeInMB := float64(cacheSizeInBytes) / 1024.0 / 1024.0
 
 		var tempFileStat os.FileInfo
 		tempFileStat, err = tempFile.Stat()
@@ -66,11 +67,11 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		if config.Current.CacheEvictionStrategy == "largest" {
 
 			var netCacheSizeChangeInMB = tempFileSizeInMB
-			var existingFileStat os.FileInfo
 			var existingFileSizeInMB = -1.0
-			existingFileStat, err = os.Stat(filepath.Join(config.Current.CacheDir, cacheFolderName, filename))
-			if existingFileStat != nil {
-				existingFileSizeInMB = float64(existingFileStat.Size()) / 1024.0 / 1024.0
+			var existingFileSizeInBytes int64 = -1
+			existingFileSizeInBytes, err = util.CurrentFilesystem.GetSizeInBytes(filepath.Join(config.Current.CacheDir, cacheFolderName, filename))
+			if err == nil {
+				existingFileSizeInMB = float64(existingFileSizeInBytes) / 1024.0 / 1024.0
 				netCacheSizeChangeInMB = existingFileSizeInMB - tempFileSizeInMB
 			}
 
@@ -79,13 +80,13 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 				sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", tempFileSizeInMB, config.Current.CacheMaxSize, cacheSizeInMB, netCacheSizeChangeInMB, cacheSizeInMB+netCacheSizeChangeInMB)
 				var largestFileSizeInMB float64
 				var largestFilePath string
-				err, largestFileSizeInMB, largestFilePath = findLargestFile(config.Current.CacheDir)
+				err, largestFileSizeInMB, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir)
 				if err != nil {
 					return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", config.Current.CacheDir))
 				}
 
 				sigolo.Debugf("Delete largest file from cache: '%s' (%f MB)", largestFilePath, largestFileSizeInMB)
-				err = os.Remove(largestFilePath)
+				err = util.CurrentFilesystem.Remove(largestFilePath)
 				if err != nil {
 					return errors.Wrap(err, fmt.Sprintf("Unable to remove largest file '%s'", largestFilePath))
 				}
@@ -101,55 +102,11 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	//
 
 	sigolo.Tracef("Move temp file '%s' to '%s'", tempFilepath, outputFilepath)
-	err = os.Rename(tempFilepath, outputFilepath)
+	err = util.CurrentFilesystem.Rename(tempFilepath, outputFilepath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
 	}
 
 	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
 	return nil
-}
-
-func dirSizeMB(path string) (error, float64) {
-	var dirSizeBytes int64 = 0
-
-	readSize := func(path string, file os.FileInfo, err error) error {
-		if !file.IsDir() {
-			dirSizeBytes += file.Size()
-		}
-		return nil
-	}
-
-	err := filepath.Walk(path, readSize)
-	if err != nil {
-		return err, -1
-	}
-
-	return nil, float64(dirSizeBytes) / 1024.0 / 1024.0
-}
-
-func findLargestFile(path string) (error, float64, string) {
-	var currentLargestFile os.FileInfo
-	var currentLargestFilePath string
-
-	readSize := func(path string, file os.FileInfo, err error) error {
-		if !file.IsDir() {
-			if currentLargestFile == nil || file.Size() > currentLargestFile.Size() {
-				currentLargestFile = file
-				currentLargestFilePath = path
-			}
-		} else if file.Name() == util.TempDirName {
-			// The directory for temporary files might be inside the cache folder. This is fine, but we don't want to
-			// count in temporary files then.
-			return filepath.SkipDir
-		}
-		return nil
-	}
-
-	err := filepath.Walk(path, readSize)
-	if err != nil {
-		return err, -1, ""
-	}
-
-	return nil, float64(currentLargestFile.Size()) / 1024.0 / 1024.0, currentLargestFilePath
 }
