@@ -220,6 +220,9 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
+	// In case the host ist a wiki host with subdomain (i.e. "de.wikipedia.org"), we use the subdomain as the instance
+	// path segment below. Image URLs are e.g. "upload.wikimedia.org/wikipedia/de/..." where the "de" is the instance,
+	// which should be used when the image article has been located at "de.wikipedia.org".
 	isWikiDomainWithSubdomain, err := regexp.MatchString(".+\\.wiki.+\\..+", imageArticleHost)
 	wikiInstancePathSegment := ""
 	if isWikiDomainWithSubdomain {
