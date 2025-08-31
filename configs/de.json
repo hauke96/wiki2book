@@ -1,8 +1,8 @@
 {
   "wikipedia-instance": "de",
-  "wikipedia-image-instances": [
-    "commons",
-    "de"
+  "wikipedia-image-article-hosts": [
+    "commons.wikimedia.org",
+    "de.wikipedia.org"
   ],
   "file-prefixe": [
     "file",

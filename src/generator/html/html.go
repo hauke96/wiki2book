@@ -418,7 +418,8 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 	var template string
 	switch token.Type {
 	case parser.NORMAL_ITEM:
-		if len(listItemString) >= 3 && strings.TrimLeft(listItemString, " ")[:3] == "<li" {
+		listItemString = strings.TrimLeft(listItemString, " ")
+		if len(listItemString) >= 3 && listItemString[:3] == "<li" {
 			// The wikitext "# <li value=4> ..." is valid to let the list start/continue with the number 4. The <li>
 			// item of the manual HTML within this list might contain additional arguments, so we use their item
 			// instead of the item from the template.

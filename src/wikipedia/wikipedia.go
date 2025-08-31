@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"wiki2book/cache"
 	"wiki2book/config"
@@ -44,40 +45,40 @@ type WikitextDto struct {
 }
 
 type WikipediaService interface {
-	DownloadArticle(title string) (*WikiArticleDto, error)
+	DownloadArticle(host string, title string) (*WikiArticleDto, error)
 	DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
 	EvaluateTemplate(template string, cacheFile string) (string, error)
 	RenderMath(mathString string) (string, string, error)
 }
 
 type DefaultWikipediaService struct {
-	cacheFolder             string // TODO can be removed?
-	wikipediaInstance       string
-	wikipediaHost           string
-	wikipediaImageInstances []string
-	wikipediaImageHost      string
-	wikipediaMathRestApi    string
-	imageProcessingService  image.ImageProcessingService
-	httpService             ownHttp.HttpService
+	cacheFolder                string // TODO can be removed?
+	wikipediaInstance          string
+	wikipediaHost              string
+	wikipediaImageArticleHosts []string
+	wikipediaImageHost         string
+	wikipediaMathRestApi       string
+	imageProcessingService     image.ImageProcessingService
+	httpService                ownHttp.HttpService
 }
 
 func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
-		cacheFolder:             cacheFolder,
-		wikipediaInstance:       wikipediaInstance,
-		wikipediaHost:           wikipediaHost,
-		wikipediaImageInstances: wikipediaImageInstances,
-		wikipediaImageHost:      wikipediaImageHost,
-		wikipediaMathRestApi:    wikipediaMathRestApi,
-		imageProcessingService:  imageProcessingService,
-		httpService:             httpClient,
+		cacheFolder:                cacheFolder,
+		wikipediaInstance:          wikipediaInstance,
+		wikipediaHost:              wikipediaHost,
+		wikipediaImageArticleHosts: wikipediaImageInstances,
+		wikipediaImageHost:         wikipediaImageHost,
+		wikipediaMathRestApi:       wikipediaMathRestApi,
+		imageProcessingService:     imageProcessingService,
+		httpService:                httpClient,
 	}
 }
 
-func (w *DefaultWikipediaService) DownloadArticle(title string) (*WikiArticleDto, error) {
+func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
-	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", w.wikipediaInstance, w.wikipediaHost, escapedTitle)
+	urlString := fmt.Sprintf("https://%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", host, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
 	cachedFilePath, _, err := w.httpService.DownloadAndCache(urlString, util.ArticleCacheDirName, cachedFile)
@@ -122,12 +123,12 @@ func (w *DefaultWikipediaService) DownloadImages(images []string, svgSizeToViewb
 func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	var downloadErr error
 
-	for i, instance := range w.wikipediaImageInstances {
+	for i, articleHost := range w.wikipediaImageArticleHosts {
 		var outputFilepath string
 		var freshlyDownloaded bool
-		isLastSource := i == len(w.wikipediaImageInstances)-1
+		isLastSource := i == len(w.wikipediaImageArticleHosts)-1
 		// TODO Bug: The image instance is not used to download the image article, which should be the case.
-		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(instance, image, svgSizeToViewbox)
+		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {
 				// We tried every single image source and couldn't find the image.
@@ -135,7 +136,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svg
 			} else {
 				// This image is not available at the current source. Maybe one of the following sources hold the
 				// image. Therefore, this is not a real error that needs to be handled.
-				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, instance, w.wikipediaHost, downloadErr.Error())
+				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, articleHost, w.wikipediaHost, downloadErr.Error())
 			}
 			continue
 		}
@@ -195,11 +196,11 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *DefaultWikipediaService) downloadImage(imageInstance string, imageNameWithPrefix string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNameWithPrefix string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
-	sigolo.Debugf("Download article file for image '%s' from Wikipedia instance '%s.%s'", imageName, imageInstance, w.wikipediaHost)
-	imageArticle, err := w.DownloadArticle(imageName)
+	sigolo.Debugf("Download article file for image '%s' from '%s'", imageName, imageArticleHost)
+	imageArticle, err := w.DownloadArticle(imageArticleHost, imageName)
 	if err != nil {
 		return "", true, err
 	}
@@ -215,12 +216,21 @@ func (w *DefaultWikipediaService) downloadImage(imageInstance string, imageNameW
 	actualImageName = strings.ReplaceAll(actualImageName, " ", "_")
 
 	md5sum := fmt.Sprintf("%x", md5.Sum([]byte(actualImageName)))
-	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, imageInstance)
+	sigolo.Debugf("Download actual image '%s' from Wikimedia instance '%s'", actualImageName, imageArticleHost)
 	sigolo.Tracef("  Original name: %s", originalImageName)
 	sigolo.Tracef("  Actual image name (after possible redirects): %s", actualImageNameWithPrefix)
 	sigolo.Tracef("  MD5 of redirected image name: %s", md5sum)
 
-	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, imageInstance, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	// In case the host ist a wiki host with subdomain (i.e. "de.wikipedia.org"), we use the subdomain as the instance
+	// path segment below. Image URLs are e.g. "upload.wikimedia.org/wikipedia/de/..." where the "de" is the instance,
+	// which should be used when the image article has been located at "de.wikipedia.org".
+	isWikiDomainWithSubdomain, err := regexp.MatchString(".+\\.wiki.+\\..+", imageArticleHost)
+	wikiInstancePathSegment := ""
+	if isWikiDomainWithSubdomain {
+		wikiInstancePathSegment = strings.SplitN(imageArticleHost, ".", 2)[0]
+	}
+
+	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, wikiInstancePathSegment, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
 	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, util.ImageCacheDirName, originalImageName)
 	if err != nil {

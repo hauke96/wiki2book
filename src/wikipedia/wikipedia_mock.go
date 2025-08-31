@@ -4,7 +4,7 @@ type DummyWikipediaService struct {
 	EvaluateTemplateResponse string
 }
 
-func (d *DummyWikipediaService) DownloadArticle(title string, cacheFolder string) (*WikiArticleDto, error) {
+func (d *DummyWikipediaService) DownloadArticle(host string, title string, cacheFolder string) (*WikiArticleDto, error) {
 	return nil, nil
 }
 
