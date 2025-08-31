@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -95,7 +96,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaHost, "wikipedia-host", cliConfig.WikipediaHost, "The domain of the Wikipedia instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaImageHost, "wikipedia-image-host", cliConfig.WikipediaImageHost, "The domain of the Wikipedia image instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaMathRestApi, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi, "The URL to the math API of wikipedia.")
-	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageInstances, "wikipedia-image-instances", cliConfig.WikipediaImageInstances, "Wikipedia instances (subdomains) used to search for images on Wikimedia.")
+	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageArticleHosts, "wikipedia-image-article-hosts", cliConfig.WikipediaImageArticleHosts, "Hosts used to search for image article files.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FilePrefixe, "file-prefixe", cliConfig.FilePrefixe, "A list of prefixes to detect files, e.g. in 'File:picture.jpg' the substring 'File' is the image prefix.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.AllowedLinkPrefixes, "allowed-link-prefixe", cliConfig.AllowedLinkPrefixes, "A list of prefixes that are considered links and are therefore not removed.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.CategoryPrefixes, "category-prefixes", cliConfig.CategoryPrefixes, "A list of category prefixes, which are technically internals links.")
@@ -245,7 +246,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
-		config.Current.WikipediaImageInstances,
+		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),
@@ -335,7 +336,7 @@ func generateBookFromArticles(project *config.Project) {
 		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
-		config.Current.WikipediaImageInstances,
+		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
 		image.NewImageProcessingService(),
@@ -410,12 +411,14 @@ func generateBookFromArticles(project *config.Project) {
 func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
+	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
 	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
+
 		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := wikipediaService.DownloadArticle(articleName, articleCache)
+		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName, articleCache)
 		sigolo.FatalCheck(err)
 
 		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/hauke96/sigolo/v2"
 	"os"
 	"reflect"
 	"testing"
 	"wiki2book/config"
 	"wiki2book/test"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 // This file is used to profile the application with the IntelliJ CPU profiler, which only works on test files.
@@ -58,7 +59,7 @@ func TestCliArgs(t *testing.T) {
 		"--wikipedia-host", "wikipedia-host",
 		"--wikipedia-image-host", "wikipedia-image-host",
 		"--wikipedia-math-rest-api", "wikipedia-math-rest-api",
-		"--wikipedia-image-instances", "wikipedia-image-instances",
+		"--wikipedia-image-article-hosts", "wikipedia-image-article-hosts",
 		"--file-prefixe", "file-prefixe",
 		"--allowed-link-prefixe", "allowed-link-prefixe",
 		"--category-prefixes", "category-prefixes",
@@ -101,7 +102,7 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "wikipedia-host", cliConfig.WikipediaHost)
 	test.AssertEqual(t, "wikipedia-image-host", cliConfig.WikipediaImageHost)
 	test.AssertEqual(t, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi)
-	test.AssertEqual(t, []string{"wikipedia-image-instances"}, cliConfig.WikipediaImageInstances)
+	test.AssertEqual(t, []string{"wikipedia-image-article-hosts"}, cliConfig.WikipediaImageArticleHosts)
 	test.AssertEqual(t, []string{"file-prefixe"}, cliConfig.FilePrefixe)
 	test.AssertEqual(t, []string{"allowed-link-prefixe"}, cliConfig.AllowedLinkPrefixes)
 	test.AssertEqual(t, []string{"category-prefixes"}, cliConfig.CategoryPrefixes)

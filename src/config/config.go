@@ -61,7 +61,7 @@ func NewDefaultConfig() *Configuration {
 		WikipediaHost:                  "wikipedia.org",
 		WikipediaImageHost:             "upload.wikimedia.org",
 		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
-		WikipediaImageInstances:        []string{"commons", "en"},
+		WikipediaImageArticleHosts:     []string{"commons", "en"},
 		FilePrefixe:                    []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
@@ -321,12 +321,21 @@ type Configuration struct {
 	WikipediaHost string `json:"wikipedia-host"`
 
 	/*
-		The domain of the Wikipedia image instance.
+		The domain of the Wikipedia image instance, which should be used to download the actual image files.
 
-		Default: "wikimedia.org"
+		Default: "upload.wikimedia.org"
 		JSON example: "wikipedia-image-host": "my-image-server.com"
 	*/
 	WikipediaImageHost string `json:"wikipedia-image-host"`
+
+	/*
+		Domains used to search for image articles (not the image files themselves, s. WikipediaImageHost). The given
+		values are tried in the configured order until a request was successful or the last host has been tried.
+
+		Default: [ "commons.wikimedia.org", "en.wikipedia.org" ]
+		JSON example: "wikipedia-image-article-hosts": [ "commons.wikimedia.org" ]
+	*/
+	WikipediaImageArticleHosts []string `json:"wikipedia-image-article-hosts"`
 
 	/*
 		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
@@ -335,16 +344,6 @@ type Configuration struct {
 		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
 	*/
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
-
-	/*
-		Wikipedia instances (subdomains) used to search for images on Wikimedia. The URL to the image contains the instance
-		of Wikipedia (i.e. "<host>/wikipedia/en/..." wich "en" being the Wikipedia instance). The retrieving images,
-		all these given values are tried.
-
-		Default: [ "commons", "en" ]
-		JSON example: "wikipedia-image-instances": [ "commons", "de" ]
-	*/
-	WikipediaImageInstances []string `json:"wikipedia-image-instances"`
 
 	/*
 		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
@@ -525,9 +524,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
 		Current.WikipediaMathRestApi = c.WikipediaMathRestApi
 	}
-	if !util.EqualsInAnyOrder(c.WikipediaImageInstances, defaultConfig.WikipediaImageInstances) {
-		sigolo.Tracef("Override WikipediaImageInstances with %v", c.WikipediaImageInstances)
-		Current.WikipediaImageInstances = c.WikipediaImageInstances
+	if !util.EqualsInAnyOrder(c.WikipediaImageArticleHosts, defaultConfig.WikipediaImageArticleHosts) {
+		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)
+		Current.WikipediaImageArticleHosts = c.WikipediaImageArticleHosts
 	}
 	if !util.EqualsInAnyOrder(c.FilePrefixe, defaultConfig.FilePrefixe) {
 		sigolo.Tracef("Override FilePrefixe with %v", c.FilePrefixe)
