@@ -50,9 +50,10 @@ func ToRelativePath(path string) (string, error) {
 }
 
 func ToRelativePathWithBasedir(basedir string, path string) (string, error) {
+	var err error
 	if path != "" {
-		path, err := filepath.Rel(basedir, path)
-		err = errors.Wrapf(err, "Unable to make file path %s relative", path)
+		path, err = filepath.Rel(basedir, path)
+		err = errors.Wrapf(err, "Unable to make file path '%s' relative", path)
 	}
 
 	return path, nil
@@ -85,7 +86,7 @@ func ToAbsolutePathWithBasedir(basedir string, path string) (string, error) {
 	var err error
 	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(filepath.Join(basedir, path))
-		err = errors.Wrapf(err, "Unable to make file path %s absolute", filepath.Join(basedir, path))
+		err = errors.Wrapf(err, "Unable to make file path '%s' absolute", filepath.Join(basedir, path))
 	}
 	return path, err
 }

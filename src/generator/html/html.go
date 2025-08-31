@@ -37,9 +37,9 @@ const IMAGE_SIZE_WIDTH_TEMPLATE = `width: %dpx;`
 const IMAGE_SIZE_HEIGHT_TEMPLATE = `height: %dpx;`
 const IMAGE_SIZE_WIDTH_AUTO_TEMPLATE = `width: auto;`
 const IMAGE_SIZE_HEIGHT_AUTO_TEMPLATE = `height: auto;`
-const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="%s" %s>`
+const IMAGE_INLINE_TEMPLATE = `<img alt="image" class="inline" src="./%s" %s>`
 const IMAGE_TEMPLATE = `<div class="figure">
-<img alt="image" src="%s" %s>
+<img alt="image" src="./%s" %s>
 <div class="caption">
 %s
 </div>
@@ -221,11 +221,7 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename, err := util.ToAbsolutePathWithBasedir(config.Current.CacheDir, token.Filename)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Error getting relative path to image file %s", token.Filename))
-	}
-
+	filename := token.Filename
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
@@ -243,11 +239,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename, err := util.ToAbsolutePathWithBasedir(config.Current.CacheDir, token.Filename)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Error getting relative path to image file %s", token.Filename))
-	}
-
+	filename := token.Filename
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
@@ -418,8 +410,8 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 	var template string
 	switch token.Type {
 	case parser.NORMAL_ITEM:
-		listItemString = strings.TrimLeft(listItemString, " ")
-		if len(listItemString) >= 3 && listItemString[:3] == "<li" {
+		trimmedListItemString := strings.TrimSpace(listItemString)
+		if len(trimmedListItemString) >= 3 && trimmedListItemString[:3] == "<li" {
 			// The wikitext "# <li value=4> ..." is valid to let the list start/continue with the number 4. The <li>
 			// item of the manual HTML within this list might contain additional arguments, so we use their item
 			// instead of the item from the template.

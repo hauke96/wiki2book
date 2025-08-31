@@ -46,7 +46,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 
 	args = append(args, sourceFiles...)
 
-	err := util.Execute(config.Current.PandocExecutable, args...)
+	err := util.Execute(config.Current.PandocExecutable, config.Current.CacheDir, args...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
 	}

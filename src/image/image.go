@@ -28,7 +28,7 @@ func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 
-	err := util.ExecuteCommandWithArgs(commandString)
+	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
 	return errors.Wrapf(err, "Converting image %s failed", imageFilepath)
 }
 
@@ -40,7 +40,7 @@ func (s *ImageProcessingServiceImpl) ConvertPdfToPng(inputPdfFilepath string, ou
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputPdfFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, outputPngFilepath)
 
-	err := util.ExecuteCommandWithArgs(commandString)
+	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
 	return errors.Wrapf(err, "Converting PNG %s into an PNG image failed", inputPdfFilepath)
 }
 
@@ -50,6 +50,6 @@ func (s *ImageProcessingServiceImpl) ConvertSvgToPng(svgFile string, pngFile str
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, svgFile)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
-	err := util.ExecuteCommandWithArgs(commandString)
+	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
 	return errors.Wrapf(err, "Converting image %s to PNG failed", svgFile)
 }
