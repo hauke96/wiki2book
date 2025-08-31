@@ -1,6 +1,7 @@
 package util
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -125,6 +126,9 @@ func GetPngPathForSvg(path string) string {
 }
 
 func ToMB(size int64) float64 {
+	if size == math.MinInt64 {
+		return math.NaN()
+	}
 	return float64(size) / 1024.0 / 1024.0
 }
 
@@ -153,7 +157,7 @@ func (o *OsFilesystem) Exists(path string) bool {
 func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
 	stat, err := os.Stat(path)
 	if err != nil {
-		return -1, err
+		return math.MinInt64, err
 	}
 	return stat.Size(), nil
 }
@@ -186,7 +190,7 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 
 	err := filepath.Walk(path, readSize)
 	if err != nil {
-		return err, -1
+		return err, math.MinInt64
 	}
 
 	return nil, dirSizeBytes
@@ -212,7 +216,7 @@ func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
 
 	err := filepath.Walk(path, readSize)
 	if err != nil {
-		return err, -1, ""
+		return err, math.MinInt64, ""
 	}
 
 	return nil, currentLargestFile.Size(), currentLargestFilePath
@@ -238,7 +242,7 @@ func (o *OsFilesystem) FindLruFile(path string) (error, int64, string) {
 
 	err := filepath.Walk(path, readModTime)
 	if err != nil {
-		return err, -1, ""
+		return err, math.MinInt64, ""
 	}
 
 	return nil, currentLruFile.Size(), currentLruFilePath
