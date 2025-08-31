@@ -196,23 +196,33 @@ func TestDownladImage(t *testing.T) {
 	err = os.WriteFile(cachedImageFilepath, []byte(`foobar`), 0600)
 	sigolo.FatalCheck(err)
 
+	requestedArticleUrl := ""
+	requestedImageUrl := ""
+
 	mockHttpClient := http.NewMockHttpService(
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			if strings.Contains(url, "page=") {
+			if strings.Contains(url, "api.php") {
+				requestedArticleUrl = url
 				return cachedArticleFilepath, true, nil
+			} else if strings.Contains(url, "upload") {
+				requestedImageUrl = url
+				return cachedImageFilepath, true, nil
 			}
-			return cachedImageFilepath, true, nil
+
+			return "", false, errors.New("no mock behavior for url " + url)
 		},
 		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService("", "", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
+	wikipediaService := NewWikipediaService("", "", "", []string{}, "upload.wikimedia.org", "", imageProcessingServiceMock, mockHttpClient)
 
-	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("de", "File:foo.jpg", test.TestCacheFolder, test.TestCacheFolder, false)
+	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("en.wikipedia.org", "File:foo.jpg", test.TestCacheFolder, test.TestCacheFolder, false)
 
 	test.AssertNil(t, err)
 	test.AssertTrue(t, freshlyDownloaded)
 	test.AssertEqual(t, cachedImageFilepath, downloadImage)
+	test.AssertEqual(t, "https://en.wikipedia.org/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=File%3Afoo.jpg", requestedArticleUrl)
+	test.AssertEqual(t, "https://upload.wikimedia.org/wikipedia/en/0/06/Foo.jpg", requestedImageUrl)
 }
 
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
