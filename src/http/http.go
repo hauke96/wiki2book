@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"wiki2book/cache"
+	"wiki2book/config"
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
@@ -88,7 +89,9 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to creqte GET request for url %s to download file %s", url, filename))
 		}
 
-		request.Header.Set("User-Agent", fmt.Sprintf("wiki2book %s (https://github.com/hauke96/wiki2book)", util.VERSION))
+		userAgentString := config.Current.UserAgentTemplate
+		userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
+		request.Header.Set("User-Agent", userAgentString)
 
 		response, err = d.httpClient.Do(request)
 		if err != nil {

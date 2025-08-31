@@ -73,6 +73,7 @@ func NewDefaultConfig() *Configuration {
 		PandocExecutable:               "pandoc",
 		TocDepth:                       tocDepthDefault,
 		WorkerThreads:                  workerThreadsDefault,
+		UserAgentTemplate:              "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)",
 	}
 }
 
@@ -405,6 +406,16 @@ type Configuration struct {
 		Allowed values: 1 - unlimited
 	*/
 	WorkerThreads int `json:"worker-threads"`
+
+	/*
+		Template string for the user agent used in HTTP requests. There are some placeholders within this template
+		string, which are replaced by actual values:
+
+			{{VERSION}} - The version of wiki2book as shown by the "--version" CLI argument. Example: v0.4.0
+
+		Default: "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)"
+	*/
+	UserAgentTemplate string `json:"user-agent-template"`
 }
 
 // MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field

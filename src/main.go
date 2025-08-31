@@ -103,6 +103,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.MathConverter, "math-converter", cliConfig.MathConverter, "Converter turning math SVGs into PNGs.")
 	rootCmd.PersistentFlags().IntVar(&cliConfig.TocDepth, "toc-depth", cliConfig.TocDepth, "Depth of the table of content. Allowed range is 0 - 6.")
 	rootCmd.PersistentFlags().IntVar(&cliConfig.WorkerThreads, "worker-threads", cliConfig.WorkerThreads, "Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.UserAgentTemplate, "user-agent-template", cliConfig.UserAgentTemplate, "Template for the user-agent used in HTTP requests.")
 
 	projectCmd := getCommand("project", "Uses a project file to create the eBook.")
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {

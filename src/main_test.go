@@ -66,6 +66,7 @@ func TestCliArgs(t *testing.T) {
 		"--math-converter", "math-converter",
 		"--toc-depth", "123",
 		"--worker-threads", "234",
+		"--user-agent-template", "user-agent-template",
 	}
 	testCmd := getCommand("test", "")
 	cliConfig = &config.Configuration{}
@@ -109,4 +110,5 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "math-converter", cliConfig.MathConverter)
 	test.AssertEqual(t, 123, cliConfig.TocDepth)
 	test.AssertEqual(t, 234, cliConfig.WorkerThreads)
+	test.AssertEqual(t, "user-agent-template", cliConfig.UserAgentTemplate)
 }
