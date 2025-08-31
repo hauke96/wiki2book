@@ -391,6 +391,23 @@ b<b>a</b>r
 </ol>`, row)
 }
 
+func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  foobar  "}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  f"} // string without left space being <3 chars long caused crash
+	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
+
+	row, err := generator.expand(list3)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ul>
+<li>
+foobar  
+</li>
+<li>
+f
+</li>
+</ul>`, row)
+}
+
 func TestExpandDescriptionList(t *testing.T) {
 	item1 := parser.ListItemToken{Type: parser.DESCRIPTION_HEAD, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
