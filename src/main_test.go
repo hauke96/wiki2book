@@ -40,6 +40,8 @@ func TestCliArgs(t *testing.T) {
 		"--output-type", "output-type",
 		"--output-driver", "output-driver",
 		"--cache-dir", "cache-dir",
+		"--cache-max-size", "123",
+		"--cache-eviction-strategy", "cache-eviction-strategy",
 		"--style-file", "style-file",
 		"--cover-image", "cover-image",
 		"--command-template-svg-to-png", "command-template-svg-to-png",
@@ -84,6 +86,8 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "output-type", cliConfig.OutputType)
 	test.AssertEqual(t, "output-driver", cliConfig.OutputDriver)
 	test.AssertEqual(t, "cache-dir", cliConfig.CacheDir)
+	test.AssertEqual(t, 123, cliConfig.CacheMaxSize)
+	test.AssertEqual(t, "cache-eviction-strategy", cliConfig.CacheEvictionStrategy)
 	test.AssertEqual(t, "style-file", cliConfig.StyleFile)
 	test.AssertEqual(t, "cover-image", cliConfig.CoverImage)
 	test.AssertEqual(t, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng)
