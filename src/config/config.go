@@ -161,7 +161,6 @@ type Configuration struct {
 	*/
 	CacheMaxSize int64 `json:"cache-max-size"`
 
-	// TODO Add CLI Args for this
 	/*
 		The strategy by which files are removed from the case when it's full.
 
@@ -171,7 +170,7 @@ type Configuration struct {
 			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.
 			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
 	*/
-	CacheEvictionStrategy string `json:"worker-threads"`
+	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
 
 	// TODO Add max age of cache files
 
@@ -470,6 +469,14 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CacheDir with %s", absolutePath)
 		Current.CacheDir = absolutePath
 	}
+	if c.CacheMaxSize != defaultConfig.CacheMaxSize {
+		sigolo.Tracef("Override CacheMaxSize with %d", c.CacheMaxSize)
+		Current.CacheMaxSize = c.CacheMaxSize
+	}
+	if c.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
+		sigolo.Tracef("Override CacheEvictionStrategy with %s", c.CacheEvictionStrategy)
+		Current.CacheEvictionStrategy = c.CacheEvictionStrategy
+	}
 	if c.StyleFile != defaultConfig.StyleFile {
 		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
 		sigolo.FatalCheck(err)
@@ -590,7 +597,6 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
 		Current.WorkerThreads = c.WorkerThreads
 	}
-	// TODO caching values
 
 	Current.MakePathsAbsoluteToWorkingDir()
 
@@ -712,7 +718,12 @@ func (c *Configuration) AssertValidity() {
 		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
-	// TODO caching values
+	if c.CacheMaxSize <= 0 {
+		sigolo.FatalCheck(errors.Errorf("CacheMaxSize must be larger than 0 but was %d", c.CacheMaxSize))
+	}
+	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
+		sigolo.FatalCheck(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
+	}
 }
 
 func (c *Configuration) Print() {
