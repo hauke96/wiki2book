@@ -16,6 +16,8 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		OutputType:                     OutputTypeEpub3,
 		OutputDriver:                   OutputDriverInternal,
 		CacheDir:                       "/cache-dir",
+		CacheMaxSize:                   123,
+		CacheEvictionStrategy:          CacheEvictionStrategyNone,
 		StyleFile:                      "/style-file",
 		CoverImage:                     "/cover-image",
 		CommandTemplateSvgToPng:        "command-template-svg-to-png" + InputPlaceholder + OutputPlaceholder,

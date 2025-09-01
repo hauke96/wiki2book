@@ -133,7 +133,11 @@ func ToMB(size int64) float64 {
 	return float64(size) / 1024.0 / 1024.0
 }
 
-var CurrentFilesystem Filesystem = &OsFilesystem{}
+type FileLike interface {
+	Name() string
+	Write(p []byte) (n int, err error)
+	Stat() (os.FileInfo, error)
+}
 
 type Filesystem interface {
 	Exists(path string) bool
@@ -141,11 +145,15 @@ type Filesystem interface {
 	Rename(oldPath string, newPath string) error
 	Remove(name string) error
 	MkdirAll(path string) error
-	CreateTemp(dir, pattern string) (*os.File, error)
+	CreateTemp(dir, pattern string) (FileLike, error)
 	DirSizeInBytes(path string) (error, int64)
 	FindLargestFile(path string) (error, int64, string)
 	FindLruFile(path string) (error, int64, string)
+	ReadFile(name string) ([]byte, error)
+	Stat(name string) (os.FileInfo, error)
 }
+
+var CurrentFilesystem Filesystem = &OsFilesystem{}
 
 type OsFilesystem struct {
 }
@@ -171,7 +179,7 @@ func (o *OsFilesystem) MkdirAll(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
 }
 
-func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (*os.File, error) {
+func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error) {
 	return os.CreateTemp(dir, filenamePattern)
 }
 
@@ -247,4 +255,12 @@ func (o *OsFilesystem) FindLruFile(path string) (error, int64, string) {
 	}
 
 	return nil, currentLruFile.Size(), currentLruFilePath
+}
+
+func (o *OsFilesystem) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+func (o *OsFilesystem) Stat(name string) (os.FileInfo, error) {
+	return os.Stat(name)
 }

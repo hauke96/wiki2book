@@ -400,10 +400,10 @@ func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ul>
 <li>
-foobar  
+  foobar  
 </li>
 <li>
-f
+  f
 </li>
 </ul>`, row)
 }

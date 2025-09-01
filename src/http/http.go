@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -43,7 +42,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 	// If file exists -> ignore
 	// TODO extract to something like "cache.GetFile(cacheFolderName, filename)" returning nil or the file path
 	outputFilepath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
-	_, err := os.Stat(outputFilepath)
+	_, err := util.CurrentFilesystem.Stat(outputFilepath)
 	if err == nil {
 		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil

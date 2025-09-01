@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -86,7 +85,7 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*W
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
 
-	cachedResponseBytes, err := os.ReadFile(cachedFilePath)
+	cachedResponseBytes, err := util.CurrentFilesystem.ReadFile(cachedFilePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
@@ -256,7 +255,7 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
 
-	evaluatedTemplateString, err := os.ReadFile(cacheFilePath)
+	evaluatedTemplateString, err := util.CurrentFilesystem.ReadFile(cacheFilePath)
 	if err != nil {
 		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
 	}
@@ -320,8 +319,8 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
 	outputFilepath := filepath.Join(config.Current.CacheDir, util.MathCacheDirName, filename)
-	if _, err := os.Stat(outputFilepath); err == nil {
-		mathSvgFilenameBytes, err := os.ReadFile(outputFilepath)
+	if _, err := util.CurrentFilesystem.Stat(outputFilepath); err == nil {
+		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
 		if err != nil {
 			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))

@@ -8,7 +8,7 @@ import (
 )
 
 func TestParseMath(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 	content := `abc<math>x \cdot y</math>def
 some
 <math>
