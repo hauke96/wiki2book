@@ -17,6 +17,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		OutputDriver:                   OutputDriverInternal,
 		CacheDir:                       "/cache-dir",
 		CacheMaxSize:                   123,
+		CacheMaxAge:                    234,
 		CacheEvictionStrategy:          CacheEvictionStrategyNone,
 		StyleFile:                      "/style-file",
 		CoverImage:                     "/cover-image",

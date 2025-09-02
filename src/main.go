@@ -78,6 +78,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputDriver, "output-driver", cliConfig.OutputDriver, "The method to generate the output file. Available driver: 'pandoc', 'internal' (experimental!)")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheDir, "cache-dir", cliConfig.CacheDir, "The directory where all cached files will be written to.")
 	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxSize, "cache-max-size", cliConfig.CacheMaxSize, "The maximum size of the file cache in bytes.")
+	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxAge, "cache-max-age", cliConfig.CacheMaxAge, "The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheEvictionStrategy, "cache-eviction-strategy", cliConfig.CacheEvictionStrategy, "The strategy by which files are removed from the case when it's full. Can be: 'none', 'lru', 'largest'")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.StyleFile, "style-file", cliConfig.StyleFile, "The CSS file that should be used.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CoverImage, "cover-image", cliConfig.CoverImage, "A cover image for the front cover of the eBook.")

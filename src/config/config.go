@@ -56,6 +56,7 @@ func NewDefaultConfig() *Configuration {
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
 		CacheMaxSize:                   100_000_000,
+		CacheMaxAge:                    40_320,
 		CacheEvictionStrategy:          CacheEvictionStrategyLru,
 		StyleFile:                      getDefaultStyleFile(),
 		ConvertPdfToPng:                false,
@@ -162,6 +163,13 @@ type Configuration struct {
 	CacheMaxSize int64 `json:"cache-max-size"`
 
 	/*
+		The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.
+
+		Default: 40320 (four weeks)
+	*/
+	CacheMaxAge int64 `json:"cache-max-age"`
+
+	/*
 		The strategy by which files are removed from the case when it's full.
 
 		Default: "lru"
@@ -171,8 +179,6 @@ type Configuration struct {
 			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
 	*/
 	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
-
-	// TODO Add max age of cache files
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
@@ -473,6 +479,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CacheMaxSize with %d", c.CacheMaxSize)
 		Current.CacheMaxSize = c.CacheMaxSize
 	}
+	if c.CacheMaxAge != defaultConfig.CacheMaxAge {
+		sigolo.Tracef("Override CacheMaxAge with %d", c.CacheMaxAge)
+		Current.CacheMaxAge = c.CacheMaxAge
+	}
 	if c.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
 		sigolo.Tracef("Override CacheEvictionStrategy with %s", c.CacheEvictionStrategy)
 		Current.CacheEvictionStrategy = c.CacheEvictionStrategy
@@ -720,6 +730,9 @@ func (c *Configuration) AssertValidity() {
 
 	if c.CacheMaxSize <= 0 {
 		sigolo.FatalCheck(errors.Errorf("CacheMaxSize must be larger than 0 but was %d", c.CacheMaxSize))
+	}
+	if c.CacheMaxAge <= 0 {
+		sigolo.FatalCheck(errors.Errorf("CacheMaxAge must be larger than 0 but was %d", c.CacheMaxAge))
 	}
 	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
 		sigolo.FatalCheck(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
