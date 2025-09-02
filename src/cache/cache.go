@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 	"wiki2book/config"
 	"wiki2book/util"
 
@@ -149,4 +150,31 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	}
 
 	return err, cacheSizeInBytes - lruFileSizeInBytes
+}
+
+// TODO call this from a new cache.GetFile function (s. also "DownloadAndCache")
+// TODO test this
+func deleteOutdatedFilesFromCacheIfNeeded(cacheFolderName string, newFileName string) error {
+	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, newFileName)
+
+	fileStat, err := util.CurrentFilesystem.Stat(filePath)
+	if err != nil && !os.IsNotExist(err) {
+		// Only throw errors for real errors. Errors like "not found" is not a situation we consider as actual error here.
+		return errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
+	}
+
+	if fileStat != nil {
+		fileAgeDuration := fileStat.ModTime().Sub(time.Now())
+		fileAgeInMinutes := int64(fileAgeDuration.Minutes())
+		fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
+		sigolo.Debugf("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
+		if fileIsOutdated {
+			err = util.CurrentFilesystem.Remove(filePath)
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Unable to remove oudated file '%s'", filePath))
+			}
+		}
+	}
+
+	return nil
 }
