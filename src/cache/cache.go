@@ -152,29 +152,50 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	return err, cacheSizeInBytes - lruFileSizeInBytes
 }
 
-// TODO call this from a new cache.GetFile function (s. also "DownloadAndCache")
-// TODO test this
-func deleteOutdatedFilesFromCacheIfNeeded(cacheFolderName string, newFileName string) error {
-	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, newFileName)
+// GetFile determines whether the file is caches or not. It already returns the full file path, a boolean and an error.
+// The boolean only has a meaning when the error is nil. In such cases "true" means the file exists and can be used,
+// "false" means the file doesn't exist. In case of an error, the boolean is always "false".
+func GetFile(cacheFolderName string, filename string) (string, bool, error) {
+	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 
-	fileStat, err := util.CurrentFilesystem.Stat(filePath)
-	if err != nil && !os.IsNotExist(err) {
-		// Only throw errors for real errors. Errors like "not found" is not a situation we consider as actual error here.
-		return errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
+	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
+	if os.IsNotExist(err) {
+		// A "file not found" situation is not unusual and not considered an error. Simply return that the file doesn't exist.
+		return filePath, false, nil
+	}
+	if err != nil {
+		return filePath, false, errors.Wrapf(err, "Unable to determine if file '%s' is outdated", filename)
 	}
 
-	if fileStat != nil {
-		fileAgeDuration := fileStat.ModTime().Sub(time.Now())
-		fileAgeInMinutes := int64(fileAgeDuration.Minutes())
-		fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
-		sigolo.Debugf("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
-		if fileIsOutdated {
-			err = util.CurrentFilesystem.Remove(filePath)
-			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Unable to remove oudated file '%s'", filePath))
-			}
+	if fileIsOutdated {
+		sigolo.Debugf("File '%s' is outdated, I'll try to remove it", filename)
+		err = util.CurrentFilesystem.Remove(filePath)
+		if err != nil {
+			return filePath, false, errors.Wrap(err, fmt.Sprintf("Unable to remove oudated file '%s'", filePath))
 		}
 	}
 
-	return nil
+	return filePath, !fileIsOutdated, nil
+}
+
+// isOutdated returns whether the file is outdated (only valid and defined, when the error is nil), if the file even
+// exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
+// error types, the booleans have no meaning.
+func isOutdated(cacheFolderName string, filename string) (bool, error) {
+	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+
+	fileStat, err := util.CurrentFilesystem.Stat(filePath)
+	if os.IsNotExist(err) {
+		return false, err
+	}
+	if err != nil {
+		return false, errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
+	}
+
+	fileAgeDuration := time.Now().Sub(fileStat.ModTime())
+	fileAgeInMinutes := int64(fileAgeDuration.Minutes())
+	fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
+	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
+
+	return fileIsOutdated, nil
 }

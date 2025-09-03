@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"time"
 	"wiki2book/cache"
@@ -35,19 +34,20 @@ func NewDefaultHttpService() *DefaultHttpService {
 	}
 }
 
-// DownloadAndCache fires an GET request to the given url and saving the result in cacheFolder/filename. The return
-// value is this resulting filepath and a bool (true = file was (tried to be) downloaded, false = file already exists in
-// cache) or an error. If the file already exists, no HTTP request is made.
+// DownloadAndCache downloads the data of the given URL and returns the full output path, a flag indicating whether the
+// file was downloaded and an error. In case the file is already cached, nothing is downloaded and the cached path
+// together with "false" are returned.
 func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string, filename string) (string, bool, error) {
-	// If file exists -> ignore
-	// TODO extract to something like "cache.GetFile(cacheFolderName, filename)" returning nil or the file path
-	outputFilepath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
-	_, err := util.CurrentFilesystem.Stat(outputFilepath)
-	if err == nil {
+	// If file already cached -> don't download and use cached file
+	outputFilepath, fileIsCached, err := cache.GetFile(cacheFolderName, filename)
+	if err == nil && fileIsCached {
 		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil
 	}
-	sigolo.Debugf("File %s not cached -> download fresh one", outputFilepath)
+	if err != nil {
+		return "", false, errors.Wrapf(err, "Unable to check whether file '%s' is already cached or not", outputFilepath)
+	}
+	sigolo.Debugf("File '%s' not cached -> download fresh one", outputFilepath)
 
 	// Get the data
 	responseBodyReader, err := d.download(url, filename)

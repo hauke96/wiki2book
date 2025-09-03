@@ -1,8 +1,10 @@
 package cache
 
 import (
+	"os"
 	"strings"
 	"testing"
+	"time"
 	"wiki2book/config"
 	"wiki2book/test"
 	"wiki2book/util"
@@ -299,4 +301,182 @@ func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1_000_000, currentCacheSize)
+}
+
+func TestGetFile(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 100
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			fileInfoTime := time.Now().Add(-20 * time.Minute)
+			fileInfo := util.NewMockFileInfoWithTime("file", fileInfoTime)
+			return fileInfo, nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, exists, err := GetFile("cache", "file")
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "cache-dir/cache/file", filePath)
+	test.AssertEqual(t, true, exists)
+}
+
+func TestGetFile_outdated(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 10
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			fileInfoTime := time.Now().Add(-20 * time.Minute)
+			fileInfo := util.NewMockFileInfoWithTime("file", fileInfoTime)
+			return fileInfo, nil
+		},
+		RemoveFunc: func(name string) error {
+			return nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, exists, err := GetFile("cache", "file")
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "cache-dir/cache/file", filePath)
+	test.AssertEqual(t, false, exists)
+}
+
+func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 10
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			fileInfoTime := time.Now().Add(-20 * time.Minute)
+			fileInfo := util.NewMockFileInfoWithTime("file", fileInfoTime)
+			return fileInfo, nil
+		},
+		RemoveFunc: func(name string) error {
+			return errors.New("test error")
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, exists, err := GetFile("cache", "file")
+
+	// Assert
+	test.AssertNotNil(t, err)
+	test.AssertEqual(t, "cache-dir/cache/file", filePath)
+	test.AssertEqual(t, false, exists)
+}
+
+func TestGetFile_fileNotExists(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 10
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			return nil, os.ErrNotExist
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, exists, err := GetFile("cache", "file")
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "cache-dir/cache/file", filePath)
+	test.AssertEqual(t, false, exists)
+}
+
+func TestGetFile_errorGettingStats(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 10
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			return nil, errors.New("test error")
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, exists, err := GetFile("cache", "file")
+
+	// Assert
+	test.AssertNotNil(t, err)
+	test.AssertEqual(t, "cache-dir/cache/file", filePath)
+	test.AssertEqual(t, false, exists)
+}
+
+func TestIsOutdated_outdated(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxAge = 10
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			fileInfoTime := time.Now().Add(-20 * time.Minute)
+			fileInfo := util.NewMockFileInfoWithTime("file", fileInfoTime)
+			return fileInfo, nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	outdated, err := isOutdated("cache", "file")
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, true, outdated)
+}
+
+func TestIsOutdated_notOutdated(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxAge = 100
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			fileInfoTime := time.Now().Add(-20 * time.Minute)
+			fileInfo := util.NewMockFileInfoWithTime("file", fileInfoTime)
+			return fileInfo, nil
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	outdated, err := isOutdated("cache", "file")
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, false, outdated)
+}
+
+func TestIsOutdated_notExistingFile(t *testing.T) {
+	// Arrange
+	config.Current.CacheMaxAge = 100
+
+	fsMock := &util.MockFilesystem{
+		StatFunc: func(path string) (os.FileInfo, error) {
+			return nil, os.ErrNotExist
+		},
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	outdated, err := isOutdated("cache", "file")
+
+	// Assert
+	test.AssertNotNil(t, err)
+	test.AssertEqual(t, false, outdated)
 }

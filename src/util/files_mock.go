@@ -23,6 +23,16 @@ func NewMockFileInfo(name string) os.FileInfo {
 	}
 }
 
+func NewMockFileInfoWithTime(name string, time time.Time) os.FileInfo {
+	return &MockFileInfo{
+		name:  name,
+		size:  0,
+		mode:  0666,
+		mod:   time,
+		isDir: false,
+	}
+}
+
 func (f MockFileInfo) Name() string       { return f.name }
 func (f MockFileInfo) Size() int64        { return f.size }
 func (f MockFileInfo) Mode() os.FileMode  { return f.mode }
