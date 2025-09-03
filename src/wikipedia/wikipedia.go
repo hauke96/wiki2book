@@ -109,7 +109,7 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*W
 func (w *DefaultWikipediaService) DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
-		sigolo.Infof("Download image %s", image)
+		sigolo.Debugf("Download image %s", image)
 
 		downloadErr := w.downloadImageUsingAllSources(image, svgSizeToViewbox, pdfToPng, svgToPng)
 		if downloadErr != nil {

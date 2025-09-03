@@ -111,6 +111,7 @@ func initCli() *cobra.Command {
 
 	projectCmd := getCommand("project", "Uses a project file to create the eBook.")
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from project")
 		if !rootCmd.PersistentFlags().Changed(cliOutputFileArgKey) {
 			// In case the output file was not specified, we don't want to use this file path but see if the project
 			// file contains the output file. This is handled in the function called here.
@@ -125,6 +126,7 @@ func initCli() *cobra.Command {
 
 	articleCmd := getCommand("article", "Renders a single article into an eBook.")
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from single article")
 		config.MergeIntoCurrentConfig(cliConfig)
 		generateArticleEbook(
 			args[0],
@@ -134,6 +136,7 @@ func initCli() *cobra.Command {
 
 	standaloneCmd := getCommand("standalone", "Renders a single mediawiki file into an eBook.")
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
 		config.MergeIntoCurrentConfig(cliConfig)
 		generateStandaloneEbook(
 			args[0],
@@ -364,7 +367,7 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, wikipediaService)
+				thisArticleFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
 				articleFiles[articleNumber] = thisArticleFile
 			}
 
@@ -416,24 +419,24 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
 	htmlFilePath := filepath.Join(util.HtmlCacheDirName, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 
-		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
 		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName)
 		sigolo.FatalCheck(err)
 
-		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
 		tokenizer := parser.NewTokenizer(wikipediaService)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
 
-		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
 		err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.
-		sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
 		htmlGenerator := &html.HtmlGenerator{
 			TokenMap:         article.TokenMap,
 			WikipediaService: wikipediaService,
@@ -442,7 +445,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
+	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	return htmlFilePath
 }
