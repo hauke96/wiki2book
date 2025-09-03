@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	TempDirName          = ".tmp" // TODO Still working? There was a slash here before.
+	TempDirName          = ".tmp"
+	ArticleCacheDirName  = "articles"
+	HtmlCacheDirName     = "html"
 	ImageCacheDirName    = "images"
 	MathCacheDirName     = "math"
 	TemplateCacheDirName = "templates"
-	ArticleCacheDirName  = "articles"
-	HtmlOutputDirName    = "html"
 
 	FileEndingSvg = ".svg"
 	FileEndingPng = ".png"

@@ -266,7 +266,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
-	htmlFilePath := path.Join(util.HtmlOutputDirName, article.Title+".html")
+	htmlFilePath := path.Join(util.HtmlCacheDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &html.HtmlGenerator{
 			TokenMap:         article.TokenMap,
@@ -414,7 +414,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
-	htmlFilePath := filepath.Join(util.HtmlOutputDirName, articleName+".html")
+	htmlFilePath := filepath.Join(util.HtmlCacheDirName, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
@@ -508,7 +508,14 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 
 	err = os.RemoveAll(cache.GetTempPath())
 	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))
+
+	sigolo.Debug("Ensure cache directories exist")
 	util.EnsureDirectory(cache.GetTempPath())
+	util.EnsureDirectory(cache.GetDirPathInCache(util.ArticleCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(util.HtmlCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(util.ImageCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(util.MathCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(util.TemplateCacheDirName))
 
 	return outputFile
 }

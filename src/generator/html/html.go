@@ -108,7 +108,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	}
 	content += expandedContent
 	content += FOOTER
-	return write(wikiArticle.Title, util.HtmlOutputDirName, content)
+	return write(wikiArticle.Title, util.HtmlCacheDirName, content)
 }
 
 func (g *HtmlGenerator) expand(content interface{}) (string, error) {
