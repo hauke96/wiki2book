@@ -329,7 +329,6 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return mathSvgFilename, nil
 	}
 
-	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := w.httpService.PostFormEncoded(urlString, requestData)
 
 	responseBodyText := ""

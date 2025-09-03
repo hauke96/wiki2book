@@ -72,7 +72,25 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 }
 
 func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *http.Response, err error) {
-	return d.httpClient.Post(url, "application/x-www-form-urlencoded", strings.NewReader(requestData))
+	sigolo.Debugf("Make POST request to %s with form data %s", url, util.TruncString(requestData))
+	request, err := http.NewRequest("POST", url, strings.NewReader(requestData))
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("Unable to create POST request for url %s", url))
+	}
+
+	userAgentString := config.Current.UserAgentTemplate
+	userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
+	request.Header.Set("User-Agent", userAgentString)
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	var response *http.Response
+	response, err = d.httpClient.Do(request)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("Error executing POST request to url %s", url))
+	}
+
+	sigolo.Tracef("Response: %#v", response)
+	return response, nil
 }
 
 // download returns the open response body of the GET request for the given URL. The article name is just there for
@@ -86,7 +104,7 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 		sigolo.Debugf("Make GET request to %s", url)
 		request, err = http.NewRequest("GET", url, nil)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to creqte GET request for url %s to download file %s", url, filename))
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s to download file %s", url, filename))
 		}
 
 		userAgentString := config.Current.UserAgentTemplate
@@ -95,7 +113,7 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 
 		response, err = d.httpClient.Do(request)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get file %s with url %s", filename, url))
+			return nil, errors.Wrap(err, fmt.Sprintf("Error executing GET request to url %s", url))
 		}
 
 		sigolo.Tracef("Response: %#v", response)
