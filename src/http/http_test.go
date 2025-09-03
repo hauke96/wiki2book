@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 	"wiki2book/config"
 	"wiki2book/test"
 	"wiki2book/util"
@@ -41,13 +42,18 @@ func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
 	httpService := NewDefaultHttpService()
 	httpService.httpClient = mockHttpClient
 
-	fsMock := util.NewDefaultMockFilesystem()
-	fsMock.ReadFileFunc = func(name string) ([]byte, error) {
-		return []byte(content), nil
+	config.Current.CacheDir = test.TestCacheFolder
+	config.Current.CacheMaxAge = 9999999
+
+	fsMock := &util.MockFilesystem{
+		ReadFileFunc: func(name string) ([]byte, error) {
+			return []byte(content), nil
+		},
+		StatFunc: func(path string) (os.FileInfo, error) {
+			return util.NewMockFileInfoWithTime("file", time.Now()), nil
+		},
 	}
 	util.CurrentFilesystem = fsMock
-
-	config.Current.CacheDir = test.TestCacheFolder
 
 	cachedFilePath, freshlyDownloaded, err := httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
 
