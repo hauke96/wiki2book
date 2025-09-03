@@ -318,7 +318,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	outputFilepath := filepath.Join(config.Current.CacheDir, util.MathCacheDirName, filename)
+	outputFilepath := cache.GetFilePathInCache(util.MathCacheDirName, filename)
 	if _, err := util.CurrentFilesystem.Stat(outputFilepath); err == nil {
 		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)

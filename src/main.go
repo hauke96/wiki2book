@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/generator"
 	"wiki2book/generator/epub"
@@ -294,9 +295,9 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(util.TempDirName)
+	err = os.RemoveAll(cache.GetTempPath())
 	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -399,9 +400,9 @@ func generateBookFromArticles(project *config.Project) {
 	)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(util.TempDirName)
+	err = os.RemoveAll(cache.GetTempPath())
 	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -505,9 +506,9 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	sigolo.FatalCheck(err)
 	outputFile = absolutePath
 
-	err = os.RemoveAll(util.TempDirName)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", util.TempDirName))
-	util.EnsureDirectory(util.TempDirName)
+	err = os.RemoveAll(cache.GetTempPath())
+	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))
+	util.EnsureDirectory(cache.GetTempPath())
 
 	return outputFile
 }

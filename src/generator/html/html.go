@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/image"
 	"wiki2book/parser"
@@ -468,7 +469,7 @@ func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {
 
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
-	outputFolder = filepath.Join(config.Current.CacheDir, outputFolder)
+	outputFolder = cache.GetDirPathInCache(outputFolder)
 
 	// Create the output folder
 	sigolo.Debugf("Ensure output folder '%s'", outputFolder)

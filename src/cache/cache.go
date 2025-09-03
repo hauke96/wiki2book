@@ -13,10 +13,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+func GetFilePathInCache(cacheFolderName string, filename string) string {
+	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+}
+
+func GetDirPathInCache(cacheFolderName string) string {
+	return filepath.Join(config.Current.CacheDir, cacheFolderName)
+}
+
+func GetTempPath() string {
+	return filepath.Join(config.Current.CacheDir, util.TempDirName)
+}
+
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
 // folder within the cache, not a whole path. The filename is the name of the file in the cache.
 func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) error {
-	outputFilepath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
 	// Create the output folder
@@ -31,9 +43,9 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	//
 
 	// Create the output file
-	tempFile, err := util.CurrentFilesystem.CreateTemp(util.TempDirName, filename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), filename)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(util.TempDirName, filename)))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
 	tempFilepath := tempFile.Name()
 	defer util.CurrentFilesystem.Remove(tempFilepath)
@@ -91,7 +103,7 @@ func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, ne
 	// just be added to the cache, but instead the old file will be replaced. The cache then grows much less in size or
 	// might even shrink (in case the new file is smaller than the old one).
 	var netCacheSizeChangeInBytes = newFileSizeInBytes
-	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(filepath.Join(config.Current.CacheDir, cacheFolderName, newFileName))
+	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(GetFilePathInCache(cacheFolderName, newFileName))
 	if err == nil {
 		netCacheSizeChangeInBytes = newFileSizeInBytes - existingFileSizeInBytes
 	}
@@ -156,7 +168,7 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 // The boolean only has a meaning when the error is nil. In such cases "true" means the file exists and can be used,
 // "false" means the file doesn't exist. In case of an error, the boolean is always "false".
 func GetFile(cacheFolderName string, filename string) (string, bool, error) {
-	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
 	if os.IsNotExist(err) {
@@ -182,7 +194,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 // exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
 // error types, the booleans have no meaning.
 func isOutdated(cacheFolderName string, filename string) (bool, error) {
-	filePath := filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {
