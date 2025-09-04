@@ -213,9 +213,6 @@ func (t *Tokenizer) parseImages(content string) string {
 			options := strings.Split(imageContent, "|")
 
 			filename := strings.SplitN(options[0], ":", 2)[1]
-			// TODO should the path really be constructed here in the tokenizer? Maybe the pure filename is enough?
-			imageFilepath := filepath.Join(util.ImageCacheDirName, filename)
-
 			tokenType := TOKEN_IMAGE_INLINE
 			hasCaption := false
 			captionToken := CaptionToken{}
@@ -279,13 +276,13 @@ func (t *Tokenizer) parseImages(content string) string {
 			var imageToken Token
 			if tokenType == TOKEN_IMAGE_INLINE {
 				imageToken = InlineImageToken{
-					Filename: imageFilepath,
+					Filename: filename,
 					SizeX:    xSizeInt,
 					SizeY:    ySizeInt,
 				}
 			} else {
 				imageToken = ImageToken{
-					Filename: imageFilepath,
+					Filename: filename,
 					Caption:  captionToken,
 					SizeX:    xSizeInt,
 					SizeY:    ySizeInt,

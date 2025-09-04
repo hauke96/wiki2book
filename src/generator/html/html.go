@@ -222,7 +222,7 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename := token.Filename
+	filename := cache.GetRelativeFilePathInCache(util.ImageCacheDirName, token.Filename)
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
@@ -240,7 +240,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
 
-	filename := token.Filename
+	filename := cache.GetRelativeFilePathInCache(util.ImageCacheDirName, token.Filename)
 	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
 		filename = util.GetPngPathForPdf(filename)
 	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {

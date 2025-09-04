@@ -17,6 +17,10 @@ func GetFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 }
 
+func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
+	return filepath.Join(".", cacheFolderName, filename)
+}
+
 func GetDirPathInCache(cacheFolderName string) string {
 	return filepath.Join(config.Current.CacheDir, cacheFolderName)
 }

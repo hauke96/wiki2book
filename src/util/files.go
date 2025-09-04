@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// TODO move them to cache package
 	TempDirName          = ".tmp"
 	ArticleCacheDirName  = "articles"
 	HtmlCacheDirName     = "html"

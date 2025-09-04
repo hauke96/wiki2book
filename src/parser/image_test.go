@@ -5,7 +5,6 @@ import (
 	"testing"
 	"wiki2book/config"
 	"wiki2book/test"
-	"wiki2book/util"
 	"wiki2book/wikipedia"
 )
 
@@ -191,7 +190,7 @@ func TestParseImages_withEscaping(t *testing.T) {
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE_INLINE + "_0$$": InlineImageToken{
-			Filename: util.ImageCacheDirName + "/Nice_image.jpg",
+			Filename: "Nice_image.jpg",
 			SizeX:    -1,
 			SizeY:    -1,
 		},
@@ -241,7 +240,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{},
 			SizeX:    100,
 			SizeY:    200,
@@ -253,7 +252,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{},
 			SizeX:    -1,
 			SizeY:    200,
@@ -265,7 +264,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{},
 			SizeX:    200,
 			SizeY:    -1,
@@ -277,7 +276,7 @@ func TestParseImages_withSizes(t *testing.T) {
 	test.AssertEqual(t, "blubb $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{},
 			SizeX:    200,
 			SizeY:    -1,
@@ -292,7 +291,7 @@ func TestParseImages_withCaption(t *testing.T) {
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{Content: "some caption"},
 			SizeX:    10,
 			SizeY:    20,
@@ -306,7 +305,7 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{Content: "some $$TOKEN_" + TOKEN_EXTERNAL_LINK + "_0$$"},
 			SizeX:    -1,
 			SizeY:    -1,
@@ -322,7 +321,7 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_1$$", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_1$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{Content: "some $$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$"},
 			SizeX:    -1,
 			SizeY:    -1,
@@ -345,7 +344,7 @@ func TestParseImages_withCaptionAndTrailingParameter(t *testing.T) {
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)
 	test.AssertMapEqual(t, map[string]Token{
 		"$$TOKEN_" + TOKEN_IMAGE + "_0$$": ImageToken{
-			Filename: util.ImageCacheDirName + "/Image.jpg",
+			Filename: "Image.jpg",
 			Caption:  CaptionToken{Content: "some caption"},
 			SizeX:    10,
 			SizeY:    20,
