@@ -164,6 +164,8 @@ type Configuration struct {
 
 	/*
 		The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.
+		Note that setting CacheEvictionStrategy to "lru" stays in conflict with this setting, because the LRU cache
+		constantly updates timestamps on files.
 
 		Default: 40320 (four weeks)
 	*/
@@ -175,8 +177,13 @@ type Configuration struct {
 		Default: "lru"
 		Allowed values:
 			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
-			- "lru" - In case the maximum cache size has been reached, the least recently used file will be removed first.
-			- "none" - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the CacheMaxSize setting has no effect.
+			- "lru"     - In case the maximum cache size has been reached, the least recently used file will be removed
+			              first.
+			              Note that the LRU cache stays in conflict with the CacheMaxAge setting. Using the LRU cache
+			              constantly updates timestamps on files, which then might stay longer in cache than CacheMaxAge
+			              defines.
+			- "none"    - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the
+			              CacheMaxSize setting has no effect.
 	*/
 	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
 

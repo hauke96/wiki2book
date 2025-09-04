@@ -45,13 +45,12 @@ func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
 	config.Current.CacheDir = test.TestCacheFolder
 	config.Current.CacheMaxAge = 9999999
 
-	fsMock := &util.MockFilesystem{
-		ReadFileFunc: func(name string) ([]byte, error) {
-			return []byte(content), nil
-		},
-		StatFunc: func(path string) (os.FileInfo, error) {
-			return util.NewMockFileInfoWithTime("file", time.Now()), nil
-		},
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.ReadFileFunc = func(name string) ([]byte, error) {
+		return []byte(content), nil
+	}
+	fsMock.StatFunc = func(path string) (os.FileInfo, error) {
+		return util.NewMockFileInfoWithTime("file", time.Now()), nil
 	}
 	util.CurrentFilesystem = fsMock
 

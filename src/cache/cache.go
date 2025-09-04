@@ -145,7 +145,6 @@ func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	return err, cacheSizeInBytes - largestFileSizeInBytes
 }
 
-// TODO Update timestamp on file when using them (i.e. when getting them from cache)
 func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
 	var lruFilePath string
@@ -184,6 +183,16 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 		err = util.CurrentFilesystem.Remove(filePath)
 		if err != nil {
 			return filePath, false, errors.Wrap(err, fmt.Sprintf("Unable to remove oudated file '%s'", filePath))
+		}
+	}
+
+	if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLru {
+		// When using the LRU cache, update access and modification time (both, since linux usually only knows the
+		// latter) to correctly determine the least recently used file.
+		now := time.Now()
+		err = util.CurrentFilesystem.Chtimes(filePath, now, now)
+		if err != nil {
+			sigolo.Warnf("Unable to update access-time of file '%s': %s. This has no direct negative effect on the further execution.", filename, err.Error())
 		}
 	}
 

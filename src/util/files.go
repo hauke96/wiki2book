@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
@@ -151,6 +152,7 @@ type Filesystem interface {
 	FindLruFile(path string) (error, int64, string)
 	ReadFile(name string) ([]byte, error)
 	Stat(name string) (os.FileInfo, error)
+	Chtimes(name string, atime time.Time, mtime time.Time) error
 }
 
 var CurrentFilesystem Filesystem = &OsFilesystem{}
@@ -263,4 +265,8 @@ func (o *OsFilesystem) ReadFile(name string) ([]byte, error) {
 
 func (o *OsFilesystem) Stat(name string) (os.FileInfo, error) {
 	return os.Stat(name)
+}
+
+func (o *OsFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	return os.Chtimes(name, atime, mtime)
 }

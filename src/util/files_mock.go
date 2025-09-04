@@ -82,6 +82,7 @@ type MockFilesystem struct {
 	FindLruFileFunc     func(path string) (error, int64, string)
 	ReadFileFunc        func(name string) ([]byte, error)
 	StatFunc            func(name string) (os.FileInfo, error)
+	ChtimesFunc         func(name string, atime time.Time, mtime time.Time) error
 }
 
 func NewDefaultMockFilesystem() *MockFilesystem {
@@ -97,6 +98,7 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 		FindLruFileFunc:     func(path string) (error, int64, string) { return nil, -1, "" },
 		ReadFileFunc:        func(name string) ([]byte, error) { return []byte{}, nil },
 		StatFunc:            func(name string) (os.FileInfo, error) { return NewMockFileInfo("__mock-file-info__"), nil },
+		ChtimesFunc:         func(name string, atime time.Time, mtime time.Time) error { return nil },
 	}
 }
 
@@ -142,4 +144,8 @@ func (m *MockFilesystem) ReadFile(name string) ([]byte, error) {
 
 func (m *MockFilesystem) Stat(name string) (os.FileInfo, error) {
 	return m.StatFunc(name)
+}
+
+func (m *MockFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	return m.ChtimesFunc(name, atime, mtime)
 }
