@@ -78,8 +78,8 @@ type MockFilesystem struct {
 	MkdirAllFunc        func(path string) error
 	CreateTempFunc      func(dir, pattern string) (FileLike, error)
 	DirSizeInBytesFunc  func(path string) (error, int64)
-	FindLargestFileFunc func(path string) (error, int64, string)
-	FindLruFileFunc     func(path string) (error, int64, string)
+	FindLargestFileFunc func(path string, exceptDir string) (error, int64, string)
+	FindLruFileFunc     func(path string, exceptDir string) (error, int64, string)
 	ReadFileFunc        func(name string) ([]byte, error)
 	StatFunc            func(name string) (os.FileInfo, error)
 	ChtimesFunc         func(name string, atime time.Time, mtime time.Time) error
@@ -94,8 +94,8 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 		MkdirAllFunc:        func(path string) error { return nil },
 		CreateTempFunc:      func(dir, pattern string) (FileLike, error) { return NewMockFile(pattern), nil },
 		DirSizeInBytesFunc:  func(path string) (error, int64) { return nil, -1 },
-		FindLargestFileFunc: func(path string) (error, int64, string) { return nil, -1, "" },
-		FindLruFileFunc:     func(path string) (error, int64, string) { return nil, -1, "" },
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) { return nil, -1, "" },
+		FindLruFileFunc:     func(path string, exceptDir string) (error, int64, string) { return nil, -1, "" },
 		ReadFileFunc:        func(name string) ([]byte, error) { return []byte{}, nil },
 		StatFunc:            func(name string) (os.FileInfo, error) { return NewMockFileInfo("__mock-file-info__"), nil },
 		ChtimesFunc:         func(name string, atime time.Time, mtime time.Time) error { return nil },
@@ -130,12 +130,12 @@ func (m *MockFilesystem) DirSizeInBytes(path string) (error, int64) {
 	return m.DirSizeInBytesFunc(path)
 }
 
-func (m *MockFilesystem) FindLargestFile(path string) (error, int64, string) {
-	return m.FindLargestFileFunc(path)
+func (m *MockFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
+	return m.FindLargestFileFunc(path, exceptDir)
 }
 
-func (m *MockFilesystem) FindLruFile(path string) (error, int64, string) {
-	return m.FindLruFileFunc(path)
+func (m *MockFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
+	return m.FindLruFileFunc(path, exceptDir)
 }
 
 func (m *MockFilesystem) ReadFile(name string) ([]byte, error) {

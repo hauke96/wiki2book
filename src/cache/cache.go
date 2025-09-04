@@ -13,6 +13,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	TempDirName          = ".tmp"
+	ArticleCacheDirName  = "articles"
+	HtmlCacheDirName     = "html"
+	ImageCacheDirName    = "images"
+	MathCacheDirName     = "math"
+	TemplateCacheDirName = "templates"
+)
+
 func GetFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 }
@@ -26,7 +35,7 @@ func GetDirPathInCache(cacheFolderName string) string {
 }
 
 func GetTempPath() string {
-	return filepath.Join(config.Current.CacheDir, util.TempDirName)
+	return filepath.Join(config.Current.CacheDir, TempDirName)
 }
 
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
@@ -135,7 +144,7 @@ func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
 	var largestFilePath string
 	var largestFileSizeInBytes int64
-	err, largestFileSizeInBytes, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir)
+	err, largestFileSizeInBytes, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir, TempDirName)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
 	}
@@ -153,7 +162,7 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
 	var lruFilePath string
 	var lruFileSizeInBytes int64
-	err, lruFileSizeInBytes, lruFilePath = util.CurrentFilesystem.FindLruFile(config.Current.CacheDir)
+	err, lruFileSizeInBytes, lruFilePath = util.CurrentFilesystem.FindLruFile(config.Current.CacheDir, TempDirName)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to determine least recently used file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
 	}

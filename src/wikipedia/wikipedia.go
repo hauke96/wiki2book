@@ -80,7 +80,7 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*W
 	urlString := fmt.Sprintf("https://%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", host, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
-	cachedFilePath, _, err := w.httpService.DownloadAndCache(urlString, util.ArticleCacheDirName, cachedFile)
+	cachedFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.ArticleCacheDirName, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
@@ -231,7 +231,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 
 	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, wikiInstancePathSegment, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
-	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, util.ImageCacheDirName, originalImageName)
+	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, cache.ImageCacheDirName, originalImageName)
 	if err != nil {
 		return "", freshlyDownloaded, err
 	}
@@ -250,7 +250,7 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.wikipediaInstance, w.wikipediaHost, url.QueryEscape(template))
-	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, util.TemplateCacheDirName, cacheFile)
+	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.TemplateCacheDirName, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
@@ -281,7 +281,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 	}
 
 	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
-	cachedSvgFile, _, err := w.httpService.DownloadAndCache(imageSvgUrl, util.ImageCacheDirName, mathSvgFilename+util.FileEndingSvg)
+	cachedSvgFile, _, err := w.httpService.DownloadAndCache(imageSvgUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingSvg)
 	if err != nil {
 		return "", "", err
 	}
@@ -290,13 +290,13 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		return cachedSvgFile, cachedSvgFile, nil
 	} else if config.Current.MathConverter == config.MathConverterWikimedia {
 		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, util.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		if err != nil {
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
-		cachedPngFile := filepath.Join(util.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
@@ -318,7 +318,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	outputFilepath := cache.GetFilePathInCache(util.MathCacheDirName, filename)
+	outputFilepath := cache.GetFilePathInCache(cache.MathCacheDirName, filename)
 	if _, err := util.CurrentFilesystem.Stat(outputFilepath); err == nil {
 		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
@@ -357,7 +357,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cache.CacheToFile(util.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

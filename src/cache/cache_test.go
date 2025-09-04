@@ -17,7 +17,7 @@ func TestDeleteLargestFileFromCache(t *testing.T) {
 	expectedPath := "some/path/to/file.txt"
 	actualPath := ""
 	fsMock := &util.MockFilesystem{
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, 120_000, expectedPath
 		},
 		RemoveFunc: func(path string) error {
@@ -40,7 +40,7 @@ func TestDeleteLargestFileFromCache_errorFindingFile(t *testing.T) {
 	// Arrange
 	expectedError := errors.New("test error")
 	fsMock := &util.MockFilesystem{
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return expectedError, -1, ""
 		},
 	}
@@ -60,7 +60,7 @@ func TestDeleteLargestFileFromCache_errorRemovingFile(t *testing.T) {
 	expectedPath := "some/path/to/file.txt"
 	expectedError := errors.New("test error")
 	fsMock := &util.MockFilesystem{
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, 120_000, expectedPath
 		},
 		RemoveFunc: func(path string) error {
@@ -83,7 +83,7 @@ func TestDeleteLruFromCache(t *testing.T) {
 	expectedPath := "some/path/to/file.txt"
 	actualPath := ""
 	fsMock := &util.MockFilesystem{
-		FindLruFileFunc: func(path string) (error, int64, string) {
+		FindLruFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, 120_000, expectedPath
 		},
 		RemoveFunc: func(path string) error {
@@ -106,7 +106,7 @@ func TestDeleteLruFromCache_errorFindingFile(t *testing.T) {
 	// Arrange
 	expectedError := errors.New("test error")
 	fsMock := &util.MockFilesystem{
-		FindLruFileFunc: func(path string) (error, int64, string) {
+		FindLruFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return expectedError, -1, ""
 		},
 	}
@@ -126,7 +126,7 @@ func TestDeleteLruFromCache_errorRemovingFile(t *testing.T) {
 	expectedPath := "some/path/to/file.txt"
 	expectedError := errors.New("test error")
 	fsMock := &util.MockFilesystem{
-		FindLruFileFunc: func(path string) (error, int64, string) {
+		FindLruFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, 120_000, expectedPath
 		},
 		RemoveFunc: func(path string) error {
@@ -156,7 +156,7 @@ func TestDeleteFilesFromCacheIfNeeded_largest(t *testing.T) {
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return 0, errors.New("test error: no existing file")
 		},
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {
@@ -188,7 +188,7 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileIncreasingCacheSize(t *tes
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return existingFileSize, nil
 		},
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {
@@ -222,7 +222,7 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileReducingCacheSize(t *testi
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return existingFileSize, nil
 		},
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {
@@ -256,7 +256,7 @@ func TestDeleteFilesFromCacheIfNeeded_errorDeletingFile(t *testing.T) {
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return existingFileSize, nil
 		},
-		FindLargestFileFunc: func(path string) (error, int64, string) {
+		FindLargestFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {
@@ -285,7 +285,7 @@ func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
 		GetSizeInBytesFunc: func(path string) (int64, error) {
 			return 0, errors.New("test error: no existing file")
 		},
-		FindLruFileFunc: func(path string) (error, int64, string) {
+		FindLruFileFunc: func(path string, exceptDir string) (error, int64, string) {
 			return nil, fileSize, "path/to/file.txt"
 		},
 		RemoveFunc: func(path string) error {

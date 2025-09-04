@@ -12,14 +12,6 @@ import (
 )
 
 const (
-	// TODO move them to cache package
-	TempDirName          = ".tmp"
-	ArticleCacheDirName  = "articles"
-	HtmlCacheDirName     = "html"
-	ImageCacheDirName    = "images"
-	MathCacheDirName     = "math"
-	TemplateCacheDirName = "templates"
-
 	FileEndingSvg = ".svg"
 	FileEndingPng = ".png"
 	FileEndingPdf = ".pdf"
@@ -149,8 +141,8 @@ type Filesystem interface {
 	MkdirAll(path string) error
 	CreateTemp(dir, pattern string) (FileLike, error)
 	DirSizeInBytes(path string) (error, int64)
-	FindLargestFile(path string) (error, int64, string)
-	FindLruFile(path string) (error, int64, string)
+	FindLargestFile(path string, exceptDir string) (error, int64, string)
+	FindLruFile(path string, exceptDir string) (error, int64, string)
 	ReadFile(name string) ([]byte, error)
 	Stat(name string) (os.FileInfo, error)
 	Chtimes(name string, atime time.Time, mtime time.Time) error
@@ -208,7 +200,7 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 	return nil, dirSizeBytes
 }
 
-func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
+func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
 	var currentLargestFile os.FileInfo
 	var currentLargestFilePath string
 
@@ -218,7 +210,7 @@ func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
 				currentLargestFile = file
 				currentLargestFilePath = path
 			}
-		} else if file.Name() == TempDirName {
+		} else if file.Name() == exceptDir {
 			// The directory for temporary files might be inside the cache folder. This is fine, but we don't want to
 			// count in temporary files then.
 			return filepath.SkipDir
@@ -234,7 +226,7 @@ func (o *OsFilesystem) FindLargestFile(path string) (error, int64, string) {
 	return nil, currentLargestFile.Size(), currentLargestFilePath
 }
 
-func (o *OsFilesystem) FindLruFile(path string) (error, int64, string) {
+func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
 	var currentLruFilePath string
 	var currentLruFile os.FileInfo
 
@@ -244,7 +236,7 @@ func (o *OsFilesystem) FindLruFile(path string) (error, int64, string) {
 				currentLruFile = file
 				currentLruFilePath = path
 			}
-		} else if file.Name() == TempDirName {
+		} else if file.Name() == exceptDir {
 			// The directory for temporary files might be inside the cache folder. This is fine, but we don't want to
 			// count in temporary files then.
 			return filepath.SkipDir
