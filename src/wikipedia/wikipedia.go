@@ -51,7 +51,6 @@ type WikipediaService interface {
 }
 
 type DefaultWikipediaService struct {
-	cacheFolder                string // TODO can be removed?
 	wikipediaInstance          string
 	wikipediaHost              string
 	wikipediaImageArticleHosts []string
@@ -63,7 +62,6 @@ type DefaultWikipediaService struct {
 
 func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
-		cacheFolder:                cacheFolder,
 		wikipediaInstance:          wikipediaInstance,
 		wikipediaHost:              wikipediaHost,
 		wikipediaImageArticleHosts: wikipediaImageInstances,
@@ -126,7 +124,6 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svg
 		var outputFilepath string
 		var freshlyDownloaded bool
 		isLastSource := i == len(w.wikipediaImageArticleHosts)-1
-		// TODO Bug: The image instance is not used to download the image article, which should be the case.
 		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {
