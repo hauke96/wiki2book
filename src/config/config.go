@@ -31,6 +31,10 @@ const (
 	InputPlaceholder  = "{INPUT}"
 	OutputPlaceholder = "{OUTPUT}"
 
+	CacheEvictionStrategyLargest = "largest"
+	CacheEvictionStrategyLru     = "lru"
+	CacheEvictionStrategyNone    = "none"
+
 	defaultCommandTemplateSvgToPng                   = "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateLinuxMathSvgToPngWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
@@ -51,6 +55,9 @@ func NewDefaultConfig() *Configuration {
 		OutputType:                     OutputTypeEpub2,
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
+		CacheMaxSize:                   100_000_000,
+		CacheMaxAge:                    40_320,
+		CacheEvictionStrategy:          CacheEvictionStrategyLru,
 		StyleFile:                      getDefaultStyleFile(),
 		ConvertPdfToPng:                false,
 		IgnoredTemplates:               []string{},
@@ -147,6 +154,38 @@ type Configuration struct {
 		JSON example: "cache-dir": "/path/to/cache"
 	*/
 	CacheDir string `json:"cache-dir"`
+
+	/*
+		The maximum size of the file cache in bytes.
+
+		Default: 100000000 (100 MiB)
+	*/
+	CacheMaxSize int64 `json:"cache-max-size"`
+
+	/*
+		The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.
+		Note that setting CacheEvictionStrategy to "lru" stays in conflict with this setting, because the LRU cache
+		constantly updates timestamps on files.
+
+		Default: 40320 (four weeks)
+	*/
+	CacheMaxAge int64 `json:"cache-max-age"`
+
+	/*
+		The strategy by which files are removed from the case when it's full.
+
+		Default: "lru"
+		Allowed values:
+			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
+			- "lru"     - In case the maximum cache size has been reached, the least recently used file will be removed
+			              first.
+			              Note that the LRU cache stays in conflict with the CacheMaxAge setting. Using the LRU cache
+			              constantly updates timestamps on files, which then might stay longer in cache than CacheMaxAge
+			              defines.
+			- "none"    - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the
+			              CacheMaxSize setting has no effect.
+	*/
+	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
@@ -443,6 +482,18 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CacheDir with %s", absolutePath)
 		Current.CacheDir = absolutePath
 	}
+	if c.CacheMaxSize != defaultConfig.CacheMaxSize {
+		sigolo.Tracef("Override CacheMaxSize with %d", c.CacheMaxSize)
+		Current.CacheMaxSize = c.CacheMaxSize
+	}
+	if c.CacheMaxAge != defaultConfig.CacheMaxAge {
+		sigolo.Tracef("Override CacheMaxAge with %d", c.CacheMaxAge)
+		Current.CacheMaxAge = c.CacheMaxAge
+	}
+	if c.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
+		sigolo.Tracef("Override CacheEvictionStrategy with %s", c.CacheEvictionStrategy)
+		Current.CacheEvictionStrategy = c.CacheEvictionStrategy
+	}
 	if c.StyleFile != defaultConfig.StyleFile {
 		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
 		sigolo.FatalCheck(err)
@@ -682,6 +733,16 @@ func (c *Configuration) AssertValidity() {
 	}
 	if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
 		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+	}
+
+	if c.CacheMaxSize <= 0 {
+		sigolo.FatalCheck(errors.Errorf("CacheMaxSize must be larger than 0 but was %d", c.CacheMaxSize))
+	}
+	if c.CacheMaxAge <= 0 {
+		sigolo.FatalCheck(errors.Errorf("CacheMaxAge must be larger than 0 but was %d", c.CacheMaxAge))
+	}
+	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
+		sigolo.FatalCheck(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
 	}
 }
 

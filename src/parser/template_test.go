@@ -10,7 +10,7 @@ var templateFolder = test.TestCacheFolder
 
 func TestEvaluateTemplate_existingFile(t *testing.T) {
 	wikipediaService := wikipedia.DummyWikipediaService{EvaluateTemplateResponse: "blubb"}
-	tokenizer := NewTokenizer("foo", templateFolder, &wikipediaService)
+	tokenizer := NewTokenizer(&wikipediaService)
 
 	content, err := tokenizer.evaluateTemplates("Wikitext with {{my-template}}.")
 	test.AssertNil(t, err)
@@ -20,7 +20,7 @@ func TestEvaluateTemplate_existingFile(t *testing.T) {
 func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	expectedTemplateContent := "<div class=\"hauptartikel\" role=\"navigation\"><span class=\"hauptartikel-pfeil\" title=\"siehe\" aria-hidden=\"true\" role=\"presentation\">→ </span>''<span class=\"hauptartikel-text\">Hauptartikel</span>: [[Sternentstehung]]''</div>"
 	wikipediaService := wikipedia.DummyWikipediaService{EvaluateTemplateResponse: expectedTemplateContent}
-	tokenizer := NewTokenizer("foo", templateFolder, &wikipediaService)
+	tokenizer := NewTokenizer(&wikipediaService)
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
@@ -36,7 +36,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 
 	expectedTemplateContent := "<div>foo</div>"
 	wikipediaService := wikipedia.DummyWikipediaService{EvaluateTemplateResponse: expectedTemplateContent}
-	tokenizer := NewTokenizer("foo", templateFolder, &wikipediaService)
+	tokenizer := NewTokenizer(&wikipediaService)
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}} bar}}")
@@ -52,7 +52,7 @@ func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
 
 	expectedTemplateContent := "<div>foo</div>"
 	wikipediaService := wikipedia.DummyWikipediaService{EvaluateTemplateResponse: expectedTemplateContent}
-	tokenizer := NewTokenizer("foo", templateFolder, &wikipediaService)
+	tokenizer := NewTokenizer(&wikipediaService)
 
 	// Evaluate content -> no space/separator between first }} and second }}
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}}}}")

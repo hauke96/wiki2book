@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/generator"
 	"wiki2book/generator/epub"
@@ -65,7 +66,7 @@ func initCli() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&cliConfigFile, "config", "c", "", "The path to the overall application config. If not specified, default values are used.")
-	rootCmd.PersistentFlags().StringVarP(&cliLogging, "logging", "l", "info", "Logging verbosity. Possible values: \"info\" (default), \"debug\", \"trace\".")
+	rootCmd.PersistentFlags().StringVarP(&cliLogging, "logging", "l", "info", "Logging verbosity. Possible values: \"info\", \"debug\", \"trace\".")
 
 	rootCmd.PersistentFlags().StringVarP(&cliOutputFile, cliOutputFileArgKey, "o", "ebook.epub", "The path to the output file.")
 
@@ -74,9 +75,12 @@ func initCli() *cobra.Command {
 
 	rootCmd.PersistentFlags().BoolVarP(&cliConfig.ForceRegenerateHtml, "force-regenerate-html", "r", cliConfig.ForceRegenerateHtml, "Forces wiki2book to recreate HTML files even if they exists from a previous run.")
 	rootCmd.PersistentFlags().BoolVar(&cliConfig.SvgSizeToViewbox, "svg-size-to-viewbox", cliConfig.SvgSizeToViewbox, "Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2' (default), 'epub3'.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputDriver, "output-driver", cliConfig.OutputDriver, "The method to generate the output file. Available driver: 'pandoc' (default), 'internal' (experimental!)")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2', 'epub3'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputDriver, "output-driver", cliConfig.OutputDriver, "The method to generate the output file. Available driver: 'pandoc', 'internal' (experimental!)")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheDir, "cache-dir", cliConfig.CacheDir, "The directory where all cached files will be written to.")
+	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxSize, "cache-max-size", cliConfig.CacheMaxSize, "The maximum size of the file cache in bytes.")
+	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxAge, "cache-max-age", cliConfig.CacheMaxAge, "The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheEvictionStrategy, "cache-eviction-strategy", cliConfig.CacheEvictionStrategy, "The strategy by which files are removed from the case when it's full. Can be: 'none', 'lru', 'largest'")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.StyleFile, "style-file", cliConfig.StyleFile, "The CSS file that should be used.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CoverImage, "cover-image", cliConfig.CoverImage, "A cover image for the front cover of the eBook.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateSvgToPng, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng, "Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
@@ -107,6 +111,7 @@ func initCli() *cobra.Command {
 
 	projectCmd := getCommand("project", "Uses a project file to create the eBook.")
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from project")
 		if !rootCmd.PersistentFlags().Changed(cliOutputFileArgKey) {
 			// In case the output file was not specified, we don't want to use this file path but see if the project
 			// file contains the output file. This is handled in the function called here.
@@ -121,6 +126,7 @@ func initCli() *cobra.Command {
 
 	articleCmd := getCommand("article", "Renders a single article into an eBook.")
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from single article")
 		config.MergeIntoCurrentConfig(cliConfig)
 		generateArticleEbook(
 			args[0],
@@ -130,6 +136,7 @@ func initCli() *cobra.Command {
 
 	standaloneCmd := getCommand("standalone", "Renders a single mediawiki file into an eBook.")
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
 		config.MergeIntoCurrentConfig(cliConfig)
 		generateStandaloneEbook(
 			args[0],
@@ -239,7 +246,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
-	outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile := ensurePathsAndGoIntoCacheFolder(outputFile)
+	outputFile = ensurePathsAndClearTempDir(outputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
@@ -254,24 +261,21 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		http.NewDefaultHttpService(),
 	)
 
-	tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
+	tokenizer := parser.NewTokenizer(wikipediaService)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+	err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
-	htmlFilePath := path.Join(htmlOutputFolder, article.Title+".html")
+	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &html.HtmlGenerator{
-			ImageCacheFolder:   imageCache,
-			MathCacheFolder:    mathCache,
-			ArticleCacheFolder: articleCache,
-			TokenMap:           article.TokenMap,
-			WikipediaService:   wikipediaService,
+			TokenMap:         article.TokenMap,
+			WikipediaService: wikipediaService,
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
 
@@ -294,9 +298,9 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(util.TempDirName)
+	err = os.RemoveAll(cache.GetTempPath())
 	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -323,7 +327,7 @@ func generateBookFromArticles(project *config.Project) {
 	metadata := project.Metadata
 	outputFile := project.OutputFile
 
-	outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile := ensurePathsAndGoIntoCacheFolder(outputFile)
+	outputFile = ensurePathsAndClearTempDir(outputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
@@ -363,7 +367,7 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber, numberOfArticles, wikipediaService, htmlOutputFolder, articleCache, imageCache, templateCache, mathCache, relativeStyleFile)
+				thisArticleFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
 				articleFiles[articleNumber] = thisArticleFile
 			}
 
@@ -399,9 +403,9 @@ func generateBookFromArticles(project *config.Project) {
 	)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(util.TempDirName)
+	err = os.RemoveAll(cache.GetTempPath())
 	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", util.TempDirName)
+		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -409,42 +413,39 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
 }
 
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService, htmlOutputFolder string, articleCache string, imageCache string, templateCache string, mathCache string, relativeStyleFile string) string {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
-	htmlFilePath := filepath.Join(htmlOutputFolder, articleName+".html")
+	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html")
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-		sigolo.Infof("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 
-		sigolo.Infof("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
-		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName, articleCache)
+		sigolo.Debugf("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
+		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName)
 		sigolo.FatalCheck(err)
 
-		sigolo.Infof("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
-		tokenizer := parser.NewTokenizer(imageCache, templateCache, wikipediaService)
+		sigolo.Debugf("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
+		tokenizer := parser.NewTokenizer(wikipediaService)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
 
-		sigolo.Infof("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = wikipediaService.DownloadImages(article.Images, imageCache, articleCache, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+		sigolo.Debugf("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
+		err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.
-		sigolo.Infof("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
+		sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
 		htmlGenerator := &html.HtmlGenerator{
-			ImageCacheFolder:   imageCache,
-			MathCacheFolder:    mathCache,
-			ArticleCacheFolder: articleCache,
-			TokenMap:           article.TokenMap,
-			WikipediaService:   wikipediaService,
+			TokenMap:         article.TokenMap,
+			WikipediaService: wikipediaService,
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article, htmlOutputFolder, relativeStyleFile)
+		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Infof("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
+	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	return htmlFilePath
 }
@@ -476,13 +477,9 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 	return !htmlFileExists
 }
 
-func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string, string, string, string, string) {
-	imageCache := "images"
-	mathCache := "math"
-	templateCache := "templates"
-	articleCache := "articles"
-	htmlOutputFolder := "html"
-
+// ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
+// temporary files in the temp files folder that might still exist from previous runs.
+func ensurePathsAndClearTempDir(outputFile string) string {
 	var file *os.File
 	if _, err := os.Stat(outputFile); err != nil {
 		// Output file does not exist
@@ -512,19 +509,16 @@ func ensurePathsAndGoIntoCacheFolder(outputFile string) (string, string, string,
 	sigolo.FatalCheck(err)
 	outputFile = absolutePath
 
-	// Create cache dir and go into it
-	util.EnsureDirectory(config.Current.CacheDir)
-	err = os.Chdir(config.Current.CacheDir)
-	sigolo.FatalCheck(err)
+	err = os.RemoveAll(cache.GetTempPath())
+	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))
 
-	err = os.RemoveAll(util.TempDirName)
-	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", util.TempDirName))
-	util.EnsureDirectory(util.TempDirName)
+	sigolo.Debug("Ensure cache directories exist")
+	util.EnsureDirectory(cache.GetTempPath())
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.ArticleCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.HtmlCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.ImageCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.MathCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.TemplateCacheDirName))
 
-	// Make all relevant paths relative again. This ensures that the locations within the HTML files are independent
-	// of the systems' directory structure.
-	relativeStyleFile, err := util.ToRelativePath(config.Current.StyleFile)
-	sigolo.FatalCheck(err)
-
-	return outputFile, imageCache, mathCache, templateCache, articleCache, htmlOutputFolder, relativeStyleFile
+	return outputFile
 }

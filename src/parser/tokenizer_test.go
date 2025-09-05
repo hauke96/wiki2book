@@ -7,15 +7,13 @@ import (
 )
 
 func TestNewTokenizer(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
-	test.AssertEqual(t, "foo", tokenizer.imageFolder)
-	test.AssertEqual(t, "bar", tokenizer.templateFolder)
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 	test.AssertEqual(t, 0, tokenizer.tokenCounter)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 }
 
 func TestSetToken(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 
 	tokenizeContentCallArgument := ""
@@ -30,7 +28,7 @@ func TestSetToken(t *testing.T) {
 }
 
 func TestSetRawToken(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
 
 	tokenizer.tokenizeContent = func(tokenizer *Tokenizer, content string) string {

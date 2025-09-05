@@ -7,7 +7,7 @@ import (
 )
 
 func TestHackGermanRailwayTemplates_noTable(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 
 	content := `foo
 something
@@ -21,7 +21,7 @@ bar`
 }
 
 func TestHackGermanRailwayTemplates_simple(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 
 	content := `foo
 {{BS-table}}
@@ -39,7 +39,7 @@ bar`
 }
 
 func TestHackGermanRailwayTemplates_specialCharacter(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 
 	content := `föö
 {{BS-table}}
@@ -57,7 +57,7 @@ bär`
 }
 
 func TestHackGermanRailwayTemplates_nested(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar", &wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
 
 	content := `foo
 {{BS-table}}

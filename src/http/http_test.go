@@ -2,11 +2,15 @@ package http
 
 import (
 	"net/http"
+	"os"
 	"testing"
+	"time"
+	"wiki2book/config"
 	"wiki2book/test"
+	"wiki2book/util"
 )
 
-func TestDownloadAndCache(t *testing.T) {
+func TestDownloadAndCache_withoutCachedFile(t *testing.T) {
 	key := "foobar"
 	content := "some interesting stuff"
 
@@ -15,7 +19,10 @@ func TestDownloadAndCache(t *testing.T) {
 	httpService := NewDefaultHttpService()
 	httpService.httpClient = mockHttpClient
 
-	// First request -> cache file should ve created
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return nil, os.ErrNotExist }
+	util.CurrentFilesystem = fsMock
+	config.Current.CacheDir = test.TestCacheFolder
 
 	cachedFilePath, freshlyDownloaded, err := httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
 
@@ -24,14 +31,34 @@ func TestDownloadAndCache(t *testing.T) {
 	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, true, freshlyDownloaded)
+}
 
-	// Second request -> nothing should change
+func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
+	key := "foobar"
+	content := "some interesting stuff"
 
-	cachedFilePath, freshlyDownloaded, err = httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
+	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+
+	httpService := NewDefaultHttpService()
+	httpService.httpClient = mockHttpClient
+
+	config.Current.CacheDir = test.TestCacheFolder
+	config.Current.CacheMaxAge = 9999999
+
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.ReadFileFunc = func(name string) ([]byte, error) {
+		return []byte(content), nil
+	}
+	fsMock.StatFunc = func(path string) (os.FileInfo, error) {
+		return util.NewMockFileInfoWithTime("file", time.Now()), nil
+	}
+	util.CurrentFilesystem = fsMock
+
+	cachedFilePath, freshlyDownloaded, err := httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
-	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
+	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
 	test.AssertEqual(t, false, freshlyDownloaded)
 }

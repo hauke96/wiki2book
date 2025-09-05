@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -45,14 +44,13 @@ type WikitextDto struct {
 }
 
 type WikipediaService interface {
-	DownloadArticle(host string, title string, cacheFolder string) (*WikiArticleDto, error)
-	DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
-	EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error)
-	RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error)
+	DownloadArticle(host string, title string) (*WikiArticleDto, error)
+	DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
+	EvaluateTemplate(template string, cacheFile string) (string, error)
+	RenderMath(mathString string) (string, string, error)
 }
 
 type DefaultWikipediaService struct {
-	cacheFolder                string
 	wikipediaInstance          string
 	wikipediaHost              string
 	wikipediaImageArticleHosts []string
@@ -64,7 +62,6 @@ type DefaultWikipediaService struct {
 
 func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
-		cacheFolder:                cacheFolder,
 		wikipediaInstance:          wikipediaInstance,
 		wikipediaHost:              wikipediaHost,
 		wikipediaImageArticleHosts: wikipediaImageInstances,
@@ -75,18 +72,18 @@ func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipedia
 	}
 }
 
-func (w *DefaultWikipediaService) DownloadArticle(host string, title string, cacheFolder string) (*WikiArticleDto, error) {
+func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*WikiArticleDto, error) {
 	titleWithoutWhitespaces := strings.ReplaceAll(title, " ", "_")
 	escapedTitle := url.QueryEscape(titleWithoutWhitespaces)
 	urlString := fmt.Sprintf("https://%s/w/api.php?action=parse&prop=wikitext&redirects=true&format=json&page=%s", host, escapedTitle)
 
 	cachedFile := titleWithoutWhitespaces + ".json"
-	cachedFilePath, _, err := w.httpService.DownloadAndCache(urlString, cacheFolder, cachedFile)
+	cachedFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.ArticleCacheDirName, cachedFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to download article %s", title)
 	}
 
-	cachedResponseBytes, err := os.ReadFile(cachedFilePath)
+	cachedResponseBytes, err := util.CurrentFilesystem.ReadFile(cachedFilePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to read body bytes")
 	}
@@ -107,12 +104,12 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string, cac
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func (w *DefaultWikipediaService) DownloadImages(images []string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
-		sigolo.Infof("Download image %s", image)
+		sigolo.Debugf("Download image %s", image)
 
-		downloadErr := w.downloadImageUsingAllSources(image, outputFolder, articleFolder, svgSizeToViewbox, pdfToPng, svgToPng)
+		downloadErr := w.downloadImageUsingAllSources(image, svgSizeToViewbox, pdfToPng, svgToPng)
 		if downloadErr != nil {
 			return downloadErr
 		}
@@ -120,14 +117,14 @@ func (w *DefaultWikipediaService) DownloadImages(images []string, outputFolder s
 	return nil
 }
 
-func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, outputFolder string, articleFolder string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
 	var downloadErr error
 
 	for i, articleHost := range w.wikipediaImageArticleHosts {
 		var outputFilepath string
 		var freshlyDownloaded bool
 		isLastSource := i == len(w.wikipediaImageArticleHosts)-1
-		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image, outputFolder, articleFolder, svgSizeToViewbox)
+		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image, svgSizeToViewbox)
 		if downloadErr != nil {
 			if isLastSource {
 				// We tried every single image source and couldn't find the image.
@@ -195,11 +192,11 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNameWithPrefix string, outputFolder string, articleFolder string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNameWithPrefix string, svgSizeToViewbox bool) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
 	sigolo.Debugf("Download article file for image '%s' from '%s'", imageName, imageArticleHost)
-	imageArticle, err := w.DownloadArticle(imageArticleHost, imageName, articleFolder)
+	imageArticle, err := w.DownloadArticle(imageArticleHost, imageName)
 	if err != nil {
 		return "", true, err
 	}
@@ -231,7 +228,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 
 	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, wikiInstancePathSegment, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
-	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, outputFolder, originalImageName)
+	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, cache.ImageCacheDirName, originalImageName)
 	if err != nil {
 		return "", freshlyDownloaded, err
 	}
@@ -246,16 +243,16 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 	return cachedFilePath, freshlyDownloaded, nil
 }
 
-func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFolder string, cacheFile string) (string, error) {
+func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
 	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.wikipediaInstance, w.wikipediaHost, url.QueryEscape(template))
-	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, cacheFolder, cacheFile)
+	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.TemplateCacheDirName, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
 
-	evaluatedTemplateString, err := os.ReadFile(cacheFilePath)
+	evaluatedTemplateString, err := util.CurrentFilesystem.ReadFile(cacheFilePath)
 	if err != nil {
 		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
 	}
@@ -269,19 +266,19 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFolder 
 	return evaluatedTemplate.ExpandTemplate.Content, nil
 }
 
-func (w *DefaultWikipediaService) RenderMath(mathString string, imageCacheFolder string, mathCacheFolder string) (string, string, error) {
+func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string, error) {
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
 	mathApiUrl := w.wikipediaMathRestApi
 
-	mathSvgFilename, err := w.getMathResource(mathString, mathCacheFolder)
+	mathSvgFilename, err := w.getMathResource(mathString)
 	if err != nil {
 		return "", "", err
 	}
 
 	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
-	cachedSvgFile, _, err := w.httpService.DownloadAndCache(imageSvgUrl, imageCacheFolder, mathSvgFilename+util.FileEndingSvg)
+	cachedSvgFile, _, err := w.httpService.DownloadAndCache(imageSvgUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingSvg)
 	if err != nil {
 		return "", "", err
 	}
@@ -290,13 +287,13 @@ func (w *DefaultWikipediaService) RenderMath(mathString string, imageCacheFolder
 		return cachedSvgFile, cachedSvgFile, nil
 	} else if config.Current.MathConverter == config.MathConverterWikimedia {
 		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, imageCacheFolder, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		if err != nil {
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterInternal {
-		cachedPngFile := filepath.Join(imageCacheFolder, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
@@ -308,7 +305,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string, imageCacheFolder
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
-func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder string) (string, error) {
+func (w *DefaultWikipediaService) getMathResource(mathString string) (string, error) {
 	urlString := w.wikipediaMathRestApi + "/check/tex"
 
 	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
@@ -318,9 +315,9 @@ func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	outputFilepath := filepath.Join(cacheFolder, filename)
-	if _, err := os.Stat(outputFilepath); err == nil {
-		mathSvgFilenameBytes, err := os.ReadFile(outputFilepath)
+	outputFilepath := cache.GetFilePathInCache(cache.MathCacheDirName, filename)
+	if _, err := util.CurrentFilesystem.Stat(outputFilepath); err == nil {
+		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
 		if err != nil {
 			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
@@ -329,7 +326,6 @@ func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder
 		return mathSvgFilename, nil
 	}
 
-	sigolo.Debugf("Make POST request to %s with request data: %s", urlString, requestData)
 	response, err := w.httpService.PostFormEncoded(urlString, requestData)
 
 	responseBodyText := ""
@@ -358,7 +354,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string, cacheFolder
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cache.CacheToFile(cacheFolder, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}
