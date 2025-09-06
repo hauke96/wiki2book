@@ -40,8 +40,6 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		PandocExecutable:               "pandoc-executable",
 		PandocDataDir:                  "/pandoc-data-dir",
 		FontFiles:                      []string{"font-files"},
-		ConvertPdfToPng:                true,
-		ConvertSvgToPng:                true,
 		IgnoredTemplates:               []string{"ignored-templates"},
 		TrailingTemplates:              []string{"trailing-templates"},
 		IgnoredImageParams:             []string{"ignored-image-params"},

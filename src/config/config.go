@@ -64,7 +64,6 @@ func NewDefaultConfig() *Configuration {
 		CacheMaxAge:                    40_320,
 		CacheEvictionStrategy:          CacheEvictionStrategyLru,
 		StyleFile:                      getDefaultStyleFile(),
-		ConvertPdfToPng:                false,
 		IgnoredTemplates:               []string{},
 		TrailingTemplates:              []string{},
 		IgnoredImageParams:             []string{},
@@ -308,28 +307,6 @@ type Configuration struct {
 	FontFiles []string `json:"font-files"`
 
 	/*
-		When set to true, referenced PDF files, e.g. with "[[File:foo.pdf]]" are treated as images and will be converted
-		into a PNG using the CommandTemplatePdfToPng. PDFs will still be converted into images, even when the "pdf"
-		media type is present in the IgnoredMediaTypes list.
-
-		Default: false
-		JSON example: "convert-pdf-to-png": true
-	*/
-	// TODO remove
-	ConvertPdfToPng bool `json:"convert-pdf-to-png"`
-
-	/*
-		When set to true, referenced SVG files, e.g. with "[[File:foo.svg]]" will be converted into a PNG using the
-		configured CommandTemplateSvgToPng. SVGs will still be converted into images, even when the "svg" media type is
-		present in the IgnoredMediaTypes list.
-
-		Default: false
-		JSON example: "convert-svg-to-png": true
-	*/
-	// TODO remove
-	ConvertSvgToPng bool `json:"convert-svg-to-png"`
-
-	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
 
 		Default: Empty list
@@ -571,14 +548,6 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.FatalCheck(err)
 		sigolo.Tracef("Override FontFiles with %v", c.SvgSizeToViewbox)
 		Current.FontFiles = absolutePaths
-	}
-	if c.ConvertPdfToPng != defaultConfig.ConvertPdfToPng {
-		sigolo.Tracef("Override ConvertPdfToPng with %v", c.ConvertPdfToPng)
-		Current.ConvertPdfToPng = c.ConvertPdfToPng
-	}
-	if c.ConvertSvgToPng != defaultConfig.ConvertSvgToPng {
-		sigolo.Tracef("Override ConvertSvgToPng with %v", c.ConvertSvgToPng)
-		Current.ConvertSvgToPng = c.ConvertSvgToPng
 	}
 	if !util.EqualsInAnyOrder(c.IgnoredTemplates, defaultConfig.IgnoredTemplates) {
 		sigolo.Tracef("Override IgnoredTemplates with %v", c.IgnoredTemplates)

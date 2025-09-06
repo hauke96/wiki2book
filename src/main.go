@@ -91,8 +91,6 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.PandocExecutable, "pandoc-executable", cliConfig.PandocExecutable, "The executable name or file for pandoc.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.PandocDataDir, "pandoc-data-dir", cliConfig.PandocDataDir, "The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FontFiles, "font-files", cliConfig.FontFiles, "A list of font files that should be used. They are references in your style file.")
-	rootCmd.PersistentFlags().BoolVar(&cliConfig.ConvertPdfToPng, "convert-pdf-to-png", cliConfig.ConvertPdfToPng, "Set to true in order to convert referenced PDFs into images.")
-	rootCmd.PersistentFlags().BoolVar(&cliConfig.ConvertSvgToPng, "convert-svg-to-png", cliConfig.ConvertSvgToPng, "Set to true in order to convert referenced SVGs into raster images.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.IgnoredTemplates, "ignored-templates", cliConfig.IgnoredTemplates, "List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.TrailingTemplates, "trailing-templates", cliConfig.TrailingTemplates, "List of templates that will be moved to the end of the document.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.IgnoredImageParams, "ignored-image-params", cliConfig.IgnoredImageParams, "Parameters of images that should be ignored. The list must be in lower case.")

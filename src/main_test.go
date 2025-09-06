@@ -53,8 +53,6 @@ func TestCliArgs(t *testing.T) {
 		"--pandoc-executable", "pandoc-executable",
 		"--pandoc-data-dir", "pandoc-data-dir",
 		"--font-files", "font-files",
-		"--convert-pdf-to-png", "true",
-		"--convert-svg-to-png", "true",
 		"--ignored-templates", "ignored-templates",
 		"--trailing-templates", "trailing-templates",
 		"--ignored-image-params", "ignored-image-params",
@@ -101,8 +99,6 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "pandoc-executable", cliConfig.PandocExecutable)
 	test.AssertEqual(t, "pandoc-data-dir", cliConfig.PandocDataDir)
 	test.AssertEqual(t, []string{"font-files"}, cliConfig.FontFiles)
-	test.AssertTrue(t, cliConfig.ConvertPdfToPng)
-	test.AssertTrue(t, cliConfig.ConvertSvgToPng)
 	test.AssertEqual(t, []string{"ignored-templates"}, cliConfig.IgnoredTemplates)
 	test.AssertEqual(t, []string{"trailing-templates"}, cliConfig.TrailingTemplates)
 	test.AssertEqual(t, []string{"ignored-image-params"}, cliConfig.IgnoredImageParams)
