@@ -85,6 +85,31 @@ func TestExpandImage_usePngFileForPdf(t *testing.T) {
 	test.AssertEqual(t, result, actualResult)
 }
 
+func TestExpandImage_usePngFileForWebp(t *testing.T) {
+	config.Current.CommandTemplateWebpToPng = "some-command"
+
+	result := `<div class="figure">
+<img alt="image" src="./images/image.webp.png" style="vertical-align: middle; width: 200px; height: auto;">
+<div class="caption">
+
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.ImageToken{
+		Filename: "image.webp",
+		SizeX:    200,
+		SizeY:    -1,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
 func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
 	result := `<div class="figure">
 <img alt="image" src="./images/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">

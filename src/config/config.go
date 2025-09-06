@@ -39,6 +39,7 @@ const (
 	defaultCommandTemplateLinuxMathSvgToPngWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
 	defaultCommandTemplatePdfToPng                   = "magick -density 300 " + InputPlaceholder + " " + OutputPlaceholder
+	defaultCommandTemplateWebpToPng                  = "magick " + InputPlaceholder + " " + OutputPlaceholder
 )
 
 var tocDepthDefault = 2
@@ -77,6 +78,7 @@ func NewDefaultConfig() *Configuration {
 		CommandTemplateMathSvgToPng:    getDefaultMathSvgToPngCommandTemplate(),
 		CommandTemplateImageProcessing: defaultCommandTemplateImageProcessing,
 		CommandTemplatePdfToPng:        defaultCommandTemplatePdfToPng,
+		CommandTemplateWebpToPng:       defaultCommandTemplateWebpToPng,
 		PandocExecutable:               "pandoc",
 		TocDepth:                       tocDepthDefault,
 		WorkerThreads:                  workerThreadsDefault,
@@ -147,8 +149,7 @@ type Configuration struct {
 
 	/*
 		The directory where all intermediate files are stored. Relative paths are relative to the config file. The
-		default value is empty and therefore uses the default cache directory returned by the golang function
-		os.UserCacheDir().
+		default value is the default cache directory returned by the golang function os.UserCacheDir().
 
 		Default: "<user-cache-dir>/wiki2book"
 		JSON example: "cache-dir": "/path/to/cache"
@@ -243,8 +244,7 @@ type Configuration struct {
 		- {INPUT} : The input SVG file.
 		- {OUTPUT} : The output PNG file.
 
-		Default:
-		- Otherwise: "magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
+		Default: "magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
 		JSON example: "command-template-image-processing": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
 	CommandTemplateImageProcessing string `json:"command-template-image-processing"`
@@ -257,11 +257,24 @@ type Configuration struct {
 		- {INPUT} : The input PDF file.
 		- {OUTPUT} : The output PNG file.
 
-		Default:
-		- Otherwise: "magick -density 300 {INPUT} {OUTPUT}"
+		Default: "magick -density 300 {INPUT} {OUTPUT}"
 		JSON example: "command-template-pdf-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
 	*/
 	CommandTemplatePdfToPng string `json:"command-template-pdf-to-png"`
+
+	/*
+		Specifies the template for the command that should be used to convert WebP into PNG files. An empty value
+		deactivates the processing and the original image will be used.
+
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		- {INPUT} : The input WebP file.
+		- {OUTPUT} : The output PNG file.
+
+		Default: "magick {INPUT} {OUTPUT}"
+		JSON example: "command-template-webp-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+	*/
+	CommandTemplateWebpToPng string `json:"command-template-webp-to-png"`
 
 	/*
 		The executable name or file for pandoc.
@@ -522,6 +535,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CommandTemplatePdfToPng with %s", c.CommandTemplatePdfToPng)
 		Current.CommandTemplatePdfToPng = c.CommandTemplatePdfToPng
 	}
+	if c.CommandTemplateWebpToPng != defaultConfig.CommandTemplateWebpToPng {
+		sigolo.Tracef("Override CommandTemplateWebpToPng with %s", c.CommandTemplateWebpToPng)
+		Current.CommandTemplateWebpToPng = c.CommandTemplateWebpToPng
+	}
 	if c.PandocExecutable != defaultConfig.PandocExecutable {
 		var err error
 		newPath := c.PandocExecutable
@@ -613,6 +630,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.WorkerThreads != defaultConfig.WorkerThreads {
 		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
 		Current.WorkerThreads = c.WorkerThreads
+	}
+	if c.UserAgentTemplate != defaultConfig.UserAgentTemplate {
+		sigolo.Tracef("Override UserAgentTemplate with %s", c.UserAgentTemplate)
+		Current.UserAgentTemplate = c.UserAgentTemplate
 	}
 
 	Current.MakePathsAbsoluteToWorkingDir()
@@ -718,11 +739,13 @@ func (c *Configuration) AssertValidity() {
 		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
-	if !strings.Contains(c.CommandTemplateImageProcessing, InputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing must contain the '" + InputPlaceholder + "' placeholder"))
-	}
-	if !strings.Contains(c.CommandTemplateImageProcessing, OutputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing must contain the '" + OutputPlaceholder + "' placeholder"))
+	if c.CommandTemplateImageProcessing != "" {
+		if !strings.Contains(c.CommandTemplateImageProcessing, InputPlaceholder) {
+			sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
+		}
+		if !strings.Contains(c.CommandTemplateImageProcessing, OutputPlaceholder) {
+			sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
+		}
 	}
 
 	if c.CommandTemplatePdfToPng == "" {
@@ -733,6 +756,15 @@ func (c *Configuration) AssertValidity() {
 	}
 	if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
 		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+	}
+
+	if c.CommandTemplateWebpToPng != "" {
+		if !strings.Contains(c.CommandTemplateWebpToPng, InputPlaceholder) {
+			sigolo.FatalCheck(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
+		}
+		if !strings.Contains(c.CommandTemplateWebpToPng, OutputPlaceholder) {
+			sigolo.FatalCheck(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
+		}
 	}
 
 	if c.CacheMaxSize <= 0 {
@@ -750,6 +782,10 @@ func (c *Configuration) Print() {
 	jsonBytes, err := json.MarshalIndent(c, "", "  ")
 	sigolo.FatalCheck(err)
 	sigolo.Debugf("Configuration:\n%s", string(jsonBytes))
+}
+
+func (c *Configuration) ShouldConvertWebpToPng() bool {
+	return c.CommandTemplateWebpToPng != ""
 }
 
 func LoadConfig(file string) error {

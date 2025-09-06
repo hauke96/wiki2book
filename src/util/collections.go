@@ -11,6 +11,10 @@ func Contains[T comparable](values []T, valueToCheck T) bool {
 }
 
 func EqualsInAnyOrder[T comparable](arrayA []T, arrayB []T) bool {
+	if len(arrayA) != len(arrayB) {
+		return false
+	}
+
 	mapA := make(map[T]T)
 	for _, value := range arrayA {
 		mapA[value] = value

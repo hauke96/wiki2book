@@ -13,6 +13,7 @@ type ImageProcessingService interface {
 	ResizeAndCompressImage(imageFilepath string, commandTemplate string) error
 	ConvertPdfToPng(inputPdfFilepath string, outputPngFilepath string, commandTemplate string) error
 	ConvertSvgToPng(svgFile string, pngFile string, commandTemplate string) error
+	ConvertToPng(webpFile string, pngFile string, commandTemplate string) error
 }
 
 type ImageProcessingServiceImpl struct{}
@@ -52,4 +53,14 @@ func (s *ImageProcessingServiceImpl) ConvertSvgToPng(svgFile string, pngFile str
 
 	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
 	return errors.Wrapf(err, "Converting image %s to PNG failed", svgFile)
+}
+
+func (s *ImageProcessingServiceImpl) ConvertToPng(inputFile string, pngFile string, commandTemplate string) error {
+	sigolo.Tracef("Convert '%s' to PNG '%s'", inputFile, pngFile)
+
+	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputFile)
+	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
+
+	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
+	return errors.Wrapf(err, "Converting image '%s' to PNG failed", inputFile)
 }

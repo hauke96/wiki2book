@@ -49,6 +49,7 @@ func TestCliArgs(t *testing.T) {
 		"--command-template-math-svg-to-png", "command-template-math-svg-to-png",
 		"--command-template-image-processing", "command-template-image-processing",
 		"--command-template-pdf-to-png", "command-template-pdf-to-png",
+		"--command-template-webp-to-png", "command-template-webp-to-png",
 		"--pandoc-executable", "pandoc-executable",
 		"--pandoc-data-dir", "pandoc-data-dir",
 		"--font-files", "font-files",
@@ -96,6 +97,7 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng)
 	test.AssertEqual(t, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing)
 	test.AssertEqual(t, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng)
+	test.AssertEqual(t, "command-template-webp-to-png", cliConfig.CommandTemplateWebpToPng)
 	test.AssertEqual(t, "pandoc-executable", cliConfig.PandocExecutable)
 	test.AssertEqual(t, "pandoc-data-dir", cliConfig.PandocDataDir)
 	test.AssertEqual(t, []string{"font-files"}, cliConfig.FontFiles)

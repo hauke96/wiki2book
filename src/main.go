@@ -85,8 +85,9 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CoverImage, "cover-image", cliConfig.CoverImage, "A cover image for the front cover of the eBook.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateSvgToPng, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng, "Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathSvgToPng, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng, "Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateImageProcessing, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing, "Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplatePdfToPng, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng, "The executable name or file for ImageMagick.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateImageProcessing, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing, "Command template to use for math SVG to PNG conversion. Disables processing and uses original images when empty. When set, it must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplatePdfToPng, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng, "Command template to use for PDF to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateWebpToPng, "command-template-webp-to-png", cliConfig.CommandTemplateWebpToPng, "Command template to use for math WebP to PNG conversion. Disables conversion when empty. When set, it must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.PandocExecutable, "pandoc-executable", cliConfig.PandocExecutable, "The executable name or file for pandoc.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.PandocDataDir, "pandoc-data-dir", cliConfig.PandocDataDir, "The data directory for pandoc. This enables you to override pandocs defaults for HTML and therefore EPUB generation.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FontFiles, "font-files", cliConfig.FontFiles, "A list of font files that should be used. They are references in your style file.")
@@ -251,7 +252,6 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	config.Current.AssertFilesAndPathsExists()
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,
@@ -338,7 +338,6 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		config.Current.CacheDir,
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,

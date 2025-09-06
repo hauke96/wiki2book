@@ -221,13 +221,7 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-
-	filename := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, token.Filename)
-	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
-		filename = util.GetPngPathForPdf(filename)
-	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
-		filename = util.GetPngPathForSvg(filename)
-	}
+	filename := filenameToImagePath(token.Filename)
 
 	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate), nil
 }
@@ -239,13 +233,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 	}
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-
-	filename := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, token.Filename)
-	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
-		filename = util.GetPngPathForPdf(filename)
-	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
-		filename = util.GetPngPathForSvg(filename)
-	}
+	filename := filenameToImagePath(token.Filename)
 
 	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
 }
@@ -272,6 +260,20 @@ func expandSizeTemplate(xSize int, ySize int) string {
 		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
 	return sizeTemplate
+}
+
+func filenameToImagePath(filename string) string {
+	filePath := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
+
+	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
+		filePath = util.GetPngPathForPdf(filePath)
+	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
+		filePath = util.GetPngPathForSvg(filePath)
+	} else if config.Current.ShouldConvertWebpToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingWebp {
+		filePath = util.GetPngPathForFile(filePath)
+	}
+
+	return filePath
 }
 
 func (g *HtmlGenerator) expandInternalLink(token parser.InternalLinkToken) (string, error) {

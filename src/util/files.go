@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	FileEndingSvg = ".svg"
-	FileEndingPng = ".png"
-	FileEndingPdf = ".pdf"
+	FileEndingSvg  = ".svg"
+	FileEndingPng  = ".png"
+	FileEndingPdf  = ".pdf"
+	FileEndingWebp = ".webp"
 )
 
 func ToRelativePaths(paths ...string) ([]string, error) {
@@ -117,6 +118,11 @@ func GetPngPathForPdf(path string) string {
 // GetPngPathForSvg converts the given path of a PDF file into a PNG file.
 func GetPngPathForSvg(path string) string {
 	Requiref(filepath.Ext(strings.ToLower(path)) == FileEndingSvg, "Filepath must lead to a SVG file but was '%s'", path)
+	return path + FileEndingPng
+}
+
+// GetPngPathForFile converts the given path into a PNG file path.
+func GetPngPathForFile(path string) string {
 	return path + FileEndingPng
 }
 

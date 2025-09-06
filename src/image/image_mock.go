@@ -4,6 +4,7 @@ type mockImageProcessingService struct {
 	ResizeAndCompressImageCalls int
 	ConvertPdfToPngCalls        int
 	ConvertSvgToPngCalls        int
+	ConvertToPngCalls           int
 }
 
 func NewMockImageProcessingService() *mockImageProcessingService {
@@ -25,5 +26,10 @@ func (s *mockImageProcessingService) ConvertPdfToPng(inputPdfFilepath string, ou
 
 func (s *mockImageProcessingService) ConvertSvgToPng(svgFile string, pngFile string, commandTemplate string) error {
 	s.ConvertSvgToPngCalls++
+	return nil
+}
+
+func (s *mockImageProcessingService) ConvertToPng(inputFile string, pngFile string, commandTemplate string) error {
+	s.ConvertToPngCalls++
 	return nil
 }

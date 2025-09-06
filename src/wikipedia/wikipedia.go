@@ -60,7 +60,7 @@ type DefaultWikipediaService struct {
 	httpService                ownHttp.HttpService
 }
 
-func NewWikipediaService(cacheFolder string, wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
+func NewWikipediaService(wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
 		wikipediaInstance:          wikipediaInstance,
 		wikipediaHost:              wikipediaHost,
@@ -149,6 +149,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svg
 }
 
 func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
+	// TODO refactor this to only use the generic function on the image processing service (s. webp else-block below)
 	if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingPdf {
 		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 		pdfAlreadyExists := util.PathExists(outputPngFilepath)
@@ -167,6 +168,21 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 		pngAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pngAlreadyExists {
 			err := w.imageProcessingService.ConvertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
+			if err != nil {
+				return err
+			}
+
+			// We pretend this is a fresh download, because the PNG is indeed fresh
+			freshlyDownloaded = true
+		}
+		outputFilepath = outputPngFilepath
+	} else if config.Current.CommandTemplateWebpToPng != "" && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingWebp {
+		commandTemplate := config.Current.CommandTemplateWebpToPng
+
+		outputPngFilepath := util.GetPngPathForFile(outputFilepath)
+		pngAlreadyExists := util.PathExists(outputPngFilepath)
+		if !pngAlreadyExists {
+			err := w.imageProcessingService.ConvertToPng(outputFilepath, outputPngFilepath, commandTemplate)
 			if err != nil {
 				return err
 			}

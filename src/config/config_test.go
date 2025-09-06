@@ -8,8 +8,7 @@ import (
 
 func TestMergeIntoCurrentConfig(t *testing.T) {
 	// Set current and default config to an empty config so that all fields will be overwritten by the merge function.
-	Current = &Configuration{}
-	defaultConfig = &Configuration{}
+	Current = NewDefaultConfig()
 	expectedConfig := &Configuration{
 		ForceRegenerateHtml:            true,
 		SvgSizeToViewbox:               true,
@@ -25,6 +24,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		CommandTemplateMathSvgToPng:    "command-template-math-svg-to-png" + InputPlaceholder + OutputPlaceholder,
 		CommandTemplateImageProcessing: "command-template-image-processing" + InputPlaceholder + OutputPlaceholder,
 		CommandTemplatePdfToPng:        "command-template-pdf-to-png" + InputPlaceholder + OutputPlaceholder,
+		CommandTemplateWebpToPng:       "command-template-webp-to-png" + InputPlaceholder + OutputPlaceholder,
 		PandocExecutable:               "pandoc-executable",
 		PandocDataDir:                  "/pandoc-data-dir",
 		FontFiles:                      []string{"font-files"},
@@ -45,6 +45,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		MathConverter:                  MathConverterWikimedia,
 		TocDepth:                       3,
 		WorkerThreads:                  234,
+		UserAgentTemplate:              "user-agent-template",
 	}
 
 	MergeIntoCurrentConfig(expectedConfig)
@@ -58,6 +59,36 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		expectedValues[vExpected.Type().Field(i).Name] = vExpected.Field(i).String()
 	}
 	test.AssertMapEqual(t, expectedValues, actualValues)
+}
+
+func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
+	// Set current and default config to an empty config so that all fields will be overwritten by the merge function.
+	Current = NewDefaultConfig()
+	expectedConfig := NewDefaultConfig()
+	expectedConfig.CommandTemplateImageProcessing = ""
+	expectedConfig.CommandTemplateWebpToPng = ""
+	expectedConfig.FontFiles = []string{}
+	expectedConfig.IgnoredTemplates = []string{}
+	expectedConfig.TrailingTemplates = []string{}
+	expectedConfig.IgnoredImageParams = []string{}
+	expectedConfig.IgnoredMediaTypes = []string{}
+	expectedConfig.WikipediaImageArticleHosts = []string{}
+	expectedConfig.FilePrefixe = []string{}
+	expectedConfig.AllowedLinkPrefixes = []string{}
+	expectedConfig.CategoryPrefixes = []string{}
+
+	MergeIntoCurrentConfig(expectedConfig)
+
+	test.AssertEqual(t, "", Current.CommandTemplateImageProcessing)
+	test.AssertEqual(t, "", Current.CommandTemplateWebpToPng)
+	test.AssertEqual(t, []string{}, Current.IgnoredTemplates)
+	test.AssertEqual(t, []string{}, Current.TrailingTemplates)
+	test.AssertEqual(t, []string{}, Current.IgnoredImageParams)
+	test.AssertEqual(t, []string{}, Current.IgnoredMediaTypes)
+	test.AssertEqual(t, []string{}, Current.WikipediaImageArticleHosts)
+	test.AssertEqual(t, []string{}, Current.FilePrefixe)
+	test.AssertEqual(t, []string{}, Current.AllowedLinkPrefixes)
+	test.AssertEqual(t, []string{}, Current.CategoryPrefixes)
 }
 
 func TestMakePathsAbsolute(t *testing.T) {
