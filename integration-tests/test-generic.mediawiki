@@ -86,10 +86,6 @@ Or embed the image inline like this [[Datei:Wikipedia-logo-v2.svg|16px]] Wikiped
 
 All (raster) images will be scaled down and turned into grayscale images. SVGs stay as they are. Some media types (like mp4 and gif) are not supported.
 
-Also WebP conversion works:
-
-[[File:Johannes_Kepler_Portrait.webp|mini]]
-
 === Galleries ===
 
 <gallery>

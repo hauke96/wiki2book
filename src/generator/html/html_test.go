@@ -61,7 +61,7 @@ some <b>caption</b>
 }
 
 func TestExpandImage_usePngFileForPdf(t *testing.T) {
-	config.Current.ConvertPdfToPng = true
+	config.Current.CommandTemplatePdfToPng = "some-command"
 
 	result := `<div class="figure">
 <img alt="image" src="./images/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">

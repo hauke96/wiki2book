@@ -45,7 +45,7 @@ type WikitextDto struct {
 
 type WikipediaService interface {
 	DownloadArticle(host string, title string) (*WikiArticleDto, error)
-	DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
+	DownloadImages(images []string) error
 	EvaluateTemplate(template string, cacheFile string) (string, error)
 	RenderMath(mathString string) (string, string, error)
 }
@@ -104,12 +104,12 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*W
 // DownloadImages tries to download the given images from a couple of sources (wikipedia/wikimedia instances). The
 // downloaded images will be in the output folder. Some images might be redirects, so the redirect will be resolved,
 // that's why the article cache folder is needed as well.
-func (w *DefaultWikipediaService) DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) DownloadImages(images []string) error {
 	sigolo.Debugf("Downloading images or loading them from cache:\n%s", strings.Join(images, "\n"))
 	for _, image := range images {
 		sigolo.Debugf("Download image %s", image)
 
-		downloadErr := w.downloadImageUsingAllSources(image, svgSizeToViewbox, pdfToPng, svgToPng)
+		downloadErr := w.downloadImageUsingAllSources(image)
 		if downloadErr != nil {
 			return downloadErr
 		}
@@ -117,14 +117,14 @@ func (w *DefaultWikipediaService) DownloadImages(images []string, svgSizeToViewb
 	return nil
 }
 
-func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string) error {
 	var downloadErr error
 
 	for i, articleHost := range w.wikipediaImageArticleHosts {
 		var outputFilepath string
 		var freshlyDownloaded bool
 		isLastSource := i == len(w.wikipediaImageArticleHosts)-1
-		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image, svgSizeToViewbox)
+		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image)
 		if downloadErr != nil {
 			if isLastSource {
 				// We tried every single image source and couldn't find the image.
@@ -137,7 +137,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svg
 			continue
 		}
 
-		err := w.postProcessImage(outputFilepath, pdfToPng, svgToPng, freshlyDownloaded)
+		err := w.postProcessImage(outputFilepath, freshlyDownloaded)
 		if err != nil {
 			return err
 		}
@@ -148,9 +148,11 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string, svg
 	return downloadErr
 }
 
-func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToPng bool, svgToPng bool, freshlyDownloaded bool) error {
+func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, freshlyDownloaded bool) error {
+	outputFileExt := filepath.Ext(strings.ToLower(outputFilepath))
+
 	// TODO refactor this to only use the generic function on the image processing service (s. webp else-block below)
-	if pdfToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingPdf {
+	if config.Current.ShouldConvertPdfToPng() && outputFileExt == util.FileEndingPdf {
 		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
 		pdfAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pdfAlreadyExists {
@@ -163,7 +165,7 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 			freshlyDownloaded = true
 		}
 		outputFilepath = outputPngFilepath
-	} else if svgToPng && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingSvg {
+	} else if config.Current.ShouldConvertSvgToPng() && outputFileExt == util.FileEndingSvg {
 		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
 		pngAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pngAlreadyExists {
@@ -176,7 +178,7 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 			freshlyDownloaded = true
 		}
 		outputFilepath = outputPngFilepath
-	} else if config.Current.CommandTemplateWebpToPng != "" && filepath.Ext(strings.ToLower(outputFilepath)) == util.FileEndingWebp {
+	} else if config.Current.ShouldConvertWebpToPng() && outputFileExt == util.FileEndingWebp {
 		commandTemplate := config.Current.CommandTemplateWebpToPng
 
 		outputPngFilepath := util.GetPngPathForFile(outputFilepath)
@@ -194,7 +196,9 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 	}
 
 	// If the file is new, rescale it using ImageMagick.
-	if freshlyDownloaded && outputFilepath != "" && filepath.Ext(strings.ToLower(outputFilepath)) != util.FileEndingSvg {
+	outputFileExt = filepath.Ext(strings.ToLower(outputFilepath))
+	fileFormatCanBeScaled := outputFileExt != util.FileEndingSvg && outputFileExt != util.FileEndingPdf
+	if freshlyDownloaded && outputFilepath != "" && config.Current.CommandTemplateImageProcessing != "" && fileFormatCanBeScaled {
 		err := w.imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 		if err != nil {
 			return err
@@ -208,7 +212,7 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, pdfToP
 // return value. When the file already exists, then the second value is false, otherwise true (for fresh downloads or
 // in case of errors). Whenever an error is returned, the article cache folder is needed as some files might be
 // redirects and such a redirect counts as article.
-func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNameWithPrefix string, svgSizeToViewbox bool) (string, bool, error) {
+func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNameWithPrefix string) (string, bool, error) {
 	// TODO handle colons in file names
 	imageName := "File:" + strings.Split(imageNameWithPrefix, ":")[1]
 	sigolo.Debugf("Download article file for image '%s' from '%s'", imageName, imageArticleHost)
@@ -249,7 +253,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 		return "", freshlyDownloaded, err
 	}
 
-	if freshlyDownloaded && svgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
+	if freshlyDownloaded && config.Current.SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
 			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
@@ -308,7 +312,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
-	} else if config.Current.MathConverter == config.MathConverterInternal {
+	} else if config.Current.MathConverter == config.MathConverterTemplate {
 		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {

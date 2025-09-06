@@ -6,8 +6,20 @@ import (
 	"wiki2book/test"
 )
 
+func testCallExpectingPanic(t *testing.T, call func()) {
+	defaultValidationErrorHandler = func(err error) {
+		panic(err)
+	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected code to panic but it didn't")
+		}
+	}()
+
+	call()
+}
+
 func TestMergeIntoCurrentConfig(t *testing.T) {
-	// Set current and default config to an empty config so that all fields will be overwritten by the merge function.
 	Current = NewDefaultConfig()
 	expectedConfig := &Configuration{
 		ForceRegenerateHtml:            true,
@@ -62,10 +74,11 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 }
 
 func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
-	// Set current and default config to an empty config so that all fields will be overwritten by the merge function.
 	Current = NewDefaultConfig()
 	expectedConfig := NewDefaultConfig()
 	expectedConfig.CommandTemplateImageProcessing = ""
+	expectedConfig.CommandTemplateSvgToPng = ""
+	expectedConfig.CommandTemplatePdfToPng = ""
 	expectedConfig.CommandTemplateWebpToPng = ""
 	expectedConfig.FontFiles = []string{}
 	expectedConfig.IgnoredTemplates = []string{}
@@ -89,6 +102,21 @@ func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
 	test.AssertEqual(t, []string{}, Current.FilePrefixe)
 	test.AssertEqual(t, []string{}, Current.AllowedLinkPrefixes)
 	test.AssertEqual(t, []string{}, Current.CategoryPrefixes)
+}
+
+func TestMergeIntoCurrentConfig_invalidMathConverter(t *testing.T) {
+	// Arrange
+	Current = NewDefaultConfig()
+	expectedConfig := NewDefaultConfig()
+
+	expectedConfig.MathConverter = "foobar"
+	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
+
+	expectedConfig.MathConverter = "pandoc"
+	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
+
+	expectedConfig.MathConverter = "internal"
+	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
 }
 
 func TestMakePathsAbsolute(t *testing.T) {

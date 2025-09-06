@@ -265,7 +265,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
-	err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+	err = wikipediaService.DownloadImages(article.Images)
 	sigolo.FatalCheck(err)
 
 	// TODO Adjust this when additional non-epub output types are supported.
@@ -431,7 +431,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		sigolo.FatalCheck(err)
 
 		sigolo.Debugf("Article '%s' (%d/%d): Download images", articleName, currentArticleNumber, totalNumberOfArticles)
-		err = wikipediaService.DownloadImages(article.Images, config.Current.SvgSizeToViewbox, config.Current.ConvertPdfToPng, config.Current.ConvertSvgToPng)
+		err = wikipediaService.DownloadImages(article.Images)
 		sigolo.FatalCheck(err)
 
 		// TODO Adjust this when additional non-epub output types are supported.

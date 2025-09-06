@@ -17,7 +17,7 @@ import (
 const (
 	MathConverterNone      = "none"
 	MathConverterWikimedia = "wikimedia"
-	MathConverterInternal  = "internal"
+	MathConverterTemplate  = "template"
 
 	OutputTypeEpub2 = "epub2"
 	OutputTypeEpub3 = "epub3"
@@ -50,6 +50,10 @@ var Current = NewDefaultConfig()
 
 // Used during merging to only copy values of fields that have non-default values.
 var defaultConfig = NewDefaultConfig()
+
+var defaultValidationErrorHandler = func(err error) {
+	sigolo.FatalCheck(err)
+}
 
 func NewDefaultConfig() *Configuration {
 	return &Configuration{
@@ -206,7 +210,8 @@ type Configuration struct {
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files into PNGs. This command
-		might use additional parameters in comparison to the normal SVG to PNG command template.
+		might use additional parameters in comparison to the normal SVG to PNG command template. An empty value
+		deactivates the processing and the original image will be used.
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
@@ -220,7 +225,8 @@ type Configuration struct {
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files of math expressions into
-		PNGs. This command might use additional parameters in comparison to the normal SVG to PNG command template.
+		PNGs. This template is only used when setting MathConverter to "template". This command might use additional
+		parameters in comparison to the normal SVG to PNG command template.
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
@@ -250,7 +256,8 @@ type Configuration struct {
 	CommandTemplateImageProcessing string `json:"command-template-image-processing"`
 
 	/*
-		Specifies the template for the command that should be used to convert PDF into PNG files.
+		Specifies the template for the command that should be used to convert PDF into PNG files. An empty value
+		deactivates the processing and the original image will be used.
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
@@ -308,6 +315,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "convert-pdf-to-png": true
 	*/
+	// TODO remove
 	ConvertPdfToPng bool `json:"convert-pdf-to-png"`
 
 	/*
@@ -318,6 +326,7 @@ type Configuration struct {
 		Default: false
 		JSON example: "convert-svg-to-png": true
 	*/
+	// TODO remove
 	ConvertSvgToPng bool `json:"convert-svg-to-png"`
 
 	/*
@@ -429,7 +438,7 @@ type Configuration struct {
 		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
 			- "none": Uses no converter, instead the plain SVG file is inserted into the ebook.
 			- "wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.
-			- "rsvg": Uses the CommandTemplateMathSvgToPng to convert math SVG files to PNGs.
+			- "template": Uses the CommandTemplateMathSvgToPng to convert math SVG files to PNGs.
 
 		Default: [ "wikimedia" ]
 	*/
@@ -700,81 +709,79 @@ func (c *Configuration) AssertFilesAndPathsExists() {
 
 func (c *Configuration) AssertValidity() {
 	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
-		sigolo.FatalCheck(errors.Errorf("Invalid output type '%s'", c.OutputType))
+		defaultValidationErrorHandler(errors.Errorf("Invalid output type '%s'", c.OutputType))
 	}
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
-		sigolo.FatalCheck(errors.Errorf("Invalid output driver '%s'", c.OutputDriver))
+		defaultValidationErrorHandler(errors.Errorf("Invalid output driver '%s'", c.OutputDriver))
 	}
 	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
 	if err != nil {
-		sigolo.FatalCheck(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
+		defaultValidationErrorHandler(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
 	}
-	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterInternal {
-		sigolo.FatalCheck(errors.Errorf("Invalid math converter '%s'", c.OutputDriver))
+	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterTemplate {
+		defaultValidationErrorHandler(errors.Errorf("Invalid math converter '%s'", c.MathConverter))
 	}
 	if c.TocDepth < 0 || c.TocDepth > 6 {
-		sigolo.FatalCheck(errors.Errorf("Invalid toc-depth '%d'", c.TocDepth))
+		defaultValidationErrorHandler(errors.Errorf("Invalid toc-depth '%d'", c.TocDepth))
 	}
 	if c.WorkerThreads < 1 {
-		sigolo.FatalCheck(errors.Errorf("Invalid number of worker threads '%d'", c.WorkerThreads))
+		defaultValidationErrorHandler(errors.Errorf("Invalid number of worker threads '%d'", c.WorkerThreads))
 	}
 
-	if c.CommandTemplateSvgToPng == "" {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must not be empty"))
-	}
-	if !strings.Contains(c.CommandTemplateSvgToPng, InputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
-	}
-	if !strings.Contains(c.CommandTemplateSvgToPng, OutputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+	if c.CommandTemplateSvgToPng != "" {
+		if !strings.Contains(c.CommandTemplateSvgToPng, InputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
+		}
+		if !strings.Contains(c.CommandTemplateSvgToPng, OutputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+		}
 	}
 
 	if c.CommandTemplateMathSvgToPng == "" {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must not be empty"))
+		defaultValidationErrorHandler(errors.Errorf("CommandTemplateMathSvgToPng must not be empty"))
 	}
 	if !strings.Contains(c.CommandTemplateMathSvgToPng, InputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
+		defaultValidationErrorHandler(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + InputPlaceholder + "' placeholder"))
 	}
 	if !strings.Contains(c.CommandTemplateMathSvgToPng, OutputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+		defaultValidationErrorHandler(errors.Errorf("CommandTemplateMathSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
 	}
 
 	if c.CommandTemplateImageProcessing != "" {
 		if !strings.Contains(c.CommandTemplateImageProcessing, InputPlaceholder) {
-			sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
 		}
 		if !strings.Contains(c.CommandTemplateImageProcessing, OutputPlaceholder) {
-			sigolo.FatalCheck(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateImageProcessing is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
 		}
 	}
 
-	if c.CommandTemplatePdfToPng == "" {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must not be empty"))
-	}
-	if !strings.Contains(c.CommandTemplatePdfToPng, InputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + InputPlaceholder + "' placeholder"))
-	}
-	if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
-		sigolo.FatalCheck(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+	if c.CommandTemplatePdfToPng != "" {
+		if !strings.Contains(c.CommandTemplatePdfToPng, InputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplatePdfToPng must contain the '" + InputPlaceholder + "' placeholder"))
+		}
+		if !strings.Contains(c.CommandTemplatePdfToPng, OutputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplatePdfToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+		}
 	}
 
 	if c.CommandTemplateWebpToPng != "" {
 		if !strings.Contains(c.CommandTemplateWebpToPng, InputPlaceholder) {
-			sigolo.FatalCheck(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + InputPlaceholder + "' placeholder"))
 		}
 		if !strings.Contains(c.CommandTemplateWebpToPng, OutputPlaceholder) {
-			sigolo.FatalCheck(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateWebpToPng is set and therefore must contain the '" + OutputPlaceholder + "' placeholder"))
 		}
 	}
 
 	if c.CacheMaxSize <= 0 {
-		sigolo.FatalCheck(errors.Errorf("CacheMaxSize must be larger than 0 but was %d", c.CacheMaxSize))
+		defaultValidationErrorHandler(errors.Errorf("CacheMaxSize must be larger than 0 but was %d", c.CacheMaxSize))
 	}
 	if c.CacheMaxAge <= 0 {
-		sigolo.FatalCheck(errors.Errorf("CacheMaxAge must be larger than 0 but was %d", c.CacheMaxAge))
+		defaultValidationErrorHandler(errors.Errorf("CacheMaxAge must be larger than 0 but was %d", c.CacheMaxAge))
 	}
 	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
-		sigolo.FatalCheck(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
+		defaultValidationErrorHandler(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
 	}
 }
 
@@ -782,6 +789,14 @@ func (c *Configuration) Print() {
 	jsonBytes, err := json.MarshalIndent(c, "", "  ")
 	sigolo.FatalCheck(err)
 	sigolo.Debugf("Configuration:\n%s", string(jsonBytes))
+}
+
+func (c *Configuration) ShouldConvertSvgToPng() bool {
+	return c.CommandTemplateSvgToPng != ""
+}
+
+func (c *Configuration) ShouldConvertPdfToPng() bool {
+	return c.CommandTemplatePdfToPng != ""
 }
 
 func (c *Configuration) ShouldConvertWebpToPng() bool {

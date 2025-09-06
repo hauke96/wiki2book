@@ -265,9 +265,9 @@ func expandSizeTemplate(xSize int, ySize int) string {
 func filenameToImagePath(filename string) string {
 	filePath := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
 
-	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
+	if config.Current.ShouldConvertPdfToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
 		filePath = util.GetPngPathForPdf(filePath)
-	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
+	} else if config.Current.ShouldConvertSvgToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
 		filePath = util.GetPngPathForSvg(filePath)
 	} else if config.Current.ShouldConvertWebpToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingWebp {
 		filePath = util.GetPngPathForFile(filePath)

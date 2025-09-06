@@ -108,7 +108,7 @@
     "verweis",
     "zentriert"
   ],
-  "math-converter": "internal",
-  "convert-svg-to-png": false,
+  "math-converter": "template",
+  "command-template-svg-to-png": "",
   "style-file": "./style.css"
 }

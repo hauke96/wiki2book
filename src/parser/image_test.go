@@ -30,7 +30,7 @@ func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
 	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.ConvertPdfToPng = true
+	config.Current.CommandTemplatePdfToPng = "some-command"
 
 	var content string
 
@@ -45,7 +45,7 @@ func TestEscapeImages_keepSvgsEvenWhenIgnored(t *testing.T) {
 	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.ConvertSvgToPng = true
+	config.Current.CommandTemplateSvgToPng = "some-command"
 
 	var content string
 
@@ -174,11 +174,11 @@ func TestParseImages_inlineHappyPath(t *testing.T) {
 	content := tokenizer.parseImages("foo [[file:image.jpg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 
-	config.Current.ConvertPdfToPng = false
+	config.Current.CommandTemplatePdfToPng = ""
 	content = tokenizer.parseImages("foo [[file:image.pdf]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
 
-	config.Current.ConvertSvgToPng = false
+	config.Current.CommandTemplateSvgToPng = ""
 	content = tokenizer.parseImages("foo [[file:image.svg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
 }
