@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"testing"
 	"wiki2book/test"
-	"wiki2book/wikipedia"
 )
 
 func TestParseMath(t *testing.T) {
-	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `abc<math>x \cdot y</math>def
 some
 <math>

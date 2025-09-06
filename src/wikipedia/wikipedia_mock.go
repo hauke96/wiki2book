@@ -1,21 +1,33 @@
 package wikipedia
 
-type DummyWikipediaService struct {
-	EvaluateTemplateResponse string
+type MockWikipediaService struct {
+	DownloadArticleFunc  func(host string, title string) (*WikiArticleDto, error)
+	DownloadImagesFunc   func(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error
+	EvaluateTemplateFunc func(template string, cacheFile string) (string, error)
+	RenderMathFunc       func(mathString string) (string, string, error)
 }
 
-func (d *DummyWikipediaService) DownloadArticle(host string, title string) (*WikiArticleDto, error) {
-	return nil, nil
+func NewMockWikipediaService() *MockWikipediaService {
+	return &MockWikipediaService{
+		DownloadArticleFunc:  func(host string, title string) (*WikiArticleDto, error) { return nil, nil },
+		DownloadImagesFunc:   func(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error { return nil },
+		EvaluateTemplateFunc: func(template string, cacheFile string) (string, error) { return "", nil },
+		RenderMathFunc:       func(mathString string) (string, string, error) { return "", "", nil },
+	}
 }
 
-func (d *DummyWikipediaService) DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
-	return nil
+func (m *MockWikipediaService) DownloadArticle(host string, title string) (*WikiArticleDto, error) {
+	return m.DownloadArticleFunc(host, title)
 }
 
-func (d *DummyWikipediaService) EvaluateTemplate(template string, cacheFile string) (string, error) {
-	return d.EvaluateTemplateResponse, nil
+func (m *MockWikipediaService) DownloadImages(images []string, svgSizeToViewbox bool, pdfToPng bool, svgToPng bool) error {
+	return m.DownloadImagesFunc(images, svgSizeToViewbox, pdfToPng, svgToPng)
 }
 
-func (d *DummyWikipediaService) RenderMath(mathString string) (string, string, error) {
-	return "", "", nil
+func (m *MockWikipediaService) EvaluateTemplate(template string, cacheFile string) (string, error) {
+	return m.EvaluateTemplateFunc(template, cacheFile)
+}
+
+func (m *MockWikipediaService) RenderMath(mathString string) (string, string, error) {
+	return m.RenderMathFunc(mathString)
 }

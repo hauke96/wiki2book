@@ -5,12 +5,11 @@ import (
 	"strings"
 	"testing"
 	"wiki2book/test"
-	"wiki2book/wikipedia"
 )
 
 func TestParseHeading(t *testing.T) {
 	for i := 1; i < 7; i++ {
-		tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
+		tokenizer := NewTokenizerWithMockWikipediaService()
 		headingPrefixSuffix := strings.Repeat("=", i)
 
 		content := tokenizer.tokenizeContent(&tokenizer, fmt.Sprintf("%s heading of depth %d %s", headingPrefixSuffix, i, headingPrefixSuffix))
@@ -27,7 +26,7 @@ func TestParseHeading(t *testing.T) {
 }
 
 func TestParseHeading_withFormatting(t *testing.T) {
-	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := tokenizer.parseHeadings("== H2 ''with formatting'' ==")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
@@ -40,7 +39,7 @@ func TestParseHeading_withFormatting(t *testing.T) {
 }
 
 func TestParseHeading_withSpacesAroundEqualCharacters(t *testing.T) {
-	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := tokenizer.parseHeadings("  == foo == ")
 
 	test.AssertEqual(t, "$$TOKEN_HEADING_0$$", content)
@@ -53,7 +52,7 @@ func TestParseHeading_withSpacesAroundEqualCharacters(t *testing.T) {
 }
 
 func TestParseMultipleHeadings(t *testing.T) {
-	tokenizer := NewTokenizer(&wikipedia.DummyWikipediaService{})
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := tokenizer.parseHeadings(`foo
 == heading2 ==
 2
