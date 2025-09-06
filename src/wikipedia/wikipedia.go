@@ -151,36 +151,16 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string) err
 func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, freshlyDownloaded bool) error {
 	outputFileExt := filepath.Ext(strings.ToLower(outputFilepath))
 
-	// TODO refactor this to only use the generic function on the image processing service (s. webp else-block below)
+	commandTemplate := ""
 	if config.Current.ShouldConvertPdfToPng() && outputFileExt == util.FileEndingPdf {
-		outputPngFilepath := util.GetPngPathForPdf(outputFilepath)
-		pdfAlreadyExists := util.PathExists(outputPngFilepath)
-		if !pdfAlreadyExists {
-			err := w.imageProcessingService.ConvertPdfToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplatePdfToPng)
-			if err != nil {
-				return err
-			}
-
-			// We pretend this is a fresh download, because the PNG is indeed fresh
-			freshlyDownloaded = true
-		}
-		outputFilepath = outputPngFilepath
+		commandTemplate = config.Current.CommandTemplatePdfToPng
 	} else if config.Current.ShouldConvertSvgToPng() && outputFileExt == util.FileEndingSvg {
-		outputPngFilepath := util.GetPngPathForSvg(outputFilepath)
-		pngAlreadyExists := util.PathExists(outputPngFilepath)
-		if !pngAlreadyExists {
-			err := w.imageProcessingService.ConvertSvgToPng(outputFilepath, outputPngFilepath, config.Current.CommandTemplateSvgToPng)
-			if err != nil {
-				return err
-			}
-
-			// We pretend this is a fresh download, because the PNG is indeed fresh
-			freshlyDownloaded = true
-		}
-		outputFilepath = outputPngFilepath
+		commandTemplate = config.Current.CommandTemplateSvgToPng
 	} else if config.Current.ShouldConvertWebpToPng() && outputFileExt == util.FileEndingWebp {
-		commandTemplate := config.Current.CommandTemplateWebpToPng
+		commandTemplate = config.Current.CommandTemplateWebpToPng
+	}
 
+	if commandTemplate != "" {
 		outputPngFilepath := util.GetPngPathForFile(outputFilepath)
 		pngAlreadyExists := util.PathExists(outputPngFilepath)
 		if !pngAlreadyExists {
@@ -198,7 +178,7 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, freshl
 	// If the file is new, rescale it using ImageMagick.
 	outputFileExt = filepath.Ext(strings.ToLower(outputFilepath))
 	fileFormatCanBeScaled := outputFileExt != util.FileEndingSvg && outputFileExt != util.FileEndingPdf
-	if freshlyDownloaded && outputFilepath != "" && config.Current.CommandTemplateImageProcessing != "" && fileFormatCanBeScaled {
+	if freshlyDownloaded && config.Current.CommandTemplateImageProcessing != "" && fileFormatCanBeScaled {
 		err := w.imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
 		if err != nil {
 			return err
@@ -314,7 +294,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterTemplate {
 		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
-		err = w.imageProcessingService.ConvertSvgToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
+		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}

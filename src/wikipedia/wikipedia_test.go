@@ -40,8 +40,6 @@ func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
@@ -66,9 +64,7 @@ func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertSvgToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
@@ -92,9 +88,7 @@ func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_freshDownload_withWebpToPng(t *testing.T) {
@@ -118,8 +112,6 @@ func TestPostProcessImage_freshDownload_withWebpToPng(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
@@ -144,8 +136,6 @@ func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
@@ -174,9 +164,7 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertSvgToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *testing.T) {
@@ -201,8 +189,6 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
@@ -224,9 +210,7 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
+	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *testing.T) {
@@ -251,8 +235,6 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertPdfToPngCalls)
-	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertSvgToPngCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
