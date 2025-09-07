@@ -2,21 +2,25 @@ This is a description of the code structure and architecture.
 
 # File and folder Structure
 
-| Folder      | Contains ...                                                                                            |
-|-------------|---------------------------------------------------------------------------------------------------------|
-| `api`       | Code to make HTTP requests to e.g. download images.                                                     |
-| `config`    | Code for the system-wide and project-independent wiki2book configuration.                               |
-| `generator` | Generators to produce HTML and EPUB files.                                                              |
-| `parser`    | Basically the tokenizer to replace wikitext features (e.g. a table) into tokens for the HTML generator. |
-| `project`   | A simple struct to read the project file.                                                               |
-| `test`      | Helper and dummy files for the unit tests.                                                              |
-| `util`      | All sort of helper functions.                                                                           |
+| Folder      | Contains ...                                                                                                             |
+|-------------|--------------------------------------------------------------------------------------------------------------------------|
+| `cache`     | Cache storage and eviction logic. Is and should be used by other code reading/writing files.                             |
+| `config`    | Code for the config-file- and project-based wiki2book configuration.                                                     |
+| `generator` | Generators to produce HTML and EPUB files.                                                                               |
+| `http`      | HTTP logic and abstraction layer.                                                                                        |
+| `image`     | Image processing and conversion logic.                                                                                   |
+| `parser`    | Heart of wiki2book: Parser and tokenizer to replace wikitext features (e.g. a table) into tokens for the HTML generator. |
+| `test`      | Helper and dummy files for the unit tests.                                                                               |
+| `util`      | All sort of helper functions and auxiliary abstraction layers.                                                           |
+| `wikipedia` | Abstraction layer for the Wikipedia API.                                                                                 |
+
+The `main.go` contains the CLI setup and orchestrates the CLI commands.
 
 # Architecture
 
 To generate an eBook based on a project file, the following high-level steps are executed:
 
-1. Read the given project file
+1. Read the given project file and merge it with the configurations from the default-config, config-file and CLI.
 2. This might be executed in parallel, depending on the config: For each Wikipedia article in the project, do the following:
    1. Download the wikitext of the article.
    2. The wikitext is tokenized, resulting in the tokenized text and a token map.
