@@ -1,9 +1,16 @@
 package config
 
 import (
+	"fmt"
+	"os"
 	"reflect"
+	"regexp"
+	"slices"
+	"strings"
 	"testing"
 	"wiki2book/test"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 func testCallExpectingPanic(t *testing.T, call func()) {
@@ -136,4 +143,151 @@ func TestMakePathsAbsolute(t *testing.T) {
 		FontFiles:     []string{"/foo/fontA", "/foo/fontB"},
 	}
 	test.AssertEqual(t, *expectedConfig, *actualConfig)
+}
+
+// ---------- Script to generate markdown doc ----------
+
+type configEntry struct {
+	name          string
+	description   string
+	defaultValue  string
+	allowedValues string
+}
+
+func (c *configEntry) toMarkdown() string {
+	return fmt.Sprintf("| `%s` | %s | %s | %s |\n", c.name, c.description, c.defaultValue, c.allowedValues)
+}
+
+// Not a test, but generates markdown that can be pasted into the "doc/configuration.md" file.
+func _TestGenerateDoc(t *testing.T) {
+	contentBytes, err := os.ReadFile("config.go")
+	sigolo.FatalCheck(err)
+
+	content := string(contentBytes)
+
+	// Collect content of Configuration struct where all the documentation is
+	structContent := ""
+	isWithinStruct := false
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "type Configuration struct") {
+			isWithinStruct = true
+			continue // Do not collect this line
+		} else if isWithinStruct && strings.HasPrefix(line, "}") {
+			isWithinStruct = false
+		}
+
+		if isWithinStruct {
+			structContent += line + "\n"
+		}
+	}
+
+	// Group into the separate fields
+	var configKeys []string
+	configEntries := map[string]*configEntry{}
+	entryNameRegex := regexp.MustCompile(".*`json:\"(.*)\".*")
+	configEntryContents := strings.Split(structContent, "/*")
+	for i, configEntryContent := range configEntryContents {
+		if strings.TrimSpace(configEntryContent) == "" {
+			continue
+		}
+
+		entry := &configEntry{
+			name:          "",
+			description:   "",
+			defaultValue:  "",
+			allowedValues: "",
+		}
+		var descriptionLines []string
+
+		entryContentLines := strings.Split(configEntryContent, "\n")
+		for j := 0; j < len(entryContentLines); j++ {
+			line := entryContentLines[j]
+			if strings.HasPrefix(line, "Default:") {
+				line = strings.TrimPrefix(line, "Default:")
+				line = strings.TrimSpace(line)
+				if line != "" {
+					// Single line default value
+					entry.defaultValue = line
+				} else {
+					// Multiline default value
+					var defaultDocLines []string
+					for ; j < len(entryContentLines); j++ {
+						line = entryContentLines[j]
+						if strings.Contains(line, "Allowed values:") || strings.Contains(line, "JSON example:") || strings.Contains(line, "`json:\"") || strings.Contains(line, "*/") {
+							break
+						}
+						if line != "" {
+							defaultDocLines = append(defaultDocLines, line)
+						}
+					}
+					result := lineToHtmlList(defaultDocLines)
+					entry.defaultValue = result
+					j = j - 1 // To not skip the current line, which does not belong to the default values
+				}
+			} else if strings.HasPrefix(line, "Allowed values:") {
+				line = strings.TrimPrefix(line, "Allowed values:")
+				line = strings.TrimSpace(line)
+				if line != "" {
+					// Single line allowed value
+					entry.allowedValues = line
+				} else {
+					// Multiline allowed value
+					var allowedValueLines []string
+					for ; j < len(entryContentLines); j++ {
+						line = entryContentLines[j]
+						if strings.Contains(line, "Default:") || strings.Contains(line, "JSON example:") || strings.Contains(line, "`json:\"") || strings.Contains(line, "*/") {
+							break
+						}
+						if line != "" {
+							allowedValueLines = append(allowedValueLines, line)
+						}
+					}
+					result := lineToHtmlList(allowedValueLines)
+					entry.allowedValues = result
+					j = j - 1 // To not skip the current line, which does not belong to the allowed values
+				}
+			} else if strings.Contains(line, "`json:\"") {
+				submatch := entryNameRegex.FindStringSubmatch(line)
+				entry.name = submatch[1]
+			} else if !strings.Contains(line, "*/") {
+				descriptionLines = append(descriptionLines, line)
+			}
+		}
+
+		var cleanedDescriptionLines []string
+		for _, line := range descriptionLines {
+			if !strings.Contains(line, "*/") && strings.TrimSpace(line) != "" {
+				cleanedDescriptionLines = append(cleanedDescriptionLines, line)
+			}
+		}
+
+		entry.description = lineToHtmlList(cleanedDescriptionLines)
+
+		if entry.name == "" {
+			sigolo.Fatalf("Entry name must not be empty. Entry index %d with content:\n%s", i, configEntryContent)
+		}
+
+		configKeys = append(configKeys, entry.name)
+		configEntries[entry.name] = entry
+		sigolo.Debugf("Found entry: %+v", entry)
+	}
+
+	// Sort and generate markdown
+	slices.Sort(configKeys)
+	resultMarkdown := "| Name | Description | Default | Allowed values |\n|---|---|---|---|\n"
+	for _, key := range configKeys {
+		resultMarkdown += configEntries[key].toMarkdown()
+	}
+
+	sigolo.Infof("Markdown:\n\n%s", resultMarkdown)
+}
+
+func lineToHtmlList(lines []string) string {
+	result := strings.Join(lines, "</br>")
+	result = strings.ReplaceAll(result, "ul></br>", "ul>")
+	result = strings.ReplaceAll(result, "</br><ul>", "<ul>")
+	result = strings.ReplaceAll(result, "</br><li>", "<li>")
+	result = strings.ReplaceAll(result, "li></br>", "li>")
+	return result
 }

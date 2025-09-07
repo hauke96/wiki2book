@@ -119,34 +119,34 @@ type Configuration struct {
 	/*
 		Forces wiki2book to recreate HTML files even if they exists from a previous run.
 
-		Default: false
-		JSON example: "force-regenerate-html": true
+		Default: `false`
+		JSON example: `"force-regenerate-html": true`
 	*/
 	ForceRegenerateHtml bool `json:"force-regenerate-html"`
 
 	/*
 		Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
 
-		Default: false
-		JSON example: "svg-size-to-viewbox": true
+		Default: `false`
+		JSON example: `"svg-size-to-viewbox": true`
 	*/
 	SvgSizeToViewbox bool `json:"svg-size-to-viewbox"`
 
 	/*
 		The type of the final result.
 
-		Default: epub2
-		Possible values: epub2, epub3
-		JSON example: "output-type": "epub2"
+		Default: `epub2`
+		Allowed values: `epub2`, `epub3`
+		JSON example: `"output-type": "epub2"`
 	*/
 	OutputType string `json:"output-type"`
 
 	/*
 		The way the final output is created.
 
-		Default: pandoc
-		Possible values: pandoc, internal
-		JSON example: "output-driver": "pandoc"
+		Default: `pandoc`
+		Allowed values: `pandoc`, `internal`
+		JSON example: `"output-driver": "pandoc"`
 	*/
 	OutputDriver string `json:"output-driver"`
 
@@ -154,15 +154,15 @@ type Configuration struct {
 		The directory where all intermediate files are stored. Relative paths are relative to the config file. The
 		default value is the default cache directory returned by the golang function os.UserCacheDir().
 
-		Default: "<user-cache-dir>/wiki2book"
-		JSON example: "cache-dir": "/path/to/cache"
+		Default: `"<user-cache-dir>/wiki2book"`
+		JSON example: `"cache-dir": "/path/to/cache"`
 	*/
 	CacheDir string `json:"cache-dir"`
 
 	/*
 		The maximum size of the file cache in bytes.
 
-		Default: 100000000 (100 MiB)
+		Default: `100000000` (100 MiB)
 	*/
 	CacheMaxSize int64 `json:"cache-max-size"`
 
@@ -171,39 +171,40 @@ type Configuration struct {
 		Note that setting CacheEvictionStrategy to "lru" stays in conflict with this setting, because the LRU cache
 		constantly updates timestamps on files.
 
-		Default: 40320 (four weeks)
+		Default: `40320` (four weeks)
 	*/
 	CacheMaxAge int64 `json:"cache-max-age"`
 
 	/*
 		The strategy by which files are removed from the case when it's full.
 
-		Default: "lru"
+		Default: `"lru"`
 		Allowed values:
-			- "largest" - In case the maximum cache size has been reached, the largest file will be removed first.
-			- "lru"     - In case the maximum cache size has been reached, the least recently used file will be removed
-			              first.
-			              Note that the LRU cache stays in conflict with the CacheMaxAge setting. Using the LRU cache
-			              constantly updates timestamps on files, which then might stay longer in cache than CacheMaxAge
-			              defines.
-			- "none"    - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the
-			              CacheMaxSize setting has no effect.
+		<ul>
+			<li>`"largest"` - In case the maximum cache size has been reached, the largest file will be removed first.</li>
+			<li>`"lru"`     - In case the maximum cache size has been reached, the least recently used file will be removed
+			                  first. Note that the LRU cache stays in conflict with the CacheMaxAge setting. Using the
+			                  LRU cache constantly updates timestamps on files, which then might stay longer in cache
+			                  than CacheMaxAge defines.</li>
+			<li>`"none"`    - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the
+			                  CacheMaxSize setting has no effect.</li>
+		</ul>
 	*/
 	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
 
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
 
-		Default: "/use/share/wiki2book/style.css" on Linux when it exists; "" otherwise
-		JSON example: "style-file": "my-style.css"
+		Default: `"/use/share/wiki2book/style.css"` on Linux when it exists; `""` otherwise
+		JSON example: `"style-file": "my-style.css"`
 	*/
 	StyleFile string `json:"style-file"`
 
 	/*
 		The image file that should be the cover of the eBook. Relative paths are relative to the config file.
 
-		Default: ""
-		JSON example: "cover-image": "nice-picture.jpeg"
+		Default: `""`
+		JSON example: `"cover-image": "nice-picture.jpeg"`
 	*/
 	CoverImage string `json:"cover-image"`
 
@@ -214,11 +215,13 @@ type Configuration struct {
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
-		- {INPUT} : The input SVG file.
-		- {OUTPUT} : The output PNG file.
+		<ul>
+			<li>`{INPUT}` : The input SVG file.</li>
+			<li>`{OUTPUT}` : The output PNG file.</li>
+		</ul>
 
-		Default: "rsvg-convert -o {OUTPUT} {INPUT}"
-		JSON example: "command-template-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+		Default: `"rsvg-convert -o {OUTPUT} {INPUT}"`
+		JSON example: `"command-template-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateSvgToPng string `json:"command-template-svg-to-png"`
 
@@ -229,13 +232,17 @@ type Configuration struct {
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
-		- {INPUT} : The input SVG file.
-		- {OUTPUT} : The output PNG file.
+		<ul>
+			<li>`{INPUT}` : The input SVG file.</li>
+			<li>`{OUTPUT}` : The output PNG file.</li>
+		</ul>
 
 		Default:
-		- When the specified CSS file exists: "rsvg-convert -s /usr/share/wiki2book/rsvg-math.css -o {OUTPUT} {INPUT}"
-		- Otherwise: "rsvg-convert -o {OUTPUT} {INPUT}"
-		JSON example: "command-template-math-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+		<ul>
+			<li>When the specified CSS file exists: `"rsvg-convert -s /usr/share/wiki2book/rsvg-math.css -o {OUTPUT} {INPUT}"`</li>
+			<li>Otherwise: `"rsvg-convert -o {OUTPUT} {INPUT}"`</li>
+		</ul>
+		JSON example: `"command-template-math-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateMathSvgToPng string `json:"command-template-math-svg-to-png"`
 
@@ -246,11 +253,13 @@ type Configuration struct {
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
-		- {INPUT} : The input SVG file.
-		- {OUTPUT} : The output PNG file.
+		<ul>
+			<li>`{INPUT}` : The input image file.</li>
+			<li>`{OUTPUT}` : The output image file.</li>
+		</ul>
 
-		Default: "magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"
-		JSON example: "command-template-image-processing": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+		Default: `"magick {INPUT} -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray {OUTPUT}"`
+		JSON example: `"command-template-image-processing": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateImageProcessing string `json:"command-template-image-processing"`
 
@@ -260,11 +269,13 @@ type Configuration struct {
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
-		- {INPUT} : The input PDF file.
-		- {OUTPUT} : The output PNG file.
+		<ul>
+			<li>`{INPUT}` : The input PDF file.</li>
+			<li>`{OUTPUT}` : The output PNG file.</li>
+		</ul>
 
-		Default: "magick -density 300 {INPUT} {OUTPUT}"
-		JSON example: "command-template-pdf-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+		Default: `"magick -density 300 {INPUT} {OUTPUT}"`
+		JSON example: `"command-template-pdf-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplatePdfToPng string `json:"command-template-pdf-to-png"`
 
@@ -274,44 +285,46 @@ type Configuration struct {
 
 		This template must contain the following placeholders that will be replaced by the actual values before
 		executing the command:
-		- {INPUT} : The input WebP file.
-		- {OUTPUT} : The output PNG file.
+		<ul>
+			<li>`{INPUT}` : The input WebP file.</li>
+			<li>`{OUTPUT}` : The output PNG file.</li>
+		</ul>
 
-		Default: "magick {INPUT} {OUTPUT}"
-		JSON example: "command-template-webp-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"
+		Default: `"magick {INPUT} {OUTPUT}"`
+		JSON example: `"command-template-webp-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateWebpToPng string `json:"command-template-webp-to-png"`
 
 	/*
 		The executable name or file for pandoc.
 
-		Default: "pandoc"
-		JSON example: "pandoc-executable": "/path/to/pandoc"
+		Default: `"pandoc"`
+		JSON example: `"pandoc-executable": "/path/to/pandoc"`
 	*/
 	PandocExecutable string `json:"pandoc-executable"`
 
 	/*
 		The data directory for pandoc. Relative paths are relative to the config file.
 
-		Default: ""
-		JSON example: "pandoc-data-dir": "./my-folder/"
+		Default: `""`
+		JSON example: `"pandoc-data-dir": "./my-folder/"`
 	*/
 	PandocDataDir string `json:"pandoc-data-dir"`
 
 	/*
 		A list of font files that should be used. They then can be referenced from the style CSS file. Relative paths are relative to the config file.
 
-		Default: []
-		JSON example: "font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]
+		Default: `[]`
+		JSON example: `"font-files": ["./fontA.ttf", "/path/to/fontB.ttf"]`
 	*/
 	FontFiles []string `json:"font-files"`
 
 	/*
 		List of templates that should be ignored and removed from the input wikitext. The list must be in lower case.
 
-		Default: Empty list
-		JSON example: "ignored-templates": [ "foo", "bar" ]
-		This ignores {{foo}} and {{bar}} occurrences in the input text.
+		Default: `[]`
+		JSON example: `"ignored-templates": [ "foo", "bar" ]`
+		This ignores `{{foo}}` and `{{bar}}` occurrences in the input text.
 	*/
 	IgnoredTemplates []string `json:"ignored-templates"`
 
@@ -319,17 +332,17 @@ type Configuration struct {
 		List of templates that will be moved to the end of the document. Theses are e.g. remarks on the article that
 		are important but should be shown as a remark after the actual content of the article.
 
-		Default: Empty list
-		JSON example: "trailing-templates": [ "foo", "bar" ]
-		This moves {{foo}} and {{bar}} to the end of the document.
+		Default: `[]`
+		JSON example: `"trailing-templates": [ "foo", "bar" ]`
+		This moves `{{foo}}` and `{{bar}}` to the end of the document.
 	*/
 	TrailingTemplates []string `json:"trailing-templates"`
 
 	/*
 		Parameters of images that should be ignored. The list must be in lower case.
 
-		Default: Empty list
-		JSON example: "ignored-image-params": [ "alt", "center" ]
+		Default: `[]`
+		JSON example: `"ignored-image-params": [ "alt", "center" ]`
 		This ignores the image parameters "alt" and "center" including any parameter values like "alt"="some alt text".
 	*/
 	IgnoredImageParams []string `json:"ignored-image-params"`
@@ -338,32 +351,31 @@ type Configuration struct {
 		List of media types to ignore, i.e. list of file extensions. Some media types (e.g. videos) are not of much use
 		for a book.
 
-		Default: [ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]
+		Default: `[ "gif", "mp3", "mp4", "pdf", "oga", "ogg", "ogv", "wav", "webm" ]`
 	*/
 	IgnoredMediaTypes []string `json:"ignored-media-types"`
 
 	/*
 		The subdomain of the Wikipedia instance.
 
-		Default: "en"
-		JSON example: "wikipedia-instance": "de"
-		This config uses the German Wikipedia.
+		Default: `"en"`
+		JSON example: `"wikipedia-instance": "de"` This config would then use the German Wikipedia.
 	*/
 	WikipediaInstance string `json:"wikipedia-instance"`
 
 	/*
 		The domain of the Wikipedia instance.
 
-		Default: "wikipedia.org"
-		JSON example: "wikipedia-host": "my-server.com"
+		Default: `"wikipedia.org"`
+		JSON example: `"wikipedia-host": "my-server.com"`
 	*/
 	WikipediaHost string `json:"wikipedia-host"`
 
 	/*
 		The domain of the Wikipedia image instance, which should be used to download the actual image files.
 
-		Default: "upload.wikimedia.org"
-		JSON example: "wikipedia-image-host": "my-image-server.com"
+		Default: `"upload.wikimedia.org"`
+		JSON example: `"wikipedia-image-host": "my-image-server.com"`
 	*/
 	WikipediaImageHost string `json:"wikipedia-image-host"`
 
@@ -371,16 +383,16 @@ type Configuration struct {
 		Domains used to search for image articles (not the image files themselves, s. WikipediaImageHost). The given
 		values are tried in the configured order until a request was successful or the last host has been tried.
 
-		Default: [ "commons.wikimedia.org", "en.wikipedia.org" ]
-		JSON example: "wikipedia-image-article-hosts": [ "commons.wikimedia.org" ]
+		Default: `[ "commons.wikimedia.org", "en.wikipedia.org" ]`
+		JSON example: `"wikipedia-image-article-hosts": [ "commons.wikimedia.org" ]`
 	*/
 	WikipediaImageArticleHosts []string `json:"wikipedia-image-article-hosts"`
 
 	/*
 		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
 
-		Default: "https://wikimedia.org/api/rest_v1/media/math"
-		JSON example: "wikipedia-math-rest-api": "my-math-server.com/api"
+		Default: `"https://wikimedia.org/api/rest_v1/media/math"`
+		JSON example: `"wikipedia-math-rest-api": "my-math-server.com/api"`
 	*/
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
@@ -388,8 +400,8 @@ type Configuration struct {
 		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
 		must be in lower case.
 
-		Default: [ "file", "image", "media" ]
-		JSON example: "file-prefixe": [ "file", "datei" ]
+		Default: `[ "file", "image", "media" ]`
+		JSON example: `"file-prefixe": [ "file", "datei" ]`
 	*/
 	FilePrefixe []string `json:"file-prefixe"`
 
@@ -399,7 +411,7 @@ type Configuration struct {
 		the link to get removed. This especially happens for inter-wiki-links if the Wikipedia instance is not
 		explicitly allowed using this list.
 
-		Default: [ "arxiv", "doi" ]
+		Default: `[ "arxiv", "doi" ]`
 	*/
 	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
 
@@ -407,17 +419,19 @@ type Configuration struct {
 		A list of category prefixes, which are technically internals links. However, categories will be removed from
 		the input wikitext.
 
-		Default: [ "category" ]
+		Default: `[ "category" ]`
 	*/
 	CategoryPrefixes []string `json:"category-prefixes"`
 
 	/*
 		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
-			- "none": Uses no converter, instead the plain SVG file is inserted into the ebook.
-			- "wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.
-			- "template": Uses the CommandTemplateMathSvgToPng to convert math SVG files to PNGs.
+		<ul>
+			<li>"none": Uses no converter, instead the plain SVG file is inserted into the ebook.</li>
+			<li>"wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.</li>
+			<li>"template": Uses the CommandTemplateMathSvgToPng to convert math SVG files to PNGs.</li>
+		</ul>
 
-		Default: [ "wikimedia" ]
+		Default: `[ "wikimedia" ]`
 	*/
 	MathConverter string `json:"math-converter"`
 
@@ -425,12 +439,14 @@ type Configuration struct {
 		Sets the depth of the table of content, i.e. how many sub-headings should be visible.
 
 		Examples:
-			- A value of 1 means only the h1 headings are visible in the table of content.
-			- A value of 3 means h1, h2 and h3 are visible.
-			- A value of 0 means the table of content is not visible at all.
+		<ul>
+			<li>A value of 1 means only the h1 headings are visible in the table of content.</li>
+			<li>A value of 3 means h1, h2 and h3 are visible.</li>
+			<li>A value of 0 means the table of content is not visible at all.</li>
+		</ul>
 
-		Default: 2
-		Allowed values: 0 - 6
+		Default: `2`
+		Allowed values: `0` to `6`
 	*/
 	TocDepth int `json:"toc-depth"`
 
@@ -440,18 +456,19 @@ type Configuration struct {
 		might lead to "too many requests"-errors. These errors are handled by wiki2book, but a high thread count might
 		still negatively affect wiki2book. Use a value of 1 to disable parallel processing.
 
-		Default: 5
-		Allowed values: 1 - unlimited
+		Default: `5`
+		Allowed values: `1` to unlimited
 	*/
 	WorkerThreads int `json:"worker-threads"`
 
 	/*
 		Template string for the user agent used in HTTP requests. There are some placeholders within this template
 		string, which are replaced by actual values:
+		<ul>
+			<li>`{{VERSION}}` - The version of wiki2book as shown by the `--version` CLI argument. Example: `v0.4.0`</li>
+		</ul>
 
-			{{VERSION}} - The version of wiki2book as shown by the "--version" CLI argument. Example: v0.4.0
-
-		Default: "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)"
+		Default: `"wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)"`
 	*/
 	UserAgentTemplate string `json:"user-agent-template"`
 }
