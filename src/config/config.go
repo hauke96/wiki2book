@@ -60,7 +60,7 @@ func NewDefaultConfig() *Configuration {
 		OutputType:                     OutputTypeEpub2,
 		OutputDriver:                   OutputDriverPandoc,
 		CacheDir:                       getDefaultCacheDir(),
-		CacheMaxSize:                   100_000_000,
+		CacheMaxSize:                   10_000_000_000,
 		CacheMaxAge:                    40_320,
 		CacheEvictionStrategy:          CacheEvictionStrategyLru,
 		StyleFile:                      getDefaultStyleFile(),

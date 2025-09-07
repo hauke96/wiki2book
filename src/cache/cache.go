@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 	"wiki2book/config"
 	"wiki2book/util"
@@ -20,6 +21,10 @@ const (
 	ImageCacheDirName    = "images"
 	MathCacheDirName     = "math"
 	TemplateCacheDirName = "templates"
+)
+
+var (
+	cacheWriteMutex = &sync.Mutex{}
 )
 
 func GetFilePathInCache(cacheFolderName string, filename string) string {
@@ -41,14 +46,18 @@ func GetTempPath() string {
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
 // folder within the cache, not a whole path. The filename is the name of the file in the cache.
 func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) error {
+	cacheWriteMutex.Lock()
+	defer cacheWriteMutex.Unlock()
+
 	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
 	// Create the output folder
-	sigolo.Tracef("Ensure cache folder '%s'", cacheFolderName)
-	err := util.CurrentFilesystem.MkdirAll(cacheFolderName)
+	outputFolderPath := GetDirPathInCache(cacheFolderName)
+	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
+	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", cacheFolderName))
+		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", outputFolderPath))
 	}
 
 	//
@@ -123,7 +132,7 @@ func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, ne
 
 	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (NaN means there's no existing file); net cache size change: %f MB", util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(newFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
 	for config.Current.CacheMaxSize <= cacheSizeInBytes+netCacheSizeChangeInBytes {
-		sigolo.Debugf("New file (%f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", util.ToMB(newFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
+		sigolo.Debugf("New file (%s ; %f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", newFileName, util.ToMB(newFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
 
 		if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLargest {
 			err, cacheSizeInBytes = deleteLargestFileFromCache(cacheSizeInBytes)
@@ -180,6 +189,9 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 // The boolean only has a meaning when the error is nil. In such cases "true" means the file exists and can be used,
 // "false" means the file doesn't exist. In case of an error, the boolean is always "false".
 func GetFile(cacheFolderName string, filename string) (string, bool, error) {
+	cacheWriteMutex.Lock()
+	defer cacheWriteMutex.Unlock()
+
 	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileIsOutdated, err := isOutdated(cacheFolderName, filename)

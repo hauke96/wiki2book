@@ -192,6 +192,13 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 	var dirSizeBytes int64 = 0
 
 	readSize := func(path string, file os.FileInfo, err error) error {
+		if err != nil {
+			if os.IsNotExist(err) {
+				// It might happen, that files are deleted during file walk (concurrency etc.)
+				return nil
+			}
+			return err
+		}
 		if !file.IsDir() {
 			dirSizeBytes += file.Size()
 		}
@@ -211,6 +218,13 @@ func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, in
 	var currentLargestFilePath string
 
 	readSize := func(path string, file os.FileInfo, err error) error {
+		if err != nil {
+			if os.IsNotExist(err) {
+				// It might happen, that files are deleted during file walk (concurrency etc.)
+				return nil
+			}
+			return err
+		}
 		if !file.IsDir() {
 			if currentLargestFile == nil || file.Size() > currentLargestFile.Size() {
 				currentLargestFile = file
@@ -237,6 +251,13 @@ func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64,
 	var currentLruFile os.FileInfo
 
 	readModTime := func(path string, file os.FileInfo, err error) error {
+		if err != nil {
+			if os.IsNotExist(err) {
+				// It might happen, that files are deleted during file walk (concurrency etc.)
+				return nil
+			}
+			return err
+		}
 		if !file.IsDir() {
 			if currentLruFile == nil || file.ModTime().Before(currentLruFile.ModTime()) {
 				currentLruFile = file
@@ -253,6 +274,11 @@ func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64,
 	err := filepath.Walk(path, readModTime)
 	if err != nil {
 		return err, math.MinInt64, ""
+	}
+
+	if currentLruFile == nil {
+		// No file was found
+		return nil, 0, ""
 	}
 
 	return nil, currentLruFile.Size(), currentLruFilePath

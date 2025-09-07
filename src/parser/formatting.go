@@ -1,9 +1,11 @@
 package parser
 
 import (
-	"github.com/hauke96/sigolo/v2"
 	"strings"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 type BoldItalicStackItemType int
@@ -44,13 +46,14 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 		// First try everything without repairing crossovers. Crossovers can happen even if a normal solution is possible.
 		success, stack = t.tokenizeBoldAndItalic(content, index, stack, false, false, false)
 		if !success {
-			sigolo.Errorf("Unable to parse bold and italic tags WITHOUT repairing crossovers in: %s. I'll try it again with repairing crossovers enabled.", util.TruncString(content))
+			sigolo.Warnf("Unable to parse bold and italic tags WITHOUT repairing crossovers in: %s. I'll try it again with repairing crossovers enabled.", util.TruncString(content))
 			stack = []BoldItalicStackItem{}
 			// Okay, not try to repair crossovers.
 			success, stack = t.tokenizeBoldAndItalic(content, index, stack, true, false, false)
 
 			if !success {
-				sigolo.Errorf("Unable to parse bold and italic tags EVEN WITH repairing crossovers in: %s", util.TruncString(content))
+				sigolo.Warnf("Unable to parse bold and italic tags EVEN WITH repairing crossovers in: %s. I'll just use the raw content.", util.TruncString(content))
+				panic(errors.New("Boom"))
 				return content
 			}
 		}
