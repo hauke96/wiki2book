@@ -16,17 +16,17 @@ eBook of the German article about astronomy on a Tolino eBook-reader:
 Good question.
 
 [Pandoc](https://pandoc.org/epub.html) and other converters, like [wb2pdf](https://mediawiki2latex.wmflabs.org/) or [percollate](https://github.com/danburzo/percollate), are great and yes, they can convert mediawiki to EPUB.
-In fact, wiki2book relies by default on pandoc to turn HTML into EPUB because pandoc does this quite well.
+In fact, wiki2book by default uses pandoc to turn HTML into EPUB because pandoc does this quite well.
 
-However, when converting mediawiki to EPUB, there are always things missing when using these tools.
-For example, the correct rendering math code, downloading and embedding images, evaluating templates or a proper handling of tables.
+However, when converting mediawiki to EPUB, a lot of things are missing when using these tools:
+Correct rendering math code, downloading and embedding images, evaluating templates, proper handling of tables, ...
 
-They are also rather general purpose and don't do any eBook-specific assumptions, e.g. ignoring ebook-unsuitable styles or Wikipedia-oriented templates.
+Furthermore, these tools are generic and don't do any eBook-specific assumptions, e.g. ignoring eBook-unsuitable CSS-styles or excluding Wikipedia-oriented templates.
 
-Another feature missing in all of these tools: You cannot turn multiple articles into a ready-to-read eBook.
-This also includes adding a title mage, table-of-content, custom styles, etc.
+Another feature missing in all of these tools: You cannot turn multiple articles into a single ready-to-read eBook.
+This also includes adding a title page, table of content, custom styles, etc.
 
-Wiki2book is a tool adressing all these issues and nice features to generate beautiful looking eBooks.
+Wiki2book is a tool addressing all these issues and nice features to generate beautiful looking eBooks.
 
 # Installation
 
@@ -36,21 +36,22 @@ Wiki2book is a tool adressing all these issues and nice features to generate bea
 
 # Usage
 
-Currently only a CLI (_command line interface_) version of wiki2book exists, so nothing with a GUI.
+Currently only a CLI (_command line interface_) version of wiki2book exists, so no GUI.
 Wiki2book uses configuration files, project files and CLI arguments to be configured.
-Use the `--help` flag or the [documentation](./doc/configuration.md) for further information.
+See the [documentation](./doc/configuration.md) for further information including a list of all options or use the `--help` flag for an overview.
 
 ## Preliminaries
 
-You need the following tools and fonts when using the default configuration and styles:
+You need the following tools and fonts when using the **default** configuration:
 
-* ImageMagick (to have the `convert` command)
+* ImageMagick (to have the `magick` command).
 * Pandoc (when using the `pandoc` output driver). See notes on pandoc versions 2 and 3 below.
-* DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf` (is used by the default style in this repo but can be replaced to any other font).
+* rsvg (to have the `rsvg-convert` command).
+* Only applies to Linux systems:
+  DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf`, which are referenced in the default style. If these files
+  should be embedded into the eBook, use the `font-files` config entry, which is empty by default. 
 
-When enabling the conversion of SVGs to PNGs or when using the math converter "internal", then wiki2book uses the tool `rsvg-convert` by default.
-
-The usage of external tools can be configured, e.g. to use explicit paths to executables or to use a custom script.
+The usage of external tools can be configured, e.g. to use explicit paths to executables, to use completely different tools or to use a custom script.
 See [doc/configuration](./doc/configuration.md#configure-external-tool-calls) for further details.
 
 ## CLI
@@ -73,7 +74,7 @@ _Only relevant when using the `pandoc` output driver._
 
 Pandoc version 2 might internally use CSS3 parameters by default, such as the `gap` property.
 This might cause problems on certain eBook readers (e.g. Tolino ones).
-To overcome this, pass the argument `--pandoc-data-dir ./pandoc/data` to wiki2book, which uses a template from this repo without such problematic `gap` parameter.
+To overcome this, pass the argument `--pandoc-data-dir ./pandoc/data` to wiki2book, which uses an HTML-template from this repo that's not using the problematic `gap` property.
 
 Alternatively install pandoc 3, which [avoids CSS3 parameters](https://github.com/jgm/pandoc/blob/3.0/data/epub.css#L166:L169).
 
@@ -85,11 +86,14 @@ Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/
 
 Please keep in mind:
 1. This is a hobby-project and my time is limited.
-2. Things with less or no use for me personally will get a lower priority.
+2. Things that are of little or no use to me personally will be given low/no priority.
 
-## Development
+## Development and code contributions
 
 For building, running, testing, etc. take a look at [`src/README.md`](src/README.md).
+
+There's no established process for code contributions.
+Please open an issue, describe your ideas, how you plan to implement this and we'll discuss further steps.
 
 # Long-term goals
 

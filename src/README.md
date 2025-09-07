@@ -7,7 +7,7 @@ You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `conver
 
 # Build project
 
-`go build -o wiki2book .`
+From within the `src` folder: `go build .`
 
 Or `build.sh` (use parameter `-h` for help) in root of this repo.
 

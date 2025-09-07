@@ -83,6 +83,8 @@ func NewDefaultConfig() *Configuration {
 		CommandTemplatePdfToPng:        defaultCommandTemplatePdfToPng,
 		CommandTemplateWebpToPng:       defaultCommandTemplateWebpToPng,
 		PandocExecutable:               "pandoc",
+		PandocDataDir:                  "",
+		FontFiles:                      []string{},
 		TocDepth:                       tocDepthDefault,
 		WorkerThreads:                  workerThreadsDefault,
 		UserAgentTemplate:              "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)",
