@@ -221,7 +221,7 @@ func _TestGenerateDoc(t *testing.T) {
 							defaultDocLines = append(defaultDocLines, line)
 						}
 					}
-					result := lineToHtmlList(defaultDocLines)
+					result := toHtml(defaultDocLines)
 					entry.defaultValue = result
 					j = j - 1 // To not skip the current line, which does not belong to the default values
 				}
@@ -243,15 +243,24 @@ func _TestGenerateDoc(t *testing.T) {
 							allowedValueLines = append(allowedValueLines, line)
 						}
 					}
-					result := lineToHtmlList(allowedValueLines)
+					result := toHtml(allowedValueLines)
 					entry.allowedValues = result
 					j = j - 1 // To not skip the current line, which does not belong to the allowed values
 				}
 			} else if strings.Contains(line, "`json:\"") {
 				submatch := entryNameRegex.FindStringSubmatch(line)
 				entry.name = submatch[1]
-			} else if !strings.Contains(line, "*/") {
-				descriptionLines = append(descriptionLines, line)
+			} else if !strings.Contains(line, "*/") && line != "" {
+				lastLine := ""
+				if len(descriptionLines) != 0 {
+					lastLine = descriptionLines[len(descriptionLines)-1]
+				}
+				isContinuingTextLine := (len(descriptionLines) != 0 && lastLine != "") && !strings.HasSuffix(line, ":") && !strings.Contains(line, "JSON example:") && !strings.Contains(line, "ul>") && !strings.Contains(line, "li>")
+				if isContinuingTextLine {
+					descriptionLines[len(descriptionLines)-1] = descriptionLines[len(descriptionLines)-1] + " " + line
+				} else {
+					descriptionLines = append(descriptionLines, line)
+				}
 			}
 		}
 
@@ -262,7 +271,7 @@ func _TestGenerateDoc(t *testing.T) {
 			}
 		}
 
-		entry.description = lineToHtmlList(cleanedDescriptionLines)
+		entry.description = toHtml(cleanedDescriptionLines)
 
 		if entry.name == "" {
 			sigolo.Fatalf("Entry name must not be empty. Entry index %d with content:\n%s", i, configEntryContent)
@@ -283,11 +292,12 @@ func _TestGenerateDoc(t *testing.T) {
 	sigolo.Infof("Markdown:\n\n%s", resultMarkdown)
 }
 
-func lineToHtmlList(lines []string) string {
+func toHtml(lines []string) string {
 	result := strings.Join(lines, "</br>")
 	result = strings.ReplaceAll(result, "ul></br>", "ul>")
 	result = strings.ReplaceAll(result, "</br><ul>", "<ul>")
 	result = strings.ReplaceAll(result, "</br><li>", "<li>")
 	result = strings.ReplaceAll(result, "li></br>", "li>")
+	result = strings.ReplaceAll(result, "  ", " ")
 	return result
 }

@@ -118,6 +118,9 @@ func getDefaultMathSvgToPngCommandTemplate() string {
 type Configuration struct {
 	/*
 		Forces wiki2book to recreate HTML files even if they exists from a previous run.
+		Some
+		more
+		lines.
 
 		Default: `false`
 		JSON example: `"force-regenerate-html": true`
