@@ -1,41 +1,53 @@
-This is a description of the caching this tool uses.
+This is a description of the caching wiki2book uses.
 
-# Goal
+# Core idea and how it works
 
-The goal is the following: Running this tool twice on the same inputs should only download the content once.
-
+The core idea is the following: Running this tool twice on the same inputs should only download the content once.
 To achieve this, several caches for articles, rendered templates, images and rendered math code are used.
 
-# How it works
-
-Quick facts:
+Overview:
 
 * A cache is just a folder containing files.
-* Each file (except article files) has a SHA1 hash of its content as name and a proper file ending (e.g. `.svg`).
+* There are configurable rules when files are evicted (= deleted and recreated) from the cache.
+* Generated files (i.e. rendered images from math expressions) have the SHA1 hash of their content as file name.
 
 ## Filling the cache
 
-The cache is filled from the `api` package: Every response gets stored right into the cache.
+The cache is filled using the `cache` package.
+Every HTTP response and all generated files (e.g. converted SVGs, generated HTML, etc.) is stored into the cache.
 When the cache already contains an item (e.g. an image), no request is made in the first place.
 
 ## Clearing the cache
 
-The cache is not automatically cleared but feel free to remove the cache, a single folder within it or just one file.
-All missing content will be downloaded and saved again.
+### Manually
 
+Feel free to remove the cache, a single folder within it or just a single file.
+Any missing file will be downloaded or recreated.
 You can also just specify a non-existent cache-folder in the CLI arguments to start from scratch.
+
+### Automatically
+
+Wiki2book supports some simple cache eviction strategies.
+
+* Deletion of outdated files:
+  Deleted files older than a certain age (s. `cache-max-age`).
+  This _always_ happens, regardless of any other cache eviction strategy.
+* Cache eviction strategy:
+  This is a strategy in case the cache is full.
+  It determines which file(s) to delete in order to make space for the new file.
+  See the `cache-eviction-strategy` documentation for details.
 
 # Caches
 
-The are caches for the following things:
+The are caches for the following things.
+All folder names are within the configured `cache-dir` folder.
 
 * [Articles](#articles)
 * [Images](#Images)
 * [Rendered math](#math)
 * [Templates](#Templates)
 * [HTML](#HTML)
-
-The cache folders are right next to the project file.
+* `.tmp`: Just a temporary storage. Will be cleaned up / recreated automatically and should usually be empty when wiki2book is not running. 
 
 ## Articles
 
@@ -72,7 +84,7 @@ The `images` cache folder will contain two image files (an `.svg` and `.png` fil
 
 The file structure for the above example would look like this:
 ```
-|– your-project/
+|– your-cache-folder/
    |– images/
       |– 5bbe82a3c29d695afc67eb99a18ed8453e28f12f.png
       |– 5bbe82a3c29d695afc67eb99a18ed8453e28f12f.svg

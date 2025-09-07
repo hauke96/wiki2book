@@ -2,12 +2,13 @@ package parser
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"wiki2book/config"
 	"wiki2book/util"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
 var imageNonInlineParameters = []string{
@@ -57,8 +58,8 @@ func (t *Tokenizer) escapeImages(content string) string {
 	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
 		// This image might should be ignored. However, there are special cases, e.g. when PDFs should be ignored but
 		// also converted into an image. In this case the PDF doesn't count as PDF but as image and can stay.
-		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ConvertPdfToPng
-		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ConvertSvgToPng
+		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ShouldConvertPdfToPng()
+		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ShouldConvertSvgToPng()
 		if !isPdfAndShouldStay && !isSvgAndShouldStay {
 			return ""
 		}
@@ -212,8 +213,6 @@ func (t *Tokenizer) parseImages(content string) string {
 			options := strings.Split(imageContent, "|")
 
 			filename := strings.SplitN(options[0], ":", 2)[1]
-			imageFilepath := filepath.Join(t.imageFolder, filename)
-
 			tokenType := TOKEN_IMAGE_INLINE
 			hasCaption := false
 			captionToken := CaptionToken{}
@@ -277,13 +276,13 @@ func (t *Tokenizer) parseImages(content string) string {
 			var imageToken Token
 			if tokenType == TOKEN_IMAGE_INLINE {
 				imageToken = InlineImageToken{
-					Filename: imageFilepath,
+					Filename: filename,
 					SizeX:    xSizeInt,
 					SizeY:    ySizeInt,
 				}
 			} else {
 				imageToken = ImageToken{
-					Filename: imageFilepath,
+					Filename: filename,
 					Caption:  captionToken,
 					SizeX:    xSizeInt,
 					SizeY:    ySizeInt,

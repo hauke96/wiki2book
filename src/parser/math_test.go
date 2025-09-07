@@ -7,7 +7,7 @@ import (
 )
 
 func TestParseMath(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `abc<math>x \cdot y</math>def
 some
 <math>

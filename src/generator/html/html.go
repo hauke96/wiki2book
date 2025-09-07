@@ -2,17 +2,20 @@ package html
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"wiki2book/api"
+	"wiki2book/cache"
 	"wiki2book/config"
+	"wiki2book/image"
 	"wiki2book/parser"
 	"wiki2book/util"
+	"wiki2book/wikipedia"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
 const HEADER = `<?xml version="1.0" encoding="UTF-8"?>
@@ -89,14 +92,14 @@ var (
 )
 
 type HtmlGenerator struct {
-	ImageCacheFolder   string
-	MathCacheFolder    string
-	ArticleCacheFolder string
-	TokenMap           map[string]parser.Token
+	TokenMap         map[string]parser.Token
+	WikipediaService *wikipedia.DefaultWikipediaService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
-func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder string, styleFile string) (string, error) {
+func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
+	styleFile, err := util.ToRelativePathWithBasedir(config.Current.CacheDir, config.Current.StyleFile)
+	sigolo.FatalCheck(err)
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
 	expandedContent, err := g.expand(wikiArticle.Content)
@@ -105,7 +108,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article, outputFolder strin
 	}
 	content += expandedContent
 	content += FOOTER
-	return write(wikiArticle.Title, outputFolder, content)
+	return write(wikiArticle.Title, cache.HtmlCacheDirName, content)
 }
 
 func (g *HtmlGenerator) expand(content interface{}) (string, error) {
@@ -127,7 +130,7 @@ func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
 	case parser.HeadingToken:
 		html, err = g.expandHeadings(t)
 	case parser.InlineImageToken:
-		html = g.expandInlineImage(t)
+		html, err = g.expandInlineImage(t)
 	case parser.ImageToken:
 		html, err = g.expandImage(t)
 	case parser.ExternalLinkToken:
@@ -216,17 +219,11 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth))
 }
 
-func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) string {
+func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
+	filename := filenameToImagePath(token.Filename)
 
-	filename := token.Filename
-	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
-		filename = util.GetPngPathForPdf(filename)
-	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
-		filename = util.GetPngPathForSvg(filename)
-	}
-
-	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate)
+	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate), nil
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
@@ -236,13 +233,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 	}
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-
-	filename := token.Filename
-	if config.Current.ConvertPdfToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingPdf {
-		filename = util.GetPngPathForPdf(filename)
-	} else if config.Current.ConvertSvgToPng && filepath.Ext(strings.ToLower(filename)) == util.FileEndingSvg {
-		filename = util.GetPngPathForSvg(filename)
-	}
+	filename := filenameToImagePath(token.Filename)
 
 	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
 }
@@ -269,6 +260,20 @@ func expandSizeTemplate(xSize int, ySize int) string {
 		sizeTemplate = fmt.Sprintf(STYLE_TEMPLATE, strings.Join(styles, " "))
 	}
 	return sizeTemplate
+}
+
+func filenameToImagePath(filename string) string {
+	filePath := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
+
+	if config.Current.ShouldConvertPdfToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
+		filePath = util.GetPngPathForPdf(filePath)
+	} else if config.Current.ShouldConvertSvgToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
+		filePath = util.GetPngPathForSvg(filePath)
+	} else if config.Current.ShouldConvertWebpToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingWebp {
+		filePath = util.GetPngPathForFile(filePath)
+	}
+
+	return filePath
 }
 
 func (g *HtmlGenerator) expandInternalLink(token parser.InternalLinkToken) (string, error) {
@@ -408,7 +413,8 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 	var template string
 	switch token.Type {
 	case parser.NORMAL_ITEM:
-		if len(listItemString) >= 3 && strings.TrimLeft(listItemString, " ")[:3] == "<li" {
+		trimmedListItemString := strings.TrimSpace(listItemString)
+		if len(trimmedListItemString) >= 3 && trimmedListItemString[:3] == "<li" {
 			// The wikitext "# <li value=4> ..." is valid to let the list start/continue with the number 4. The <li>
 			// item of the manual HTML within this list might contain additional arguments, so we use their item
 			// instead of the item from the template.
@@ -443,14 +449,13 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 	return fmt.Sprintf(TEMPLATE_REF_USAGE, token.Index+1)
 }
 
-// TODO Create service class with public interface for the api functions (like RenderMath) to be able to mock that service.
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, imageFilename, err := api.RenderMath(token.Content, g.ImageCacheFolder, g.MathCacheFolder)
+	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content)
 	if err != nil {
 		return "", err
 	}
 
-	svg, err := util.ReadSimpleAvgAttributes(svgFilename)
+	svg, err := image.ReadSimpleAvgAttributes(svgFilename)
 	if err != nil {
 		return "", err
 	}
@@ -466,6 +471,8 @@ func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {
 
 // write returns the output path or an error.
 func write(title string, outputFolder string, content string) (string, error) {
+	outputFolder = cache.GetDirPathInCache(outputFolder)
+
 	// Create the output folder
 	sigolo.Debugf("Ensure output folder '%s'", outputFolder)
 	err := os.Mkdir(outputFolder, os.ModePerm)

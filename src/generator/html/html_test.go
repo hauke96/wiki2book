@@ -38,14 +38,14 @@ func TestExpandHeadings(t *testing.T) {
 
 func TestExpandImage(t *testing.T) {
 	result := `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
 some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.ImageToken{
-		Filename: "foo/image.jpg",
+		Filename: "image.jpg",
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    20,
@@ -61,17 +61,42 @@ some <b>caption</b>
 }
 
 func TestExpandImage_usePngFileForPdf(t *testing.T) {
-	config.Current.ConvertPdfToPng = true
+	config.Current.CommandTemplatePdfToPng = "some-command"
 
 	result := `<div class="figure">
-<img alt="image" src="./foo/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">
+<img alt="image" src="./images/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">
 <div class="caption">
 
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.ImageToken{
-		Filename: "foo/document.pdf",
+		Filename: "document.pdf",
+		SizeX:    200,
+		SizeY:    -1,
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	actualResult, err := generator.expand(token)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
+}
+
+func TestExpandImage_usePngFileForWebp(t *testing.T) {
+	config.Current.CommandTemplateWebpToPng = "some-command"
+
+	result := `<div class="figure">
+<img alt="image" src="./images/image.webp.png" style="vertical-align: middle; width: 200px; height: auto;">
+<div class="caption">
+
+</div>
+</div>`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.ImageToken{
+		Filename: "image.webp",
 		SizeX:    200,
 		SizeY:    -1,
 	}
@@ -87,14 +112,14 @@ func TestExpandImage_usePngFileForPdf(t *testing.T) {
 
 func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
 	result := `<div class="figure">
-<img alt="image" src="./foo/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<img alt="image" src="./images/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
 some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.ImageToken{
-		Filename: "foo/\"some'special%chars.jpg",
+		Filename: "\"some'special%chars.jpg",
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    20,
@@ -111,14 +136,14 @@ some <b>caption</b>
 
 func TestExpandImage_noCaption(t *testing.T) {
 	result := `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
 
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 0)
 	token := parser.ImageToken{
-		Filename: "foo/image.jpg",
+		Filename: "image.jpg",
 		Caption:  parser.CaptionToken{},
 		SizeX:    10,
 		SizeY:    20,
@@ -136,14 +161,14 @@ func TestExpandImage_noCaption(t *testing.T) {
 func TestExpandImage_onlyOneSizeSpecified(t *testing.T) {
 	// Only width
 	result := `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: auto;">
+<img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: auto;">
 <div class="caption">
 some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.ImageToken{
-		Filename: "foo/image.jpg",
+		Filename: "image.jpg",
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    -1,
@@ -159,14 +184,14 @@ some <b>caption</b>
 
 	// Only height
 	result = `<div class="figure">
-<img alt="image" src="./foo/image.jpg" style="vertical-align: middle; width: auto; height: 10px;">
+<img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: auto; height: 10px;">
 <div class="caption">
 some <b>caption</b>
 </div>
 </div>`
 	tokenImage = fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token = parser.ImageToken{
-		Filename: "foo/image.jpg",
+		Filename: "image.jpg",
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    -1,
 		SizeY:    10,
@@ -182,10 +207,10 @@ some <b>caption</b>
 }
 
 func TestExpandImageInline(t *testing.T) {
-	result := `<img alt="image" class="inline" src="./foo/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
+	result := `<img alt="image" class="inline" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
-		Filename: "foo/image.jpg",
+		Filename: "image.jpg",
 		SizeX:    10,
 		SizeY:    20,
 	}
@@ -200,10 +225,10 @@ func TestExpandImageInline(t *testing.T) {
 }
 
 func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
-	result := `<img alt="image" class="inline" src="./foo/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
+	result := `<img alt="image" class="inline" src="./images/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
-		Filename: "foo/\"some'special%chars.jpg",
+		Filename: "\"some'special%chars.jpg",
 		SizeX:    10,
 		SizeY:    20,
 	}
@@ -389,6 +414,23 @@ foo
 b<b>a</b>r
 </li>
 </ol>`, row)
+}
+
+func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
+	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  foobar  "}
+	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  f"} // string without left space being <3 chars long caused crash
+	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
+
+	row, err := generator.expand(list3)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<ul>
+<li>
+  foobar  
+</li>
+<li>
+  f
+</li>
+</ul>`, row)
 }
 
 func TestExpandDescriptionList(t *testing.T) {

@@ -50,3 +50,11 @@ func ReaderToString(reader io.Reader) string {
 
 	return ""
 }
+
+// GetTextAround returns the text around the given atIndex with the given size. Example: Is the size 3, then the char
+// at the given location and 3 chars before and after are returned.
+func GetTextAround(text string, atIndex int, areaSizeAround int) string {
+	startIndex := int(math.Max(0, float64(atIndex-areaSizeAround)))
+	endIndex := int(math.Min(float64(len(text)-1), float64(atIndex+areaSizeAround))) + 1
+	return text[startIndex:endIndex]
+}

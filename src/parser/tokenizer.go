@@ -2,6 +2,8 @@ package parser
 
 import (
 	"fmt"
+	"wiki2book/wikipedia"
+
 	"github.com/hauke96/sigolo/v2"
 )
 
@@ -43,11 +45,10 @@ const (
 )
 
 type Tokenizer struct {
-	tokenMap       map[string]Token
-	tokenCounter   int
-	images         []string
-	imageFolder    string
-	templateFolder string
+	tokenMap         map[string]Token
+	tokenCounter     int
+	images           []string
+	wikipediaService wikipedia.WikipediaService
 
 	tokenizeContent func(tokenizer *Tokenizer, content string) string
 }
@@ -68,13 +69,12 @@ type StringToken struct {
 	String string
 }
 
-func NewTokenizer(imageFolder string, templateFolder string) Tokenizer {
+func NewTokenizer(wikipediaService wikipedia.WikipediaService) Tokenizer {
 	return Tokenizer{
-		tokenMap:       map[string]Token{},
-		tokenCounter:   0,
-		images:         []string{},
-		imageFolder:    imageFolder,
-		templateFolder: templateFolder,
+		tokenMap:         map[string]Token{},
+		tokenCounter:     0,
+		images:           []string{},
+		wikipediaService: wikipediaService,
 
 		tokenizeContent: tokenizeContent,
 	}
@@ -84,7 +84,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	var err error
 
 	sigolo.Debugf("Tokenize article '%s' [1/4]: First cleanup", title)
-	content, err = clean(content)
+	content, err = t.clean(content)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (t *Tokenizer) Tokenize(content string, title string) (*Article, error) {
 	}
 
 	sigolo.Debugf("Tokenize article '%s' [3/4]: Second cleanup", title)
-	content, err = clean(content)
+	content, err = t.clean(content)
 	if err != nil {
 		return nil, err
 	}

@@ -2,18 +2,18 @@ package epub
 
 import (
 	"fmt"
-	"github.com/go-shiori/go-epub"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"os"
 	"regexp"
 	"strconv"
 	"wiki2book/config"
-	"wiki2book/project"
 	"wiki2book/util"
+
+	"github.com/go-shiori/go-epub"
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
-func Generate(sourceFiles []string, outputFile string, outputType string, styleFile string, coverFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata project.Metadata) error {
+func Generate(sourceFiles []string, outputFile string, outputType string, styleFile string, coverFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
@@ -46,7 +46,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 
 	args = append(args, sourceFiles...)
 
-	err := util.Execute(config.Current.PandocExecutable, args...)
+	err := util.Execute(config.Current.PandocExecutable, config.Current.CacheDir, args...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
 	}
@@ -54,7 +54,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 	return nil
 }
 
-func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile string, styleFile string, fontFiles []string, metadata project.Metadata) error {
+func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile string, styleFile string, fontFiles []string, metadata config.Metadata) error {
 
 	epubObj, err := epub.NewEpub("My title")
 	if err != nil {

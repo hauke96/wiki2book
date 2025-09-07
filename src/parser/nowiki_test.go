@@ -7,7 +7,7 @@ import (
 )
 
 func TestNowiki(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := "Foo<nowiki>something</nowiki> bar"
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0) + " bar"
 
@@ -20,7 +20,7 @@ func TestNowiki(t *testing.T) {
 }
 
 func TestNowiki_endOfText(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := "Foo<nowiki>something</nowiki>"
 	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0)
 

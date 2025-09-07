@@ -7,7 +7,7 @@ import (
 )
 
 func TestParseReferences(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `some text<ref>bar</ref>
 some<ref name="blubb">blubbeldy</ref> other<ref name="fooref" /> text
 <references responsive>
@@ -35,7 +35,7 @@ some footer`
 }
 
 func TestParseReferences_tokenizeRefContent(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `some text<ref>foo [[bar|Bar]]</ref>.`
 	expectedContent := "some text" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "."
 
@@ -49,7 +49,7 @@ func TestParseReferences_tokenizeRefContent(t *testing.T) {
 }
 
 func TestParseReferences_mixedQuotations(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref name="foo">This is a ref for foo.</ref>
 Bar<ref name=bar>This is a quoteless ref for bar.</ref>
 <references/>`
@@ -70,7 +70,7 @@ Bar<ref name=bar>This is a quoteless ref for bar.</ref>
 }
 
 func TestParseReferences_multipleUsagesOfRefName(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref name="foo">some ref</ref>
 Bar<ref name=foo />
 Foobar<ref name="foo"" />
@@ -92,7 +92,7 @@ Foobar<ref name="foo"" />
 }
 
 func TestParseReferences_multipleRefBodyDefinitions(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref name="foo">some ref</ref>
 Bar<ref name=foo>some ref but for bar</ref>
 <references/>`
@@ -111,7 +111,7 @@ Bar<ref name=foo>some ref but for bar</ref>
 }
 
 func TestParseReferences_multipleReferencesPlaceholder(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref>some ref</ref>
 <references/>
 Bar<ref>some other ref</ref>
@@ -133,7 +133,7 @@ Bar<ref>some other ref</ref>
 }
 
 func TestParseReferences_multipleGroupedReferences(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref group="foo">some ref</ref>
 Blubb<ref>some ungrouped ref</ref>
 Bar<ref group="bar">some other ref</ref>
@@ -170,7 +170,7 @@ Other references:
 }
 
 func TestParseReferences_groupedAndNamedReferences(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref group="foo">some ref</ref>
 Blubb<ref group="foo" name="some-name" />
 Bar<ref group="foo" name="some-name">some grouped and named ref</ref>
@@ -197,7 +197,7 @@ Foo references:
 }
 
 func TestParseReferences_multipleReferencesPerGroup(t *testing.T) {
-	tokenizer := NewTokenizer("foo", "bar")
+	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `Foo<ref group="foo">some ref</ref>
 Blubb<ref>some ungrouped ref</ref>
 Bar<ref group="bar">some other ref</ref>
@@ -250,45 +250,49 @@ Other references:
 }
 
 func TestGetNameAttribute(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := "some name=foo bar"
-	name := getNameAttribute(content)
+	name := tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=\"foo\" bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=foo"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some name=\"foo\""
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some <ref name=\"foo\"> bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some <ref name=foo> bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "foo", name)
 
 	content = "some noname=foo bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "", name)
 
 	content = "some noname=\"foo\" bar"
-	name = getNameAttribute(content)
+	name = tokenizer.getNameAttribute(content)
 	test.AssertEqual(t, "", name)
 }
 
 func TestGetGroupOrDefaultAttribute(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := "some group=foo bar"
-	group := getGroupOrDefault(content)
+	group := tokenizer.getGroupOrDefault(content)
 	test.AssertEqual(t, "foo", group)
 
 	content = "some name=foo bar"
-	group = getGroupOrDefault(content)
+	group = tokenizer.getGroupOrDefault(content)
 	test.AssertEqual(t, defaultReferenceGroup, group)
 }

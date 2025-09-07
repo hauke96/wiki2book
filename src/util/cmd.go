@@ -2,25 +2,27 @@ package util
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
 )
 
-func ExecuteCommandWithArgs(commandString string) error {
+func ExecuteCommandWithArgs(commandString string, workingDirectory string) error {
 	commandParts := strings.Split(commandString, " ")
 	commandExecutable := commandParts[0]
 	commandArgs := commandParts[1:]
 
-	return Execute(commandExecutable, commandArgs...)
+	return Execute(commandExecutable, workingDirectory, commandArgs...)
 }
 
-func Execute(name string, arg ...string) error {
+func Execute(name string, workingDirectory string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 
 	var stderrBuffer strings.Builder
 	cmd.Stderr = &stderrBuffer
+	cmd.Dir = workingDirectory
 
 	sigolo.Debugf("Execute command: %s", cmd.String())
 	err := cmd.Run()

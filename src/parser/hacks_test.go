@@ -6,18 +6,22 @@ import (
 )
 
 func TestHackGermanRailwayTemplates_noTable(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := `foo
 something
 bar`
 	expectedContent := `foo
 something
 bar`
-	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := tokenizer.hackGermanRailwayTemplates(content, 0)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
 func TestHackGermanRailwayTemplates_simple(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := `foo
 {{BS-table}}
 something
@@ -28,12 +32,14 @@ bar`
 something
 
 bar`
-	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := tokenizer.hackGermanRailwayTemplates(content, 0)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
 func TestHackGermanRailwayTemplates_specialCharacter(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := `föö
 {{BS-table}}
 sömethöng
@@ -44,12 +50,14 @@ bär`
 sömethöng
 
 bär`
-	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := tokenizer.hackGermanRailwayTemplates(content, 0)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }
 
 func TestHackGermanRailwayTemplates_nested(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
 	content := `foo
 {{BS-table}}
 something
@@ -68,7 +76,7 @@ some inner stuff
 some outer stuff
 
 bar`
-	actualContent, err := hackGermanRailwayTemplates(content, 0)
+	actualContent, err := tokenizer.hackGermanRailwayTemplates(content, 0)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, expectedContent, actualContent)
 }

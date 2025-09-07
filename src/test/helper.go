@@ -2,61 +2,105 @@ package test
 
 import (
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
+	"math"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/hauke96/sigolo/v2"
 )
 
-const tempDirName = ".tmp/"
-const cacheFolder = "../.test-cache"
+const TestTempDirName = ".tmp/"
+const TestCacheFolder = "../.test-cache"
 
 func CleanRun(m *testing.M) {
-	Cleanup()
-	err := os.MkdirAll(GetCacheFolder(), os.ModePerm)
-	sigolo.FatalCheck(err)
-
-	err = os.RemoveAll(tempDirName)
-	sigolo.FatalCheck(err)
-	err = os.MkdirAll(tempDirName, os.ModePerm)
-	sigolo.FatalCheck(err)
+	Prepare()
 
 	m.Run()
+
+	Cleanup()
+}
+
+func Prepare() {
+	Cleanup()
+
+	err := os.MkdirAll(TestCacheFolder, os.ModePerm)
+	sigolo.FatalCheck(err)
+
+	err = os.MkdirAll(TestTempDirName, os.ModePerm)
+	sigolo.FatalCheck(err)
 }
 
 func Cleanup() {
-	err := os.RemoveAll(cacheFolder)
-	if err != nil && !os.IsNotExist(err) {
-		sigolo.Fatalf("Removing %s failed: %s", cacheFolder, err.Error())
-	}
+	rmDir(TestCacheFolder)
+	rmDir(TestTempDirName)
 }
 
-func GetCacheFolder() string {
-	return cacheFolder
+func rmDir(folder string) {
+	err := os.RemoveAll(folder)
+	if err != nil && !os.IsNotExist(err) {
+		sigolo.Fatalf("Removing %s failed: %s", folder, err.Error())
+	}
 }
 
 func AssertEqual(t *testing.T, expected interface{}, actual interface{}) {
-	expectedIsString := false
-	actualIsString := false
+	expectedValueType := getType(expected)
+	actualValueType := getType(actual)
 
-	switch expected.(type) {
-	case string:
-		expectedIsString = true
+	// Turn int into int64 for easier handling below
+	if expectedValueType == "int" {
+		expectedValueType = "int64"
+		expected = int64(expected.(int))
 	}
-	switch actual.(type) {
-	case string:
-		actualIsString = true
+	if actualValueType == "int" {
+		actualValueType = "int64"
+		actual = int64(actual.(int))
 	}
 
-	if !reflect.DeepEqual(expected, actual) {
-		if expectedIsString && actualIsString {
+	if expectedValueType == "float64" && actualValueType == "float64" {
+		assertEqualFloat64(t, expected.(float64), actual.(float64))
+	} else if expectedValueType == "int64" && actualValueType == "int64" {
+		assertEqualInt64(t, expected.(int64), actual.(int64))
+	} else if !reflect.DeepEqual(expected, actual) {
+		if expectedValueType == "string" && actualValueType == "string" {
 			assertEqualStrings(t, expected.(string), actual.(string))
 		} else {
 			sigolo.Errorb(1, "Expect to be equal.\nExpected: %+v\n----------\nActual  : %+v", expected, actual)
 			t.Fail()
 		}
+	}
+}
+
+func getType(expected interface{}) string {
+	switch expected.(type) {
+	case string:
+		return "string"
+	case float64:
+		return "float64"
+	case int:
+		return "int"
+	case int64:
+		return "int64"
+	}
+	return ""
+}
+
+func assertEqualFloat64(t *testing.T, expected float64, actual float64) {
+	errorMargin := 0.0001
+	actualError := math.Abs(expected - actual)
+	if actualError > errorMargin {
+		sigolo.Errorf("Expected %f and %f to be equal with error margin of %f, but difference was %f", expected, actual, errorMargin, actualError)
+		sigolo.Errorb(2, "Expect to be equal.\nExpected: %f\n----------\nActual  : %f\n----------\nActual Error   : %f\nTolerated Error: %f", expected, actual, actualError, errorMargin)
+		t.Fail()
+	}
+}
+
+func assertEqualInt64(t *testing.T, expected int64, actual int64) {
+	if expected != actual {
+		sigolo.Errorb(2, "Expect to be equal.\nExpected: %d\n----------\nActual  : %d", expected, actual)
+		t.Fail()
 	}
 }
 
@@ -169,7 +213,11 @@ func getLinePrefix[K comparable, V comparable](otherMap map[K]V, key K, expected
 
 func AssertNil(t *testing.T, value any) {
 	if value != nil && !reflect.ValueOf(value).IsNil() {
-		sigolo.Errorb(1, "Expect to be 'nil' but was: %#v", value)
+		if _, ok := value.(error); ok {
+			sigolo.Errorb(1, "Expect error to be 'nil' but was: %+v", value)
+		} else {
+			sigolo.Errorb(1, "Expect to be 'nil' but was: %#v", value)
+		}
 		t.Fail()
 	}
 }
