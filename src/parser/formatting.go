@@ -5,7 +5,6 @@ import (
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
 )
 
 type BoldItalicStackItemType int
@@ -53,7 +52,6 @@ func (t *Tokenizer) parseBoldAndItalic(content string) string {
 
 			if !success {
 				sigolo.Warnf("Unable to parse bold and italic tags EVEN WITH repairing crossovers in: %s. I'll just use the raw content.", util.TruncString(content))
-				panic(errors.New("Boom"))
 				return content
 			}
 		}

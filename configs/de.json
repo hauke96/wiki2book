@@ -110,5 +110,6 @@
   ],
   "math-converter": "template",
   "command-template-svg-to-png": "",
-  "style-file": "./style.css"
+  "style-file": "./style.css",
+  "cache-max-size": 1000000000
 }
