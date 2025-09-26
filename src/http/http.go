@@ -63,7 +63,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 		return "", true, err
 	}
 
-	err = cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
+	outputFilepath, err = cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
 	}

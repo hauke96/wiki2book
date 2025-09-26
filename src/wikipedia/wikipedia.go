@@ -354,7 +354,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	_, err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

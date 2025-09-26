@@ -454,7 +454,6 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			sigolo.FatalCheck(err)
 		case config.OutputTypeStats:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			articleOutputFile = filepath.Join(cache.StatsCacheDirName, articleName+".txt")
 			// TODO generator and generate stats
 		}
 	}
