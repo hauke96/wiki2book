@@ -65,6 +65,7 @@ func initCli() *cobra.Command {
 		sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
 	}
 
+	rootCmd.PersistentFlags().BoolP("help", "h", false, "This help message.")
 	rootCmd.PersistentFlags().StringVarP(&cliConfigFile, "config", "c", "", "The path to the overall application config. If not specified, default values are used.")
 	rootCmd.PersistentFlags().StringVarP(&cliLogging, "logging", "l", "info", "Logging verbosity. Possible values: \"info\", \"debug\", \"trace\".")
 
@@ -143,7 +144,21 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd)
+	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd, statisticsCmd)
+
+	rootCmd.InitDefaultHelpCmd()
+	var helpCommand *cobra.Command
+	for _, cmd := range rootCmd.Commands() {
+		if cmd.Name() == "help" {
+			helpCommand = cmd
+			break
+		}
+	}
+	if helpCommand == nil {
+		sigolo.Fatal("Help command not found")
+	}
+	helpCommand.Short = "Help about any command."
+	helpCommand.Long = "Help provides help for any command in the application. Simply type 'help [command]' for further details on that command."
 
 	return rootCmd
 }
