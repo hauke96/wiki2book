@@ -13,12 +13,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Generate(sourceFiles []string, outputFile string, outputType string, styleFile string, coverFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
+func Generate(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
 		"-f", "html",
-		"-t", outputType,
+		"-t", config.Current.OutputType,
 		"-o", outputFile,
 		"--metadata", "title=" + metadata.Title,
 		"--metadata", "author=" + metadata.Author,
@@ -26,20 +26,20 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
 	}
-	if tocDepth > 0 {
-		args = append(args, "--toc", "--toc-depth", strconv.Itoa(tocDepth))
+	if config.Current.TocDepth > 0 {
+		args = append(args, "--toc", "--toc-depth", strconv.Itoa(config.Current.TocDepth))
 	}
-	if pandocDataDir != "" {
-		args = append(args, "--data-dir", pandocDataDir)
+	if config.Current.PandocDataDir != "" {
+		args = append(args, "--data-dir", config.Current.PandocDataDir)
 	}
-	if styleFile != "" {
-		args = append(args, "--css", styleFile)
+	if config.Current.StyleFile != "" {
+		args = append(args, "--css", config.Current.StyleFile)
 	}
-	if coverFile != "" {
-		args = append(args, "--epub-cover-image="+coverFile)
+	if config.Current.CoverImage != "" {
+		args = append(args, "--epub-cover-image="+config.Current.CoverImage)
 	}
-	if len(fontFiles) > 0 {
-		for _, file := range fontFiles {
+	if len(config.Current.FontFiles) > 0 {
+		for _, file := range config.Current.FontFiles {
 			args = append(args, "--epub-embed-font="+file)
 		}
 	}
@@ -54,7 +54,7 @@ func Generate(sourceFiles []string, outputFile string, outputType string, styleF
 	return nil
 }
 
-func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile string, styleFile string, fontFiles []string, metadata config.Metadata) error {
+func GenerateWithGoLibrary(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 
 	epubObj, err := epub.NewEpub("My title")
 	if err != nil {
@@ -65,9 +65,9 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 	epubObj.SetLang(metadata.Language)
 	epubObj.SetTitle(metadata.Title)
 
-	internalCoverImagePath, err := epubObj.AddImage(coverFile, "cover.png")
+	internalCoverImagePath, err := epubObj.AddImage(config.Current.CoverImage, "cover.png")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error adding cover image %s to EPUB object", coverFile))
+		return errors.Wrap(err, fmt.Sprintf("Error adding cover image %s to EPUB object", config.Current.CoverImage))
 	}
 
 	err = epubObj.SetCover(internalCoverImagePath, "")
@@ -96,9 +96,9 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 		epubObj.EmbedImages()
 	}
 
-	_, err = epubObj.AddCSS(styleFile, "style.css")
+	_, err = epubObj.AddCSS(config.Current.StyleFile, "style.css")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error adding CSS file %s to EPUB object", styleFile))
+		return errors.Wrap(err, fmt.Sprintf("Error adding CSS file %s to EPUB object", config.Current.StyleFile))
 	}
 
 	//for _, image := range images {
@@ -112,7 +112,7 @@ func GenerateWithGoLibrary(sourceFiles []string, outputFile string, coverFile st
 	//}
 
 	// TODO Test if this if working. The name in the CSS style and the name inside the EPUB probably need to match.
-	for _, fontFile := range fontFiles {
+	for _, fontFile := range config.Current.FontFiles {
 		sigolo.Debugf("Add font file %s to EPUB object", fontFile)
 		_, err = epubObj.AddFont(fontFile, fontFile)
 		if err != nil {

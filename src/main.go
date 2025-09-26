@@ -25,6 +25,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	defaultEpubOutputFile  = "ebook.epub"
+	defaultStatsOutputFile = "stats.txt"
+)
+
 var cliConfig = config.NewDefaultConfig()
 
 func main() {
@@ -68,7 +73,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVarP(&cliConfigFile, "config", "c", "", "The path to the overall application config. If not specified, default values are used.")
 	rootCmd.PersistentFlags().StringVarP(&cliLogging, "logging", "l", "info", "Logging verbosity. Possible values: \"info\", \"debug\", \"trace\".")
 
-	rootCmd.PersistentFlags().StringVarP(&cliOutputFile, cliOutputFileArgKey, "o", "ebook.epub", "The path to the output file.")
+	rootCmd.PersistentFlags().StringVarP(&cliOutputFile, cliOutputFileArgKey, "o", defaultEpubOutputFile, "The path to the output file.")
 
 	rootCmd.PersistentFlags().BoolVar(&cliDiagnosticsProfiling, "diagnostics-profiling", cliDiagnosticsProfiling, "Enable profiling and write results to ./profiling.prof.")
 	rootCmd.PersistentFlags().BoolVar(&cliDiagnosticsTrace, "diagnostics-trace", cliDiagnosticsTrace, "Enable tracing to analyse memory usage and write results to ./trace.out.")
@@ -299,18 +304,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	err = GenerateEpub(
-		config.Current.OutputDriver,
-		[]string{htmlFilePath},
-		outputFile,
-		config.Current.OutputType,
-		config.Current.StyleFile,
-		config.Current.CoverImage,
-		config.Current.PandocDataDir,
-		config.Current.FontFiles,
-		config.Current.TocDepth,
-		metadata,
-	)
+	err = GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(cache.GetTempPath())
@@ -403,21 +397,18 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Debugf("Worker threads are done processing articles")
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	err := GenerateEpub(
-		config.Current.OutputDriver,
-		articleFiles,
-		outputFile,
-		config.Current.OutputType,
-		config.Current.StyleFile,
-		config.Current.CoverImage,
-		config.Current.PandocDataDir,
-		config.Current.FontFiles,
-		config.Current.TocDepth,
-		metadata,
-	)
-	sigolo.FatalCheck(err)
+	switch config.Current.OutputType {
+	case config.OutputTypeEpub2:
+		fallthrough
+	case config.OutputTypeEpub3:
+		err := GenerateEpub(articleFiles, outputFile, metadata)
+		sigolo.FatalCheck(err)
+	case config.OutputTypeStats:
+		sigolo.Debugf("Generate stats")
+		// TODO
+	}
 
-	err = os.RemoveAll(cache.GetTempPath())
+	err := os.RemoveAll(cache.GetTempPath())
 	if err != nil {
 		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
@@ -471,20 +462,20 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	return htmlFilePath
 }
 
-func GenerateEpub(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
+func GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
 	var err error
 
 	if config.Current.OutputType != config.OutputTypeEpub2 && config.Current.OutputType != config.OutputTypeEpub3 {
-		sigolo.Fatalf("Output type '%s' does not support EPUB generation. This is a Bug.", outputType)
+		sigolo.Fatalf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
 	}
 
-	switch outputDriver {
+	switch config.Current.OutputDriver {
 	case config.OutputDriverPandoc:
-		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, tocDepth, metadata)
+		err = epub.Generate(articleFiles, outputFile, metadata)
 	case config.OutputDriverInternal:
-		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
+		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, metadata)
 	default:
-		err = errors.Errorf("No implementation found for output driver %s", outputDriver)
+		err = errors.Errorf("No implementation found for output driver %s", config.Current.OutputDriver)
 	}
 
 	return err
@@ -505,6 +496,16 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 // ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
 // temporary files in the temp files folder that might still exist from previous runs.
 func ensurePathsAndClearTempDir(outputFile string) string {
+	var err error
+
+	if config.Current.OutputType == config.OutputTypeStats && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
+		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
+		outputFile = defaultStatsOutputFile
+		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
+		outputFile, err = util.ToAbsolutePath(outputFile)
+		sigolo.FatalCheck(err)
+	}
+
 	var file *os.File
 	if _, err := os.Stat(outputFile); err != nil {
 		// Output file does not exist
@@ -525,8 +526,14 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	sigolo.FatalCheck(err)
 
 	if fileInfo.IsDir() {
-		// TODO Adjust this when additional non-epub output types are supported.
-		outputFile = path.Join(outputFile, "ebook.epub")
+		switch config.Current.OutputType {
+		case config.OutputTypeEpub2:
+			fallthrough
+		case config.OutputTypeEpub3:
+			outputFile = path.Join(outputFile, defaultEpubOutputFile)
+		case config.OutputTypeStats:
+			outputFile = path.Join(outputFile, defaultStatsOutputFile)
+		}
 	}
 
 	// Make all relevant paths absolute
