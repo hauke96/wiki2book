@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"wiki2book/generator"
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
@@ -21,6 +20,7 @@ const (
 
 	OutputTypeEpub2 = "epub2"
 	OutputTypeEpub3 = "epub3"
+	OutputTypeStats = "stats"
 
 	OutputDriverPandoc   = "pandoc"
 	OutputDriverInternal = "internal"
@@ -482,15 +482,15 @@ type Configuration struct {
 // in the Current configuration in case the field of the given config is different to the default value.
 func MergeIntoCurrentConfig(c *Configuration) {
 	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
-		sigolo.Tracef("Override outputType with %s", c.OutputType)
+		sigolo.Tracef("Override ForceRegenerateHtml with %v", c.ForceRegenerateHtml)
 		Current.ForceRegenerateHtml = c.ForceRegenerateHtml
 	}
 	if c.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
-		sigolo.Tracef("Override svgSizeToViewbox with %v", c.SvgSizeToViewbox)
+		sigolo.Tracef("Override SvgSizeToViewbox with %v", c.SvgSizeToViewbox)
 		Current.SvgSizeToViewbox = c.SvgSizeToViewbox
 	}
 	if c.OutputType != defaultConfig.OutputType {
-		sigolo.Tracef("Override outputType with %s", c.OutputType)
+		sigolo.Tracef("Override OutputType with %s", c.OutputType)
 		Current.OutputType = c.OutputType
 	}
 	if c.OutputDriver != defaultConfig.OutputDriver {
@@ -699,16 +699,23 @@ func (c *Configuration) AssertFilesAndPathsExists() {
 }
 
 func (c *Configuration) AssertValidity() {
-	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
+	isOutputTypeValid := true
+	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 && c.OutputType != OutputTypeStats {
+		isOutputTypeValid = false
 		defaultValidationErrorHandler(errors.Errorf("Invalid output type '%s'", c.OutputType))
 	}
+	isOutputDriverValid := true
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
+		isOutputDriverValid = false
 		defaultValidationErrorHandler(errors.Errorf("Invalid output driver '%s'", c.OutputDriver))
 	}
-	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
-	if err != nil {
-		defaultValidationErrorHandler(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
+	if isOutputTypeValid && isOutputDriverValid {
+		err := VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
+		if err != nil {
+			defaultValidationErrorHandler(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
+		}
 	}
+
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterTemplate {
 		defaultValidationErrorHandler(errors.Errorf("Invalid math converter '%s'", c.MathConverter))
 	}
@@ -774,6 +781,29 @@ func (c *Configuration) AssertValidity() {
 	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
 		defaultValidationErrorHandler(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
 	}
+}
+
+// VerifyOutputAndDriver returns an error if the output type and driver are not compatible and returns nil if they are.
+func VerifyOutputAndDriver(outputType string, outputDriver string) error {
+	sigolo.Tracef("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
+
+	switch outputType {
+	case OutputTypeEpub2:
+		if outputDriver == OutputDriverPandoc {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	case OutputTypeEpub3:
+		if outputDriver == OutputDriverPandoc ||
+			outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	case OutputTypeStats:
+		return nil
+	}
+
+	return errors.Errorf("Unknown output type '%s'", outputType)
 }
 
 func (c *Configuration) Print() {

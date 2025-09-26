@@ -76,7 +76,7 @@ func initCli() *cobra.Command {
 
 	rootCmd.PersistentFlags().BoolVarP(&cliConfig.ForceRegenerateHtml, "force-regenerate-html", "r", cliConfig.ForceRegenerateHtml, "Forces wiki2book to recreate HTML files even if they exists from a previous run.")
 	rootCmd.PersistentFlags().BoolVar(&cliConfig.SvgSizeToViewbox, "svg-size-to-viewbox", cliConfig.SvgSizeToViewbox, "Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2', 'epub3'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2', 'epub3', 'stats'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputDriver, "output-driver", cliConfig.OutputDriver, "The method to generate the output file. Available driver: 'pandoc', 'internal' (experimental!)")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheDir, "cache-dir", cliConfig.CacheDir, "The directory where all cached files will be written to.")
 	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxSize, "cache-max-size", cliConfig.CacheMaxSize, "The maximum size of the file cache in bytes.")
@@ -147,7 +147,7 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd, statisticsCmd)
+	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd)
 
 	rootCmd.InitDefaultHelpCmd()
 	var helpCommand *cobra.Command
@@ -450,14 +450,21 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		err = wikipediaService.DownloadImages(article.Images)
 		sigolo.FatalCheck(err)
 
-		// TODO Adjust this when additional non-epub output types are supported.
-		sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
-		htmlGenerator := &html.HtmlGenerator{
-			TokenMap:         article.TokenMap,
-			WikipediaService: wikipediaService,
+		switch config.Current.OutputType {
+		case config.OutputTypeEpub2:
+			fallthrough
+		case config.OutputTypeEpub3:
+			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
+			htmlGenerator := &html.HtmlGenerator{
+				TokenMap:         article.TokenMap,
+				WikipediaService: wikipediaService,
+			}
+			htmlFilePath, err = htmlGenerator.Generate(article)
+			sigolo.FatalCheck(err)
+		case config.OutputTypeStats:
+			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
+			// TODO
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article)
-		sigolo.FatalCheck(err)
 	}
 
 	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
