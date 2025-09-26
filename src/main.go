@@ -12,7 +12,6 @@ import (
 	"time"
 	"wiki2book/cache"
 	"wiki2book/config"
-	"wiki2book/generator"
 	"wiki2book/generator/epub"
 	"wiki2book/generator/html"
 	"wiki2book/http"
@@ -300,7 +299,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	err = Generate(
+	err = GenerateEpub(
 		config.Current.OutputDriver,
 		[]string{htmlFilePath},
 		outputFile,
@@ -404,7 +403,7 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Debugf("Worker threads are done processing articles")
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	err := Generate(
+	err := GenerateEpub(
 		config.Current.OutputDriver,
 		articleFiles,
 		outputFile,
@@ -472,13 +471,17 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	return htmlFilePath
 }
 
-func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
+func GenerateEpub(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
 	var err error
 
+	if config.Current.OutputType != config.OutputTypeEpub2 && config.Current.OutputType != config.OutputTypeEpub3 {
+		sigolo.Fatalf("Output type '%s' does not support EPUB generation. This is a Bug.", outputType)
+	}
+
 	switch outputDriver {
-	case generator.OutputDriverPandoc:
+	case config.OutputDriverPandoc:
 		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, tocDepth, metadata)
-	case generator.OutputDriverInternal:
+	case config.OutputDriverInternal:
 		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
 	default:
 		err = errors.Errorf("No implementation found for output driver %s", outputDriver)
