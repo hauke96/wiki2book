@@ -18,6 +18,7 @@ const (
 	TempDirName          = ".tmp"
 	ArticleCacheDirName  = "articles"
 	HtmlCacheDirName     = "html"
+	StatsCacheDirName    = "stats"
 	ImageCacheDirName    = "images"
 	MathCacheDirName     = "math"
 	TemplateCacheDirName = "templates"

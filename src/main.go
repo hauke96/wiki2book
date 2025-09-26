@@ -422,11 +422,11 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
-	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html")
+	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html") // TODO use generator to get this file (currently determining the filepath happens twice)
+	articleOutputFile := ""
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		sigolo.Debugf("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
-
 		sigolo.Debugf("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
 		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName)
 		sigolo.FatalCheck(err)
@@ -450,16 +450,18 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 				WikipediaService: wikipediaService,
 			}
 			htmlFilePath, err = htmlGenerator.Generate(article)
+			articleOutputFile = htmlFilePath
 			sigolo.FatalCheck(err)
 		case config.OutputTypeStats:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			// TODO
+			articleOutputFile = filepath.Join(cache.StatsCacheDirName, articleName+".txt")
+			// TODO generator and generate stats
 		}
 	}
 
 	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
-	return htmlFilePath
+	return articleOutputFile
 }
 
 func GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
@@ -482,7 +484,7 @@ func GenerateEpub(articleFiles []string, outputFile string, metadata config.Meta
 }
 
 func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
-	if forceHtmlRecreate {
+	if forceHtmlRecreate || config.Current.OutputType == config.OutputTypeStats {
 		return true
 	}
 
