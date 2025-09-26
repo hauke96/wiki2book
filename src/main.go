@@ -109,7 +109,8 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&cliConfig.WorkerThreads, "worker-threads", cliConfig.WorkerThreads, "Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.UserAgentTemplate, "user-agent-template", cliConfig.UserAgentTemplate, "Template for the user-agent used in HTTP requests.")
 
-	projectCmd := getCommand("project", "Uses a project file to create the eBook.")
+	projectCmd := getCommand("project [file]", "Uses a project file to create the eBook.")
+	projectCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from project")
 		if !rootCmd.PersistentFlags().Changed(cliOutputFileArgKey) {
@@ -124,7 +125,8 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	articleCmd := getCommand("article", "Renders a single article into an eBook.")
+	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.")
+	articleCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from single article")
 		config.MergeIntoCurrentConfig(cliConfig)
@@ -134,7 +136,8 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	standaloneCmd := getCommand("standalone", "Renders a single mediawiki file into an eBook.")
+	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.")
+	standaloneCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
 		config.MergeIntoCurrentConfig(cliConfig)
@@ -207,9 +210,9 @@ func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFil
 	return cliOutputFile
 }
 
-func getCommand(name string, shortDoc string) *cobra.Command {
+func getCommand(use string, shortDoc string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   name,
+		Use:   use,
 		Short: shortDoc,
 		Long:  shortDoc,
 		Args:  cobra.ExactArgs(1),
