@@ -1,4 +1,4 @@
-package stats
+package generator
 
 import (
 	"encoding/json"

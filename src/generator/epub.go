@@ -1,4 +1,4 @@
-package epub
+package generator
 
 import (
 	"fmt"
