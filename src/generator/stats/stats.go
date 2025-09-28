@@ -14,8 +14,8 @@ type StatsGenerator struct {
 }
 
 type articleStats struct {
-	numberOfCharacters int
-	numberOfLinks      int
+	NumberOfCharacters    int `json:"numberOfCharacters"`
+	NumberOfInternalLinks int `json:"numberOfInternalLinks"`
 }
 
 func (g *StatsGenerator) GenerateForArticle(wikiArticle *parser.Article) (string, error) {
@@ -23,8 +23,8 @@ func (g *StatsGenerator) GenerateForArticle(wikiArticle *parser.Article) (string
 
 	// TODO fill articleStats for article
 	stats := &articleStats{
-		numberOfCharacters: 123,
-		numberOfLinks:      234,
+		NumberOfCharacters:    g.determineNumberOfCharacters(wikiArticle),
+		NumberOfInternalLinks: g.determineNumberOfLinks(wikiArticle),
 	}
 
 	statsBytes, err := json.Marshal(stats)
@@ -32,4 +32,30 @@ func (g *StatsGenerator) GenerateForArticle(wikiArticle *parser.Article) (string
 
 	stringReader := strings.NewReader(string(statsBytes))
 	return cache.CacheToFile(cache.StatsCacheDirName, filename, stringReader)
+}
+
+func (g *StatsGenerator) determineNumberOfCharacters(article *parser.Article) int {
+	counter := 0
+
+	for _, token := range article.TokenMap {
+		switch concreteToken := token.(type) {
+		case parser.InternalLinkToken:
+			counter += len([]rune(concreteToken.LinkText))
+		}
+	}
+
+	return counter
+}
+
+func (g *StatsGenerator) determineNumberOfLinks(article *parser.Article) int {
+	counter := 0
+
+	for _, token := range article.TokenMap {
+		switch token.(type) {
+		case parser.InternalLinkToken:
+			counter++
+		}
+	}
+
+	return counter
 }
