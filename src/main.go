@@ -12,9 +12,7 @@ import (
 	"time"
 	"wiki2book/cache"
 	"wiki2book/config"
-	"wiki2book/generator/epub"
-	"wiki2book/generator/html"
-	"wiki2book/generator/stats"
+	"wiki2book/generator"
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/parser"
@@ -292,7 +290,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-		htmlGenerator := &html.HtmlGenerator{
+		htmlGenerator := &generator.HtmlGenerator{
 			TokenMap:         article.TokenMap,
 			WikipediaService: wikipediaService,
 		}
@@ -445,7 +443,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			fallthrough
 		case config.OutputTypeEpub3:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
-			htmlGenerator := &html.HtmlGenerator{
+			htmlGenerator := &generator.HtmlGenerator{
 				TokenMap:         article.TokenMap,
 				WikipediaService: wikipediaService,
 			}
@@ -454,8 +452,8 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			sigolo.FatalCheck(err)
 		case config.OutputTypeStats:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			generator := &stats.StatsGenerator{}
-			articleOutputFile, err = generator.GenerateForArticle(article)
+			statsGenerator := generator.NewStatsGenerator(article.TokenMap)
+			articleOutputFile, err = statsGenerator.Generate(article)
 			sigolo.FatalCheck(err)
 		}
 	}
@@ -474,9 +472,9 @@ func GenerateEpub(articleFiles []string, outputFile string, metadata config.Meta
 
 	switch config.Current.OutputDriver {
 	case config.OutputDriverPandoc:
-		err = epub.Generate(articleFiles, outputFile, metadata)
+		err = generator.GenerateEpubWithPandoc(articleFiles, outputFile, metadata)
 	case config.OutputDriverInternal:
-		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, metadata)
+		err = generator.GenerateEpubWithGoLibrary(articleFiles, outputFile, metadata)
 	default:
 		err = errors.Errorf("No implementation found for output driver %s", config.Current.OutputDriver)
 	}

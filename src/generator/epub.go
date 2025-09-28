@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Generate(sourceFiles []string, outputFile string, metadata config.Metadata) error {
+func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
@@ -54,7 +54,7 @@ func Generate(sourceFiles []string, outputFile string, metadata config.Metadata)
 	return nil
 }
 
-func GenerateWithGoLibrary(sourceFiles []string, outputFile string, metadata config.Metadata) error {
+func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 
 	epubObj, err := epub.NewEpub("My title")
 	if err != nil {
