@@ -14,6 +14,7 @@ import (
 	"wiki2book/config"
 	"wiki2book/generator/epub"
 	"wiki2book/generator/html"
+	"wiki2book/generator/stats"
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/parser"
@@ -334,9 +335,8 @@ func generateArticleEbook(articleName string, outputFile string) {
 func generateBookFromArticles(project *config.Project) {
 	articles := project.Articles
 	metadata := project.Metadata
-	outputFile := project.OutputFile
 
-	outputFile = ensurePathsAndClearTempDir(outputFile)
+	outputFile := ensurePathsAndClearTempDir(project.OutputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
@@ -404,8 +404,8 @@ func generateBookFromArticles(project *config.Project) {
 		err := GenerateEpub(articleFiles, outputFile, metadata)
 		sigolo.FatalCheck(err)
 	case config.OutputTypeStats:
-		sigolo.Debugf("Generate stats")
-		// TODO
+		err := GenerateStats(articleFiles, outputFile)
+		sigolo.FatalCheck(err)
 	}
 
 	err := os.RemoveAll(cache.GetTempPath())
@@ -454,7 +454,9 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			sigolo.FatalCheck(err)
 		case config.OutputTypeStats:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			// TODO generator and generate stats
+			generator := &stats.StatsGenerator{}
+			articleOutputFile, err = generator.GenerateForArticle(article)
+			sigolo.FatalCheck(err)
 		}
 	}
 
@@ -477,6 +479,20 @@ func GenerateEpub(articleFiles []string, outputFile string, metadata config.Meta
 		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, metadata)
 	default:
 		err = errors.Errorf("No implementation found for output driver %s", config.Current.OutputDriver)
+	}
+
+	return err
+}
+
+func GenerateStats(articleFiles []string, outputFile string) error {
+	var err error
+
+	switch config.Current.OutputType {
+	case config.OutputTypeStats:
+		// TODO
+		sigolo.Infof("Generate stats:\n  Articles: %v\n  Output file: %s", articleFiles, outputFile)
+	default:
+		err = errors.Errorf("Invalid output type %s for generating stats. This is a Bug.", config.Current.OutputType)
 	}
 
 	return err
@@ -538,9 +554,8 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	}
 
 	// Make all relevant paths absolute
-	absolutePath, err := util.ToAbsolutePath(outputFile)
+	outputFile, err = util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	outputFile = absolutePath
 
 	err = os.RemoveAll(cache.GetTempPath())
 	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))
