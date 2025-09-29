@@ -19,8 +19,11 @@ type StatsGenerator struct {
 }
 
 type articleStats struct {
-	NumberOfCharacters    int `json:"numberOfCharacters"`
-	NumberOfInternalLinks int `json:"numberOfInternalLinks"`
+	ArticleName            string         `json:"articleName"`
+	NumberOfCharacters     int            `json:"numberOfCharacters"`
+	NumberOfInternalLinks  int            `json:"numberOfInternalLinks"`
+	InternalLinks          map[string]int `json:"internalLinks"`
+	UncoveredInternalLinks map[string]int `json:"uncoveredInternalLinks"`
 }
 
 func NewStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
@@ -33,10 +36,14 @@ func NewStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
 func (g *StatsGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	filename := wikiArticle.Title + ".json"
 
+	g.stats.ArticleName = wikiArticle.Title
+	g.stats.InternalLinks = map[string]int{}
+	g.stats.UncoveredInternalLinks = map[string]int{}
+
 	_, err := expand(g, wikiArticle.Content)
 	sigolo.FatalCheck(err)
 
-	statsBytes, err := json.Marshal(g.stats)
+	statsBytes, err := json.MarshalIndent(g.stats, "", "  ")
 	sigolo.FatalCheck(errors.Wrapf(err, "Error creating stats for article '%s'", wikiArticle.Title))
 
 	stringReader := strings.NewReader(string(statsBytes))
@@ -83,6 +90,7 @@ func (g *StatsGenerator) expandInternalLink(token parser.InternalLinkToken) (str
 
 	g.stats.NumberOfCharacters += len([]rune(expandedContent))
 	g.stats.NumberOfInternalLinks++
+	g.stats.InternalLinks[token.ArticleName]++
 
 	return "", nil
 }
@@ -212,7 +220,12 @@ func (g *StatsGenerator) expandNowiki(token parser.NowikiToken) string {
 
 func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	var err error
-	combinedStats := &articleStats{}
+
+	combinedStats := &articleStats{
+		InternalLinks:          map[string]int{},
+		UncoveredInternalLinks: map[string]int{},
+	}
+	articles := map[string]interface{}{}
 
 	for _, statFile := range statFiles {
 		var fileContent []byte
@@ -230,15 +243,26 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 			return errors.Wrapf(err, "Error parsing JSON from stats file '%s'", statFile)
 		}
 
+		articles[stats.ArticleName] = nil
 		combinedStats.NumberOfInternalLinks += stats.NumberOfInternalLinks
 		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
+
+		for articleName, count := range stats.InternalLinks {
+			combinedStats.InternalLinks[articleName] += count
+		}
+	}
+
+	for articleName, count := range combinedStats.InternalLinks {
+		if _, ok := articles[articleName]; !ok {
+			combinedStats.UncoveredInternalLinks[articleName] += count
+		}
 	}
 
 	sigolo.Debugf("Write combined stats to output file '%s'", outputFilePath)
 
 	var outputJson []byte
 	var outputFile *os.File
-	outputJson, err = json.Marshal(combinedStats)
+	outputJson, err = json.MarshalIndent(combinedStats, "", "  ")
 	if err != nil {
 		return errors.Wrap(err, "Error creating JSON for the combined stats")
 	}
