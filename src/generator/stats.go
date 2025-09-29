@@ -1,7 +1,10 @@
 package generator
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
+	"os"
 	"strings"
 	"wiki2book/cache"
 	"wiki2book/parser"
@@ -205,4 +208,54 @@ func (g *StatsGenerator) expandMath(token parser.MathToken) (string, error) {
 
 func (g *StatsGenerator) expandNowiki(token parser.NowikiToken) string {
 	return ""
+}
+
+func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
+	var err error
+	combinedStats := &articleStats{}
+
+	for _, statFile := range statFiles {
+		var fileContent []byte
+
+		sigolo.Debugf("Read and process stats file '%s'", statFile)
+
+		fileContent, err = os.ReadFile(statFile)
+		if err != nil {
+			return errors.Wrapf(err, "Error reading stats file '%s'", statFile)
+		}
+
+		stats := &articleStats{}
+		err = json.Unmarshal(fileContent, stats)
+		if err != nil {
+			return errors.Wrapf(err, "Error parsing JSON from stats file '%s'", statFile)
+		}
+
+		combinedStats.NumberOfInternalLinks += stats.NumberOfInternalLinks
+		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
+	}
+
+	sigolo.Debugf("Write combined stats to output file '%s'", outputFilePath)
+
+	var outputJson []byte
+	var outputFile *os.File
+	outputJson, err = json.Marshal(combinedStats)
+	if err != nil {
+		return errors.Wrap(err, "Error creating JSON for the combined stats")
+	}
+
+	// Just to make it easier to simply open the read the file in CLI because usually files have a newline at the end.
+	outputJson = append(outputJson, byte('\n'))
+
+	outputFile, err = os.Create(outputFilePath)
+	if err != nil {
+		return errors.Wrapf(err, "Error opening output stats file '%s'", outputFilePath)
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, bytes.NewReader(outputJson))
+	if err != nil {
+		return errors.Wrapf(err, "Error writing combined stats to output file '%s'", outputFilePath)
+	}
+
+	return nil
 }

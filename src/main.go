@@ -26,7 +26,7 @@ import (
 
 const (
 	defaultEpubOutputFile  = "ebook.epub"
-	defaultStatsOutputFile = "stats.txt"
+	defaultStatsOutputFile = "stats.json"
 )
 
 var cliConfig = config.NewDefaultConfig()
@@ -487,7 +487,7 @@ func GenerateStats(articleFiles []string, outputFile string) error {
 
 	switch config.Current.OutputType {
 	case config.OutputTypeStats:
-		// TODO
+		err = generator.GenerateCombinedStats(articleFiles, outputFile)
 		sigolo.Infof("Generate stats:\n  Articles: %v\n  Output file: %s", articleFiles, outputFile)
 	default:
 		err = errors.Errorf("Invalid output type %s for generating stats. This is a Bug.", config.Current.OutputType)
