@@ -18,9 +18,10 @@ const (
 	MathConverterWikimedia = "wikimedia"
 	MathConverterTemplate  = "template"
 
-	OutputTypeEpub2 = "epub2"
-	OutputTypeEpub3 = "epub3"
-	OutputTypeStats = "stats"
+	OutputTypeEpub2     = "epub2"
+	OutputTypeEpub3     = "epub3"
+	OutputTypeStatsJson = "stats-json"
+	OutputTypeStatsTxt  = "stats-txt"
 
 	OutputDriverPandoc   = "pandoc"
 	OutputDriverInternal = "internal"
@@ -700,7 +701,7 @@ func (c *Configuration) AssertFilesAndPathsExists() {
 
 func (c *Configuration) AssertValidity() {
 	isOutputTypeValid := true
-	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 && c.OutputType != OutputTypeStats {
+	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 && c.OutputType != OutputTypeStatsJson && c.OutputType != OutputTypeStatsTxt {
 		isOutputTypeValid = false
 		defaultValidationErrorHandler(errors.Errorf("Invalid output type '%s'", c.OutputType))
 	}
@@ -799,7 +800,9 @@ func VerifyOutputAndDriver(outputType string, outputDriver string) error {
 			return nil
 		}
 		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
-	case OutputTypeStats:
+	case OutputTypeStatsJson:
+		return nil
+	case OutputTypeStatsTxt:
 		return nil
 	}
 

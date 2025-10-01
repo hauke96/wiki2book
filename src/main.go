@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	defaultEpubOutputFile  = "ebook.epub"
-	defaultStatsOutputFile = "stats.json"
+	defaultEpubOutputFile      = "ebook.epub"
+	defaultStatsJsonOutputFile = "stats.json"
+	defaultStatsTxtOutputFile  = "stats.txt"
 )
 
 var cliConfig = config.NewDefaultConfig()
@@ -401,8 +402,10 @@ func generateBookFromArticles(project *config.Project) {
 	case config.OutputTypeEpub3:
 		err := GenerateEpub(articleFiles, outputFile, metadata)
 		sigolo.FatalCheck(err)
-	case config.OutputTypeStats:
-		err := GenerateStats(articleFiles, outputFile)
+	case config.OutputTypeStatsJson:
+		fallthrough
+	case config.OutputTypeStatsTxt:
+		err := GenerateCombinedStats(articleFiles, outputFile)
 		sigolo.FatalCheck(err)
 	}
 
@@ -450,7 +453,9 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			htmlFilePath, err = htmlGenerator.Generate(article)
 			articleOutputFile = htmlFilePath
 			sigolo.FatalCheck(err)
-		case config.OutputTypeStats:
+		case config.OutputTypeStatsJson:
+			fallthrough
+		case config.OutputTypeStatsTxt:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
 			statsGenerator := generator.NewStatsGenerator(article.TokenMap)
 			articleOutputFile, err = statsGenerator.Generate(article)
@@ -482,13 +487,15 @@ func GenerateEpub(articleFiles []string, outputFile string, metadata config.Meta
 	return err
 }
 
-func GenerateStats(articleFiles []string, outputFile string) error {
+func GenerateCombinedStats(articleFiles []string, outputFile string) error {
 	var err error
 
 	switch config.Current.OutputType {
-	case config.OutputTypeStats:
+	case config.OutputTypeStatsJson:
 		err = generator.GenerateCombinedStats(articleFiles, outputFile)
 		sigolo.Infof("Generate stats:\n  Articles: %v\n  Output file: %s", articleFiles, outputFile)
+	case config.OutputTypeStatsTxt:
+	// TODO
 	default:
 		err = errors.Errorf("Invalid output type %s for generating stats. This is a Bug.", config.Current.OutputType)
 	}
@@ -497,7 +504,7 @@ func GenerateStats(articleFiles []string, outputFile string) error {
 }
 
 func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
-	if forceHtmlRecreate || config.Current.OutputType == config.OutputTypeStats {
+	if forceHtmlRecreate || config.Current.OutputType == config.OutputTypeStatsJson || config.Current.OutputType == config.OutputTypeStatsTxt {
 		return true
 	}
 
@@ -513,9 +520,16 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 func ensurePathsAndClearTempDir(outputFile string) string {
 	var err error
 
-	if config.Current.OutputType == config.OutputTypeStats && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
+	if config.Current.OutputType == config.OutputTypeStatsJson && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
 		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
-		outputFile = defaultStatsOutputFile
+		outputFile = defaultStatsJsonOutputFile
+		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
+		outputFile, err = util.ToAbsolutePath(outputFile)
+		sigolo.FatalCheck(err)
+	}
+	if config.Current.OutputType == config.OutputTypeStatsTxt && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
+		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
+		outputFile = defaultStatsTxtOutputFile
 		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
 		outputFile, err = util.ToAbsolutePath(outputFile)
 		sigolo.FatalCheck(err)
@@ -546,8 +560,10 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 			fallthrough
 		case config.OutputTypeEpub3:
 			outputFile = path.Join(outputFile, defaultEpubOutputFile)
-		case config.OutputTypeStats:
-			outputFile = path.Join(outputFile, defaultStatsOutputFile)
+		case config.OutputTypeStatsJson:
+			outputFile = path.Join(outputFile, defaultStatsJsonOutputFile)
+		case config.OutputTypeStatsTxt:
+			outputFile = path.Join(outputFile, defaultStatsTxtOutputFile)
 		}
 	}
 
