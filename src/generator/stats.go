@@ -3,8 +3,12 @@ package generator
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"wiki2book/cache"
 	"wiki2book/config"
@@ -228,7 +232,7 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 		InternalLinks:          map[string]int{},
 		UncoveredInternalLinks: map[string]int{},
 	}
-	articles := map[string]interface{}{}
+	articles := map[string]*articleStats{}
 
 	for _, statFile := range statFiles {
 		var fileContent []byte
@@ -246,7 +250,7 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 			return errors.Wrapf(err, "Error parsing JSON from stats file '%s'", statFile)
 		}
 
-		articles[stats.ArticleName] = nil
+		articles[stats.ArticleName] = stats
 		combinedStats.NumberOfInternalLinks += stats.NumberOfInternalLinks
 		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
 
@@ -267,9 +271,9 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	var outputFile *os.File
 
 	if config.Current.OutputType == config.OutputTypeStatsJson {
-		outputConent, err = generateJsonStatsContent(outputConent, err, combinedStats)
+		outputConent, err = generateJsonStatsContent(combinedStats)
 	} else if config.Current.OutputType == config.OutputTypeStatsTxt {
-		// TODO
+		outputConent, err = generateTxtStatsContent(articles, combinedStats)
 	} else {
 		return errors.Errorf("Invalid output type '%s' for stats", config.Current.OutputType)
 	}
@@ -291,10 +295,48 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	return nil
 }
 
-func generateJsonStatsContent(outputConent []byte, err error, combinedStats *articleStats) ([]byte, error) {
-	outputConent, err = json.MarshalIndent(combinedStats, "", "  ")
+func generateJsonStatsContent(combinedStats *articleStats) ([]byte, error) {
+	outputConent, err := json.MarshalIndent(combinedStats, "", "  ")
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating JSON for the combined stats")
 	}
 	return outputConent, nil
+}
+
+func generateTxtStatsContent(articles map[string]*articleStats, combinedStats *articleStats) ([]byte, error) {
+	result := "Statistics generated with wiki2book:\n\n"
+
+	result += "General:\n"
+	result += fmt.Sprintf("  Number of characters    : %d\n", combinedStats.NumberOfCharacters)
+	result += fmt.Sprintf("  Number of internal links: %d\n", combinedStats.NumberOfInternalLinks)
+	result += "\n"
+
+	// Article names
+	result += "Article:\n"
+	for _, article := range articles {
+		result += "  " + article.ArticleName + "\n"
+	}
+	result += "\n"
+
+	// Most uncovered links
+	result += "Top 20 linked articles that are not part of the book (total: " + strconv.Itoa(len(combinedStats.UncoveredInternalLinks)) + "):\n"
+
+	type uncoveredLinkEntry struct {
+		articleName string
+		occurrences int
+	}
+	var sortedUncoveredLinks []uncoveredLinkEntry
+	for k, v := range combinedStats.UncoveredInternalLinks {
+		sortedUncoveredLinks = append(sortedUncoveredLinks, uncoveredLinkEntry{k, v})
+	}
+	sort.Slice(sortedUncoveredLinks, func(i, j int) bool {
+		return sortedUncoveredLinks[i].occurrences > sortedUncoveredLinks[j].occurrences
+	})
+
+	for i := 0; i < int(math.Min(float64(len(sortedUncoveredLinks)), 20)); i++ {
+		result += "  " + sortedUncoveredLinks[i].articleName + " (" + strconv.Itoa(sortedUncoveredLinks[i].occurrences) + ")\n"
+	}
+	//result += "\n"
+
+	return []byte(result), nil
 }

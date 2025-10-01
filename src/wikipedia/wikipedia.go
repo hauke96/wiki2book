@@ -236,7 +236,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 	if freshlyDownloaded && config.Current.SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
+			sigolo.Errorf("Unable to make size of SVG '%s' absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 
 	evaluatedTemplateString, err := util.CurrentFilesystem.ReadFile(cacheFilePath)
 	if err != nil {
-		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
+		return "", errors.Wrapf(err, "Reading cached template file '%s' failed", cacheFilePath)
 	}
 
 	evaluatedTemplate := &WikiExpandedTemplateDto{}

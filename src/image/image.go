@@ -28,7 +28,7 @@ func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 
 	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
-	return errors.Wrapf(err, "Converting image %s failed", imageFilepath)
+	return errors.Wrapf(err, "Converting image '%s' failed", imageFilepath)
 }
 
 func (s *ImageProcessingServiceImpl) ConvertToPng(inputFile string, pngFile string, commandTemplate string) error {

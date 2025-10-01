@@ -68,7 +68,7 @@ func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata co
 
 	err := util.Execute(config.Current.PandocExecutable, config.Current.CacheDir, args...)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file %s using pandoc", outputFile))
+		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file '%s' using pandoc", outputFile))
 	}
 
 	return nil
@@ -87,12 +87,12 @@ func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata
 
 	internalCoverImagePath, err := epubObj.AddImage(config.Current.CoverImage, "cover.png")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error adding cover image %s to EPUB object", config.Current.CoverImage))
+		return errors.Wrap(err, fmt.Sprintf("Error adding cover image '%s' to EPUB object", config.Current.CoverImage))
 	}
 
 	err = epubObj.SetCover(internalCoverImagePath, "")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error setting internal image %s as cover image on EPUB object", internalCoverImagePath))
+		return errors.Wrap(err, fmt.Sprintf("Error setting internal image '%s' as cover image on EPUB object", internalCoverImagePath))
 	}
 
 	headingTitleRegex := regexp.MustCompile(`(?s)<h1>(.*)</h1>`)
@@ -101,7 +101,7 @@ func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata
 		sigolo.Debugf("Add source file %s to EPUB object", sourceFile)
 		fileBytes, err = os.ReadFile(sourceFile)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Error reading source file %s to add it to the EPUB object", sourceFile))
+			return errors.Wrap(err, fmt.Sprintf("Error reading source file '%s' to add it to the EPUB object", sourceFile))
 		}
 
 		fileContent := string(fileBytes)

@@ -41,7 +41,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 	// If file already cached -> don't download and use cached file
 	outputFilepath, fileIsCached, err := cache.GetFile(cacheFolderName, filename)
 	if err == nil && fileIsCached {
-		sigolo.Debugf("File %s does already exist -> use this cached file", outputFilepath)
+		sigolo.Debugf("File '%s' does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil
 	}
 	if err != nil {
@@ -65,14 +65,14 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 
 	outputFilepath, err = cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
 	if err != nil {
-		return "", true, errors.Wrapf(err, "Unable to cache to %s", outputFilepath)
+		return "", true, errors.Wrapf(err, "Unable to cache to '%s'", outputFilepath)
 	}
 
 	return outputFilepath, true, nil
 }
 
 func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *http.Response, err error) {
-	sigolo.Debugf("Make POST request to %s with form data %s", url, util.TruncString(requestData))
+	sigolo.Debugf("Make POST request to %s with form data '%s'", url, util.TruncString(requestData))
 	request, err := http.NewRequest("POST", url, strings.NewReader(requestData))
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Unable to create POST request for url %s", url))
@@ -104,7 +104,7 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 		sigolo.Debugf("Make GET request to %s", url)
 		request, err = http.NewRequest("GET", url, nil)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s to download file %s", url, filename))
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s to download file '%s'", url, filename))
 		}
 
 		userAgentString := config.Current.UserAgentTemplate

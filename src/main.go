@@ -228,11 +228,11 @@ func getCommand(use string, shortDoc string) *cobra.Command {
 func generateProjectEbook(projectFile string, outputFile string) {
 	var err error
 
-	sigolo.Infof("Use project file: %s", projectFile)
+	sigolo.Infof("Use project file: '%s'", projectFile)
 
 	directory, projectFile := filepath.Split(projectFile)
 	if directory != "" {
-		sigolo.Debugf("Go into folder %s", directory)
+		sigolo.Debugf("Go into folder '%s'", directory)
 		err = os.Chdir(directory)
 		sigolo.FatalCheck(err)
 	}
@@ -241,7 +241,7 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	sigolo.FatalCheck(err)
 
 	if outputFile != "" {
-		sigolo.Tracef("Project has no output file set, so I'll use %s", outputFile)
+		sigolo.Tracef("Project has no output file set, so I'll use '%s'", outputFile)
 		proj.OutputFile = outputFile
 	}
 
@@ -314,7 +314,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string) {
@@ -416,7 +416,7 @@ func generateBookFromArticles(project *config.Project) {
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
 }
 
 func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
@@ -485,14 +485,14 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 func ensurePathsAndClearTempDir(outputFile string) string {
 	var err error
 
-	if config.Current.OutputType == config.OutputTypeStatsJson && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
+	if config.Current.OutputType == config.OutputTypeStatsJson && !strings.HasSuffix(outputFile, "json") {
 		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
 		outputFile = defaultStatsJsonOutputFile
 		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
 		outputFile, err = util.ToAbsolutePath(outputFile)
 		sigolo.FatalCheck(err)
 	}
-	if config.Current.OutputType == config.OutputTypeStatsTxt && strings.HasSuffix(outputFile, defaultEpubOutputFile) {
+	if config.Current.OutputType == config.OutputTypeStatsTxt && !strings.HasSuffix(outputFile, "txt") {
 		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
 		outputFile = defaultStatsTxtOutputFile
 		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)

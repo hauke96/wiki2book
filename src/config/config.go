@@ -519,7 +519,7 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.StyleFile != defaultConfig.StyleFile {
 		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override StyleFile with %s", absolutePath)
+		sigolo.Tracef("Override StyleFile with '%s'", absolutePath)
 		Current.StyleFile = absolutePath
 	}
 	if c.CoverImage != defaultConfig.CoverImage {
