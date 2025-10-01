@@ -304,7 +304,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	err = GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
+	err = generator.GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(cache.GetTempPath())
@@ -400,12 +400,12 @@ func generateBookFromArticles(project *config.Project) {
 	case config.OutputTypeEpub2:
 		fallthrough
 	case config.OutputTypeEpub3:
-		err := GenerateEpub(articleFiles, outputFile, metadata)
+		err := generator.GenerateEpub(articleFiles, outputFile, metadata)
 		sigolo.FatalCheck(err)
 	case config.OutputTypeStatsJson:
 		fallthrough
 	case config.OutputTypeStatsTxt:
-		err := GenerateCombinedStats(articleFiles, outputFile)
+		err := generator.GenerateCombinedStats(articleFiles, outputFile)
 		sigolo.FatalCheck(err)
 	}
 
@@ -466,41 +466,6 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	return articleOutputFile
-}
-
-func GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
-	var err error
-
-	if config.Current.OutputType != config.OutputTypeEpub2 && config.Current.OutputType != config.OutputTypeEpub3 {
-		sigolo.Fatalf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
-	}
-
-	switch config.Current.OutputDriver {
-	case config.OutputDriverPandoc:
-		err = generator.GenerateEpubWithPandoc(articleFiles, outputFile, metadata)
-	case config.OutputDriverInternal:
-		err = generator.GenerateEpubWithGoLibrary(articleFiles, outputFile, metadata)
-	default:
-		err = errors.Errorf("No implementation found for output driver %s", config.Current.OutputDriver)
-	}
-
-	return err
-}
-
-func GenerateCombinedStats(articleFiles []string, outputFile string) error {
-	var err error
-
-	switch config.Current.OutputType {
-	case config.OutputTypeStatsJson:
-		err = generator.GenerateCombinedStats(articleFiles, outputFile)
-		sigolo.Infof("Generate stats:\n  Articles: %v\n  Output file: %s", articleFiles, outputFile)
-	case config.OutputTypeStatsTxt:
-	// TODO
-	default:
-		err = errors.Errorf("Invalid output type %s for generating stats. This is a Bug.", config.Current.OutputType)
-	}
-
-	return err
 }
 
 func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {

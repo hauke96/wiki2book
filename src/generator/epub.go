@@ -13,6 +13,26 @@ import (
 	"github.com/pkg/errors"
 )
 
+func GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
+	var err error
+
+	sigolo.Debugf("Generate EPUB to '%s' for articles %v", outputFile, articleFiles)
+
+	if config.Current.OutputType != config.OutputTypeEpub2 && config.Current.OutputType != config.OutputTypeEpub3 {
+		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
+	}
+
+	if config.Current.OutputDriver == config.OutputDriverPandoc {
+		err = GenerateEpubWithPandoc(articleFiles, outputFile, metadata)
+	} else if config.Current.OutputDriver == config.OutputDriverInternal {
+		err = GenerateEpubWithGoLibrary(articleFiles, outputFile, metadata)
+	} else {
+		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
+	}
+
+	return err
+}
+
 func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 

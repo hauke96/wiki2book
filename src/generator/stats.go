@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"wiki2book/cache"
+	"wiki2book/config"
 	"wiki2book/parser"
 
 	"github.com/hauke96/sigolo/v2"
@@ -221,6 +222,8 @@ func (g *StatsGenerator) expandNowiki(token parser.NowikiToken) string {
 func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	var err error
 
+	sigolo.Debugf("Generate stats to '%s' for articles %v", outputFilePath, statFiles)
+
 	combinedStats := &articleStats{
 		InternalLinks:          map[string]int{},
 		UncoveredInternalLinks: map[string]int{},
@@ -260,15 +263,19 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 
 	sigolo.Debugf("Write combined stats to output file '%s'", outputFilePath)
 
-	var outputJson []byte
+	var outputConent []byte
 	var outputFile *os.File
-	outputJson, err = json.MarshalIndent(combinedStats, "", "  ")
-	if err != nil {
-		return errors.Wrap(err, "Error creating JSON for the combined stats")
+
+	if config.Current.OutputType == config.OutputTypeStatsJson {
+		outputConent, err = generateJsonStatsContent(outputConent, err, combinedStats)
+	} else if config.Current.OutputType == config.OutputTypeStatsTxt {
+		// TODO
+	} else {
+		return errors.Errorf("Invalid output type '%s' for stats", config.Current.OutputType)
 	}
 
 	// Just to make it easier to simply open the read the file in CLI because usually files have a newline at the end.
-	outputJson = append(outputJson, byte('\n'))
+	outputConent = append(outputConent, byte('\n'))
 
 	outputFile, err = os.Create(outputFilePath)
 	if err != nil {
@@ -276,10 +283,18 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	}
 	defer outputFile.Close()
 
-	_, err = io.Copy(outputFile, bytes.NewReader(outputJson))
+	_, err = io.Copy(outputFile, bytes.NewReader(outputConent))
 	if err != nil {
 		return errors.Wrapf(err, "Error writing combined stats to output file '%s'", outputFilePath)
 	}
 
 	return nil
+}
+
+func generateJsonStatsContent(outputConent []byte, err error, combinedStats *articleStats) ([]byte, error) {
+	outputConent, err = json.MarshalIndent(combinedStats, "", "  ")
+	if err != nil {
+		return nil, errors.Wrap(err, "Error creating JSON for the combined stats")
+	}
+	return outputConent, nil
 }
