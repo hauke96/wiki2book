@@ -207,7 +207,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 		filePrefix := strings.ToLower(strings.SplitN(imageContent, ":", 2)[0])
 
-		if imageContent == "" || !util.Contains(config.Current.FilePrefixe, filePrefix) {
+		if imageContent == "" || !util.Contains(config.Current.FilePrefixes, filePrefix) {
 			content = content[0:startIndex[0]] + content[endIndex+2:]
 		} else {
 			options := strings.Split(imageContent, "|")

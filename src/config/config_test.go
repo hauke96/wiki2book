@@ -56,8 +56,8 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		WikipediaImageHost:             "wikipedia-image-host",
 		WikipediaMathRestApi:           "wikipedia-math-rest-api",
 		WikipediaImageArticleHosts:     []string{"wikipedia-image-article-hosts"},
-		FilePrefixe:                    []string{"file-prefixe"},
-		AllowedLinkPrefixes:            []string{"allowed-link-prefixe"},
+		FilePrefixes:                   []string{"file-prefixes"},
+		AllowedLinkPrefixes:            []string{"allowed-link-prefixes"},
 		CategoryPrefixes:               []string{"category-prefixes"},
 		MathConverter:                  MathConverterWikimedia,
 		TocDepth:                       3,
@@ -91,7 +91,7 @@ func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
 	expectedConfig.IgnoredImageParams = []string{}
 	expectedConfig.IgnoredMediaTypes = []string{}
 	expectedConfig.WikipediaImageArticleHosts = []string{}
-	expectedConfig.FilePrefixe = []string{}
+	expectedConfig.FilePrefixes = []string{}
 	expectedConfig.AllowedLinkPrefixes = []string{}
 	expectedConfig.CategoryPrefixes = []string{}
 
@@ -104,7 +104,7 @@ func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
 	test.AssertEqual(t, []string{}, Current.IgnoredImageParams)
 	test.AssertEqual(t, []string{}, Current.IgnoredMediaTypes)
 	test.AssertEqual(t, []string{}, Current.WikipediaImageArticleHosts)
-	test.AssertEqual(t, []string{}, Current.FilePrefixe)
+	test.AssertEqual(t, []string{}, Current.FilePrefixes)
 	test.AssertEqual(t, []string{}, Current.AllowedLinkPrefixes)
 	test.AssertEqual(t, []string{}, Current.CategoryPrefixes)
 }

@@ -74,7 +74,7 @@ func NewDefaultConfig() *Configuration {
 		WikipediaImageHost:             "upload.wikimedia.org",
 		WikipediaImageArticleHosts:     []string{"commons.wikimedia.org", "en.wikipedia.org"},
 		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
-		FilePrefixe:                    []string{"file", "image", "media"},
+		FilePrefixes:                   []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
 		MathConverter:                  "wikimedia",
@@ -407,19 +407,19 @@ type Configuration struct {
 		must be in lower case.
 
 		Default: `[ "file", "image", "media" ]`
-		JSON example: `"file-prefixe": [ "file", "datei" ]`
+		JSON example: `"file-prefixes": [ "file", "datei" ]`
 	*/
-	FilePrefixe []string `json:"file-prefixe"`
+	FilePrefixes []string `json:"file-prefixess"`
 
 	/*
 		A list of prefixes that are considered links and are therefore not removed. All prefixes  specified by
-		"FilePrefixe" are considered to be allowed prefixes. Any other not explicitly allowed prefix of a link causes
+		"FilePrefixes" are considered to be allowed prefixes. Any other not explicitly allowed prefix of a link causes
 		the link to get removed. This especially happens for inter-wiki-links if the Wikipedia instance is not
 		explicitly allowed using this list.
 
 		Default: `[ "arxiv", "doi" ]`
 	*/
-	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
+	AllowedLinkPrefixes []string `json:"allowed-link-prefixes"`
 
 	/*
 		A list of category prefixes, which are technically internals links. However, categories will be removed from
@@ -608,9 +608,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)
 		Current.WikipediaImageArticleHosts = c.WikipediaImageArticleHosts
 	}
-	if !util.EqualsInAnyOrder(c.FilePrefixe, defaultConfig.FilePrefixe) {
-		sigolo.Tracef("Override FilePrefixe with %v", c.FilePrefixe)
-		Current.FilePrefixe = c.FilePrefixe
+	if !util.EqualsInAnyOrder(c.FilePrefixes, defaultConfig.FilePrefixes) {
+		sigolo.Tracef("Override FilePrefixes with %v", c.FilePrefixes)
+		Current.FilePrefixes = c.FilePrefixes
 	}
 	if !util.EqualsInAnyOrder(c.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
 		sigolo.Tracef("Override AllowedLinkPrefixes with %v", c.AllowedLinkPrefixes)

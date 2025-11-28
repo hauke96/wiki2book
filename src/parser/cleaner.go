@@ -86,7 +86,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			// be treated as normal internal links, i.e. the "SomeLinkText" in this example should stay.
 			isNormalLinkToCategory := content[i+2] == ':'
 
-			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixe, strings.ToLower(allPrefixes[0])) {
+			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixes, strings.ToLower(allPrefixes[0])) {
 				// We found an image. This extra treatment exists because images might contain colons and that would
 				// disturb the rest of the parsing below. Therefore, images get this fast exit.
 				continue
@@ -103,7 +103,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			for j := 0; j < len(allPrefixes); j++ {
 				linkPrefix := strings.ToLower(allPrefixes[j])
 
-				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixe, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
+				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixes, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
 				isCategory := util.Contains(config.Current.CategoryPrefixes, linkPrefix)
 
 				if linkPrefix != "" && (isForbiddenPrefix || isCategory) {
