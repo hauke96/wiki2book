@@ -340,7 +340,7 @@ func generateBookFromArticles(project *config.Project) {
 	config.Current.AssertFilesAndPathsExists()
 
 	numberOfArticles := len(articles)
-	articleFiles := make([]string, numberOfArticles)
+	articleOutputFiles := make([]string, numberOfArticles)
 
 	articleChan := make(chan string, config.Current.WorkerThreads)
 	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
@@ -374,8 +374,8 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
-				articleFiles[articleNumber] = thisArticleFile
+				thisArticleOutputFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
+				articleOutputFiles[articleNumber] = thisArticleOutputFile
 			}
 
 			// This thread will close, so mark it as done in the wait-group
@@ -400,12 +400,12 @@ func generateBookFromArticles(project *config.Project) {
 	case config.OutputTypeEpub2:
 		fallthrough
 	case config.OutputTypeEpub3:
-		err := generator.GenerateEpub(articleFiles, outputFile, metadata)
+		err := generator.GenerateEpub(articleOutputFiles, outputFile, metadata)
 		sigolo.FatalCheck(err)
 	case config.OutputTypeStatsJson:
 		fallthrough
 	case config.OutputTypeStatsTxt:
-		err := generator.GenerateCombinedStats(articleFiles, outputFile)
+		err := generator.GenerateCombinedStats(articleOutputFiles, outputFile)
 		sigolo.FatalCheck(err)
 	}
 
@@ -419,6 +419,8 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
 }
 
+// processArticle processes a given article, which means, the content (including images etc.) is downloaded and the
+// article will be tokenized, parsed and converted into the output format stored in the current configuration.
 func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 

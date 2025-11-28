@@ -19,7 +19,7 @@ func testCallExpectingPanic(t *testing.T, call func()) {
 	}
 	defer func() {
 		if r := recover(); r == nil {
-			t.Errorf("Expected code to panic but it didn't")
+			sigolo.Fatalb(2, "Expected code to panic but it didn't")
 		}
 	}()
 
@@ -143,6 +143,323 @@ func TestMakePathsAbsolute(t *testing.T) {
 		FontFiles:     []string{"/foo/fontA", "/foo/fontB"},
 	}
 	test.AssertEqual(t, *expectedConfig, *actualConfig)
+}
+
+func TestAssertValidity_outputType(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.OutputType = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputType = OutputTypeEpub2 + "blubb"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputType = "blubb" + OutputTypeEpub2
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputType = OutputTypeEpub2
+	config.AssertValidity()
+
+	config.OutputType = OutputTypeEpub3
+	config.AssertValidity()
+
+	config.OutputDriver = OutputDriverInternal // Needed by the "stats" output types
+
+	config.OutputType = OutputTypeStatsJson
+	config.AssertValidity()
+
+	config.OutputType = OutputTypeStatsTxt
+	config.AssertValidity()
+}
+
+func TestAssertValidity_outputDriver(t *testing.T) {
+	config := NewDefaultConfig()
+	config.OutputType = OutputTypeEpub3
+
+	config.OutputDriver = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputDriver = OutputDriverInternal + "blubb"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputDriver = "blubb" + OutputDriverInternal
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputDriver = OutputDriverInternal
+	config.AssertValidity()
+
+	config.OutputDriver = OutputDriverPandoc
+	config.AssertValidity()
+}
+
+func TestAssertValidity_combinationOfOutputTypeAndDriver(t *testing.T) {
+	config := NewDefaultConfig()
+
+	// OutputTypeEpub2
+	config.OutputType = OutputTypeEpub2
+
+	config.OutputDriver = OutputDriverInternal
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.OutputDriver = OutputDriverPandoc
+	config.AssertValidity()
+
+	// OutputTypeEpub3
+	config.OutputType = OutputTypeEpub3
+
+	config.OutputDriver = OutputDriverInternal
+	config.AssertValidity()
+
+	config.OutputDriver = OutputDriverPandoc
+	config.AssertValidity()
+
+	// OutputTypeStatsJson
+	config.OutputType = OutputTypeStatsJson
+
+	config.OutputDriver = OutputDriverInternal
+	config.AssertValidity()
+
+	config.OutputDriver = OutputDriverPandoc
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	// OutputTypeStatsTxt
+	config.OutputType = OutputTypeStatsTxt
+
+	config.OutputDriver = OutputDriverInternal
+	config.AssertValidity()
+
+	config.OutputDriver = OutputDriverPandoc
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+}
+
+func TestAssertValidity_mathConverter(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.MathConverter = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.MathConverter = MathConverterWikimedia + "blubb"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.MathConverter = "blubb" + MathConverterWikimedia
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.MathConverter = MathConverterNone
+	config.AssertValidity()
+
+	config.MathConverter = MathConverterWikimedia
+	config.AssertValidity()
+
+	config.MathConverter = MathConverterTemplate
+	config.AssertValidity()
+}
+
+func TestAssertValidity_tocDepth(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.TocDepth = -1
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.TocDepth = 7
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.TocDepth = 0
+	config.AssertValidity()
+
+	config.TocDepth = 1
+	config.AssertValidity()
+
+	config.TocDepth = 2
+	config.AssertValidity()
+
+	config.TocDepth = 3
+	config.AssertValidity()
+
+	config.TocDepth = 4
+	config.AssertValidity()
+
+	config.TocDepth = 5
+	config.AssertValidity()
+
+	config.TocDepth = 6
+	config.AssertValidity()
+}
+
+func TestAssertValidity_workerThreads(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.WorkerThreads = -1
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.WorkerThreads = 0
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.WorkerThreads = 1
+	config.AssertValidity()
+
+	config.WorkerThreads = 10
+	config.AssertValidity()
+
+	config.WorkerThreads = 100
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplateSvgToPng(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplateSvgToPng = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateSvgToPng = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateSvgToPng = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateSvgToPng = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateSvgToPng = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplateMathSvgToPng(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplateMathSvgToPng = ""
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateMathSvgToPng = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateMathSvgToPng = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateMathSvgToPng = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateMathSvgToPng = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateMathSvgToPng = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplateImageProcessing(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplateImageProcessing = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateImageProcessing = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateImageProcessing = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateImageProcessing = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateImageProcessing = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplatePdfToPng(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplatePdfToPng = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplatePdfToPng = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplatePdfToPng = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplatePdfToPng = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplatePdfToPng = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplateWebpToPng(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplateWebpToPng = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateWebpToPng = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateWebpToPng = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateWebpToPng = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateWebpToPng = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_cacheMaxSize(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CacheMaxSize = -1
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheMaxSize = 0
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheMaxSize = 1
+	config.AssertValidity()
+
+	config.CacheMaxSize = 10
+	config.AssertValidity()
+
+	config.CacheMaxSize = 100
+	config.AssertValidity()
+}
+
+func TestAssertValidity_cacheMaxAge(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CacheMaxAge = -1
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheMaxAge = 0
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheMaxAge = 1
+	config.AssertValidity()
+
+	config.CacheMaxAge = 10
+	config.AssertValidity()
+
+	config.CacheMaxAge = 100
+	config.AssertValidity()
+}
+
+func TestAssertValidity_cacheEvictionStrategy(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CacheEvictionStrategy = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheEvictionStrategy = CacheEvictionStrategyLargest + "blubb"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheEvictionStrategy = "blubb" + CacheEvictionStrategyLargest
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CacheEvictionStrategy = CacheEvictionStrategyLargest
+	config.AssertValidity()
+
+	config.CacheEvictionStrategy = CacheEvictionStrategyLru
+	config.AssertValidity()
+
+	config.CacheEvictionStrategy = CacheEvictionStrategyNone
+	config.AssertValidity()
 }
 
 // ---------- Script to generate markdown doc ----------

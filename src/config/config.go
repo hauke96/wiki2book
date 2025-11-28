@@ -690,11 +690,11 @@ func (c *Configuration) MakePathsAbsoluteToWorkingDir() {
 }
 
 func (c *Configuration) AssertFilesAndPathsExists() {
-	util.AssertPathExists(Current.CacheDir)
-	util.AssertPathExists(Current.StyleFile)
-	util.AssertPathExists(Current.CoverImage)
-	util.AssertPathExists(Current.PandocDataDir)
-	for _, f := range Current.FontFiles {
+	util.AssertPathExists(c.CacheDir)
+	util.AssertPathExists(c.StyleFile)
+	util.AssertPathExists(c.CoverImage)
+	util.AssertPathExists(c.PandocDataDir)
+	for _, f := range c.FontFiles {
 		util.AssertPathExists(f)
 	}
 }
@@ -801,9 +801,15 @@ func VerifyOutputAndDriver(outputType string, outputDriver string) error {
 		}
 		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
 	case OutputTypeStatsJson:
-		return nil
+		if outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
 	case OutputTypeStatsTxt:
-		return nil
+		if outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
 	}
 
 	return errors.Errorf("Unknown output type '%s'", outputType)

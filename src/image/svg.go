@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
-	"golang.org/x/net/html/charset"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
+	"golang.org/x/net/html/charset"
 )
 
 type SimpleSvgAttributes struct {
@@ -25,12 +26,12 @@ var (
 func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error reading SVG file "+filename)
+		return nil, errors.Wrapf(err, "Error reading SVG file '%s'", filename)
 	}
 
 	attributes, err := parseSimpleSvgAttributes(file, filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing SVG file "+filename)
+		return nil, errors.Wrapf(err, "Error parsing SVG file '%s'", filename)
 	}
 	sigolo.Tracef("Read simple SVG attributes %#v from file '%s'", attributes, filename)
 
@@ -45,7 +46,7 @@ func MakeSvgSizeAbsolute(filename string) error {
 
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
-		return errors.Wrap(err, "Error reading SVG file "+filename)
+		return errors.Wrapf(err, "Error reading SVG file '%s'", filename)
 	}
 
 	attributes, err := parseSimpleSvgAttributes(fileBytes, filename)
