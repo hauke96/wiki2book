@@ -76,7 +76,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 		cursor := content[i : i+2]
 
 		if cursor == "[[" {
-			endIndex := findCorrespondingCloseToken(content, i+2, "[", "]")
+			endIndex := FindCorrespondingCloseToken(content, i+2, "[", "]")
 
 			totalLinkContent := content[i+2 : endIndex]
 			linkSegments := strings.SplitN(totalLinkContent, ":", -1)
@@ -132,7 +132,7 @@ func (t *Tokenizer) handleUnwantedAndTrailingTemplates(content string) string {
 
 		if cursor == "{{" {
 			// Get the index on which the template is closed
-			closedTemplateIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+			closedTemplateIndex := FindCorrespondingCloseToken(content, i+2, "{{", "}}")
 			if closedTemplateIndex == -1 {
 				// no closing tag found -> move on in the normal text
 				continue

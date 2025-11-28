@@ -116,6 +116,9 @@ func (g *HtmlGenerator) getToken(tokenKey string) (parser.Token, bool) {
 	token, hasToken := g.TokenMap[tokenKey]
 	return token, hasToken
 }
+func (g *HtmlGenerator) expandSimpleString(content string) string {
+	return content
+}
 
 func (g *HtmlGenerator) expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_OPEN, "<b>")

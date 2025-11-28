@@ -311,6 +311,56 @@ caption
 </div>`, row)
 }
 
+func TestExpandTable_captionWithTokens(t *testing.T) {
+	tokenCaptionInternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
+	tokenCaptionExternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 1)
+	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 2)
+	tokenMap := map[string]parser.Token{
+		tokenCaptionInternalLink: parser.InternalLinkToken{
+			Token:       tokenCaptionInternalLink,
+			ArticleName: "Foobar",
+			LinkText:    "internal-link",
+		},
+		tokenCaptionExternalLink: parser.ExternalLinkToken{
+			Token:    tokenCaptionExternalLink,
+			URL:      "https://foo.com",
+			LinkText: "external-link",
+		},
+		tokenTable: parser.TableToken{
+			Caption: parser.TableCaptionToken{
+				Content: "caption with " + tokenCaptionInternalLink + " and " + tokenCaptionExternalLink + ".",
+			},
+			Rows: []parser.TableRowToken{
+				{
+					Columns: []parser.TableColToken{
+						{
+							Attributes: parser.TableColAttributeToken{},
+							Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+							IsHeading:  false,
+						},
+					},
+				},
+			},
+		},
+	}
+	generator.TokenMap = tokenMap
+
+	row, err := expand(generator, tokenTable)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<div class="figure">
+<table>
+<tr>
+<td>
+b<b>a</b>r
+</td>
+</tr>
+</table>
+<div class="caption">
+caption with internal-link and <a href="https://foo.com">external-link</a>.
+</div>
+</div>`, row)
+}
+
 func TestExpandTableRow(t *testing.T) {
 	tokenRow := parser.TableRowToken{
 		Columns: []parser.TableColToken{

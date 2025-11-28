@@ -60,7 +60,7 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 		cursor := content[i : i+templateStartTokenLen]
 
 		if cursor == templateStartToken {
-			endIndex := findCorrespondingCloseToken(content, i+templateStartTokenLen, templateStartToken, templateEndToken)
+			endIndex := FindCorrespondingCloseToken(content, i+templateStartTokenLen, templateStartToken, templateEndToken)
 			if endIndex == -1 {
 				return "", errors.Errorf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", templateStartToken, templateEndToken)
 			}

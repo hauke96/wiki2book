@@ -27,6 +27,7 @@ type articleStats struct {
 	ArticleName            string         `json:"articleName"`
 	NumberOfCharacters     int            `json:"numberOfCharacters"`
 	NumberOfInternalLinks  int            `json:"numberOfInternalLinks"`
+	NumberOfExternalLinks  int            `json:"numberOfExternalLinks"`
 	InternalLinks          map[string]int `json:"internalLinks"`
 	UncoveredInternalLinks map[string]int `json:"uncoveredInternalLinks"`
 }
@@ -60,6 +61,11 @@ func (g *StatsGenerator) getToken(tokenKey string) (parser.Token, bool) {
 	return token, hasToken
 }
 
+func (g *StatsGenerator) expandSimpleString(content string) string {
+	g.stats.NumberOfCharacters += len([]rune(content))
+	return content
+}
+
 func (g *StatsGenerator) expandMarker(content string) string {
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_OPEN, "")
 	content = strings.ReplaceAll(content, parser.MARKER_BOLD_CLOSE, "")
@@ -70,13 +76,7 @@ func (g *StatsGenerator) expandMarker(content string) string {
 }
 
 func (g *StatsGenerator) expandHeadings(token parser.HeadingToken) (string, error) {
-	expandedContent, err := expand(g, token.Content)
-	if err != nil {
-		return "", err
-	}
-
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
@@ -84,7 +84,7 @@ func (g *StatsGenerator) expandInlineImage(token parser.InlineImageToken) (strin
 }
 
 func (g *StatsGenerator) expandImage(token parser.ImageToken) (string, error) {
-	return "", nil
+	return expand(g, token.Caption.Content)
 }
 
 func (g *StatsGenerator) expandInternalLink(token parser.InternalLinkToken) (string, error) {
@@ -93,11 +93,10 @@ func (g *StatsGenerator) expandInternalLink(token parser.InternalLinkToken) (str
 		return "", err
 	}
 
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
 	g.stats.NumberOfInternalLinks++
 	g.stats.InternalLinks[token.ArticleName]++
 
-	return "", nil
+	return expandedContent, nil
 }
 
 func (g *StatsGenerator) expandExternalLink(token parser.ExternalLinkToken) (string, error) {
@@ -106,109 +105,80 @@ func (g *StatsGenerator) expandExternalLink(token parser.ExternalLinkToken) (str
 		return "", err
 	}
 
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	g.stats.NumberOfExternalLinks++
+
+	return expandedContent, nil
 }
 
 func (g *StatsGenerator) expandTable(token parser.TableToken) (string, error) {
+	result := ""
 	for _, rowToken := range token.Rows {
-		_, err := expand(g, rowToken)
+		expandedRow, err := expand(g, rowToken)
 		if err != nil {
 			return "", err
 		}
+		result += expandedRow
 	}
 
-	_, err := expand(g, token.Caption)
+	expandedCaption, err := expand(g, token.Caption)
 	if err != nil {
 		return "", err
 	}
+	result += expandedCaption
 
-	return "", nil
+	return result, nil
 }
 
 func (g *StatsGenerator) expandTableRow(token parser.TableRowToken) (string, error) {
+	result := ""
 	for _, colToken := range token.Columns {
-		_, err := expand(g, colToken)
+		expandedItem, err := expand(g, colToken)
 		if err != nil {
 			return "", err
 		}
+		result += expandedItem
 	}
-
-	return "", nil
+	return result, nil
 }
 
 func (g *StatsGenerator) expandTableColumn(token parser.TableColToken) (string, error) {
-	expandedContent, err := expand(g, token.Content)
-	if err != nil {
-		return "", err
-	}
-
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandTableCaption(token parser.TableCaptionToken) (string, error) {
-	expandedContent, err := expand(g, token.Content)
-	if err != nil {
-		return "", err
-	}
-
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandUnorderedList(token parser.UnorderedListToken) (string, error) {
-	_, err := g.expandListItems(token.Items)
-	if err != nil {
-		return "", err
-	}
-	return "", nil
+	return g.expandListItems(token.Items)
 }
 
 func (g *StatsGenerator) expandOrderedList(token parser.OrderedListToken) (string, error) {
-	_, err := g.expandListItems(token.Items)
-	if err != nil {
-		return "", err
-	}
-	return "", nil
+	return g.expandListItems(token.Items)
 }
 
 func (g *StatsGenerator) expandDescriptionList(token parser.DescriptionListToken) (string, error) {
-	_, err := g.expandListItems(token.Items)
-	if err != nil {
-		return "", err
-	}
-	return "", nil
+	return g.expandListItems(token.Items)
 }
 
 func (g *StatsGenerator) expandListItems(items []parser.ListItemToken) (string, error) {
+	result := ""
 	for _, item := range items {
-		_, err := g.expandListItem(item)
+		expandedItem, err := expand(g, item)
 		if err != nil {
 			return "", err
 		}
+		result += expandedItem
 	}
-	return "", nil
+	return result, nil
 }
 
 func (g *StatsGenerator) expandListItem(token parser.ListItemToken) (string, error) {
-	expandedContent, err := expand(g, token.Content)
-	if err != nil {
-		return "", err
-	}
-
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandRefDefinition(token parser.RefDefinitionToken) (string, error) {
-	expandedContent, err := expand(g, token.Content)
-	if err != nil {
-		return "", err
-	}
-
-	g.stats.NumberOfCharacters += len([]rune(expandedContent))
-	return "", nil
+	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandRefUsage(token parser.RefUsageToken) string {
