@@ -409,7 +409,7 @@ type Configuration struct {
 		Default: `[ "file", "image", "media" ]`
 		JSON example: `"file-prefixes": [ "file", "datei" ]`
 	*/
-	FilePrefixes []string `json:"file-prefixess"`
+	FilePrefixes []string `json:"file-prefixes"`
 
 	/*
 		A list of prefixes that are considered links and are therefore not removed. All prefixes  specified by
