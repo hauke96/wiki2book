@@ -2,6 +2,7 @@
 
 # Get latest tag for this commit
 VERSION=$(grep --color=never "VERSION = " src/util/constants.go | grep --color=never -Po "v[\d\.]+")
+GIVEN_OUTPUT=""
 
 # Some default value
 OS=all
@@ -31,13 +32,12 @@ function build()
 		OUTPUT="$OUTPUT.exe"
 	fi
 
-	echo "Build for $OS with $ARCH arch to $(realpath --relative-to=. $OUTPUT)"
+	echo "Build for $OS with $ARCH arch to $GIVEN_OUTPUT"
 
 	# The -ldflags "-s -w" parameter makes the binary smaller by not generating symbol table and debugging information.
 	GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w" -o $OUTPUT .
 }
 
-GIVEN_OUTPUT=""
 while getopts "a:o:f:h" opt; do
 	case "$opt" in
 		a)
