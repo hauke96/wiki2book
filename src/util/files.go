@@ -137,6 +137,7 @@ type FileLike interface {
 	Name() string
 	Write(p []byte) (n int, err error)
 	Stat() (os.FileInfo, error)
+	Close() error
 }
 
 type Filesystem interface {
@@ -144,6 +145,7 @@ type Filesystem interface {
 	GetSizeInBytes(path string) (int64, error)
 	Rename(oldPath string, newPath string) error
 	Remove(name string) error
+	Create(name string) (FileLike, error)
 	MkdirAll(path string) error
 	CreateTemp(dir, pattern string) (FileLike, error)
 	DirSizeInBytes(path string) (error, int64)
@@ -186,6 +188,10 @@ func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error)
 
 func (o *OsFilesystem) Remove(path string) error {
 	return os.Remove(path)
+}
+
+func (o *OsFilesystem) Create(path string) (FileLike, error) {
+	return os.Create(path)
 }
 
 func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {

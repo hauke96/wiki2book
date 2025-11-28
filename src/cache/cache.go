@@ -71,6 +71,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	if err != nil {
 		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
+	defer tempFile.Close()
 	tempFilepath := tempFile.Name()
 	defer util.CurrentFilesystem.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)

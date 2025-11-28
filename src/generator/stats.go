@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
+	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
@@ -209,7 +209,7 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 
 		sigolo.Debugf("Read and process stats file '%s'", statFile)
 
-		fileContent, err = os.ReadFile(statFile)
+		fileContent, err = util.CurrentFilesystem.ReadFile(statFile)
 		if err != nil {
 			return errors.Wrapf(err, "Error reading stats file '%s'", statFile)
 		}
@@ -222,6 +222,7 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 
 		articles[stats.ArticleName] = stats
 		combinedStats.NumberOfInternalLinks += stats.NumberOfInternalLinks
+		combinedStats.NumberOfExternalLinks += stats.NumberOfExternalLinks
 		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
 
 		for articleName, count := range stats.InternalLinks {
@@ -238,7 +239,6 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	sigolo.Debugf("Write combined stats to output file '%s'", outputFilePath)
 
 	var outputConent []byte
-	var outputFile *os.File
 
 	if config.Current.OutputType == config.OutputTypeStatsJson {
 		outputConent, err = generateJsonStatsContent(combinedStats)
@@ -251,7 +251,8 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	// Just to make it easier to simply open the read the file in CLI because usually files have a newline at the end.
 	outputConent = append(outputConent, byte('\n'))
 
-	outputFile, err = os.Create(outputFilePath)
+	var outputFile util.FileLike
+	outputFile, err = util.CurrentFilesystem.Create(outputFilePath)
 	if err != nil {
 		return errors.Wrapf(err, "Error opening output stats file '%s'", outputFilePath)
 	}
