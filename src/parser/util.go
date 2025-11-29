@@ -1,7 +1,7 @@
 package parser
 
-// findCorrespondingCloseToken determines the index on which the given openingToken at the startIndex is closed.
-func findCorrespondingCloseToken(content string, startIndex int, openingToken string, closingToken string) int {
+// FindCorrespondingCloseToken determines the index on which the given openingToken at the startIndex is closed.
+func FindCorrespondingCloseToken(content string, startIndex int, openingToken string, closingToken string) int {
 	// Used as a primitive stack to count the degree of nesting the cursor is in. If a closing token has been found
 	// and the nesting degree is 0, then the correct closing token has been found.
 	closeTokenCounter := 0
@@ -23,7 +23,7 @@ func findCorrespondingCloseToken(content string, startIndex int, openingToken st
 			cursorClosingToken = content[i : i+closingTokenSize]
 		}
 
-		if cursorOpeningToken == openingToken {
+		if openingToken != closingToken && cursorOpeningToken == openingToken {
 			closeTokenCounter++
 
 			// Skip the found opening token. Use the "-1" to compensate the "+1" by the loop

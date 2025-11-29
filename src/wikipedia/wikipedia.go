@@ -236,7 +236,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 	if freshlyDownloaded && config.Current.SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
+			sigolo.Errorf("Unable to make size of SVG '%s' absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 
 	evaluatedTemplateString, err := util.CurrentFilesystem.ReadFile(cacheFilePath)
 	if err != nil {
-		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
+		return "", errors.Wrapf(err, "Reading cached template file '%s' failed", cacheFilePath)
 	}
 
 	evaluatedTemplate := &WikiExpandedTemplateDto{}
@@ -354,7 +354,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	_, err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

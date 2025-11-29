@@ -1,4 +1,4 @@
-package html
+package generator
 
 import (
 	"fmt"
@@ -92,6 +92,7 @@ var (
 )
 
 type HtmlGenerator struct {
+	// TODO must they be public?
 	TokenMap         map[string]parser.Token
 	WikipediaService *wikipedia.DefaultWikipediaService
 }
@@ -102,7 +103,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	sigolo.FatalCheck(err)
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
-	expandedContent, err := g.expand(wikiArticle.Content)
+	expandedContent, err := expand(g, wikiArticle.Content)
 	if err != nil {
 		return "", err
 	}
@@ -111,91 +112,12 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	return write(wikiArticle.Title, cache.HtmlCacheDirName, content)
 }
 
-func (g *HtmlGenerator) expand(content interface{}) (string, error) {
-	switch content.(type) {
-	case string:
-		return g.expandString(content.(string))
-	case parser.Token:
-		return g.expandToken(content.(parser.Token))
-	}
-
-	return "", errors.Errorf("Unsupported type to expand: %T", content)
+func (g *HtmlGenerator) getToken(tokenKey string) (parser.Token, bool) {
+	token, hasToken := g.TokenMap[tokenKey]
+	return token, hasToken
 }
-
-func (g *HtmlGenerator) expandToken(token parser.Token) (string, error) {
-	var err error = nil
-	var html = ""
-
-	switch t := token.(type) {
-	case parser.HeadingToken:
-		html, err = g.expandHeadings(t)
-	case parser.InlineImageToken:
-		html, err = g.expandInlineImage(t)
-	case parser.ImageToken:
-		html, err = g.expandImage(t)
-	case parser.ExternalLinkToken:
-		html, err = g.expandExternalLink(t)
-	case parser.InternalLinkToken:
-		html, err = g.expandInternalLink(t)
-	case parser.UnorderedListToken:
-		html, err = g.expandUnorderedList(t)
-	case parser.OrderedListToken:
-		html, err = g.expandOrderedList(t)
-	case parser.DescriptionListToken:
-		html, err = g.expandDescriptionList(t)
-	case parser.ListItemToken:
-		html, err = g.expandListItem(t)
-	case parser.TableToken:
-		html, err = g.expandTable(t)
-	case parser.TableRowToken:
-		html, err = g.expandTableRow(t)
-	case parser.TableColToken:
-		html, err = g.expandTableColumn(t)
-	case parser.TableCaptionToken:
-		html, err = g.expandTableCaption(t)
-	case parser.MathToken:
-		html, err = g.expandMath(t)
-	case parser.RefDefinitionToken:
-		html, err = g.expandRefDefinition(t)
-	case parser.RefUsageToken:
-		html = g.expandRefUsage(t)
-	case parser.NowikiToken:
-		html = g.expandNowiki(t)
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	return html, nil
-}
-
-func (g *HtmlGenerator) expandString(content string) (string, error) {
-	content = g.expandMarker(content)
-
-	matches := tokenRegex.FindAllString(content, -1)
-
-	if len(matches) == 0 {
-		// no token in content
-		return content, nil
-	}
-
-	for _, tokenKey := range matches {
-		tokenContent, hasTokenKey := g.TokenMap[tokenKey]
-		if !hasTokenKey {
-			return "", errors.Errorf("Token key %s not found in token map", tokenKey)
-		}
-		sigolo.Tracef("Found token %s -> %#v", tokenKey, tokenContent)
-
-		html, err := g.expand(tokenContent)
-		if err != nil {
-			return "", err
-		}
-
-		content = strings.Replace(content, tokenKey, html, 1)
-	}
-
-	return content, nil
+func (g *HtmlGenerator) expandSimpleString(content string) string {
+	return content
 }
 
 func (g *HtmlGenerator) expandMarker(content string) string {
@@ -212,11 +134,11 @@ func (g *HtmlGenerator) expandMarker(content string) string {
 
 // expandHeadings expands a heading with the given leven (e.g. 4 for <h4> headings)
 func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error) {
-	expandedHeadingText, err := g.expand(token.Content)
+	expandedHeadingText, err := expand(g, token.Content)
 	if err != nil {
 		return "", err
 	}
-	return g.expand(fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth))
+	return fmt.Sprintf(TEMPLATE_HEADING, token.Depth, expandedHeadingText, token.Depth), nil
 }
 
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
@@ -227,7 +149,7 @@ func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string
 }
 
 func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
-	caption, err := g.expand(token.Caption.Content)
+	caption, err := expand(g, token.Caption.Content)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Error while expanding caption of image %#v", token))
 	}
@@ -279,11 +201,11 @@ func filenameToImagePath(filename string) string {
 func (g *HtmlGenerator) expandInternalLink(token parser.InternalLinkToken) (string, error) {
 	// Currently links are not added to the eBook, even though it's possible. Maybe this will be made configurable in
 	// the future.
-	return g.expand(token.LinkText)
+	return expand(g, token.LinkText)
 }
 
 func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken) (string, error) {
-	text, err := g.expand(token.LinkText)
+	text, err := expand(g, token.LinkText)
 	if err != nil {
 		return "", err
 	}
@@ -294,7 +216,7 @@ func (g *HtmlGenerator) expandExternalLink(token parser.ExternalLinkToken) (stri
 func (g *HtmlGenerator) expandTable(token parser.TableToken) (string, error) {
 	expandedRows := []string{}
 	for _, rowToken := range token.Rows {
-		expandedRow, err := g.expand(rowToken)
+		expandedRow, err := expand(g, rowToken)
 		if err != nil {
 			return "", err
 		}
@@ -302,7 +224,7 @@ func (g *HtmlGenerator) expandTable(token parser.TableToken) (string, error) {
 		expandedRows = append(expandedRows, expandedRow)
 	}
 
-	expandedCaption, err := g.expand(token.Caption)
+	expandedCaption, err := expand(g, token.Caption)
 	if err != nil {
 		return "", err
 	}
@@ -314,7 +236,7 @@ func (g *HtmlGenerator) expandTable(token parser.TableToken) (string, error) {
 func (g *HtmlGenerator) expandTableRow(token parser.TableRowToken) (string, error) {
 	var expandedCols []string
 	for _, colToken := range token.Columns {
-		expandedCol, err := g.expand(colToken)
+		expandedCol, err := expand(g, colToken)
 		if err != nil {
 			return "", err
 		}
@@ -326,7 +248,7 @@ func (g *HtmlGenerator) expandTableRow(token parser.TableRowToken) (string, erro
 }
 
 func (g *HtmlGenerator) expandTableColumn(token parser.TableColToken) (string, error) {
-	expandedTokenContent, err := g.expand(token.Content)
+	expandedTokenContent, err := expand(g, token.Content)
 	if err != nil {
 		return "", err
 	}
@@ -344,7 +266,7 @@ func (g *HtmlGenerator) expandTableColumn(token parser.TableColToken) (string, e
 }
 
 func (g *HtmlGenerator) expandTableCaption(token parser.TableCaptionToken) (string, error) {
-	expandedTokenContent, err := g.expand(token.Content)
+	expandedTokenContent, err := expand(g, token.Content)
 	if err != nil {
 		return "", err
 	}
@@ -394,14 +316,14 @@ func (g *HtmlGenerator) expandListItems(items []parser.ListItemToken) (string, e
 
 func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, error) {
 	var listItemContents []string
-	listItemContent, err := g.expand(token.Content)
+	listItemContent, err := expand(g, token.Content)
 	if err != nil {
 		return "", err
 	}
 	listItemContents = append(listItemContents, listItemContent)
 
 	for _, subListToken := range token.SubLists {
-		expandedSubList, err := g.expand(subListToken)
+		expandedSubList, err := expand(g, subListToken)
 		if err != nil {
 			return "", err
 		}
@@ -437,7 +359,7 @@ func (g *HtmlGenerator) expandListItem(token parser.ListItemToken) (string, erro
 }
 
 func (g *HtmlGenerator) expandRefDefinition(token parser.RefDefinitionToken) (string, error) {
-	expandedRefContent, err := g.expand(token.Content)
+	expandedRefContent, err := expand(g, token.Content)
 	if err != nil {
 		return "", err
 	}

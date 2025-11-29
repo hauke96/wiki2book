@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/hauke96/sigolo/v2"
-	"github.com/pkg/errors"
-	"golang.org/x/net/html/charset"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/hauke96/sigolo/v2"
+	"github.com/pkg/errors"
+	"golang.org/x/net/html/charset"
 )
 
 type SimpleSvgAttributes struct {
@@ -25,12 +26,12 @@ var (
 func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error reading SVG file "+filename)
+		return nil, errors.Wrapf(err, "Error reading SVG file '%s'", filename)
 	}
 
 	attributes, err := parseSimpleSvgAttributes(file, filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing SVG file "+filename)
+		return nil, errors.Wrapf(err, "Error parsing SVG file '%s'", filename)
 	}
 	sigolo.Tracef("Read simple SVG attributes %#v from file '%s'", attributes, filename)
 
@@ -45,7 +46,7 @@ func MakeSvgSizeAbsolute(filename string) error {
 
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
-		return errors.Wrap(err, "Error reading SVG file "+filename)
+		return errors.Wrapf(err, "Error reading SVG file '%s'", filename)
 	}
 
 	attributes, err := parseSimpleSvgAttributes(fileBytes, filename)
@@ -56,7 +57,7 @@ func MakeSvgSizeAbsolute(filename string) error {
 
 	if !strings.HasSuffix(attributes.Width, "%") && strings.HasSuffix(attributes.Height, "%") {
 		// Width and height are already absolute values, nothing to do here.
-		sigolo.Debugf("SVG file %s does not relative width and height attributes. Found width=%s and height=%s. File stays unchanged.", filename, attributes.Width, attributes.Height)
+		sigolo.Debugf("SVG file '%s' does not relative width and height attributes. Found width=%s and height=%s. File stays unchanged.", filename, attributes.Width, attributes.Height)
 		return nil
 	}
 
@@ -78,14 +79,14 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 	viewboxIndex := strings.Index(fileString, "viewBox=\"")
 	if viewboxIndex == -1 {
 		// No "viewbox" attribute specified, so we can't change the width/height.
-		sigolo.Debugf("SVG file %s does not contain a 'viewBox' attribute. File stays unchanged.", filename)
+		sigolo.Debugf("SVG file '%s' does not contain a 'viewBox' attribute. File stays unchanged.", filename)
 		return fileString
 	}
 
 	viewboxAttributeContentSlice := strings.SplitN(fileString[viewboxIndex:], "\"", 3)
 	if len(viewboxAttributeContentSlice) == 1 {
 		// SVG file probably broken, at least we're not able to find a correct value for the viewbox attribute.
-		sigolo.Debugf("Unable to find 'viewBox' attribute values in file %s. File stays unchanged.", filename)
+		sigolo.Debugf("Unable to find 'viewBox' attribute values in file '%s'. File stays unchanged.", filename)
 		return fileString
 	}
 
@@ -98,13 +99,13 @@ func replaceRelativeSizeByViewboxSize(fileString string, filename string, oldAtt
 		viewboxAttributeValues = strings.Split(viewboxAttributeString, " ")
 	} else {
 		// No supported separator found
-		sigolo.Debugf("Unsupported separator for 'viewBox' attribute values in file %s, file stays unchanged. Expected comma or space in attribute 'viewbox=\"%s\"'", filename, viewboxAttributeString)
+		sigolo.Debugf("Unsupported separator for 'viewBox' attribute values in file '%s', file stays unchanged. Expected comma or space in attribute 'viewbox=\"%s\"'", filename, viewboxAttributeString)
 		return fileString
 	}
 
 	if len(viewboxAttributeValues) != 4 {
 		// Wrong number of elements in viewbox
-		sigolo.Debugf("Wrong number of 'viewBox' attribute values in file %s: Expected 4 but got %d. File stays unchanged.", filename, len(viewboxAttributeValues))
+		sigolo.Debugf("Wrong number of 'viewBox' attribute values in file '%s': Expected 4 but got %d. File stays unchanged.", filename, len(viewboxAttributeValues))
 		return fileString
 	}
 
@@ -127,7 +128,7 @@ func parseSimpleSvgAttributes(fileContent []byte, filename string) (*SimpleSvgAt
 	decoder.CharsetReader = charset.NewReaderLabel
 	err := decoder.Decode(&svg)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Unable to unmarshal XML of SVG document %s", filename))
+		return nil, errors.Wrap(err, fmt.Sprintf("Unable to unmarshal XML of SVG document '%s'", filename))
 	}
 
 	return svg, nil

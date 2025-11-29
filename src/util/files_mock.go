@@ -44,6 +44,7 @@ type MockFile struct {
 	NameFunc  func() string
 	WriteFunc func(p []byte) (n int, err error)
 	StatFunc  func() os.FileInfo
+	CloseFunc func() error
 
 	WrittenBytes []byte
 }
@@ -54,6 +55,7 @@ func NewMockFile(name string) *MockFile {
 			return name
 		},
 		WriteFunc: func(p []byte) (n int, err error) { return len(p), nil },
+		CloseFunc: func() error { return nil },
 	}
 }
 
@@ -70,11 +72,16 @@ func (m *MockFile) Stat() (os.FileInfo, error) {
 	return NewMockFileInfo(m.Name()), nil
 }
 
+func (m *MockFile) Close() error {
+	return nil
+}
+
 type MockFilesystem struct {
 	ExistsFunc          func(path string) bool
 	GetSizeInBytesFunc  func(path string) (int64, error)
 	RenameFunc          func(oldPath string, newPath string) error
 	RemoveFunc          func(name string) error
+	CreateFunc          func(name string) (FileLike, error)
 	MkdirAllFunc        func(path string) error
 	CreateTempFunc      func(dir, pattern string) (FileLike, error)
 	DirSizeInBytesFunc  func(path string) (error, int64)
@@ -91,6 +98,7 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 		GetSizeInBytesFunc:  func(path string) (int64, error) { return -1, nil },
 		RenameFunc:          func(oldPath string, newPath string) error { return nil },
 		RemoveFunc:          func(name string) error { return nil },
+		CreateFunc:          func(name string) (FileLike, error) { return NewMockFile(name), nil },
 		MkdirAllFunc:        func(path string) error { return nil },
 		CreateTempFunc:      func(dir, pattern string) (FileLike, error) { return NewMockFile(pattern), nil },
 		DirSizeInBytesFunc:  func(path string) (error, int64) { return nil, -1 },
@@ -124,6 +132,10 @@ func (m *MockFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, erro
 
 func (m *MockFilesystem) Remove(path string) error {
 	return m.RemoveFunc(path)
+}
+
+func (m *MockFilesystem) Create(path string) (FileLike, error) {
+	return m.CreateFunc(path)
 }
 
 func (m *MockFilesystem) DirSizeInBytes(path string) (error, int64) {

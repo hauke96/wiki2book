@@ -18,6 +18,7 @@ const (
 	TempDirName          = ".tmp"
 	ArticleCacheDirName  = "articles"
 	HtmlCacheDirName     = "html"
+	StatsCacheDirName    = "stats"
 	ImageCacheDirName    = "images"
 	MathCacheDirName     = "math"
 	TemplateCacheDirName = "templates"
@@ -44,8 +45,9 @@ func GetTempPath() string {
 }
 
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
-// folder within the cache, not a whole path. The filename is the name of the file in the cache.
-func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) error {
+// folder within the cache, not a whole path. The filename is the name of the file in the cache. The full path is always
+// returned. The error is only set when an error occurred.
+func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (string, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
@@ -57,7 +59,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", outputFolderPath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", outputFolderPath))
 	}
 
 	//
@@ -67,8 +69,9 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	// Create the output file
 	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), filename)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
+	defer tempFile.Close()
 	tempFilepath := tempFile.Name()
 	defer util.CurrentFilesystem.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
@@ -77,7 +80,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Trace("Copy data to temp file")
 	_, err = io.Copy(tempFile, reader)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
 	}
 
 	//
@@ -88,19 +91,19 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		var cacheSizeInBytes int64
 		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(config.Current.CacheDir)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
 		}
 
 		var tempFileStat os.FileInfo
 		tempFileStat, err = tempFile.Stat()
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", filename, tempFilepath))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", filename, tempFilepath))
 		}
 
 		tempFileSizeInBytes := tempFileStat.Size()
 		err = deleteFilesFromCacheIfNeeded(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
 		if err != nil {
-			return err
+			return outputFilepath, err
 		}
 	}
 
@@ -111,11 +114,11 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Tracef("Move temp file '%s' to '%s'", tempFilepath, outputFilepath)
 	err = util.CurrentFilesystem.Rename(tempFilepath, outputFilepath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
 	}
 
 	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
-	return nil
+	return outputFilepath, nil
 }
 
 // deleteFilesFromCacheIfNeeded deletes files from the cache based on the configured cache eviction strategy. When the

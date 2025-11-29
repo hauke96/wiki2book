@@ -38,7 +38,7 @@ func ToRelativePath(path string) (string, error) {
 
 	if path != "" {
 		path, err = filepath.Rel(currentDir, path)
-		err = errors.Wrapf(err, "Unable to make file path %s relative", path)
+		err = errors.Wrapf(err, "Unable to make file path '%s' relative", path)
 	}
 
 	return path, err
@@ -72,7 +72,7 @@ func ToAbsolutePath(path string) (string, error) {
 	var err error
 	if path != "" && !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
-		err = errors.Wrapf(err, "Unable to make file path %s absolute", path)
+		err = errors.Wrapf(err, "Unable to make file path '%s' absolute", path)
 	}
 	return path, err
 }
@@ -137,6 +137,7 @@ type FileLike interface {
 	Name() string
 	Write(p []byte) (n int, err error)
 	Stat() (os.FileInfo, error)
+	Close() error
 }
 
 type Filesystem interface {
@@ -144,6 +145,7 @@ type Filesystem interface {
 	GetSizeInBytes(path string) (int64, error)
 	Rename(oldPath string, newPath string) error
 	Remove(name string) error
+	Create(name string) (FileLike, error)
 	MkdirAll(path string) error
 	CreateTemp(dir, pattern string) (FileLike, error)
 	DirSizeInBytes(path string) (error, int64)
@@ -186,6 +188,10 @@ func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error)
 
 func (o *OsFilesystem) Remove(path string) error {
 	return os.Remove(path)
+}
+
+func (o *OsFilesystem) Create(path string) (FileLike, error) {
+	return os.Create(path)
 }
 
 func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {

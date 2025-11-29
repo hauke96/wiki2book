@@ -63,7 +63,7 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		// Ignore all kind of files, they are parsed elsewhere
 		if strings.Contains(splitItem, ":") {
 			filePrefix := strings.ToLower(strings.SplitN(splitItem, ":", 2)[0])
-			if util.Contains(config.Current.FilePrefixe, filePrefix) {
+			if util.Contains(config.Current.FilePrefixes, filePrefix) {
 				resultSegments = append(resultSegments, openingBrackets)
 				resultSegments = append(resultSegments, splitItem)
 				continue

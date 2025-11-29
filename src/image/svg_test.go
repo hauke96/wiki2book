@@ -20,13 +20,13 @@ func TestReadSvg(t *testing.T) {
 func TestReadSvg_imageNotFound(t *testing.T) {
 	filename := "../test/image-that-does-not-exist.svg"
 	_, err := ReadSimpleAvgAttributes(filename)
-	test.AssertError(t, "Error reading SVG file "+filename+": open ../test/image-that-does-not-exist.svg: no such file or directory", err)
+	test.AssertError(t, "Error reading SVG file '"+filename+"': open ../test/image-that-does-not-exist.svg: no such file or directory", err)
 }
 
 func TestReadSvg_brokenImage(t *testing.T) {
 	filename := "../test/image-broken.svg"
 	_, err := ReadSimpleAvgAttributes(filename)
-	test.AssertError(t, "Error parsing SVG file ../test/image-broken.svg: Unable to unmarshal XML of SVG document "+filename+": EOF", err)
+	test.AssertError(t, "Error parsing SVG file '../test/image-broken.svg': Unable to unmarshal XML of SVG document '"+filename+"': EOF", err)
 }
 
 func TestMakeSvgSizeAbsolute(t *testing.T) {

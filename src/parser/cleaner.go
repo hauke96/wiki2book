@@ -76,7 +76,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 		cursor := content[i : i+2]
 
 		if cursor == "[[" {
-			endIndex := findCorrespondingCloseToken(content, i+2, "[", "]")
+			endIndex := FindCorrespondingCloseToken(content, i+2, "[", "]")
 
 			totalLinkContent := content[i+2 : endIndex]
 			linkSegments := strings.SplitN(totalLinkContent, ":", -1)
@@ -86,7 +86,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			// be treated as normal internal links, i.e. the "SomeLinkText" in this example should stay.
 			isNormalLinkToCategory := content[i+2] == ':'
 
-			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixe, strings.ToLower(allPrefixes[0])) {
+			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixes, strings.ToLower(allPrefixes[0])) {
 				// We found an image. This extra treatment exists because images might contain colons and that would
 				// disturb the rest of the parsing below. Therefore, images get this fast exit.
 				continue
@@ -103,7 +103,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			for j := 0; j < len(allPrefixes); j++ {
 				linkPrefix := strings.ToLower(allPrefixes[j])
 
-				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixe, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
+				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixes, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
 				isCategory := util.Contains(config.Current.CategoryPrefixes, linkPrefix)
 
 				if linkPrefix != "" && (isForbiddenPrefix || isCategory) {
@@ -132,7 +132,7 @@ func (t *Tokenizer) handleUnwantedAndTrailingTemplates(content string) string {
 
 		if cursor == "{{" {
 			// Get the index on which the template is closed
-			closedTemplateIndex := findCorrespondingCloseToken(content, i+2, "{{", "}}")
+			closedTemplateIndex := FindCorrespondingCloseToken(content, i+2, "{{", "}}")
 			if closedTemplateIndex == -1 {
 				// no closing tag found -> move on in the normal text
 				continue

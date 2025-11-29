@@ -4,7 +4,7 @@
     "commons.wikimedia.org",
     "de.wikipedia.org"
   ],
-  "file-prefixe": [
+  "file-prefixes": [
     "file",
     "image",
     "media",

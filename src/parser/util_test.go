@@ -8,58 +8,58 @@ import (
 func TestFindCorrespondingCloseToken(t *testing.T) {
 	var index int
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 0, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 0, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 1, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 1, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 2, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 2, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 3, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 3, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 4, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 4, "[", "]")
 	test.AssertEqual(t, 7, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 5, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 5, "[", "]")
 	test.AssertEqual(t, 7, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 6, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 6, "[", "]")
 	test.AssertEqual(t, 7, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 7, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 7, "[", "]")
 	test.AssertEqual(t, 7, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 8, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 8, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 9, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 9, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[def]ghi", 10, "[", "]")
+	index = FindCorrespondingCloseToken("abc[def]ghi", 10, "[", "]")
 	test.AssertEqual(t, -1, index)
 
-	index = findCorrespondingCloseToken("abc[[de[[f]]]]ghi", 5, "[[", "]]")
+	index = FindCorrespondingCloseToken("abc[[de[[f]]]]ghi", 5, "[[", "]]")
 	test.AssertEqual(t, 12, index)
 
-	index = findCorrespondingCloseToken("abc[[de[[f]]]]ghi", 9, "[[", "]]")
+	index = FindCorrespondingCloseToken("abc[[de[[f]]]]ghi", 9, "[[", "]]")
 	test.AssertEqual(t, 10, index)
 }
 
 func TestFindCorrespondingCloseToken_multiLineStrings(t *testing.T) {
 	var index int
 
-	index = findCorrespondingCloseToken(`ab
+	index = FindCorrespondingCloseToken(`ab
 c[def]ghi`, 5, "[", "]")
 	test.AssertEqual(t, 8, index)
 
-	index = findCorrespondingCloseToken(`abc[d
+	index = FindCorrespondingCloseToken(`abc[d
 ef]ghi`, 5, "[", "]")
 	test.AssertEqual(t, 8, index)
 
-	index = findCorrespondingCloseToken(`abc[def]g
+	index = FindCorrespondingCloseToken(`abc[def]g
 hi`, 5, "[", "]")
 	test.AssertEqual(t, 7, index)
 }
@@ -67,13 +67,13 @@ hi`, 5, "[", "]")
 func TestFindCorrespondingCloseToken_specialChars(t *testing.T) {
 	var index int
 
-	index = findCorrespondingCloseToken("abc[äöü]ghi", 4, "[", "]")
+	index = FindCorrespondingCloseToken("abc[äöü]ghi", 4, "[", "]")
 	test.AssertEqual(t, 10, index)
 
-	index = findCorrespondingCloseToken("abc[dµf]ghi", 4, "[", "]")
+	index = FindCorrespondingCloseToken("abc[dµf]ghi", 4, "[", "]")
 	test.AssertEqual(t, 8, index)
 
-	index = findCorrespondingCloseToken(`abc[[:EN:FOO:BAR
+	index = FindCorrespondingCloseToken(`abc[[:EN:FOO:BAR
 $ome+µeird-string]]ghi`, 5, "[", "]")
 	test.AssertEqual(t, 35, index)
 }
@@ -81,12 +81,25 @@ $ome+µeird-string]]ghi`, 5, "[", "]")
 func TestFindCorrespondingCloseToken_differentlySizedTokens(t *testing.T) {
 	var index int
 
-	index = findCorrespondingCloseToken("abc[def]]ghi", 4, "[", "]]")
+	index = FindCorrespondingCloseToken("abc[def]]ghi", 4, "[", "]]")
 	test.AssertEqual(t, 7, index)
 
-	index = findCorrespondingCloseToken("abc[[def]ghi", 5, "[[", "]")
+	index = FindCorrespondingCloseToken("abc[[def]ghi", 5, "[[", "]")
 	test.AssertEqual(t, 8, index)
 
-	index = findCorrespondingCloseToken("abc[[defghi]", 5, "[[", "]")
+	index = FindCorrespondingCloseToken("abc[[defghi]", 5, "[[", "]")
+	test.AssertEqual(t, 11, index)
+}
+
+func TestFindCorrespondingCloseToken_equalStartAndEndToken(t *testing.T) {
+	var index int
+
+	index = FindCorrespondingCloseToken("abc$$def$$ghi", 4, "$$", "$$")
+	test.AssertEqual(t, 8, index)
+
+	index = FindCorrespondingCloseToken("abc$$def$$ghi", 5, "$$", "$$")
+	test.AssertEqual(t, 8, index)
+
+	index = FindCorrespondingCloseToken("abc$$defghi$$", 5, "$$", "$$")
 	test.AssertEqual(t, 11, index)
 }

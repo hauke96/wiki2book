@@ -28,7 +28,7 @@ func (t *Tokenizer) hackGermanRailwayTemplates(content string, startIndex int) (
 		if cursor == startToken {
 			// Recursively handle all succeeding occurrences. This solves the problem of nexted template-table-thingies.
 			// This nesting is a problem because "{{BS-table}}" and "{|" are both starting tokens and "|}" is the only
-			// end token. This cannot be handled by "findCorrespondingCloseToken()". Therefore, recursion is used here
+			// end token. This cannot be handled by "FindCorrespondingCloseToken()". Therefore, recursion is used here
 			// to ensure that no "{{BS-table}}" occurs after the current sliding window.
 			content, err = t.hackGermanRailwayTemplates(content, i+slidingWindowSize)
 			if err != nil {
@@ -36,7 +36,7 @@ func (t *Tokenizer) hackGermanRailwayTemplates(content string, startIndex int) (
 			}
 
 			// Find the end "|}" to remove the both lines
-			endIndex := findCorrespondingCloseToken(content, i+slidingWindowSize, startToken, endToken)
+			endIndex := FindCorrespondingCloseToken(content, i+slidingWindowSize, startToken, endToken)
 			if endIndex == -1 {
 				return "", errors.Errorf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", startToken, endToken)
 			}

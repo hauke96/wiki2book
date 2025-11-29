@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"wiki2book/generator"
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
@@ -19,8 +18,10 @@ const (
 	MathConverterWikimedia = "wikimedia"
 	MathConverterTemplate  = "template"
 
-	OutputTypeEpub2 = "epub2"
-	OutputTypeEpub3 = "epub3"
+	OutputTypeEpub2     = "epub2"
+	OutputTypeEpub3     = "epub3"
+	OutputTypeStatsJson = "stats-json"
+	OutputTypeStatsTxt  = "stats-txt"
 
 	OutputDriverPandoc   = "pandoc"
 	OutputDriverInternal = "internal"
@@ -73,7 +74,7 @@ func NewDefaultConfig() *Configuration {
 		WikipediaImageHost:             "upload.wikimedia.org",
 		WikipediaImageArticleHosts:     []string{"commons.wikimedia.org", "en.wikipedia.org"},
 		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
-		FilePrefixe:                    []string{"file", "image", "media"},
+		FilePrefixes:                   []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
 		MathConverter:                  "wikimedia",
@@ -406,19 +407,19 @@ type Configuration struct {
 		must be in lower case.
 
 		Default: `[ "file", "image", "media" ]`
-		JSON example: `"file-prefixe": [ "file", "datei" ]`
+		JSON example: `"file-prefixes": [ "file", "datei" ]`
 	*/
-	FilePrefixe []string `json:"file-prefixe"`
+	FilePrefixes []string `json:"file-prefixes"`
 
 	/*
 		A list of prefixes that are considered links and are therefore not removed. All prefixes  specified by
-		"FilePrefixe" are considered to be allowed prefixes. Any other not explicitly allowed prefix of a link causes
+		"FilePrefixes" are considered to be allowed prefixes. Any other not explicitly allowed prefix of a link causes
 		the link to get removed. This especially happens for inter-wiki-links if the Wikipedia instance is not
 		explicitly allowed using this list.
 
 		Default: `[ "arxiv", "doi" ]`
 	*/
-	AllowedLinkPrefixes []string `json:"allowed-link-prefixe"`
+	AllowedLinkPrefixes []string `json:"allowed-link-prefixes"`
 
 	/*
 		A list of category prefixes, which are technically internals links. However, categories will be removed from
@@ -482,15 +483,15 @@ type Configuration struct {
 // in the Current configuration in case the field of the given config is different to the default value.
 func MergeIntoCurrentConfig(c *Configuration) {
 	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
-		sigolo.Tracef("Override outputType with %s", c.OutputType)
+		sigolo.Tracef("Override ForceRegenerateHtml with %v", c.ForceRegenerateHtml)
 		Current.ForceRegenerateHtml = c.ForceRegenerateHtml
 	}
 	if c.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
-		sigolo.Tracef("Override svgSizeToViewbox with %v", c.SvgSizeToViewbox)
+		sigolo.Tracef("Override SvgSizeToViewbox with %v", c.SvgSizeToViewbox)
 		Current.SvgSizeToViewbox = c.SvgSizeToViewbox
 	}
 	if c.OutputType != defaultConfig.OutputType {
-		sigolo.Tracef("Override outputType with %s", c.OutputType)
+		sigolo.Tracef("Override OutputType with %s", c.OutputType)
 		Current.OutputType = c.OutputType
 	}
 	if c.OutputDriver != defaultConfig.OutputDriver {
@@ -518,7 +519,7 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.StyleFile != defaultConfig.StyleFile {
 		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
 		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override StyleFile with %s", absolutePath)
+		sigolo.Tracef("Override StyleFile with '%s'", absolutePath)
 		Current.StyleFile = absolutePath
 	}
 	if c.CoverImage != defaultConfig.CoverImage {
@@ -607,9 +608,9 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)
 		Current.WikipediaImageArticleHosts = c.WikipediaImageArticleHosts
 	}
-	if !util.EqualsInAnyOrder(c.FilePrefixe, defaultConfig.FilePrefixe) {
-		sigolo.Tracef("Override FilePrefixe with %v", c.FilePrefixe)
-		Current.FilePrefixe = c.FilePrefixe
+	if !util.EqualsInAnyOrder(c.FilePrefixes, defaultConfig.FilePrefixes) {
+		sigolo.Tracef("Override FilePrefixes with %v", c.FilePrefixes)
+		Current.FilePrefixes = c.FilePrefixes
 	}
 	if !util.EqualsInAnyOrder(c.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
 		sigolo.Tracef("Override AllowedLinkPrefixes with %v", c.AllowedLinkPrefixes)
@@ -689,26 +690,33 @@ func (c *Configuration) MakePathsAbsoluteToWorkingDir() {
 }
 
 func (c *Configuration) AssertFilesAndPathsExists() {
-	util.AssertPathExists(Current.CacheDir)
-	util.AssertPathExists(Current.StyleFile)
-	util.AssertPathExists(Current.CoverImage)
-	util.AssertPathExists(Current.PandocDataDir)
-	for _, f := range Current.FontFiles {
+	util.AssertPathExists(c.CacheDir)
+	util.AssertPathExists(c.StyleFile)
+	util.AssertPathExists(c.CoverImage)
+	util.AssertPathExists(c.PandocDataDir)
+	for _, f := range c.FontFiles {
 		util.AssertPathExists(f)
 	}
 }
 
 func (c *Configuration) AssertValidity() {
-	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 {
+	isOutputTypeValid := true
+	if c.OutputType != OutputTypeEpub2 && c.OutputType != OutputTypeEpub3 && c.OutputType != OutputTypeStatsJson && c.OutputType != OutputTypeStatsTxt {
+		isOutputTypeValid = false
 		defaultValidationErrorHandler(errors.Errorf("Invalid output type '%s'", c.OutputType))
 	}
+	isOutputDriverValid := true
 	if c.OutputDriver != OutputDriverPandoc && c.OutputDriver != OutputDriverInternal {
+		isOutputDriverValid = false
 		defaultValidationErrorHandler(errors.Errorf("Invalid output driver '%s'", c.OutputDriver))
 	}
-	err := generator.VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
-	if err != nil {
-		defaultValidationErrorHandler(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
+	if isOutputTypeValid && isOutputDriverValid {
+		err := VerifyOutputAndDriver(c.OutputType, c.OutputDriver)
+		if err != nil {
+			defaultValidationErrorHandler(errors.Errorf("Output type '%s' and driver '%s' are not valid: %+v", c.OutputType, c.OutputDriver, err))
+		}
 	}
+
 	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterTemplate {
 		defaultValidationErrorHandler(errors.Errorf("Invalid math converter '%s'", c.MathConverter))
 	}
@@ -774,6 +782,37 @@ func (c *Configuration) AssertValidity() {
 	if c.CacheEvictionStrategy != CacheEvictionStrategyNone && c.CacheEvictionStrategy != CacheEvictionStrategyLru && c.CacheEvictionStrategy != CacheEvictionStrategyLargest {
 		defaultValidationErrorHandler(errors.Errorf("CacheEvictionStrategy '%s' is invalid", c.CacheEvictionStrategy))
 	}
+}
+
+// VerifyOutputAndDriver returns an error if the output type and driver are not compatible and returns nil if they are.
+func VerifyOutputAndDriver(outputType string, outputDriver string) error {
+	sigolo.Tracef("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
+
+	switch outputType {
+	case OutputTypeEpub2:
+		if outputDriver == OutputDriverPandoc {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	case OutputTypeEpub3:
+		if outputDriver == OutputDriverPandoc ||
+			outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	case OutputTypeStatsJson:
+		if outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	case OutputTypeStatsTxt:
+		if outputDriver == OutputDriverInternal {
+			return nil
+		}
+		return errors.Errorf("Incompatible output type '%s' with output driver '%s'", outputType, outputDriver)
+	}
+
+	return errors.Errorf("Unknown output type '%s'", outputType)
 }
 
 func (c *Configuration) Print() {
