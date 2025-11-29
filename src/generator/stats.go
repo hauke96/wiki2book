@@ -2,13 +2,16 @@ package generator
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
@@ -24,12 +27,19 @@ type StatsGenerator struct {
 }
 
 type articleStats struct {
-	ArticleName            string         `json:"articleName"`
-	NumberOfCharacters     int            `json:"numberOfCharacters"`
-	NumberOfInternalLinks  int            `json:"numberOfInternalLinks"`
-	NumberOfExternalLinks  int            `json:"numberOfExternalLinks"`
-	InternalLinks          map[string]int `json:"internalLinks"`
-	UncoveredInternalLinks map[string]int `json:"uncoveredInternalLinks"`
+	ArticleName                 string         `json:"article-name"`
+	NumberOfCharacters          int            `json:"number-of-characters"`
+	NumberOfWords               int            `json:"number-of-words"`
+	NumberOfInternalLinks       int            `json:"number-of-internal-links"`
+	NumberOfExternalLinks       int            `json:"number-of-external-links"`
+	NumberOfImages              int            `json:"number-of-images"`
+	NumberOfMath                int            `json:"number-of-math"`
+	NumberOfRefDefinitions      int            `json:"number-of-ref-definitions"`
+	NumberOfRefUsages           int            `json:"number-of-ref-usages"`
+	InternalLinks               map[string]int `json:"internal-links"`
+	UncoveredInternalLinks      map[string]int `json:"uncovered-internal-links"`
+	Top10UncoveredInternalLinks map[string]int `json:"top-10-uncovered-internal-links"`
+	EstimatedReadingTimeMinutes int            `json:"estimated-reading-time-minutes"`
 }
 
 func NewStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
@@ -49,11 +59,52 @@ func (g *StatsGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	_, err := expand(g, wikiArticle.Content)
 	sigolo.FatalCheck(err)
 
+	readingTimeInMinutes := g.getEstimatedReadingTimeInMinutes()
+	g.stats.EstimatedReadingTimeMinutes = readingTimeInMinutes
+
 	statsBytes, err := json.MarshalIndent(g.stats, "", "  ")
 	sigolo.FatalCheck(errors.Wrapf(err, "Error creating stats for article '%s'", wikiArticle.Title))
 
 	stringReader := strings.NewReader(string(statsBytes))
 	return cache.CacheToFile(cache.StatsCacheDirName, filename, stringReader)
+}
+
+func (g *StatsGenerator) getEstimatedReadingTimeInMinutes() int {
+	// Average word/min based on 17 major languages according to a 2012 study by Trauzettel-Klosinski et al.
+	averageWordsPerMinute := 183
+	switch config.Current.WikipediaInstance {
+	case "en":
+		averageWordsPerMinute = 228
+	case "de":
+		averageWordsPerMinute = 179
+	case "fr":
+		averageWordsPerMinute = 195
+	case "nl":
+		averageWordsPerMinute = 202
+	case "fi":
+		averageWordsPerMinute = 161
+	case "he":
+		averageWordsPerMinute = 187
+	case "it":
+		averageWordsPerMinute = 188
+	case "jp":
+		averageWordsPerMinute = 193
+	case "pl":
+		averageWordsPerMinute = 166
+	case "pt":
+		averageWordsPerMinute = 181
+	case "ru":
+		averageWordsPerMinute = 184
+	case "sl":
+		averageWordsPerMinute = 180
+	case "es":
+		averageWordsPerMinute = 218
+	case "se":
+		averageWordsPerMinute = 199
+	case "tr":
+		averageWordsPerMinute = 166
+	}
+	return g.stats.NumberOfWords / averageWordsPerMinute
 }
 
 func (g *StatsGenerator) getToken(tokenKey string) (parser.Token, bool) {
@@ -63,6 +114,20 @@ func (g *StatsGenerator) getToken(tokenKey string) (parser.Token, bool) {
 
 func (g *StatsGenerator) expandSimpleString(content string) string {
 	g.stats.NumberOfCharacters += len([]rune(content))
+
+	inWord := false
+	for _, r := range content {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			if !inWord {
+				// New word starts
+				g.stats.NumberOfWords++
+			}
+			inWord = true
+		} else {
+			inWord = false
+		}
+	}
+
 	return content
 }
 
@@ -80,34 +145,24 @@ func (g *StatsGenerator) expandHeadings(token parser.HeadingToken) (string, erro
 }
 
 func (g *StatsGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
+	g.stats.NumberOfImages++
 	return "", nil
 }
 
 func (g *StatsGenerator) expandImage(token parser.ImageToken) (string, error) {
+	g.stats.NumberOfImages++
 	return expand(g, token.Caption.Content)
 }
 
 func (g *StatsGenerator) expandInternalLink(token parser.InternalLinkToken) (string, error) {
-	expandedContent, err := expand(g, token.LinkText)
-	if err != nil {
-		return "", err
-	}
-
 	g.stats.NumberOfInternalLinks++
 	g.stats.InternalLinks[token.ArticleName]++
-
-	return expandedContent, nil
+	return expand(g, token.LinkText)
 }
 
 func (g *StatsGenerator) expandExternalLink(token parser.ExternalLinkToken) (string, error) {
-	expandedContent, err := expand(g, token.LinkText)
-	if err != nil {
-		return "", err
-	}
-
 	g.stats.NumberOfExternalLinks++
-
-	return expandedContent, nil
+	return expand(g, token.LinkText)
 }
 
 func (g *StatsGenerator) expandTable(token parser.TableToken) (string, error) {
@@ -178,14 +233,17 @@ func (g *StatsGenerator) expandListItem(token parser.ListItemToken) (string, err
 }
 
 func (g *StatsGenerator) expandRefDefinition(token parser.RefDefinitionToken) (string, error) {
+	g.stats.NumberOfRefDefinitions++
 	return expand(g, token.Content)
 }
 
 func (g *StatsGenerator) expandRefUsage(token parser.RefUsageToken) string {
+	g.stats.NumberOfRefUsages++
 	return ""
 }
 
 func (g *StatsGenerator) expandMath(token parser.MathToken) (string, error) {
+	g.stats.NumberOfMath++
 	return "", nil
 }
 
@@ -199,8 +257,9 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 	sigolo.Debugf("Generate stats to '%s' for articles %v", outputFilePath, statFiles)
 
 	combinedStats := &articleStats{
-		InternalLinks:          map[string]int{},
-		UncoveredInternalLinks: map[string]int{},
+		InternalLinks:               map[string]int{},
+		UncoveredInternalLinks:      map[string]int{},
+		Top10UncoveredInternalLinks: map[string]int{},
 	}
 	articles := map[string]*articleStats{}
 
@@ -221,19 +280,37 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 		}
 
 		articles[stats.ArticleName] = stats
+		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
+		combinedStats.NumberOfWords += stats.NumberOfWords
 		combinedStats.NumberOfInternalLinks += stats.NumberOfInternalLinks
 		combinedStats.NumberOfExternalLinks += stats.NumberOfExternalLinks
-		combinedStats.NumberOfCharacters += stats.NumberOfCharacters
+		combinedStats.NumberOfImages += stats.NumberOfImages
+		combinedStats.NumberOfMath += stats.NumberOfMath
+		combinedStats.NumberOfRefDefinitions += stats.NumberOfRefDefinitions
+		combinedStats.NumberOfRefUsages += stats.NumberOfRefUsages
+		combinedStats.EstimatedReadingTimeMinutes += stats.EstimatedReadingTimeMinutes
 
 		for articleName, count := range stats.InternalLinks {
 			combinedStats.InternalLinks[articleName] += count
 		}
 	}
 
+	var uncoveredArticles []string
 	for articleName, count := range combinedStats.InternalLinks {
 		if _, ok := articles[articleName]; !ok {
 			combinedStats.UncoveredInternalLinks[articleName] += count
+			uncoveredArticles = append(uncoveredArticles, articleName)
 		}
+	}
+
+	slices.SortFunc(uncoveredArticles, func(a, b string) int {
+		return cmp.Compare(combinedStats.UncoveredInternalLinks[b], combinedStats.UncoveredInternalLinks[a])
+	})
+	for i, uncoveredArticle := range uncoveredArticles {
+		if i >= 10 {
+			break
+		}
+		combinedStats.Top10UncoveredInternalLinks[uncoveredArticle] = combinedStats.UncoveredInternalLinks[uncoveredArticle]
 	}
 
 	sigolo.Debugf("Write combined stats to output file '%s'", outputFilePath)
