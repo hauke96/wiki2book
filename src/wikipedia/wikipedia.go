@@ -349,7 +349,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Rendering math failed with status code %d for math '%s' on URL %s with body: %s", response.StatusCode, mathString, urlString, responseBodyText)
 	}
 
-	locationHeader := response.Header.Get("x-resource-location")
+	locationHeader := response.Header.Get(ownHttp.HeaderXResourceLocation)
 	if locationHeader == "" {
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}

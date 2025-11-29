@@ -14,6 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	HeaderContentType       = "Content-Type"
+	HeaderMediawikiApiError = "mediawiki-api-error"
+	HeaderRetryAfter        = "Retry-After"
+	HeaderUserAgent         = "User-Agent"
+	HeaderXResourceLocation = "x-resource-location"
+)
+
 type HttpClient interface {
 	Do(request *http.Request) (resp *http.Response, err error)
 	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
@@ -80,8 +88,8 @@ func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *htt
 
 	userAgentString := config.Current.UserAgentTemplate
 	userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
-	request.Header.Set("User-Agent", userAgentString)
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set(HeaderUserAgent, userAgentString)
+	request.Header.Set(HeaderContentType, "application/x-www-form-urlencoded")
 
 	var response *http.Response
 	response, err = d.httpClient.Do(request)
@@ -109,7 +117,7 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 
 		userAgentString := config.Current.UserAgentTemplate
 		userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
-		request.Header.Set("User-Agent", userAgentString)
+		request.Header.Set(HeaderUserAgent, userAgentString)
 
 		response, err = d.httpClient.Do(request)
 		if err != nil {
@@ -118,18 +126,18 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 
 		sigolo.Tracef("Response: %#v", response)
 
-		// Handle 429 (too many requests): wait a bit and retry
 		if response.StatusCode == http.StatusTooManyRequests {
+			// 429 (too many requests): wait a bit and retry
+			response.Header.Get(HeaderRetryAfter)
 			sigolo.Tracef("Got %d response (too many requests). Wait some time and try again...", http.StatusTooManyRequests)
 			time.Sleep(2 * time.Second)
 			continue
 		} else if response.StatusCode != http.StatusOK {
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
 		} else {
-			errorHeaderName := "mediawiki-api-error"
-			responseErrorHeader := response.Header.Get(errorHeaderName)
+			responseErrorHeader := response.Header.Get(HeaderMediawikiApiError)
 			if responseErrorHeader != "" {
-				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' value '%s' for url %s", filename, errorHeaderName, responseErrorHeader, url)
+				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' value '%s' for url %s", filename, HeaderMediawikiApiError, responseErrorHeader, url)
 			}
 		}
 
