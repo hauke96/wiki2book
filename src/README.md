@@ -75,3 +75,10 @@ This can easily be used in a loop to do some semi-professional performance measu
 ```
 time ./wiki2book article -r "DB Class VT 11.5"; } |& grep real | sed -E 's/[^0-9\.]+//g' | bc
 ```
+
+# SBOM creation
+
+With `cyclonedx-gomod`, a software bill of materials (SBOM) can be created to view dependencies and analyse them for vulnerabilities.
+
+1. `go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest`
+2. `cyclonedx-gomod app -packages=true -json=true -std=true -output ./sbom.json .`
