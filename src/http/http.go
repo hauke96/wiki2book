@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 	"wiki2book/cache"
@@ -20,6 +21,10 @@ const (
 	HeaderRetryAfter        = "Retry-After"
 	HeaderUserAgent         = "User-Agent"
 	HeaderXResourceLocation = "x-resource-location"
+)
+
+var (
+	sleepFunc = func(seconds int) { time.Sleep(time.Duration(seconds) * time.Second) }
 )
 
 type HttpClient interface {
@@ -128,9 +133,15 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 
 		if response.StatusCode == http.StatusTooManyRequests {
 			// 429 (too many requests): wait a bit and retry
-			response.Header.Get(HeaderRetryAfter)
-			sigolo.Tracef("Got %d response (too many requests). Wait some time and try again...", http.StatusTooManyRequests)
-			time.Sleep(2 * time.Second)
+			sigolo.Debugf("Received responst status code %d and try request again", response.StatusCode)
+			var waitTime int
+			waitTime, err = strconv.Atoi(response.Header.Get(HeaderRetryAfter))
+			if err != nil {
+				waitTime = 2
+				sigolo.Warnf("Unable to parse '%s' header value after receiving HTTP status code %d. Instead I'll wait %d seconds, but this might lead to recurring HTTP errors.", HeaderRetryAfter, http.StatusTooManyRequests, waitTime)
+			}
+			sigolo.Tracef("Wait %d seconds and try again", waitTime)
+			sleepFunc(waitTime)
 			continue
 		} else if response.StatusCode != http.StatusOK {
 			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)

@@ -11,6 +11,8 @@ type mockHttpClient struct {
 	StatusCode int
 	GetCalls   int
 	PostCalls  int
+	doFunc     func(request *http.Request) (resp *http.Response, err error)
+	postFunc   func(url, contentType string, body io.Reader) (resp *http.Response, err error)
 }
 
 func NewMockHttpClient(response string, statusCode int) *mockHttpClient {
@@ -19,6 +21,8 @@ func NewMockHttpClient(response string, statusCode int) *mockHttpClient {
 		statusCode,
 		0,
 		0,
+		func(request *http.Request) (resp *http.Response, err error) { return nil, nil },
+		func(url, contentType string, body io.Reader) (resp *http.Response, err error) { return nil, nil },
 	}
 }
 
@@ -28,6 +32,13 @@ func (h *mockHttpClient) Do(request *http.Request) (resp *http.Response, err err
 	} else if request.Method == "POST" {
 		h.PostCalls++
 	}
+
+	response, err := h.doFunc(request)
+	if response != nil || err != nil {
+		return response, err
+	}
+
+	// Deprecated:
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
 		StatusCode: h.StatusCode,
@@ -36,6 +47,14 @@ func (h *mockHttpClient) Do(request *http.Request) (resp *http.Response, err err
 
 func (h *mockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
 	h.PostCalls++
+	
+	response, err := h.postFunc(url, contentType, body)
+	if response != nil || err != nil {
+		return response, err
+	}
+
+	// Deprecated:
+
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader([]byte(h.Response))),
 		StatusCode: h.StatusCode,
