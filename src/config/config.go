@@ -201,7 +201,7 @@ type Configuration struct {
 	/*
 		The CSS style file that should be embedded into the eBook. Relative paths are relative to the config file.
 
-		Default: `"/use/share/wiki2book/style.css"` on Linux when it exists; `""` otherwise
+		Default: `"/usr/share/wiki2book/style.css"` on Linux when it exists; `""` otherwise
 		JSON example: `"style-file": "my-style.css"`
 	*/
 	StyleFile string `json:"style-file"`
