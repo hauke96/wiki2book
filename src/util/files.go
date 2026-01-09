@@ -137,6 +137,7 @@ type FileLike interface {
 	Name() string
 	Write(p []byte) (n int, err error)
 	Stat() (os.FileInfo, error)
+	Close() error
 }
 
 type Filesystem interface {

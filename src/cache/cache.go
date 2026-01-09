@@ -104,6 +104,12 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		}
 	}
 
+	// Close file as it's not needed anymore. Without closing it, Windows has problems moving the file.
+	err = tempFile.Close()
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to close temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+	}
+
 	//
 	// 3. Move file to actual location
 	//

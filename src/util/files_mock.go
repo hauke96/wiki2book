@@ -70,6 +70,10 @@ func (m *MockFile) Stat() (os.FileInfo, error) {
 	return NewMockFileInfo(m.Name()), nil
 }
 
+func (m *MockFile) Close() error {
+	return nil
+}
+
 type MockFilesystem struct {
 	ExistsFunc          func(path string) bool
 	GetSizeInBytesFunc  func(path string) (int64, error)
