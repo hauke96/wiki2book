@@ -470,7 +470,7 @@ type Configuration struct {
 		Template string for the user agent used in HTTP requests. There are some placeholders within this template
 		string, which are replaced by actual values:
 		<ul>
-			<li>`{{VERSION}}` - The version of wiki2book as shown by the `--version` CLI argument. Example: `v0.5.0`</li>
+			<li>`{{VERSION}}` - The version of wiki2book as shown by the `--version` CLI argument. Example: `v0.5.1`</li>
 		</ul>
 
 		Default: `"wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)"`
