@@ -111,7 +111,7 @@ func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
 	httpService.httpClient = mockHttpClient
 
 	// Act
-	reader, err := httpService.download("http://foobar", "testfile")
+	reader, err := httpService.download("http://foobar")
 
 	// Assert
 	test.AssertNil(t, err)

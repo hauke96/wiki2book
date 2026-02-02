@@ -28,7 +28,7 @@ var (
 	cacheWriteMutex = &sync.Mutex{}
 )
 
-func GetFilePathInCache(cacheFolderName string, filename string) string {
+func getFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 }
 
@@ -51,7 +51,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
+	outputFilepath := getFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
 	// Create the output folder
@@ -134,7 +134,7 @@ func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, ne
 	// just be added to the cache, but instead the old file will be replaced. The cache then grows much less in size or
 	// might even shrink (in case the new file is smaller than the old one).
 	var netCacheSizeChangeInBytes = newFileSizeInBytes
-	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(GetFilePathInCache(cacheFolderName, newFileName))
+	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(getFilePathInCache(cacheFolderName, newFileName))
 	if err == nil {
 		netCacheSizeChangeInBytes = newFileSizeInBytes - existingFileSizeInBytes
 	}
@@ -201,7 +201,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	filePath := GetFilePathInCache(cacheFolderName, filename)
+	filePath := getFilePathInCache(cacheFolderName, filename)
 
 	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
 	if os.IsNotExist(err) {
@@ -237,7 +237,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 // exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
 // error types, the booleans have no meaning.
 func isOutdated(cacheFolderName string, filename string) (bool, error) {
-	filePath := GetFilePathInCache(cacheFolderName, filename)
+	filePath := getFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {

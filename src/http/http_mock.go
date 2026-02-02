@@ -47,7 +47,7 @@ func (h *mockHttpClient) Do(request *http.Request) (resp *http.Response, err err
 
 func (h *mockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
 	h.PostCalls++
-	
+
 	response, err := h.postFunc(url, contentType, body)
 	if response != nil || err != nil {
 		return response, err

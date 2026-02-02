@@ -63,7 +63,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 	sigolo.Debugf("File '%s' not cached -> download fresh one", outputFilepath)
 
 	// Get the data
-	responseBodyReader, err := d.download(url, filename)
+	responseBodyReader, err := d.download(url)
 	if responseBodyReader != nil {
 		defer responseBodyReader.Close()
 		if err != nil {
@@ -108,7 +108,7 @@ func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *htt
 
 // download returns the open response body of the GET request for the given URL. The article name is just there for
 // logging purposes.
-func (d *DefaultHttpService) download(url string, filename string) (io.ReadCloser, error) {
+func (d *DefaultHttpService) download(url string) (io.ReadCloser, error) {
 	var response *http.Response
 	var request *http.Request
 	var err error
@@ -117,7 +117,7 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 		sigolo.Debugf("Make GET request to %s", url)
 		request, err = http.NewRequest("GET", url, nil)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s to download file '%s'", url, filename))
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s", url))
 		}
 
 		userAgentString := config.Current.UserAgentTemplate
@@ -144,11 +144,11 @@ func (d *DefaultHttpService) download(url string, filename string) (io.ReadClose
 			sleepFunc(waitTime)
 			continue
 		} else if response.StatusCode != http.StatusOK {
-			return response.Body, errors.Errorf("Downloading file '%s' failed with status code %d for url %s", filename, response.StatusCode, url)
+			return response.Body, errors.Errorf("Downloading from url %s failed with status code %d", url, response.StatusCode)
 		} else {
 			responseErrorHeader := response.Header.Get(HeaderMediawikiApiError)
 			if responseErrorHeader != "" {
-				return response.Body, errors.Errorf("Downloading file '%s' failed with error header '%s' value '%s' for url %s", filename, HeaderMediawikiApiError, responseErrorHeader, url)
+				return response.Body, errors.Errorf("Downloading from url %s failed with error header '%s' value '%s'", url, HeaderMediawikiApiError, responseErrorHeader)
 			}
 		}
 

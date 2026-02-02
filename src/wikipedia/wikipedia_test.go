@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 	"wiki2book/config"
 	"wiki2book/http"
 	"wiki2book/image"
@@ -349,6 +350,7 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 
 	fsMock := util.NewDefaultMockFilesystem()
 	fsMock.ReadFileFunc = func(name string) ([]byte, error) { return []byte(filename), nil }
+	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return util.NewMockFileInfoWithTime("file", time.Now()), nil }
 	util.CurrentFilesystem = fsMock
 
 	mockHttpService := http.NewMockHttpService(nil, nil)
