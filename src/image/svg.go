@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
@@ -24,7 +25,7 @@ var (
 )
 
 func ReadSimpleAvgAttributes(filename string) (*SimpleSvgAttributes, error) {
-	file, err := os.ReadFile(filename)
+	file, err := util.CurrentFilesystem.ReadFile(filename)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Error reading SVG file '%s'", filename)
 	}

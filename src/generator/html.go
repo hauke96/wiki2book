@@ -94,7 +94,7 @@ var (
 type HtmlGenerator struct {
 	// TODO must they be public?
 	TokenMap         map[string]parser.Token
-	WikipediaService *wikipedia.DefaultWikipediaService
+	WikipediaService wikipedia.WikipediaService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
@@ -372,19 +372,25 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 }
 
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgFilename, imageFilename, err := g.WikipediaService.RenderMath(token.Content)
+	svgAbsolutePath, pngAbsolutePath, err := g.WikipediaService.RenderMath(token.Content)
 	if err != nil {
 		return "", err
 	}
 
-	svg, err := image.ReadSimpleAvgAttributes(svgFilename)
+	svg, err := image.ReadSimpleAvgAttributes(svgAbsolutePath)
 	if err != nil {
 		return "", err
 	}
 
-	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", imageFilename, svg.Width, svg.Height, svg.Style)
+	// Use the relative path in the HTML, otherwise the image files are not found
+	pngRelativePath, err := cache.GetPathRelativeToCache(pngAbsolutePath)
+	if err != nil {
+		return "", err
+	}
 
-	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(imageFilename), svg.Width, svg.Height, svg.Style), nil
+	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", pngAbsolutePath, svg.Width, svg.Height, svg.Style)
+
+	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngRelativePath), svg.Width, svg.Height, svg.Style), nil
 }
 
 func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {

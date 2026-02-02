@@ -28,12 +28,18 @@ var (
 	cacheWriteMutex = &sync.Mutex{}
 )
 
-func getFilePathInCache(cacheFolderName string, filename string) string {
+func GetFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
 }
 
 func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(".", cacheFolderName, filename)
+}
+
+// GetPathRelativeToCache returns the path relative to the given cache dir. If the given path is an absolute path to
+// a file in the cache, the resulting path is a relative path to the same file within the cache.
+func GetPathRelativeToCache(path string) (string, error) {
+	return util.ToRelativePathWithBasedir(config.Current.CacheDir, path)
 }
 
 func GetDirPathInCache(cacheFolderName string) string {
@@ -51,7 +57,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	outputFilepath := getFilePathInCache(cacheFolderName, filename)
+	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
 	// Create the output folder
@@ -134,7 +140,7 @@ func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, ne
 	// just be added to the cache, but instead the old file will be replaced. The cache then grows much less in size or
 	// might even shrink (in case the new file is smaller than the old one).
 	var netCacheSizeChangeInBytes = newFileSizeInBytes
-	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(getFilePathInCache(cacheFolderName, newFileName))
+	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(GetFilePathInCache(cacheFolderName, newFileName))
 	if err == nil {
 		netCacheSizeChangeInBytes = newFileSizeInBytes - existingFileSizeInBytes
 	}
@@ -201,7 +207,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	filePath := getFilePathInCache(cacheFolderName, filename)
+	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
 	if os.IsNotExist(err) {
@@ -237,7 +243,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 // exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
 // error types, the booleans have no meaning.
 func isOutdated(cacheFolderName string, filename string) (bool, error) {
-	filePath := getFilePathInCache(cacheFolderName, filename)
+	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {

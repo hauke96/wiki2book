@@ -47,6 +47,8 @@ type WikipediaService interface {
 	DownloadArticle(host string, title string) (*WikiArticleDto, error)
 	DownloadImages(images []string) error
 	EvaluateTemplate(template string, cacheFile string) (string, error)
+	// RenderMath takes the math string and turns it into an image. The absolute paths of the SVG and PNG images are
+	// returned. In case of an error, these paths are empty.
 	RenderMath(mathString string) (string, string, error)
 }
 
@@ -293,7 +295,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterTemplate {
-		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile := cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err

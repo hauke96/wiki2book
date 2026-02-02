@@ -3,12 +3,21 @@ package generator
 import (
 	"fmt"
 	"testing"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
+	"wiki2book/util"
+	"wiki2book/wikipedia"
 )
 
 var generator = &HtmlGenerator{}
+
+func NewHtmlGeneratorWithMockWikipediaService() *HtmlGenerator {
+	return &HtmlGenerator{
+		WikipediaService: wikipedia.NewMockWikipediaService(),
+	}
+}
 
 func TestExpandMarker(t *testing.T) {
 	test.AssertEqual(t, "<b>", generator.expandMarker(parser.MARKER_BOLD_OPEN))
@@ -34,6 +43,33 @@ func TestExpandHeadings(t *testing.T) {
 	headings, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, fmt.Sprintf("<h%d>foobar</h%d>", 3, 3), headings)
+}
+
+func TestExpandMath(t *testing.T) {
+	generator := NewHtmlGeneratorWithMockWikipediaService()
+	result := `<img alt="image" src="./images/image.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.MathToken{
+		Content: "x=y",
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	svgFileBytes := []byte("<svg width=\"5.1ex\" height=\"2.3ex\" style=\"vertical-align: -0.5ex;\"></svg>")
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.ReadFileFunc = func(name string) ([]byte, error) { return svgFileBytes, nil }
+	util.CurrentFilesystem = fsMock
+
+	generator.WikipediaService.(*wikipedia.MockWikipediaService).RenderMathFunc = func(mathString string) (string, string, error) {
+		return "image.svg", cache.GetFilePathInCache(cache.ImageCacheDirName, "image.png"), nil
+	}
+
+	actualResult, err := expand(generator, token)
+
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
 }
 
 func TestExpandImage(t *testing.T) {

@@ -37,6 +37,6 @@ func (s *ImageProcessingServiceImpl) ConvertToPng(inputFile string, pngFile stri
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, inputFile)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, pngFile)
 
-	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
+	err := util.ExecuteCommandWithArgs(commandString, ".")
 	return errors.Wrapf(err, "Converting image '%s' to PNG failed", inputFile)
 }
