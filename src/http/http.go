@@ -84,6 +84,31 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 	return outputFilepath, true, nil
 }
 
+// download returns the open response body of the GET request for the given URL. The article name is just there for
+// logging purposes.
+func (d *DefaultHttpService) download(url string) (io.ReadCloser, error) {
+	var response *http.Response
+	var request *http.Request
+	var err error
+
+	sigolo.Debugf("Make GET request to %s", url)
+	request, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s", url))
+	}
+
+	userAgentString := config.Current.UserAgentTemplate
+	userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
+	request.Header.Set(HeaderUserAgent, userAgentString)
+
+	response, err = d.doRequest(url, request)
+	if err != nil {
+		return nil, err
+	}
+	sigolo.Tracef("Response: %#v", response)
+	return response.Body, nil
+}
+
 func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *http.Response, err error) {
 	sigolo.Debugf("Make POST request to %s with form data '%s'", url, util.TruncString(requestData))
 	request, err := http.NewRequest("POST", url, strings.NewReader(requestData))
@@ -97,62 +122,47 @@ func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *htt
 	request.Header.Set(HeaderContentType, "application/x-www-form-urlencoded")
 
 	var response *http.Response
-	response, err = d.httpClient.Do(request)
+	response, err = d.doRequest(url, request)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error executing POST request to url %s", url))
+		return nil, err
 	}
-
 	sigolo.Tracef("Response: %#v", response)
 	return response, nil
 }
 
-// download returns the open response body of the GET request for the given URL. The article name is just there for
-// logging purposes.
-func (d *DefaultHttpService) download(url string) (io.ReadCloser, error) {
+func (d *DefaultHttpService) doRequest(url string, request *http.Request) (*http.Response, error) {
 	var response *http.Response
-	var request *http.Request
 	var err error
 
 	for {
-		sigolo.Debugf("Make GET request to %s", url)
-		request, err = http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s", url))
-		}
-
-		userAgentString := config.Current.UserAgentTemplate
-		userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
-		request.Header.Set(HeaderUserAgent, userAgentString)
-
 		response, err = d.httpClient.Do(request)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Error executing GET request to url %s", url))
+			return nil, errors.Wrap(err, fmt.Sprintf("Error executing %s request to url %s", request.Method, url))
 		}
 
 		sigolo.Tracef("Response: %#v", response)
 
 		if response.StatusCode == http.StatusTooManyRequests {
 			// 429 (too many requests): wait a bit and retry
-			sigolo.Debugf("Received responst status code %d and try request again", response.StatusCode)
 			var waitTime int
 			waitTime, err = strconv.Atoi(response.Header.Get(HeaderRetryAfter))
 			if err != nil {
 				waitTime = 2
 				sigolo.Warnf("Unable to parse '%s' header value after receiving HTTP status code %d. Instead I'll wait %d seconds, but this might lead to recurring HTTP errors.", HeaderRetryAfter, http.StatusTooManyRequests, waitTime)
 			}
-			sigolo.Tracef("Wait %d seconds and try again", waitTime)
+			sigolo.Debugf("Received response status code %d and try request again in %d seconds", response.StatusCode, waitTime)
 			sleepFunc(waitTime)
 			continue
 		} else if response.StatusCode != http.StatusOK {
-			return response.Body, errors.Errorf("Downloading from url %s failed with status code %d", url, response.StatusCode)
-		} else {
-			responseErrorHeader := response.Header.Get(HeaderMediawikiApiError)
-			if responseErrorHeader != "" {
-				return response.Body, errors.Errorf("Downloading from url %s failed with error header '%s' value '%s'", url, HeaderMediawikiApiError, responseErrorHeader)
-			}
+			return nil, errors.Errorf("%s request to url %s failed with status code %d", request.Method, url, response.StatusCode)
 		}
 
+		responseErrorHeader := response.Header.Get(HeaderMediawikiApiError)
+		if responseErrorHeader != "" {
+			return nil, errors.Errorf("%s request to url %s failed with error header '%s' value '%s'", request.Method, url, HeaderMediawikiApiError, responseErrorHeader)
+		}
 		break
 	}
-	return response.Body, nil
+
+	return response, nil
 }

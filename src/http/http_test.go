@@ -122,3 +122,52 @@ func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
 
 	test.AssertEqual(t, []int{2, expectedSleepCallParam}, sleepFuncCallParams)
 }
+
+func TestPostFormEncoded_tooManyRequestsResponse(t *testing.T) {
+	// Arrange
+	expectedSleepCallParam := 123
+	var sleepFuncCallParams []int
+	sleepFunc = func(seconds int) {
+		sleepFuncCallParams = append(sleepFuncCallParams, seconds)
+	}
+
+	doCall := 0
+	mockHttpClient := NewMockHttpClient("", http.StatusOK)
+	mockHttpClient.doFunc = func(req *http.Request) (*http.Response, error) {
+		doCall++
+		if doCall == 1 {
+			return &http.Response{
+				Body:       io.NopCloser(bytes.NewReader([]byte("response of call1"))),
+				StatusCode: http.StatusTooManyRequests,
+				Header:     map[string][]string{HeaderRetryAfter: {"some invalid number"}},
+			}, nil
+		} else if doCall == 2 {
+			return &http.Response{
+				Body:       io.NopCloser(bytes.NewReader([]byte("response of call2"))),
+				StatusCode: http.StatusTooManyRequests,
+				Header:     map[string][]string{HeaderRetryAfter: {strconv.Itoa(expectedSleepCallParam)}},
+			}, nil
+		} else if doCall == 3 {
+			return &http.Response{
+				Body:       io.NopCloser(bytes.NewReader([]byte("response of call3"))),
+				StatusCode: http.StatusOK,
+			}, nil
+		}
+		return nil, errors.New("no more than 3 requests expected")
+	}
+
+	httpService := NewDefaultHttpService()
+	httpService.httpClient = mockHttpClient
+
+	// Act
+	response, err := httpService.PostFormEncoded("http://foobar", "some data")
+
+	// Assert
+	test.AssertNil(t, err)
+
+	all, err := io.ReadAll(response.Body)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "response of call3", string(all))
+
+	test.AssertEqual(t, []int{2, expectedSleepCallParam}, sleepFuncCallParams)
+}
