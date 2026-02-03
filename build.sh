@@ -32,7 +32,7 @@ function build()
 		OUTPUT="$OUTPUT.exe"
 	fi
 
-	echo "Build for $OS with $ARCH arch to $GIVEN_OUTPUT"
+	echo "Build for $OS with $ARCH arch to $OUTPUT"
 
 	# The -ldflags "-s -w" parameter makes the binary smaller by not generating symbol table and debugging information.
 	GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w" -o $OUTPUT .
