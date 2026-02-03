@@ -2,6 +2,7 @@ package cache
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -11,6 +12,63 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+func TestGetFilePathInCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+
+	// Act & Assert
+	filename := "foobar.png"
+	path := GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "fööbär.png"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "123_-%!§()µ→.png"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "a\"b|c/d\\e.p*n:g"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, "a_b_c_d_e.p_n_g"), path)
+}
+
+func TestGetRelativeFilePathInCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+
+	// Act & Assert
+	filename := "foobar.png"
+	path := GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "fööbär.png"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "123_-%!§()µ→.png"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "a\"b|c/d\\e.p*n:g"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, "a_b_c_d_e.p_n_g"), path)
+}
+
+func TestGetPathRelativeToCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = filepath.Join("foo", "bar", "cache")
+
+	// Act
+	filename := "foobar.png"
+	path, err := GetPathRelativeToCache(filepath.Join("foo", "other-dir", filename))
+
+	// Assert
+	test.AssertEqual(t, filepath.Join("..", "..", "other-dir", filename), path)
+	test.AssertNil(t, err)
+}
 
 func TestDeleteLargestFileFromCache(t *testing.T) {
 	// Arrange

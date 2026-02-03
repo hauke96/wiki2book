@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 	"wiki2book/config"
@@ -29,11 +30,11 @@ var (
 )
 
 func GetFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+	return filepath.Join(config.Current.CacheDir, cacheFolderName, sanitizeFilename(filename))
 }
 
 func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(".", cacheFolderName, filename)
+	return filepath.Join(".", cacheFolderName, sanitizeFilename(filename))
 }
 
 // GetPathRelativeToCache returns the path relative to the given cache dir. If the given path is an absolute path to
@@ -48,6 +49,39 @@ func GetDirPathInCache(cacheFolderName string) string {
 
 func GetTempPath() string {
 	return filepath.Join(config.Current.CacheDir, TempDirName)
+}
+
+// sanitizeFilename replaces characters, that would be invalid in a filename, by underscore-characters ('_'). This
+// function assumes, that filenames do not contain non-printable characters (e.g. ASCII 0-31) or reserved words
+// like "COM1" on Windows or "." on Linux. Only generally invalid printable characters are replaced.
+func sanitizeFilename(filename string) string {
+	/*
+		Not allowed in Windows filesystems:
+		  < (less than)
+		  > (greater than)
+		  : (colon)
+		  " (double quote)
+		  / (forward slash)
+		  \ (backslash)
+		  | (vertical bar or pipe)
+		  ? (question mark)
+		  * (asterisk)
+
+		Not allowed on Linux and OS/X filesystems:
+		  / (forward slash)
+	*/
+
+	filename = strings.ReplaceAll(filename, "<", "_")
+	filename = strings.ReplaceAll(filename, ">", "_")
+	filename = strings.ReplaceAll(filename, ":", "_")
+	filename = strings.ReplaceAll(filename, "\"", "_")
+	filename = strings.ReplaceAll(filename, "/", "_")
+	filename = strings.ReplaceAll(filename, "\\", "_")
+	filename = strings.ReplaceAll(filename, "|", "_")
+	filename = strings.ReplaceAll(filename, "?", "_")
+	filename = strings.ReplaceAll(filename, "*", "_")
+
+	return filename
 }
 
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
