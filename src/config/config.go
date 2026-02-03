@@ -113,6 +113,10 @@ func getDefaultMathSvgToPngCommandTemplate() string {
 	return defaultCommandTemplateSvgToPng
 }
 
+/*
+See test file for a script to generate the documentation for this struct.
+*/
+
 // Configuration is a struct with application-wide configurations and language-specific strings (e.g. templates to
 // ignore). Some configurations are mandatory, which means that wiki2book will definitely crash if the config entry is
 // not given. Entries marked as non-mandatory may also cause a crash.
@@ -121,9 +125,6 @@ func getDefaultMathSvgToPngCommandTemplate() string {
 type Configuration struct {
 	/*
 		Forces wiki2book to recreate HTML files even if they exists from a previous run.
-		Some
-		more
-		lines.
 
 		Default: `false`
 		JSON example: `"force-regenerate-html": true`

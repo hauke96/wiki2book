@@ -82,3 +82,8 @@ With `cyclonedx-gomod`, a software bill of materials (SBOM) can be created to vi
 
 1. `go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest`
 2. `cyclonedx-gomod app -packages=true -json=true -std=true -output ./sbom.json .`
+
+# Generate Documentation
+
+The `configuration.md` contains a table with all config entries.
+This table can be generated via a test in `config_test.go`.
