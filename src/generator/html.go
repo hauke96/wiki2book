@@ -408,20 +408,12 @@ func write(title string, outputFolder string, content string) (string, error) {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output folder %s", outputFolder))
 	}
 
-	// Create output file
-	outputFilepath := filepath.Join(outputFolder, title+".html")
-	sigolo.Debugf("Ensure output file '%s'", outputFilepath)
-	outputFile, err := os.Create(outputFilepath)
+	// Write HTML content to cache file
+	outputFilename := title + ".html"
+	stringReader := strings.NewReader(content)
+	outputFilepath, err := cache.CacheToFile(cache.HtmlCacheDirName, outputFilename, stringReader)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable to create output file %s", outputFilepath))
-	}
-	defer outputFile.Close()
-
-	// Write data to file
-	sigolo.Debugf("Write to %s", outputFilepath)
-	_, err = outputFile.WriteString(content)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("Unable write data to file %s", outputFilepath))
+		return "", errors.Wrapf(err, "Error writing HTML of article '%s' to cache-file '%s'", title, outputFilepath)
 	}
 
 	return outputFilepath, nil
