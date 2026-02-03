@@ -51,9 +51,9 @@ func GetTempPath() string {
 	return filepath.Join(config.Current.CacheDir, TempDirName)
 }
 
-// sanitizeFilename replaces characters, that would be invalid in a filename, by underscore-characters ('_'). This
-// function assumes, that filenames do not contain non-printable characters (e.g. ASCII 0-31) or reserved words
-// like "COM1" on Windows or "." on Linux. Only generally invalid printable characters are replaced.
+// sanitizeFilename URL encodes characters, that are problematic for file paths. This function assumes, that filenames
+// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
+// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
 func sanitizeFilename(filename string) string {
 	/*
 		Not allowed in Windows filesystems:
@@ -71,15 +71,16 @@ func sanitizeFilename(filename string) string {
 		  / (forward slash)
 	*/
 
-	filename = strings.ReplaceAll(filename, "<", "_")
-	filename = strings.ReplaceAll(filename, ">", "_")
-	filename = strings.ReplaceAll(filename, ":", "_")
-	filename = strings.ReplaceAll(filename, "\"", "_")
-	filename = strings.ReplaceAll(filename, "/", "_")
-	filename = strings.ReplaceAll(filename, "\\", "_")
-	filename = strings.ReplaceAll(filename, "|", "_")
-	filename = strings.ReplaceAll(filename, "?", "_")
-	filename = strings.ReplaceAll(filename, "*", "_")
+	filename = strings.ReplaceAll(filename, "%", "%25")
+	filename = strings.ReplaceAll(filename, "<", "%3C")
+	filename = strings.ReplaceAll(filename, ">", "%3E")
+	filename = strings.ReplaceAll(filename, ":", "%3A")
+	filename = strings.ReplaceAll(filename, "\"", "%22")
+	filename = strings.ReplaceAll(filename, "/", "%2F")
+	filename = strings.ReplaceAll(filename, "\\", "%5C")
+	filename = strings.ReplaceAll(filename, "|", "%7C")
+	filename = strings.ReplaceAll(filename, "?", "%3F")
+	filename = strings.ReplaceAll(filename, "*", "%2A")
 
 	return filename
 }

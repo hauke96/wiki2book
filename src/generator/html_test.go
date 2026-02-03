@@ -148,7 +148,7 @@ func TestExpandImage_usePngFileForWebp(t *testing.T) {
 
 func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
 	result := `<div class="figure">
-<img alt="image" src="./images/_some%27special_chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<img alt="image" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
 some <b>caption</b>
 </div>
@@ -261,7 +261,7 @@ func TestExpandImageInline(t *testing.T) {
 }
 
 func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
-	result := `<img alt="image" class="inline" src="./images/_some%27special_chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
+	result := `<img alt="image" class="inline" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
 		Filename: "\"some'special:chars.jpg",

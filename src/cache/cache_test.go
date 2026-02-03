@@ -26,13 +26,13 @@ func TestGetFilePathInCache(t *testing.T) {
 	path = GetFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
 
-	filename = "123_-%!§()µ→.png"
+	filename = "123_-!§()µ→.png"
 	path = GetFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
 
-	filename = "a\"b|c/d\\e.p*n:g"
+	filename = "a\"b|c/d\\e.p*n:g%"
 	path = GetFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, "a_b_c_d_e.p_n_g"), path)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
 }
 
 func TestGetRelativeFilePathInCache(t *testing.T) {
@@ -48,13 +48,13 @@ func TestGetRelativeFilePathInCache(t *testing.T) {
 	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
 
-	filename = "123_-%!§()µ→.png"
+	filename = "123_-!§()µ→.png"
 	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
 
-	filename = "a\"b|c/d\\e.p*n:g"
+	filename = "a\"b|c/d\\e.p*n:g%"
 	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, "a_b_c_d_e.p_n_g"), path)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
 }
 
 func TestGetPathRelativeToCache(t *testing.T) {
