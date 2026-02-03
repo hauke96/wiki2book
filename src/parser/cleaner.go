@@ -148,7 +148,7 @@ func (t *Tokenizer) handleUnwantedAndTrailingTemplates(content string) string {
 			templateName := strings.ToLower(templateNameMatches[1])
 			templateName = strings.TrimSpace(templateName)
 
-			if util.Contains(ignoreTemplates, templateName) || util.Contains(trailingTemplates, templateName) {
+			if util.HasAnyPrefix(templateName, ignoreTemplates...) || util.HasAnyPrefix(templateName, trailingTemplates...) {
 				// Replace the template with an empty string, since it should be ignored.
 				content = strings.Replace(content, templateText, "", 1)
 
