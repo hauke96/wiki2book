@@ -380,7 +380,7 @@ func TestGetFile(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 }
 
 func TestGetFile_outdated(t *testing.T) {
@@ -405,7 +405,7 @@ func TestGetFile_outdated(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
@@ -431,7 +431,7 @@ func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
 	// Assert
 	test.AssertNotNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_fileNotExists(t *testing.T) {
@@ -452,7 +452,7 @@ func TestGetFile_fileNotExists(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_errorGettingStats(t *testing.T) {
@@ -468,12 +468,11 @@ func TestGetFile_errorGettingStats(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, _, err := GetFile("cache", "file")
 
 	// Assert
 	test.AssertNotNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
 }
 
 func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
@@ -504,7 +503,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 	test.AssertEqual(t, 1, chtimesCalls)
 	test.AssertEqual(t, "cache-dir/cache/file", chTimesCallNameParam)
 }
@@ -533,7 +532,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache_errorUpdatingTime(t *testing.T
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_outdated(t *testing.T) {
@@ -550,11 +549,12 @@ func TestIsOutdated_outdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
-	test.AssertEqual(t, true, outdated)
+	test.AssertTrue(t, outdated)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_notOutdated(t *testing.T) {
@@ -571,11 +571,12 @@ func TestIsOutdated_notOutdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
-	test.AssertEqual(t, false, outdated)
+	test.AssertFalse(t, outdated)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_notExistingFile(t *testing.T) {
@@ -590,11 +591,12 @@ func TestIsOutdated_notExistingFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
-	test.AssertNotNil(t, err)
-	test.AssertEqual(t, false, outdated)
+	test.AssertNil(t, err)
+	test.AssertFalse(t, outdated)
+	test.AssertFalse(t, exists)
 }
 
 func TestCacheToFile(t *testing.T) {

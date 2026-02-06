@@ -77,7 +77,6 @@ func (m *MockFile) Close() error {
 }
 
 type MockFilesystem struct {
-	ExistsFunc          func(path string) bool
 	GetSizeInBytesFunc  func(path string) (int64, error)
 	RenameFunc          func(oldPath string, newPath string) error
 	RemoveFunc          func(name string) error
@@ -94,7 +93,6 @@ type MockFilesystem struct {
 
 func NewDefaultMockFilesystem() *MockFilesystem {
 	return &MockFilesystem{
-		ExistsFunc:          func(path string) bool { return false },
 		GetSizeInBytesFunc:  func(path string) (int64, error) { return -1, nil },
 		RenameFunc:          func(oldPath string, newPath string) error { return nil },
 		RemoveFunc:          func(name string) error { return nil },
@@ -108,12 +106,6 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 		StatFunc:            func(name string) (os.FileInfo, error) { return NewMockFileInfo("__mock-file-info__"), nil },
 		ChtimesFunc:         func(name string, atime time.Time, mtime time.Time) error { return nil },
 	}
-}
-
-func (m *MockFilesystem) Exists(path string) bool {
-	Require(IsSanitized(path))
-
-	return m.ExistsFunc(path)
 }
 
 func (m *MockFilesystem) GetSizeInBytes(path string) (int64, error) {

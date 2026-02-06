@@ -226,7 +226,6 @@ type FileLike interface {
 }
 
 type Filesystem interface {
-	Exists(path string) bool
 	GetSizeInBytes(path string) (int64, error)
 	Rename(oldPath string, newPath string) error
 	Remove(name string) error
@@ -244,13 +243,6 @@ type Filesystem interface {
 var CurrentFilesystem Filesystem = &OsFilesystem{}
 
 type OsFilesystem struct {
-}
-
-func (o *OsFilesystem) Exists(path string) bool {
-	Require(IsSanitized(path))
-
-	_, err := os.Stat(path)
-	return err == nil
 }
 
 func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {

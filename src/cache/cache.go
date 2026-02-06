@@ -211,13 +211,13 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 
 	filePath := GetFilePathInCache(cacheFolderName, filename)
 
-	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
-	if os.IsNotExist(err) {
-		// A "file not found" situation is not unusual and not considered an error. Simply return that the file doesn't exist.
-		return filePath, false, nil
-	}
+	fileIsOutdated, fileExists, err := isOutdated(cacheFolderName, filename)
 	if err != nil {
 		return filePath, false, errors.Wrapf(err, "Unable to determine if file '%s' is outdated", filename)
+	}
+	if !fileExists {
+		// A "file not found" situation is not unusual and not considered an error. Simply return that the file doesn't exist.
+		return filePath, false, nil
 	}
 
 	if fileIsOutdated {
@@ -241,18 +241,18 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 	return filePath, !fileIsOutdated, nil
 }
 
-// isOutdated returns whether the file is outdated (only valid and defined, when the error is nil), if the file even
-// exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
-// error types, the booleans have no meaning.
-func isOutdated(cacheFolderName string, filename string) (bool, error) {
+// isOutdated returns whether the file is outdated and if the file even exists. When an error is returned, both boolean
+// values have no defined meaning. When the second boolean (whether the file exists) is "false", the other values
+// have no defined meaning.
+func isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
 	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {
-		return false, err
+		return false, false, nil
 	}
 	if err != nil {
-		return false, errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
+		return false, false, errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
 	}
 
 	fileAgeDuration := time.Now().Sub(fileStat.ModTime())
@@ -260,5 +260,5 @@ func isOutdated(cacheFolderName string, filename string) (bool, error) {
 	fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
 	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
 
-	return fileIsOutdated, nil
+	return fileIsOutdated, true, nil
 }

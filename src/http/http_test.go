@@ -38,7 +38,7 @@ func TestDownloadAndCache_withoutCachedFile(t *testing.T) {
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
 	test.AssertEqual(t, 1, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
-	test.AssertEqual(t, true, freshlyDownloaded)
+	test.AssertTrue(t, freshlyDownloaded)
 }
 
 func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
@@ -71,7 +71,7 @@ func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
 	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
 	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
 	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
-	test.AssertEqual(t, false, freshlyDownloaded)
+	test.AssertFalse(t, freshlyDownloaded)
 }
 
 func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
