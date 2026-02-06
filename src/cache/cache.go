@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 	"wiki2book/config"
@@ -30,11 +29,11 @@ var (
 )
 
 func GetFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(config.Current.CacheDir, cacheFolderName, sanitizeFilename(filename))
+	return filepath.Join(config.Current.CacheDir, cacheFolderName, util.SanitizeFilename(filename))
 }
 
 func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(".", cacheFolderName, sanitizeFilename(filename))
+	return filepath.Join(".", cacheFolderName, util.SanitizeFilename(filename))
 }
 
 // GetPathRelativeToCache returns the path relative to the given cache dir. If the given path is an absolute path to
@@ -51,40 +50,6 @@ func GetTempPath() string {
 	return filepath.Join(config.Current.CacheDir, TempDirName)
 }
 
-// sanitizeFilename URL encodes characters, that are problematic for file paths. This function assumes, that filenames
-// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
-// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
-func sanitizeFilename(filename string) string {
-	/*
-		Not allowed in Windows filesystems:
-		  < (less than)
-		  > (greater than)
-		  : (colon)
-		  " (double quote)
-		  / (forward slash)
-		  \ (backslash)
-		  | (vertical bar or pipe)
-		  ? (question mark)
-		  * (asterisk)
-
-		Not allowed on Linux and OS/X filesystems:
-		  / (forward slash)
-	*/
-
-	filename = strings.ReplaceAll(filename, "%", "%25")
-	filename = strings.ReplaceAll(filename, "<", "%3C")
-	filename = strings.ReplaceAll(filename, ">", "%3E")
-	filename = strings.ReplaceAll(filename, ":", "%3A")
-	filename = strings.ReplaceAll(filename, "\"", "%22")
-	filename = strings.ReplaceAll(filename, "/", "%2F")
-	filename = strings.ReplaceAll(filename, "\\", "%5C")
-	filename = strings.ReplaceAll(filename, "|", "%7C")
-	filename = strings.ReplaceAll(filename, "?", "%3F")
-	filename = strings.ReplaceAll(filename, "*", "%2A")
-
-	return filename
-}
-
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
 // folder within the cache, not a whole path. The filename is the name of the file in the cache. The full path is always
 // returned. The error is only set when an error occurred.
@@ -92,7 +57,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	sanitizedFilename := sanitizeFilename(filename)
+	sanitizedFilename := util.SanitizeFilename(filename)
 
 	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)

@@ -133,6 +133,91 @@ func ToMB(size int64) float64 {
 	return float64(size) / 1024.0 / 1024.0
 }
 
+// SanitizeFilename URL encodes characters, that are problematic for file paths. This function assumes, that filenames
+// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
+// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
+func SanitizeFilename(filename string) string {
+	/*
+		Not allowed in Windows filesystems:
+		  < (less than)
+		  > (greater than)
+		  : (colon)
+		  " (double quote)
+		  / (forward slash)
+		  \ (backslash)
+		  | (vertical bar or pipe)
+		  ? (question mark)
+		  * (asterisk)
+
+		Not allowed on Linux and OS/X filesystems:
+		  / (forward slash)
+	*/
+
+	filename = strings.ReplaceAll(filename, "%", "%25")
+	filename = strings.ReplaceAll(filename, "<", "%3C")
+	filename = strings.ReplaceAll(filename, ">", "%3E")
+	filename = strings.ReplaceAll(filename, ":", "%3A")
+	filename = strings.ReplaceAll(filename, "\"", "%22")
+	filename = strings.ReplaceAll(filename, "/", "%2F")
+	filename = strings.ReplaceAll(filename, "\\", "%5C")
+	filename = strings.ReplaceAll(filename, "|", "%7C")
+	filename = strings.ReplaceAll(filename, "?", "%3F")
+	filename = strings.ReplaceAll(filename, "*", "%2A")
+
+	return filename
+}
+
+// IsSanitized URL encodes characters, that are problematic for file paths. This function assumes, that filenames
+// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
+// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
+func IsSanitized(path string) bool {
+	/*
+		Not allowed in Windows filesystems:
+		  < (less than)
+		  > (greater than)
+		  : (colon)
+		  " (double quote)
+		  / (forward slash)
+		  \ (backslash)
+		  | (vertical bar or pipe)
+		  ? (question mark)
+		  * (asterisk)
+
+		Not allowed on Linux and OS/X filesystems:
+		  / (forward slash)
+	*/
+
+	parts := strings.SplitN(path, string(filepath.Separator), -1)
+	for _, part := range parts {
+		// The escape sequences are fine, but no other "%" should exist, since it indicates an un-sanitized "%" character.
+		part = strings.ReplaceAll(part, "%25", "")
+		part = strings.ReplaceAll(part, "%3C", "")
+		part = strings.ReplaceAll(part, "%3E", "")
+		part = strings.ReplaceAll(part, "%3A", "")
+		part = strings.ReplaceAll(part, "%22", "")
+		part = strings.ReplaceAll(part, "%2F", "")
+		part = strings.ReplaceAll(part, "%5C", "")
+		part = strings.ReplaceAll(part, "%7C", "")
+		part = strings.ReplaceAll(part, "%3F", "")
+		part = strings.ReplaceAll(part, "%2A", "")
+
+		if strings.Contains(part, "%") ||
+			strings.Contains(part, "<") ||
+			strings.Contains(part, ">") ||
+			strings.Contains(part, ":") ||
+			strings.Contains(part, "\"") ||
+			strings.Contains(part, "/") ||
+			strings.Contains(part, "\\") ||
+			strings.Contains(part, "|") ||
+			strings.Contains(part, "?") ||
+			strings.Contains(part, "*") {
+			return false
+		}
+	}
+
+	return true
+}
+
 type FileLike interface {
 	Name() string
 	Write(p []byte) (n int, err error)
@@ -162,11 +247,15 @@ type OsFilesystem struct {
 }
 
 func (o *OsFilesystem) Exists(path string) bool {
+	Require(IsSanitized(path))
+
 	_, err := os.Stat(path)
 	return err == nil
 }
 
 func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
+	Require(IsSanitized(path))
+
 	stat, err := os.Stat(path)
 	if err != nil {
 		return math.MinInt64, err
@@ -175,26 +264,40 @@ func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
 }
 
 func (o *OsFilesystem) Rename(oldPath string, newPath string) error {
+	Require(IsSanitized(oldPath))
+	Require(IsSanitized(newPath))
+
 	return os.Rename(oldPath, newPath)
 }
 
 func (o *OsFilesystem) MkdirAll(path string) error {
+	Require(IsSanitized(path))
+
 	return os.MkdirAll(path, os.ModePerm)
 }
 
 func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error) {
+	Require(IsSanitized(dir))
+	Require(IsSanitized(filenamePattern))
+
 	return os.CreateTemp(dir, filenamePattern)
 }
 
 func (o *OsFilesystem) Remove(path string) error {
+	Require(IsSanitized(path))
+
 	return os.Remove(path)
 }
 
 func (o *OsFilesystem) Create(path string) (FileLike, error) {
+	Require(IsSanitized(path))
+
 	return os.Create(path)
 }
 
 func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
+	Require(IsSanitized(path))
+
 	var dirSizeBytes int64 = 0
 
 	readSize := func(path string, file os.FileInfo, err error) error {
@@ -220,6 +323,9 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 }
 
 func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
+	Require(IsSanitized(path))
+	Require(IsSanitized(exceptDir))
+
 	var currentLargestFile os.FileInfo
 	var currentLargestFilePath string
 
@@ -253,6 +359,9 @@ func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, in
 }
 
 func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
+	Require(IsSanitized(path))
+	Require(IsSanitized(exceptDir))
+
 	var currentLruFilePath string
 	var currentLruFile os.FileInfo
 
@@ -291,13 +400,19 @@ func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64,
 }
 
 func (o *OsFilesystem) ReadFile(name string) ([]byte, error) {
+	Require(IsSanitized(name))
+
 	return os.ReadFile(name)
 }
 
 func (o *OsFilesystem) Stat(name string) (os.FileInfo, error) {
+	Require(IsSanitized(name))
+
 	return os.Stat(name)
 }
 
 func (o *OsFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	Require(IsSanitized(name))
+
 	return os.Chtimes(name, atime, mtime)
 }

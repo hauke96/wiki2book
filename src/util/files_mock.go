@@ -111,53 +111,83 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 }
 
 func (m *MockFilesystem) Exists(path string) bool {
+	Require(IsSanitized(path))
+
 	return m.ExistsFunc(path)
 }
 
 func (m *MockFilesystem) GetSizeInBytes(path string) (int64, error) {
+	Require(IsSanitized(path))
+
 	return m.GetSizeInBytesFunc(path)
 }
 
 func (m *MockFilesystem) Rename(oldPath string, newPath string) error {
+	Require(IsSanitized(oldPath))
+	Require(IsSanitized(newPath))
+
 	return m.RenameFunc(oldPath, newPath)
 }
 
 func (m *MockFilesystem) MkdirAll(path string) error {
+	Require(IsSanitized(path))
+
 	return m.MkdirAllFunc(path)
 }
 
 func (m *MockFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error) {
+	Require(IsSanitized(dir))
+	Require(IsSanitized(filenamePattern))
+
 	return m.CreateTempFunc(dir, filenamePattern)
 }
 
 func (m *MockFilesystem) Remove(path string) error {
+	Require(IsSanitized(path))
+
 	return m.RemoveFunc(path)
 }
 
 func (m *MockFilesystem) Create(path string) (FileLike, error) {
+	Require(IsSanitized(path))
+
 	return m.CreateFunc(path)
 }
 
 func (m *MockFilesystem) DirSizeInBytes(path string) (error, int64) {
+	Require(IsSanitized(path))
+
 	return m.DirSizeInBytesFunc(path)
 }
 
 func (m *MockFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
+	Require(IsSanitized(path))
+	Require(IsSanitized(exceptDir))
+
 	return m.FindLargestFileFunc(path, exceptDir)
 }
 
 func (m *MockFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
+	Require(IsSanitized(path))
+	Require(IsSanitized(exceptDir))
+
 	return m.FindLruFileFunc(path, exceptDir)
 }
 
 func (m *MockFilesystem) ReadFile(name string) ([]byte, error) {
+	Require(IsSanitized(name))
+
 	return m.ReadFileFunc(name)
 }
 
 func (m *MockFilesystem) Stat(name string) (os.FileInfo, error) {
+	Require(IsSanitized(name))
+
 	return m.StatFunc(name)
 }
 
 func (m *MockFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	Require(IsSanitized(name))
+
 	return m.ChtimesFunc(name, atime, mtime)
 }
