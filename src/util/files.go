@@ -4,6 +4,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -133,9 +134,10 @@ func ToMB(size int64) float64 {
 	return float64(size) / 1024.0 / 1024.0
 }
 
-// SanitizeFilename URL encodes characters, that are problematic for file paths. This function assumes, that filenames
-// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
-// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
+// SanitizeFilename URL encodes characters, that are problematic for file paths. This function assumes, that the
+// parameter is a single filename not containing non-printable characters (e.g. ASCII 0-31) or reserved words like
+// "COM1" on Windows or "." on Linux. Only usually invalid printable characters are encoded, all other characters
+// (even special characters) stay unchanged.
 func SanitizeFilename(filename string) string {
 	/*
 		Not allowed in Windows filesystems:
@@ -167,9 +169,8 @@ func SanitizeFilename(filename string) string {
 	return filename
 }
 
-// IsSanitized URL encodes characters, that are problematic for file paths. This function assumes, that filenames
-// do not contain non-printable characters (e.g. ASCII 0-31) or reserved words like "COM1" on Windows or "." on Linux.
-// Only usually invalid printable characters are encoded, all other characters (even special characters) stay unchanged.
+// IsSanitized verifies that each segment in the given path is sanitized. For Windows systems: A leading volume, such
+// as "C:\" is ignored to prevent false-positive results, since ":" is invalid in Windows paths and filenames.
 func IsSanitized(path string) bool {
 	/*
 		Not allowed in Windows filesystems:
@@ -186,6 +187,12 @@ func IsSanitized(path string) bool {
 		Not allowed on Linux and OS/X filesystems:
 		  / (forward slash)
 	*/
+
+	if runtime.GOOS == "windows" {
+		// Ignore volumes like "C:\" under windows since they are ignored in the sanitizing process.
+		volumeName := filepath.VolumeName(path)
+		path = strings.TrimPrefix(path, volumeName+"\\")
+	}
 
 	parts := strings.SplitN(path, string(filepath.Separator), -1)
 	for _, part := range parts {
