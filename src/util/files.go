@@ -218,6 +218,10 @@ func IsSanitized(path string) bool {
 	return true
 }
 
+func RequireFilePathIsSanitized(path string) {
+	Requiref(IsSanitized(path), "File path or name '%s' mus be sanitized.", path)
+}
+
 type FileLike interface {
 	Name() string
 	Write(p []byte) (n int, err error)
@@ -246,7 +250,7 @@ type OsFilesystem struct {
 }
 
 func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
-	Require(IsSanitized(path))
+	RequireFilePathIsSanitized(path)
 
 	stat, err := os.Stat(path)
 	if err != nil {
@@ -256,39 +260,39 @@ func (o *OsFilesystem) GetSizeInBytes(path string) (int64, error) {
 }
 
 func (o *OsFilesystem) Rename(oldPath string, newPath string) error {
-	Require(IsSanitized(oldPath))
-	Require(IsSanitized(newPath))
+	RequireFilePathIsSanitized(oldPath)
+	RequireFilePathIsSanitized(newPath)
 
 	return os.Rename(oldPath, newPath)
 }
 
 func (o *OsFilesystem) MkdirAll(path string) error {
-	Require(IsSanitized(path))
+	RequireFilePathIsSanitized(path)
 
 	return os.MkdirAll(path, os.ModePerm)
 }
 
 func (o *OsFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error) {
-	Require(IsSanitized(dir))
-	Require(IsSanitized(filenamePattern))
+	RequireFilePathIsSanitized(dir)
+	RequireFilePathIsSanitized(filenamePattern)
 
 	return os.CreateTemp(dir, filenamePattern)
 }
 
 func (o *OsFilesystem) Remove(path string) error {
-	Require(IsSanitized(path))
+	RequireFilePathIsSanitized(path)
 
 	return os.Remove(path)
 }
 
 func (o *OsFilesystem) Create(path string) (FileLike, error) {
-	Require(IsSanitized(path))
+	RequireFilePathIsSanitized(path)
 
 	return os.Create(path)
 }
 
 func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
-	Require(IsSanitized(path))
+	RequireFilePathIsSanitized(path)
 
 	var dirSizeBytes int64 = 0
 
@@ -315,8 +319,8 @@ func (o *OsFilesystem) DirSizeInBytes(path string) (error, int64) {
 }
 
 func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
-	Require(IsSanitized(path))
-	Require(IsSanitized(exceptDir))
+	RequireFilePathIsSanitized(path)
+	RequireFilePathIsSanitized(exceptDir)
 
 	var currentLargestFile os.FileInfo
 	var currentLargestFilePath string
@@ -351,8 +355,8 @@ func (o *OsFilesystem) FindLargestFile(path string, exceptDir string) (error, in
 }
 
 func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
-	Require(IsSanitized(path))
-	Require(IsSanitized(exceptDir))
+	RequireFilePathIsSanitized(path)
+	RequireFilePathIsSanitized(exceptDir)
 
 	var currentLruFilePath string
 	var currentLruFile os.FileInfo
@@ -392,19 +396,19 @@ func (o *OsFilesystem) FindLruFile(path string, exceptDir string) (error, int64,
 }
 
 func (o *OsFilesystem) ReadFile(name string) ([]byte, error) {
-	Require(IsSanitized(name))
+	RequireFilePathIsSanitized(name)
 
 	return os.ReadFile(name)
 }
 
 func (o *OsFilesystem) Stat(name string) (os.FileInfo, error) {
-	Require(IsSanitized(name))
+	RequireFilePathIsSanitized(name)
 
 	return os.Stat(name)
 }
 
 func (o *OsFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	Require(IsSanitized(name))
+	RequireFilePathIsSanitized(name)
 
 	return os.Chtimes(name, atime, mtime)
 }
