@@ -6,14 +6,14 @@ import (
 )
 
 func TestElementHasPrefix(t *testing.T) {
-	prefixe := []string{"f", "fo", "foo", "foo!"}
+	prefixes := []string{"f", "fo", "foo", "foo!"}
 
 	element := "foo"
-	hasPrefix := HasAnyPrefix(element, prefixe...)
+	hasPrefix := HasAnyPrefix(element, prefixes...)
 	test.AssertTrue(t, hasPrefix)
 
 	element = "oo"
-	hasPrefix = HasAnyPrefix(element, prefixe...)
+	hasPrefix = HasAnyPrefix(element, prefixes...)
 	test.AssertFalse(t, hasPrefix)
 }
 

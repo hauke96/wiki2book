@@ -1,0 +1,40 @@
+{
+  "wikipedia-instance": "en",
+  "wikipedia-image-article-hosts": [
+    "commons.wikimedia.org",
+    "en.wikipedia.org"
+  ],
+  "ignored-templates": [
+    "commons",
+    "commonscat",
+    "wikibooks",
+    "wikiquote",
+    "wikisource",
+    "wiktionary"
+  ],
+  "ignored-image-params": [
+    "alt",
+    "baseline",
+    "border",
+    "bottom",
+    "center",
+    "class",
+    "framed",
+    "frameless",
+    "left",
+    "middle",
+    "none",
+    "page",
+    "right",
+    "sub",
+    "super",
+    "text-bottom",
+    "text-top",
+    "top",
+    "upright"
+  ],
+  "math-converter": "template",
+  "command-template-svg-to-png": "",
+  "style-file": "./style.css",
+  "cache-max-size": 1000000000
+}

@@ -44,6 +44,7 @@ type MockFile struct {
 	NameFunc  func() string
 	WriteFunc func(p []byte) (n int, err error)
 	StatFunc  func() os.FileInfo
+	CloseFunc func() error
 
 	WrittenBytes []byte
 }
@@ -54,6 +55,7 @@ func NewMockFile(name string) *MockFile {
 			return name
 		},
 		WriteFunc: func(p []byte) (n int, err error) { return len(p), nil },
+		CloseFunc: func() error { return nil },
 	}
 }
 
@@ -75,10 +77,10 @@ func (m *MockFile) Close() error {
 }
 
 type MockFilesystem struct {
-	ExistsFunc          func(path string) bool
 	GetSizeInBytesFunc  func(path string) (int64, error)
 	RenameFunc          func(oldPath string, newPath string) error
 	RemoveFunc          func(name string) error
+	CreateFunc          func(name string) (FileLike, error)
 	MkdirAllFunc        func(path string) error
 	CreateTempFunc      func(dir, pattern string) (FileLike, error)
 	DirSizeInBytesFunc  func(path string) (error, int64)
@@ -91,10 +93,10 @@ type MockFilesystem struct {
 
 func NewDefaultMockFilesystem() *MockFilesystem {
 	return &MockFilesystem{
-		ExistsFunc:          func(path string) bool { return false },
 		GetSizeInBytesFunc:  func(path string) (int64, error) { return -1, nil },
 		RenameFunc:          func(oldPath string, newPath string) error { return nil },
 		RemoveFunc:          func(name string) error { return nil },
+		CreateFunc:          func(name string) (FileLike, error) { return NewMockFile(name), nil },
 		MkdirAllFunc:        func(path string) error { return nil },
 		CreateTempFunc:      func(dir, pattern string) (FileLike, error) { return NewMockFile(pattern), nil },
 		DirSizeInBytesFunc:  func(path string) (error, int64) { return nil, -1 },
@@ -106,50 +108,78 @@ func NewDefaultMockFilesystem() *MockFilesystem {
 	}
 }
 
-func (m *MockFilesystem) Exists(path string) bool {
-	return m.ExistsFunc(path)
-}
-
 func (m *MockFilesystem) GetSizeInBytes(path string) (int64, error) {
+	RequireFilePathIsSanitized(path)
+
 	return m.GetSizeInBytesFunc(path)
 }
 
 func (m *MockFilesystem) Rename(oldPath string, newPath string) error {
+	RequireFilePathIsSanitized(oldPath)
+	RequireFilePathIsSanitized(newPath)
+
 	return m.RenameFunc(oldPath, newPath)
 }
 
 func (m *MockFilesystem) MkdirAll(path string) error {
+	RequireFilePathIsSanitized(path)
+
 	return m.MkdirAllFunc(path)
 }
 
 func (m *MockFilesystem) CreateTemp(dir, filenamePattern string) (FileLike, error) {
+	RequireFilePathIsSanitized(dir)
+	RequireFilePathIsSanitized(filenamePattern)
+
 	return m.CreateTempFunc(dir, filenamePattern)
 }
 
 func (m *MockFilesystem) Remove(path string) error {
+	RequireFilePathIsSanitized(path)
+
 	return m.RemoveFunc(path)
 }
 
+func (m *MockFilesystem) Create(path string) (FileLike, error) {
+	RequireFilePathIsSanitized(path)
+
+	return m.CreateFunc(path)
+}
+
 func (m *MockFilesystem) DirSizeInBytes(path string) (error, int64) {
+	RequireFilePathIsSanitized(path)
+
 	return m.DirSizeInBytesFunc(path)
 }
 
 func (m *MockFilesystem) FindLargestFile(path string, exceptDir string) (error, int64, string) {
+	RequireFilePathIsSanitized(path)
+	RequireFilePathIsSanitized(exceptDir)
+
 	return m.FindLargestFileFunc(path, exceptDir)
 }
 
 func (m *MockFilesystem) FindLruFile(path string, exceptDir string) (error, int64, string) {
+	RequireFilePathIsSanitized(path)
+	RequireFilePathIsSanitized(exceptDir)
+
 	return m.FindLruFileFunc(path, exceptDir)
 }
 
 func (m *MockFilesystem) ReadFile(name string) ([]byte, error) {
+	RequireFilePathIsSanitized(name)
+
 	return m.ReadFileFunc(name)
 }
 
 func (m *MockFilesystem) Stat(name string) (os.FileInfo, error) {
+	RequireFilePathIsSanitized(name)
+
 	return m.StatFunc(name)
 }
 
 func (m *MockFilesystem) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	RequireFilePathIsSanitized(name)
+
 	return m.ChtimesFunc(name, atime, mtime)
 }

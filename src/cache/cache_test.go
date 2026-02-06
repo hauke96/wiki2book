@@ -2,6 +2,7 @@ package cache
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -11,6 +12,63 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+func TestGetFilePathInCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+
+	// Act & Assert
+	filename := "foobar.png"
+	path := GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "fööbär.png"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "123_-!§()µ→.png"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+
+	filename = "a\"b|c/d\\e.p*n:g%"
+	path = GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
+}
+
+func TestGetRelativeFilePathInCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+
+	// Act & Assert
+	filename := "foobar.png"
+	path := GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "fööbär.png"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "123_-!§()µ→.png"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
+
+	filename = "a\"b|c/d\\e.p*n:g%"
+	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
+}
+
+func TestGetPathRelativeToCache(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = filepath.Join("foo", "bar", "cache")
+
+	// Act
+	filename := "foobar.png"
+	path, err := GetPathRelativeToCache(filepath.Join("foo", "other-dir", filename))
+
+	// Assert
+	test.AssertEqual(t, filepath.Join("..", "..", "other-dir", filename), path)
+	test.AssertNil(t, err)
+}
 
 func TestDeleteLargestFileFromCache(t *testing.T) {
 	// Arrange
@@ -322,7 +380,7 @@ func TestGetFile(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 }
 
 func TestGetFile_outdated(t *testing.T) {
@@ -347,7 +405,7 @@ func TestGetFile_outdated(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
@@ -373,7 +431,7 @@ func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
 	// Assert
 	test.AssertNotNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_fileNotExists(t *testing.T) {
@@ -394,7 +452,7 @@ func TestGetFile_fileNotExists(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
+	test.AssertFalse(t, exists)
 }
 
 func TestGetFile_errorGettingStats(t *testing.T) {
@@ -410,12 +468,11 @@ func TestGetFile_errorGettingStats(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, _, err := GetFile("cache", "file")
 
 	// Assert
 	test.AssertNotNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, false, exists)
 }
 
 func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
@@ -446,7 +503,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 	test.AssertEqual(t, 1, chtimesCalls)
 	test.AssertEqual(t, "cache-dir/cache/file", chTimesCallNameParam)
 }
@@ -475,7 +532,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache_errorUpdatingTime(t *testing.T
 	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "cache-dir/cache/file", filePath)
-	test.AssertEqual(t, true, exists)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_outdated(t *testing.T) {
@@ -492,11 +549,12 @@ func TestIsOutdated_outdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
-	test.AssertEqual(t, true, outdated)
+	test.AssertTrue(t, outdated)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_notOutdated(t *testing.T) {
@@ -513,11 +571,12 @@ func TestIsOutdated_notOutdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
-	test.AssertEqual(t, false, outdated)
+	test.AssertFalse(t, outdated)
+	test.AssertTrue(t, exists)
 }
 
 func TestIsOutdated_notExistingFile(t *testing.T) {
@@ -532,9 +591,38 @@ func TestIsOutdated_notExistingFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, err := isOutdated("cache", "file")
+	outdated, exists, err := isOutdated("cache", "file")
 
 	// Assert
-	test.AssertNotNil(t, err)
-	test.AssertEqual(t, false, outdated)
+	test.AssertNil(t, err)
+	test.AssertFalse(t, outdated)
+	test.AssertFalse(t, exists)
+}
+
+func TestCacheToFile(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 100
+
+	outputFilename := "File:ima*ge.png"
+	fileContent := "foo bar"
+	stringReader := strings.NewReader(fileContent)
+
+	var mockTempFile util.FileLike
+
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.CreateTempFunc = func(dir, pattern string) (util.FileLike, error) {
+		mockTempFile = util.NewMockFile(pattern)
+		return mockTempFile, nil
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, err := CacheToFile(ImageCacheDirName, outputFilename, stringReader)
+
+	// Assert
+	expectedOutputFilename := "File%3Aima%2Age.png"
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "cache-dir/"+ImageCacheDirName+"/"+expectedOutputFilename, filePath)
+	test.AssertEqual(t, expectedOutputFilename, mockTempFile.Name())
 }

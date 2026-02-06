@@ -41,7 +41,7 @@ func Cleanup() {
 func rmDir(folder string) {
 	err := os.RemoveAll(folder)
 	if err != nil && !os.IsNotExist(err) {
-		sigolo.Fatalf("Removing %s failed: %s", folder, err.Error())
+		sigolo.Fatalf("Removing directory '%s' failed: %s", folder, err.Error())
 	}
 }
 

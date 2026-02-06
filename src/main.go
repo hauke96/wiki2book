@@ -13,8 +13,6 @@ import (
 	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/generator"
-	"wiki2book/generator/epub"
-	"wiki2book/generator/html"
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/parser"
@@ -24,6 +22,12 @@ import (
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+)
+
+const (
+	defaultEpubOutputFile      = "ebook.epub"
+	defaultStatsJsonOutputFile = "stats.json"
+	defaultStatsTxtOutputFile  = "stats.txt"
 )
 
 var cliConfig = config.NewDefaultConfig()
@@ -65,17 +69,18 @@ func initCli() *cobra.Command {
 		sigolo.Debugf("Duration: %f seconds", end.Sub(start).Seconds())
 	}
 
+	rootCmd.PersistentFlags().BoolP("help", "h", false, "This help message.")
 	rootCmd.PersistentFlags().StringVarP(&cliConfigFile, "config", "c", "", "The path to the overall application config. If not specified, default values are used.")
 	rootCmd.PersistentFlags().StringVarP(&cliLogging, "logging", "l", "info", "Logging verbosity. Possible values: \"info\", \"debug\", \"trace\".")
 
-	rootCmd.PersistentFlags().StringVarP(&cliOutputFile, cliOutputFileArgKey, "o", "ebook.epub", "The path to the output file.")
+	rootCmd.PersistentFlags().StringVarP(&cliOutputFile, cliOutputFileArgKey, "o", defaultEpubOutputFile, "The path to the output file.")
 
 	rootCmd.PersistentFlags().BoolVar(&cliDiagnosticsProfiling, "diagnostics-profiling", cliDiagnosticsProfiling, "Enable profiling and write results to ./profiling.prof.")
 	rootCmd.PersistentFlags().BoolVar(&cliDiagnosticsTrace, "diagnostics-trace", cliDiagnosticsTrace, "Enable tracing to analyse memory usage and write results to ./trace.out.")
 
 	rootCmd.PersistentFlags().BoolVarP(&cliConfig.ForceRegenerateHtml, "force-regenerate-html", "r", cliConfig.ForceRegenerateHtml, "Forces wiki2book to recreate HTML files even if they exists from a previous run.")
 	rootCmd.PersistentFlags().BoolVar(&cliConfig.SvgSizeToViewbox, "svg-size-to-viewbox", cliConfig.SvgSizeToViewbox, "Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2', 'epub3'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputType, "output-type", cliConfig.OutputType, "The output file type. Possible values are: 'epub2', 'epub3', 'stats-json' and 'stats.txt'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.OutputDriver, "output-driver", cliConfig.OutputDriver, "The method to generate the output file. Available driver: 'pandoc', 'internal' (experimental!)")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CacheDir, "cache-dir", cliConfig.CacheDir, "The directory where all cached files will be written to.")
 	rootCmd.PersistentFlags().Int64Var(&cliConfig.CacheMaxSize, "cache-max-size", cliConfig.CacheMaxSize, "The maximum size of the file cache in bytes.")
@@ -100,15 +105,16 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaImageHost, "wikipedia-image-host", cliConfig.WikipediaImageHost, "The domain of the Wikipedia image instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaMathRestApi, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi, "The URL to the math API of wikipedia.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageArticleHosts, "wikipedia-image-article-hosts", cliConfig.WikipediaImageArticleHosts, "Hosts used to search for image article files.")
-	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FilePrefixe, "file-prefixe", cliConfig.FilePrefixe, "A list of prefixes to detect files, e.g. in 'File:picture.jpg' the substring 'File' is the image prefix.")
-	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.AllowedLinkPrefixes, "allowed-link-prefixe", cliConfig.AllowedLinkPrefixes, "A list of prefixes that are considered links and are therefore not removed.")
+	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FilePrefixes, "file-prefixes", cliConfig.FilePrefixes, "A list of prefixes to detect files, e.g. in 'File:picture.jpg' the substring 'File' is the image prefix.")
+	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.AllowedLinkPrefixes, "allowed-link-prefixes", cliConfig.AllowedLinkPrefixes, "A list of prefixes that are considered links and are therefore not removed.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.CategoryPrefixes, "category-prefixes", cliConfig.CategoryPrefixes, "A list of category prefixes, which are technically internals links.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.MathConverter, "math-converter", cliConfig.MathConverter, "Converter turning math SVGs into PNGs.")
 	rootCmd.PersistentFlags().IntVar(&cliConfig.TocDepth, "toc-depth", cliConfig.TocDepth, "Depth of the table of content. Allowed range is 0 - 6.")
 	rootCmd.PersistentFlags().IntVar(&cliConfig.WorkerThreads, "worker-threads", cliConfig.WorkerThreads, "Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.UserAgentTemplate, "user-agent-template", cliConfig.UserAgentTemplate, "Template for the user-agent used in HTTP requests.")
 
-	projectCmd := getCommand("project", "Uses a project file to create the eBook.")
+	projectCmd := getCommand("project [file]", "Uses a project file to create the eBook.")
+	projectCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from project")
 		if !rootCmd.PersistentFlags().Changed(cliOutputFileArgKey) {
@@ -123,7 +129,8 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	articleCmd := getCommand("article", "Renders a single article into an eBook.")
+	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.")
+	articleCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from single article")
 		config.MergeIntoCurrentConfig(cliConfig)
@@ -133,7 +140,8 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	standaloneCmd := getCommand("standalone", "Renders a single mediawiki file into an eBook.")
+	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.")
+	standaloneCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
 		config.MergeIntoCurrentConfig(cliConfig)
@@ -144,6 +152,20 @@ func initCli() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd)
+
+	rootCmd.InitDefaultHelpCmd()
+	var helpCommand *cobra.Command
+	for _, cmd := range rootCmd.Commands() {
+		if cmd.Name() == "help" {
+			helpCommand = cmd
+			break
+		}
+	}
+	if helpCommand == nil {
+		sigolo.Fatal("Help command not found")
+	}
+	helpCommand.Short = "Help about any command."
+	helpCommand.Long = "Help provides help for any command in the application. Simply type 'help [command]' for further details on that command."
 
 	return rootCmd
 }
@@ -192,9 +214,9 @@ func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFil
 	return cliOutputFile
 }
 
-func getCommand(name string, shortDoc string) *cobra.Command {
+func getCommand(use string, shortDoc string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   name,
+		Use:   use,
 		Short: shortDoc,
 		Long:  shortDoc,
 		Args:  cobra.ExactArgs(1),
@@ -206,11 +228,11 @@ func getCommand(name string, shortDoc string) *cobra.Command {
 func generateProjectEbook(projectFile string, outputFile string) {
 	var err error
 
-	sigolo.Infof("Use project file: %s", projectFile)
+	sigolo.Infof("Use project file: '%s'", projectFile)
 
 	directory, projectFile := filepath.Split(projectFile)
 	if directory != "" {
-		sigolo.Debugf("Go into folder %s", directory)
+		sigolo.Debugf("Go into folder '%s'", directory)
 		err = os.Chdir(directory)
 		sigolo.FatalCheck(err)
 	}
@@ -219,7 +241,7 @@ func generateProjectEbook(projectFile string, outputFile string) {
 	sigolo.FatalCheck(err)
 
 	if outputFile != "" {
-		sigolo.Tracef("Project has no output file set, so I'll use %s", outputFile)
+		sigolo.Tracef("Project has no output file set, so I'll use '%s'", outputFile)
 		proj.OutputFile = outputFile
 	}
 
@@ -269,7 +291,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
-		htmlGenerator := &html.HtmlGenerator{
+		htmlGenerator := &generator.HtmlGenerator{
 			TokenMap:         article.TokenMap,
 			WikipediaService: wikipediaService,
 		}
@@ -282,18 +304,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		Title: title,
 	}
 
-	err = Generate(
-		config.Current.OutputDriver,
-		[]string{htmlFilePath},
-		outputFile,
-		config.Current.OutputType,
-		config.Current.StyleFile,
-		config.Current.CoverImage,
-		config.Current.PandocDataDir,
-		config.Current.FontFiles,
-		config.Current.TocDepth,
-		metadata,
-	)
+	err = generator.GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
 	sigolo.FatalCheck(err)
 
 	err = os.RemoveAll(cache.GetTempPath())
@@ -303,7 +314,7 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
 }
 
 func generateArticleEbook(articleName string, outputFile string) {
@@ -323,14 +334,13 @@ func generateArticleEbook(articleName string, outputFile string) {
 func generateBookFromArticles(project *config.Project) {
 	articles := project.Articles
 	metadata := project.Metadata
-	outputFile := project.OutputFile
 
-	outputFile = ensurePathsAndClearTempDir(outputFile)
+	outputFile := ensurePathsAndClearTempDir(project.OutputFile)
 
 	config.Current.AssertFilesAndPathsExists()
 
 	numberOfArticles := len(articles)
-	articleFiles := make([]string, numberOfArticles)
+	articleOutputFiles := make([]string, numberOfArticles)
 
 	articleChan := make(chan string, config.Current.WorkerThreads)
 	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
@@ -364,8 +374,8 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
-				articleFiles[articleNumber] = thisArticleFile
+				thisArticleOutputFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
+				articleOutputFiles[articleNumber] = thisArticleOutputFile
 			}
 
 			// This thread will close, so mark it as done in the wait-group
@@ -386,39 +396,40 @@ func generateBookFromArticles(project *config.Project) {
 	sigolo.Debugf("Worker threads are done processing articles")
 
 	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	err := Generate(
-		config.Current.OutputDriver,
-		articleFiles,
-		outputFile,
-		config.Current.OutputType,
-		config.Current.StyleFile,
-		config.Current.CoverImage,
-		config.Current.PandocDataDir,
-		config.Current.FontFiles,
-		config.Current.TocDepth,
-		metadata,
-	)
-	sigolo.FatalCheck(err)
+	switch config.Current.OutputType {
+	case config.OutputTypeEpub2:
+		fallthrough
+	case config.OutputTypeEpub3:
+		err := generator.GenerateEpub(articleOutputFiles, outputFile, metadata)
+		sigolo.FatalCheck(err)
+	case config.OutputTypeStatsJson:
+		fallthrough
+	case config.OutputTypeStatsTxt:
+		err := generator.GenerateCombinedStats(articleOutputFiles, outputFile)
+		sigolo.FatalCheck(err)
+	}
 
-	err = os.RemoveAll(cache.GetTempPath())
+	err := os.RemoveAll(cache.GetTempPath())
 	if err != nil {
 		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file %s", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
 }
 
+// processArticle processes a given article, which means, the content (including images etc.) is downloaded and the
+// article will be tokenized, parsed and converted into the output format stored in the current configuration.
 func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
-	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html")
+	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html") // TODO use generator to get this file (currently determining the filepath happens twice)
+	articleOutputFile := ""
 	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		sigolo.Debugf("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
-
 		sigolo.Debugf("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
 		wikiArticleDto, err := wikipediaService.DownloadArticle(wikipediaArticleHost, articleName)
 		sigolo.FatalCheck(err)
@@ -432,38 +443,35 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		err = wikipediaService.DownloadImages(article.Images)
 		sigolo.FatalCheck(err)
 
-		// TODO Adjust this when additional non-epub output types are supported.
-		sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
-		htmlGenerator := &html.HtmlGenerator{
-			TokenMap:         article.TokenMap,
-			WikipediaService: wikipediaService,
+		switch config.Current.OutputType {
+		case config.OutputTypeEpub2:
+			fallthrough
+		case config.OutputTypeEpub3:
+			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
+			htmlGenerator := &generator.HtmlGenerator{
+				TokenMap:         article.TokenMap,
+				WikipediaService: wikipediaService,
+			}
+			htmlFilePath, err = htmlGenerator.Generate(article)
+			articleOutputFile = htmlFilePath
+			sigolo.FatalCheck(err)
+		case config.OutputTypeStatsJson:
+			fallthrough
+		case config.OutputTypeStatsTxt:
+			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
+			statsGenerator := generator.NewStatsGenerator(article.TokenMap)
+			articleOutputFile, err = statsGenerator.Generate(article)
+			sigolo.FatalCheck(err)
 		}
-		htmlFilePath, err = htmlGenerator.Generate(article)
-		sigolo.FatalCheck(err)
 	}
 
 	sigolo.Debugf("Article '%s' (%d/%d): Finished processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
-	return htmlFilePath
-}
-
-func Generate(outputDriver string, articleFiles []string, outputFile string, outputType string, styleFile string, coverImageFile string, pandocDataDir string, fontFiles []string, tocDepth int, metadata config.Metadata) error {
-	var err error
-
-	switch outputDriver {
-	case generator.OutputDriverPandoc:
-		err = epub.Generate(articleFiles, outputFile, outputType, styleFile, coverImageFile, pandocDataDir, fontFiles, tocDepth, metadata)
-	case generator.OutputDriverInternal:
-		err = epub.GenerateWithGoLibrary(articleFiles, outputFile, coverImageFile, styleFile, fontFiles, metadata)
-	default:
-		err = errors.Errorf("No implementation found for output driver %s", outputDriver)
-	}
-
-	return err
+	return articleOutputFile
 }
 
 func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
-	if forceHtmlRecreate {
+	if forceHtmlRecreate || config.Current.OutputType == config.OutputTypeStatsJson || config.Current.OutputType == config.OutputTypeStatsTxt {
 		return true
 	}
 
@@ -477,6 +485,23 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 // ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
 // temporary files in the temp files folder that might still exist from previous runs.
 func ensurePathsAndClearTempDir(outputFile string) string {
+	var err error
+
+	if config.Current.OutputType == config.OutputTypeStatsJson && !strings.HasSuffix(outputFile, "json") {
+		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
+		outputFile = defaultStatsJsonOutputFile
+		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
+		outputFile, err = util.ToAbsolutePath(outputFile)
+		sigolo.FatalCheck(err)
+	}
+	if config.Current.OutputType == config.OutputTypeStatsTxt && !strings.HasSuffix(outputFile, "txt") {
+		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
+		outputFile = defaultStatsTxtOutputFile
+		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
+		outputFile, err = util.ToAbsolutePath(outputFile)
+		sigolo.FatalCheck(err)
+	}
+
 	var file *os.File
 	if _, err := os.Stat(outputFile); err != nil {
 		// Output file does not exist
@@ -497,14 +522,21 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	sigolo.FatalCheck(err)
 
 	if fileInfo.IsDir() {
-		// TODO Adjust this when additional non-epub output types are supported.
-		outputFile = path.Join(outputFile, "ebook.epub")
+		switch config.Current.OutputType {
+		case config.OutputTypeEpub2:
+			fallthrough
+		case config.OutputTypeEpub3:
+			outputFile = path.Join(outputFile, defaultEpubOutputFile)
+		case config.OutputTypeStatsJson:
+			outputFile = path.Join(outputFile, defaultStatsJsonOutputFile)
+		case config.OutputTypeStatsTxt:
+			outputFile = path.Join(outputFile, defaultStatsTxtOutputFile)
+		}
 	}
 
 	// Make all relevant paths absolute
-	absolutePath, err := util.ToAbsolutePath(outputFile)
+	outputFile, err = util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	outputFile = absolutePath
 
 	err = os.RemoveAll(cache.GetTempPath())
 	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))

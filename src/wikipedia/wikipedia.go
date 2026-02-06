@@ -47,6 +47,8 @@ type WikipediaService interface {
 	DownloadArticle(host string, title string) (*WikiArticleDto, error)
 	DownloadImages(images []string) error
 	EvaluateTemplate(template string, cacheFile string) (string, error)
+	// RenderMath takes the math string and turns it into an image. The absolute paths of the SVG and PNG images are
+	// returned. In case of an error, these paths are empty.
 	RenderMath(mathString string) (string, string, error)
 }
 
@@ -236,7 +238,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 	if freshlyDownloaded && config.Current.SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
-			sigolo.Errorf("Unable to make size of SVG %s absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
+			sigolo.Errorf("Unable to make size of SVG '%s' absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
 		}
 	}
 
@@ -254,7 +256,7 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 
 	evaluatedTemplateString, err := util.CurrentFilesystem.ReadFile(cacheFilePath)
 	if err != nil {
-		return "", errors.Wrapf(err, "Reading cached template file %s failed", cacheFilePath)
+		return "", errors.Wrapf(err, "Reading cached template file '%s' failed", cacheFilePath)
 	}
 
 	evaluatedTemplate := &WikiExpandedTemplateDto{}
@@ -293,7 +295,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if config.Current.MathConverter == config.MathConverterTemplate {
-		cachedPngFile := filepath.Join(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile := cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
@@ -315,8 +317,8 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	outputFilepath := cache.GetFilePathInCache(cache.MathCacheDirName, filename)
-	if _, err := util.CurrentFilesystem.Stat(outputFilepath); err == nil {
+	outputFilepath, fileIsCached, err := cache.GetFile(cache.MathCacheDirName, filename)
+	if fileIsCached {
 		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
 		if err != nil {
@@ -349,12 +351,12 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Rendering math failed with status code %d for math '%s' on URL %s with body: %s", response.StatusCode, mathString, urlString, responseBodyText)
 	}
 
-	locationHeader := response.Header.Get("x-resource-location")
+	locationHeader := response.Header.Get(ownHttp.HeaderXResourceLocation)
 	if locationHeader == "" {
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	_, err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

@@ -62,8 +62,8 @@ func TestCliArgs(t *testing.T) {
 		"--wikipedia-image-host", "wikipedia-image-host",
 		"--wikipedia-math-rest-api", "wikipedia-math-rest-api",
 		"--wikipedia-image-article-hosts", "wikipedia-image-article-hosts",
-		"--file-prefixe", "file-prefixe",
-		"--allowed-link-prefixe", "allowed-link-prefixe",
+		"--file-prefixes", "file-prefixes",
+		"--allowed-link-prefixes", "allowed-link-prefixes",
 		"--category-prefixes", "category-prefixes",
 		"--math-converter", "math-converter",
 		"--toc-depth", "123",
@@ -108,8 +108,8 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "wikipedia-image-host", cliConfig.WikipediaImageHost)
 	test.AssertEqual(t, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi)
 	test.AssertEqual(t, []string{"wikipedia-image-article-hosts"}, cliConfig.WikipediaImageArticleHosts)
-	test.AssertEqual(t, []string{"file-prefixe"}, cliConfig.FilePrefixe)
-	test.AssertEqual(t, []string{"allowed-link-prefixe"}, cliConfig.AllowedLinkPrefixes)
+	test.AssertEqual(t, []string{"file-prefixes"}, cliConfig.FilePrefixes)
+	test.AssertEqual(t, []string{"allowed-link-prefixes"}, cliConfig.AllowedLinkPrefixes)
 	test.AssertEqual(t, []string{"category-prefixes"}, cliConfig.CategoryPrefixes)
 	test.AssertEqual(t, "math-converter", cliConfig.MathConverter)
 	test.AssertEqual(t, 123, cliConfig.TocDepth)

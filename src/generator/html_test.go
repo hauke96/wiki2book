@@ -1,14 +1,23 @@
-package html
+package generator
 
 import (
 	"fmt"
 	"testing"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
+	"wiki2book/util"
+	"wiki2book/wikipedia"
 )
 
-var generator = HtmlGenerator{}
+var generator = &HtmlGenerator{}
+
+func NewHtmlGeneratorWithMockWikipediaService() *HtmlGenerator {
+	return &HtmlGenerator{
+		WikipediaService: wikipedia.NewMockWikipediaService(),
+	}
+}
 
 func TestExpandMarker(t *testing.T) {
 	test.AssertEqual(t, "<b>", generator.expandMarker(parser.MARKER_BOLD_OPEN))
@@ -31,9 +40,36 @@ func TestExpandHeadings(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	headings, err := generator.expand(token)
+	headings, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, fmt.Sprintf("<h%d>foobar</h%d>", 3, 3), headings)
+}
+
+func TestExpandMath(t *testing.T) {
+	generator := NewHtmlGeneratorWithMockWikipediaService()
+	result := `<img alt="image" src="./images/image.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
+	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
+	token := parser.MathToken{
+		Content: "x=y",
+	}
+	tokenMap := map[string]parser.Token{
+		tokenImage: token,
+	}
+	generator.TokenMap = tokenMap
+
+	svgFileBytes := []byte("<svg width=\"5.1ex\" height=\"2.3ex\" style=\"vertical-align: -0.5ex;\"></svg>")
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.ReadFileFunc = func(name string) ([]byte, error) { return svgFileBytes, nil }
+	util.CurrentFilesystem = fsMock
+
+	generator.WikipediaService.(*wikipedia.MockWikipediaService).RenderMathFunc = func(mathString string) (string, string, error) {
+		return "image.svg", cache.GetFilePathInCache(cache.ImageCacheDirName, "image.png"), nil
+	}
+
+	actualResult, err := expand(generator, token)
+
+	test.AssertNil(t, err)
+	test.AssertEqual(t, result, actualResult)
 }
 
 func TestExpandImage(t *testing.T) {
@@ -55,7 +91,7 @@ some <b>caption</b>
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -80,7 +116,7 @@ func TestExpandImage_usePngFileForPdf(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -105,21 +141,21 @@ func TestExpandImage_usePngFileForWebp(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
 
 func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
 	result := `<div class="figure">
-<img alt="image" src="./images/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
+<img alt="image" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
 some <b>caption</b>
 </div>
 </div>`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.ImageToken{
-		Filename: "\"some'special%chars.jpg",
+		Filename: "\"some'special:chars.jpg",
 		Caption:  parser.CaptionToken{Content: "some " + parser.MARKER_BOLD_OPEN + "caption" + parser.MARKER_BOLD_CLOSE},
 		SizeX:    10,
 		SizeY:    20,
@@ -129,7 +165,7 @@ some <b>caption</b>
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -153,7 +189,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -178,7 +214,7 @@ some <b>caption</b>
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 
@@ -201,7 +237,7 @@ some <b>caption</b>
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err = generator.expand(token)
+	actualResult, err = expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -219,16 +255,16 @@ func TestExpandImageInline(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
 
 func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
-	result := `<img alt="image" class="inline" src="./images/%22some%27special%25chars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
+	result := `<img alt="image" class="inline" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
-		Filename: "\"some'special%chars.jpg",
+		Filename: "\"some'special:chars.jpg",
 		SizeX:    10,
 		SizeY:    20,
 	}
@@ -237,7 +273,7 @@ func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	actualResult, err := generator.expand(token)
+	actualResult, err := expand(generator, token)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
 }
@@ -252,7 +288,7 @@ func TestExpandInternalLink(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	link, err := generator.expand(tokenLink)
+	link, err := expand(generator, tokenLink)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "b<b>a</b>r", link)
 }
@@ -268,7 +304,7 @@ func TestExpandExternalLink(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	link, err := generator.expand(tokenLink)
+	link, err := expand(generator, tokenLink)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "<a href=\""+url+"\">b<b>a</b>r</a>", link)
 }
@@ -295,7 +331,7 @@ func TestExpandTable(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	row, err := generator.expand(tokenTable)
+	row, err := expand(generator, tokenTable)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<div class="figure">
 <table>
@@ -307,6 +343,56 @@ b<b>a</b>r
 </table>
 <div class="caption">
 caption
+</div>
+</div>`, row)
+}
+
+func TestExpandTable_captionWithTokens(t *testing.T) {
+	tokenCaptionInternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
+	tokenCaptionExternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 1)
+	tokenTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 2)
+	tokenMap := map[string]parser.Token{
+		tokenCaptionInternalLink: parser.InternalLinkToken{
+			Token:       tokenCaptionInternalLink,
+			ArticleName: "Foobar",
+			LinkText:    "internal-link",
+		},
+		tokenCaptionExternalLink: parser.ExternalLinkToken{
+			Token:    tokenCaptionExternalLink,
+			URL:      "https://foo.com",
+			LinkText: "external-link",
+		},
+		tokenTable: parser.TableToken{
+			Caption: parser.TableCaptionToken{
+				Content: "caption with " + tokenCaptionInternalLink + " and " + tokenCaptionExternalLink + ".",
+			},
+			Rows: []parser.TableRowToken{
+				{
+					Columns: []parser.TableColToken{
+						{
+							Attributes: parser.TableColAttributeToken{},
+							Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
+							IsHeading:  false,
+						},
+					},
+				},
+			},
+		},
+	}
+	generator.TokenMap = tokenMap
+
+	row, err := expand(generator, tokenTable)
+	test.AssertNil(t, err)
+	test.AssertEqual(t, `<div class="figure">
+<table>
+<tr>
+<td>
+b<b>a</b>r
+</td>
+</tr>
+</table>
+<div class="caption">
+caption with internal-link and <a href="https://foo.com">external-link</a>.
 </div>
 </div>`, row)
 }
@@ -358,7 +444,7 @@ func TestExpandUnorderedList(t *testing.T) {
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
 
-	row, err := generator.expand(list3)
+	row, err := expand(generator, list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ul>
 <li>
@@ -377,7 +463,7 @@ func TestExpandOrderedList(t *testing.T) {
 	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
 
-	row, err := generator.expand(list3)
+	row, err := expand(generator, list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ol>
 <li>
@@ -402,7 +488,7 @@ func TestExpandOrderedList_specifyNumberOfItems(t *testing.T) {
 	item4 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.OrderedListToken{Items: []parser.ListItemToken{item1, item2, item3, item4}}
 
-	row, err := generator.expand(list3)
+	row, err := expand(generator, list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ol>
 <li>
@@ -421,7 +507,7 @@ func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  f"} // string without left space being <3 chars long caused crash
 	list3 := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
 
-	row, err := generator.expand(list3)
+	row, err := expand(generator, list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ul>
 <li>
@@ -438,7 +524,7 @@ func TestExpandDescriptionList(t *testing.T) {
 	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list3 := parser.DescriptionListToken{Items: []parser.ListItemToken{item1, item2}}
 
-	row, err := generator.expand(list3)
+	row, err := expand(generator, list3)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<div class="description-list">
 <div class="dt">
@@ -462,7 +548,7 @@ func TestExpandNestedLists(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	row, err := generator.expand(listOuter)
+	row, err := expand(generator, listOuter)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `<ul>
 <li>
@@ -486,7 +572,7 @@ func TestExpandRefDefinition(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	row, err := generator.expand(tokenKey)
+	row, err := expand(generator, tokenKey)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `[43] f<b>o</b>o<br>`, row)
@@ -501,7 +587,7 @@ func TestExpandRefUsage(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	row, err := generator.expand(tokenKey)
+	row, err := expand(generator, tokenKey)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, `[43]`, row)
@@ -516,7 +602,7 @@ func TestExpandNowiki(t *testing.T) {
 	}
 	generator.TokenMap = tokenMap
 
-	row, err := generator.expand(tokenKey)
+	row, err := expand(generator, tokenKey)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "something", row)

@@ -1,6 +1,7 @@
 # Binaries for programs and plugins
 src/src
 src/wiki2book
+src/sbom.json
 wiki2book
 wiki2book-*
 .wiki2book
@@ -41,3 +42,5 @@ standalone.mediawiki
 *.pdf
 *.dot
 *.png
+stats.json
+stats.txt

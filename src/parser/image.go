@@ -199,7 +199,7 @@ func (t *Tokenizer) parseImages(content string) string {
 	startIndex := internalLinkStartRegex.FindStringIndex(content)
 	for startIndex != nil {
 		// Use the end-index of the match, since it points to the ":" of the "[[File:" match
-		endIndex := findCorrespondingCloseToken(content, startIndex[1], "[", "]")
+		endIndex := FindCorrespondingCloseToken(content, startIndex[1], "[", "]")
 
 		imageContent := content[startIndex[1]:endIndex]
 		imageContent = t.tokenizeContent(t, imageContent)
@@ -207,7 +207,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 		filePrefix := strings.ToLower(strings.SplitN(imageContent, ":", 2)[0])
 
-		if imageContent == "" || !util.Contains(config.Current.FilePrefixe, filePrefix) {
+		if imageContent == "" || !util.Contains(config.Current.FilePrefixes, filePrefix) {
 			content = content[0:startIndex[0]] + content[endIndex+2:]
 		} else {
 			options := strings.Split(imageContent, "|")

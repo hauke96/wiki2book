@@ -128,7 +128,7 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 	test.AssertEqual(t, expected, actual)
 }
 
-func TestRemoveUnwantedTemplates(t *testing.T) {
+func TestUnwantedAndTrailingTemplates(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	config.Current.IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
@@ -140,7 +140,7 @@ toc }}`
 	test.AssertEqual(t, "{{let this template stay}}", content)
 }
 
-func TestRemoveUnwantedMultiLineTemplates(t *testing.T) {
+func TestUnwantedAndTrailingTemplates_multiLine(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	config.Current.IgnoredTemplates = []string{"naviblock"}
@@ -154,15 +154,19 @@ bar`
 	test.AssertEqual(t, "foo\n\nbar", content)
 }
 
-func TestRemoveUnwantedHtml(t *testing.T) {
+func TestUnwantedAndTrailingTemplates_templateNameWithSpaces(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
-	content = tokenizer.removeUnwantedHtml(content)
-	test.AssertEqual(t, "Some noice HTML", content)
+	config.Current.IgnoredTemplates = []string{"navigationsleiste"}
+
+	content := `foo
+{{Navigationsleiste Foo Bar Blubb}}
+bar`
+	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
+	test.AssertEqual(t, "foo\n\nbar", content)
 }
 
-func TestMoveTrailingTemplatesDown(t *testing.T) {
+func TestUnwantedAndTrailingTemplates_moveTrailingTemplatesDown(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	config.Current.TrailingTemplates = []string{"FOO", "bar"}
@@ -170,6 +174,14 @@ func TestMoveTrailingTemplatesDown(t *testing.T) {
 	content := `{{siehe auch}}{{foo}}{{foo}}{{let this template stay}}{{bar}}`
 	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
 	test.AssertEqual(t, "{{siehe auch}}{{let this template stay}}\n{{foo}}\n{{foo}}\n{{bar}}", content)
+}
+
+func TestRemoveUnwantedHtml(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
+	content := "Some <div>noice</div><div style=\"height: 123px;\"> HTML</div>"
+	content = tokenizer.removeUnwantedHtml(content)
+	test.AssertEqual(t, "Some noice HTML", content)
 }
 
 func TestClean(t *testing.T) {

@@ -18,6 +18,7 @@ const (
 	TempDirName          = ".tmp"
 	ArticleCacheDirName  = "articles"
 	HtmlCacheDirName     = "html"
+	StatsCacheDirName    = "stats"
 	ImageCacheDirName    = "images"
 	MathCacheDirName     = "math"
 	TemplateCacheDirName = "templates"
@@ -28,11 +29,17 @@ var (
 )
 
 func GetFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(config.Current.CacheDir, cacheFolderName, filename)
+	return filepath.Join(config.Current.CacheDir, cacheFolderName, util.SanitizeFilename(filename))
 }
 
 func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(".", cacheFolderName, filename)
+	return filepath.Join(".", cacheFolderName, util.SanitizeFilename(filename))
+}
+
+// GetPathRelativeToCache returns the path relative to the given cache dir. If the given path is an absolute path to
+// a file in the cache, the resulting path is a relative path to the same file within the cache.
+func GetPathRelativeToCache(path string) (string, error) {
+	return util.ToRelativePathWithBasedir(config.Current.CacheDir, path)
 }
 
 func GetDirPathInCache(cacheFolderName string) string {
@@ -44,10 +51,13 @@ func GetTempPath() string {
 }
 
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
-// folder within the cache, not a whole path. The filename is the name of the file in the cache.
-func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) error {
+// folder within the cache, not a whole path. The filename is the name of the file in the cache. The full path is always
+// returned. The error is only set when an error occurred.
+func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (string, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
+
+	sanitizedFilename := util.SanitizeFilename(filename)
 
 	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
@@ -57,7 +67,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", outputFolderPath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create output folder '%s'", outputFolderPath))
 	}
 
 	//
@@ -65,10 +75,11 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	//
 
 	// Create the output file
-	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), filename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), sanitizedFilename)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
+	defer tempFile.Close()
 	tempFilepath := tempFile.Name()
 	defer util.CurrentFilesystem.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
@@ -77,7 +88,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Trace("Copy data to temp file")
 	_, err = io.Copy(tempFile, reader)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable copy downloaded content to temp file '%s'", tempFilepath))
 	}
 
 	//
@@ -88,26 +99,26 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 		var cacheSizeInBytes int64
 		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(config.Current.CacheDir)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
 		}
 
 		var tempFileStat os.FileInfo
 		tempFileStat, err = tempFile.Stat()
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", filename, tempFilepath))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", sanitizedFilename, tempFilepath))
 		}
 
 		tempFileSizeInBytes := tempFileStat.Size()
 		err = deleteFilesFromCacheIfNeeded(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
 		if err != nil {
-			return err
+			return outputFilepath, err
 		}
 	}
 
 	// Close file as it's not needed anymore. Without closing it, Windows has problems moving the file.
 	err = tempFile.Close()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to close temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to close temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
 
 	//
@@ -117,11 +128,11 @@ func CacheToFile(cacheFolderName string, filename string, reader io.ReadCloser) 
 	sigolo.Tracef("Move temp file '%s' to '%s'", tempFilepath, outputFilepath)
 	err = util.CurrentFilesystem.Rename(tempFilepath, outputFilepath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Error moving temp file '%s' to '%s'", tempFilepath, outputFilepath))
 	}
 
 	sigolo.Tracef("Cached file '%s' to '%s'", filename, outputFilepath)
-	return nil
+	return outputFilepath, nil
 }
 
 // deleteFilesFromCacheIfNeeded deletes files from the cache based on the configured cache eviction strategy. When the
@@ -200,13 +211,13 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 
 	filePath := GetFilePathInCache(cacheFolderName, filename)
 
-	fileIsOutdated, err := isOutdated(cacheFolderName, filename)
-	if os.IsNotExist(err) {
-		// A "file not found" situation is not unusual and not considered an error. Simply return that the file doesn't exist.
-		return filePath, false, nil
-	}
+	fileIsOutdated, fileExists, err := isOutdated(cacheFolderName, filename)
 	if err != nil {
 		return filePath, false, errors.Wrapf(err, "Unable to determine if file '%s' is outdated", filename)
+	}
+	if !fileExists {
+		// A "file not found" situation is not unusual and not considered an error. Simply return that the file doesn't exist.
+		return filePath, false, nil
 	}
 
 	if fileIsOutdated {
@@ -230,18 +241,18 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 	return filePath, !fileIsOutdated, nil
 }
 
-// isOutdated returns whether the file is outdated (only valid and defined, when the error is nil), if the file even
-// exists and an error. When second boolean (if file exists) is "true", the error is an os.ErrNotExist error. For other
-// error types, the booleans have no meaning.
-func isOutdated(cacheFolderName string, filename string) (bool, error) {
+// isOutdated returns whether the file is outdated and if the file even exists. When an error is returned, both boolean
+// values have no defined meaning. When the second boolean (whether the file exists) is "false", the other values
+// have no defined meaning.
+func isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
 	filePath := GetFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {
-		return false, err
+		return false, false, nil
 	}
 	if err != nil {
-		return false, errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
+		return false, false, errors.Wrapf(err, "Unable to determine file stats of tile '%s'", filePath)
 	}
 
 	fileAgeDuration := time.Now().Sub(fileStat.ModTime())
@@ -249,5 +260,5 @@ func isOutdated(cacheFolderName string, filename string) (bool, error) {
 	fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
 	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
 
-	return fileIsOutdated, nil
+	return fileIsOutdated, true, nil
 }

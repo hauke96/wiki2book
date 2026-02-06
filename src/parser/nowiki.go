@@ -20,7 +20,7 @@ func (t *Tokenizer) parseNowiki(content string) string {
 		cursor := content[i : i+nowikiStartLen]
 
 		if cursor == nowikiStart {
-			endIndex := findCorrespondingCloseToken(content, i+nowikiStartLen, nowikiStart, nowikiEnd)
+			endIndex := FindCorrespondingCloseToken(content, i+nowikiStartLen, nowikiStart, nowikiEnd)
 
 			token := NowikiToken{
 				Content: content[i+nowikiStartLen : endIndex],
