@@ -92,6 +92,8 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
+	sanitizedFilename := sanitizeFilename(filename)
+
 	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
@@ -108,7 +110,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	//
 
 	// Create the output file
-	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), filename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), sanitizedFilename)
 	if err != nil {
 		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
 	}
@@ -138,7 +140,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 		var tempFileStat os.FileInfo
 		tempFileStat, err = tempFile.Stat()
 		if err != nil {
-			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", filename, tempFilepath))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of file '%s' to cache (tmp file '%s')", sanitizedFilename, tempFilepath))
 		}
 
 		tempFileSizeInBytes := tempFileStat.Size()

@@ -596,3 +596,31 @@ func TestIsOutdated_notExistingFile(t *testing.T) {
 	test.AssertNotNil(t, err)
 	test.AssertEqual(t, false, outdated)
 }
+
+func TestCacheToFile(t *testing.T) {
+	// Arrange
+	config.Current.CacheDir = "cache-dir"
+	config.Current.CacheMaxAge = 100
+
+	outputFilename := "File:ima*ge.png"
+	fileContent := "foo bar"
+	stringReader := strings.NewReader(fileContent)
+
+	var mockTempFile util.FileLike
+
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.CreateTempFunc = func(dir, pattern string) (util.FileLike, error) {
+		mockTempFile = util.NewMockFile(pattern)
+		return mockTempFile, nil
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	filePath, err := CacheToFile(ImageCacheDirName, outputFilename, stringReader)
+
+	// Assert
+	expectedOutputFilename := "File%3Aima%2Age.png"
+	test.AssertNil(t, err)
+	test.AssertEqual(t, "cache-dir/"+ImageCacheDirName+"/"+expectedOutputFilename, filePath)
+	test.AssertEqual(t, expectedOutputFilename, mockTempFile.Name())
+}
