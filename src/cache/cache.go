@@ -135,6 +135,13 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	return outputFilepath, nil
 }
 
+func CleanUpTempDir() {
+	err := os.RemoveAll(GetTempPath())
+	if err != nil {
+		sigolo.Warnf("Error cleaning up '%s' directory", GetTempPath())
+	}
+}
+
 // deleteFilesFromCacheIfNeeded deletes files from the cache based on the configured cache eviction strategy. When the
 // cache is small enough for the new file, no (further) files will be deleted.
 func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, newFileSizeInBytes int64, cacheSizeInBytes int64) error {

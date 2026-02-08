@@ -6,6 +6,7 @@ import (
 	"runtime/trace"
 	"strings"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/generator"
 	"wiki2book/server"
@@ -117,10 +118,9 @@ func initCli() *cobra.Command {
 			cliOutputFile,
 			cliConfig,
 		)
-
 		config.MergeIntoCurrentConfig(cliConfig)
-
 		generator.GenerateBookFromProject(proj)
+		cache.CleanUpTempDir()
 	}
 
 	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.", 1)
@@ -132,6 +132,7 @@ func initCli() *cobra.Command {
 			args[0],
 			cliOutputFile,
 		)
+		cache.CleanUpTempDir()
 	}
 
 	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.", 1)
@@ -143,6 +144,7 @@ func initCli() *cobra.Command {
 			args[0],
 			cliOutputFile,
 		)
+		cache.CleanUpTempDir()
 	}
 
 	serverCmd := getCommand("server", "Starts wiki2book in server mode handling HTTP requests to create eBooks.", 0)
@@ -151,6 +153,7 @@ func initCli() *cobra.Command {
 		sigolo.Infof("Prepare starting wiki2book in server mode")
 		config.MergeIntoCurrentConfig(cliConfig)
 		server.Start()
+		cache.CleanUpTempDir()
 	}
 
 	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd, serverCmd)

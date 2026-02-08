@@ -107,11 +107,6 @@ func GenerateStandaloneEbook(inputFile string, outputFile string) {
 	err = GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(cache.GetTempPath())
-	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
-	}
-
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
@@ -207,11 +202,6 @@ func GenerateBookFromProject(project *config.Project) {
 	case config.OutputTypeStatsTxt:
 		err := GenerateCombinedStats(articleOutputFiles, outputFile)
 		sigolo.FatalCheck(err)
-	}
-
-	err := os.RemoveAll(cache.GetTempPath())
-	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", cache.GetTempPath())
 	}
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -348,6 +338,7 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.ImageCacheDirName))
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.MathCacheDirName))
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.TemplateCacheDirName))
+	util.EnsureDirectory(cache.GetDirPathInCache(cache.TempDirName))
 
 	return outputFile
 }
