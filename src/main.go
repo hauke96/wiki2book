@@ -16,6 +16,7 @@ import (
 	"wiki2book/http"
 	"wiki2book/image"
 	"wiki2book/parser"
+	"wiki2book/server"
 	"wiki2book/util"
 	"wiki2book/wikipedia"
 
@@ -113,7 +114,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().IntVar(&cliConfig.WorkerThreads, "worker-threads", cliConfig.WorkerThreads, "Number of threads to process the articles. Only affects projects but not single articles or the standalone mode. The value must at least be 1.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.UserAgentTemplate, "user-agent-template", cliConfig.UserAgentTemplate, "Template for the user-agent used in HTTP requests.")
 
-	projectCmd := getCommand("project [file]", "Uses a project file to create the eBook.")
+	projectCmd := getCommand("project [file]", "Uses a project file to create the eBook.", 1)
 	projectCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	projectCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from project")
@@ -129,7 +130,7 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.")
+	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.", 1)
 	articleCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from single article")
@@ -140,7 +141,7 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.")
+	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.", 1)
 	standaloneCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
@@ -151,7 +152,15 @@ func initCli() *cobra.Command {
 		)
 	}
 
-	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd)
+	serverCmd := getCommand("server", "Starts wiki2book in server mode handling HTTP requests to create eBooks.", 0)
+	serverCmd.PersistentFlags().IntVar(&cliConfig.ServerPort, "server-port", cliConfig.ServerPort, "Port on which wiki2book should receive HTTP requests.")
+	serverCmd.Run = func(cmd *cobra.Command, args []string) {
+		sigolo.Infof("Prepare starting wiki2book in server mode")
+		config.MergeIntoCurrentConfig(cliConfig)
+		server.Start()
+	}
+
+	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd, serverCmd)
 
 	rootCmd.InitDefaultHelpCmd()
 	var helpCommand *cobra.Command
@@ -214,12 +223,12 @@ func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFil
 	return cliOutputFile
 }
 
-func getCommand(use string, shortDoc string) *cobra.Command {
+func getCommand(use string, shortDoc string, numberOfArgs int) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   use,
 		Short: shortDoc,
 		Long:  shortDoc,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(numberOfArgs),
 	}
 
 	return cmd

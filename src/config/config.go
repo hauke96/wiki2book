@@ -89,6 +89,7 @@ func NewDefaultConfig() *Configuration {
 		TocDepth:                       tocDepthDefault,
 		WorkerThreads:                  workerThreadsDefault,
 		UserAgentTemplate:              "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)",
+		ServerPort:                     8080,
 	}
 }
 
@@ -478,6 +479,13 @@ type Configuration struct {
 		Default: `"wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)"`
 	*/
 	UserAgentTemplate string `json:"user-agent-template"`
+
+	/*
+		Port on which wiki2book should receive HTTP requests in server mode.
+
+		Default: 8080
+	*/
+	ServerPort int `json:"server-port"`
 }
 
 // MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field
@@ -636,6 +644,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.UserAgentTemplate != defaultConfig.UserAgentTemplate {
 		sigolo.Tracef("Override UserAgentTemplate with %s", c.UserAgentTemplate)
 		Current.UserAgentTemplate = c.UserAgentTemplate
+	}
+	if c.ServerPort != defaultConfig.ServerPort {
+		sigolo.Tracef("Override ServerPort with %d", c.ServerPort)
+		Current.ServerPort = c.ServerPort
 	}
 
 	Current.MakePathsAbsoluteToWorkingDir()
