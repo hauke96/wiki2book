@@ -491,6 +491,9 @@ type Configuration struct {
 // MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field
 // in the Current configuration in case the field of the given config is different to the default value.
 func MergeIntoCurrentConfig(c *Configuration) {
+	if c == nil {
+		return
+	}
 	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
 		sigolo.Tracef("Override ForceRegenerateHtml with %v", c.ForceRegenerateHtml)
 		Current.ForceRegenerateHtml = c.ForceRegenerateHtml

@@ -6,31 +6,7 @@ import (
 	"testing"
 	"wiki2book/config"
 	"wiki2book/test"
-
-	"github.com/hauke96/sigolo/v2"
 )
-
-// This file is used to profile the application with the IntelliJ CPU profiler, which only works on test files.
-
-func testArticleGermanLong(t *testing.T) {
-	err := config.LoadConfig("../configs/de.json")
-	sigolo.FatalCheck(err)
-
-	generateArticleEbook(
-		"Commodore 128",
-		"../.wiki2book/profiling.epub",
-	)
-}
-
-func testProjectGerman(t *testing.T) {
-	err := config.LoadConfig("../configs/de.json")
-	sigolo.FatalCheck(err)
-
-	generateProjectEbook(
-		"../projects/de/astronomie/astronomie.json",
-		"../.wiki2book/profiling.epub",
-	)
-}
 
 func TestCliArgs(t *testing.T) {
 	os.Args = []string{
@@ -70,7 +46,7 @@ func TestCliArgs(t *testing.T) {
 		"--worker-threads", "234",
 		"--user-agent-template", "user-agent-template",
 	}
-	testCmd := getCommand("test", "")
+	testCmd := getCommand("test", "", 1)
 	cliConfig = &config.Configuration{}
 	rootCmd := initCli()
 	rootCmd.AddCommand(testCmd)
@@ -79,8 +55,14 @@ func TestCliArgs(t *testing.T) {
 
 	test.AssertNil(t, err)
 
-	// I expect each configuration entry represented in the cli arguments including one value for each field
-	test.AssertEqual(t, reflect.ValueOf(*cliConfig).NumField()*2, len(os.Args)-2)
+	// *2 because each cli flag also has a value
+	// -2 because server-port is a cli flag specific to the "server" command and thus not tested in this test.expectedNumberOfArgs := reflect.ValueOf(*cliConfig).NumField()*2 - 2
+	expectedNumberOfArgs := reflect.ValueOf(*cliConfig).NumField()*2 - 2
+	// -2 because the first two args are: 1) filename and 2) command. Both should be ignored, because the test just compares actual parameters.
+	actualNumberOfArgs := len(os.Args) - 2
+	// I expect each configuration entry represented in the cli arguments
+	test.AssertEqual(t, expectedNumberOfArgs, actualNumberOfArgs)
+
 	test.AssertTrue(t, cliConfig.ForceRegenerateHtml)
 	test.AssertTrue(t, cliConfig.SvgSizeToViewbox)
 	test.AssertEqual(t, "output-type", cliConfig.OutputType)
