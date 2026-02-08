@@ -328,9 +328,6 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	outputFile, err = util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 
-	err = os.RemoveAll(cache.GetTempPath())
-	sigolo.FatalCheck(errors.Wrapf(err, "Error removing '%s' directory", cache.GetTempPath()))
-
 	sigolo.Debug("Ensure cache directories exist")
 	util.EnsureDirectory(cache.GetTempPath())
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.ArticleCacheDirName))
