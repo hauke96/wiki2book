@@ -40,7 +40,9 @@ type ResultState struct {
 func Start() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), handleArticleRequest)
+	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), handleArticleRequest) // TODO Make a POST handler too, which accepts a whole config JSON in the body
+	// TODO POST handler for projects
+	// TODO POST handle for standalone
 	mux.HandleFunc(fmt.Sprintf("GET /states/{%s}", pathVarResultToken), handleGetStateRequest)
 	mux.HandleFunc(fmt.Sprintf("GET /results/{%s}", pathVarResultToken), handleGetResultRequest)
 
