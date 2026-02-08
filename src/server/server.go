@@ -18,6 +18,7 @@ import (
 
 const (
 	pathVarArticleName = "articleName"
+	pathVarResultToken = "resultToken"
 
 	ResultStatusInProgress = "IN_PROGRESS"
 	ResultStatusSuccess    = "SUCCESS"
@@ -26,20 +27,22 @@ const (
 
 var (
 	// Map from result-token to the filename of the epub file.
-	tokenToFilenameMap = map[string]*ResultState{}
+	resultStates = map[string]*ResultState{}
 )
 
 type ResultState struct {
 	Status      string `json:"status"`
 	ArticleName string `json:"article-name"`
 	ResultToken string `json:"result-token"`
-	resultPath  string
+	resultPath  string // No JSON mapping. This should not be visible to API users.
 }
 
 func Start() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), handleArticleRequest)
+	mux.HandleFunc(fmt.Sprintf("GET /states/{%s}", pathVarResultToken), handleGetStateRequest)
+	mux.HandleFunc(fmt.Sprintf("GET /results/{%s}", pathVarResultToken), handleGetResultRequest)
 
 	sigolo.Infof("Start HTTP server on port %d", config.Current.ServerPort)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", config.Current.ServerPort), mux)
@@ -48,10 +51,9 @@ func Start() {
 
 func handleArticleRequest(resp http.ResponseWriter, req *http.Request) {
 	articleName := req.PathValue(pathVarArticleName)
+	sigolo.Debugf("Received request %s %s for article %s", req.Method, req.URL, articleName)
 
 	resultState := createNewResultState(articleName)
-
-	sigolo.Debugf("Received request %s %s for article %s", req.Method, req.URL, articleName)
 
 	// Ensure output folder exists
 	outputFolderPath := cache.GetDirPathInCache(cache.TempDirName)
@@ -80,10 +82,40 @@ func handleArticleRequest(resp http.ResponseWriter, req *http.Request) {
 
 	go func() {
 		generator.GenerateArticleEbook(articleName, tempFilepath)
-		resultState.Status = ResultStatusSuccess
+		resultState.Status = ResultStatusFailed
 	}()
 
 	returnState(resp, resultState)
+}
+
+func handleGetStateRequest(resp http.ResponseWriter, req *http.Request) {
+	resultToken := req.PathValue(pathVarResultToken)
+	sigolo.Debugf("Received request %s %s for token %s", req.Method, req.URL, resultToken)
+
+	resultState, ok := resultStates[resultToken]
+	if !ok {
+		returnNotFound(resp, fmt.Sprintf("Result state for token '%s' not found", resultToken))
+		return
+	}
+
+	returnState(resp, resultState)
+}
+
+func handleGetResultRequest(resp http.ResponseWriter, req *http.Request) {
+	resultToken := req.PathValue(pathVarResultToken)
+	sigolo.Debugf("Received request %s %s for token %s", req.Method, req.URL, resultToken)
+
+	resultState, ok := resultStates[resultToken]
+	if !ok {
+		returnNotFound(resp, fmt.Sprintf("Result state for token '%s' not found", resultToken))
+		return
+	}
+	if resultState.Status != ResultStatusSuccess {
+		returnNotFound(resp, fmt.Sprintf("Result for token '%s' is not ready yet or has failed", resultToken))
+		return
+	}
+
+	returnFile(resp, resultState.resultPath, resultState.ArticleName)
 }
 
 func createNewResultState(articleName string) *ResultState {
@@ -94,7 +126,7 @@ func createNewResultState(articleName string) *ResultState {
 		ResultToken: resultToken,
 		resultPath:  "",
 	}
-	tokenToFilenameMap[resultToken] = resultState
+	resultStates[resultToken] = resultState
 	return resultState
 }
 
@@ -136,10 +168,21 @@ func returnState(resp http.ResponseWriter, state *ResultState) {
 }
 
 func returnInternalServerError(resp http.ResponseWriter, errorMessage string) {
+	resp.Header().Set("Content-Type", "application/text")
 	resp.WriteHeader(http.StatusInternalServerError)
 	_, err := resp.Write([]byte(fmt.Sprintf("Internal server error: %s", errorMessage)))
 	if err != nil {
 		sigolo.Errorf("%+v", errors.Wrap(err, "Could not write internal server error response"))
+		return
+	}
+}
+
+func returnNotFound(resp http.ResponseWriter, errorMessage string) {
+	resp.Header().Set("Content-Type", "application/text")
+	resp.WriteHeader(http.StatusNotFound)
+	_, err := resp.Write([]byte(fmt.Sprintf("Not found: %s", errorMessage)))
+	if err != nil {
+		sigolo.Errorf("%+v", errors.Wrap(err, "Could not write not found response"))
 		return
 	}
 }
