@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"wiki2book/config"
 	"wiki2book/util"
 
 	"github.com/hauke96/sigolo/v2"
@@ -55,11 +54,11 @@ func (t *Tokenizer) escapeImages(content string) string {
 
 	// Check if this media type is unwanted
 	fileExtension := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
-	if util.Contains(config.Current.IgnoredMediaTypes, fileExtension) {
+	if util.Contains(t.configService.Get().IgnoredMediaTypes, fileExtension) {
 		// This image might should be ignored. However, there are special cases, e.g. when PDFs should be ignored but
 		// also converted into an image. In this case the PDF doesn't count as PDF but as image and can stay.
-		isPdfAndShouldStay := fileExtension == "pdf" && config.Current.ShouldConvertPdfToPng()
-		isSvgAndShouldStay := fileExtension == "svg" && config.Current.ShouldConvertSvgToPng()
+		isPdfAndShouldStay := fileExtension == "pdf" && t.configService.Get().ShouldConvertPdfToPng()
+		isSvgAndShouldStay := fileExtension == "svg" && t.configService.Get().ShouldConvertSvgToPng()
 		if !isPdfAndShouldStay && !isSvgAndShouldStay {
 			return ""
 		}
@@ -207,7 +206,7 @@ func (t *Tokenizer) parseImages(content string) string {
 
 		filePrefix := strings.ToLower(strings.SplitN(imageContent, ":", 2)[0])
 
-		if imageContent == "" || !util.Contains(config.Current.FilePrefixes, filePrefix) {
+		if imageContent == "" || !util.Contains(t.configService.Get().FilePrefixes, filePrefix) {
 			content = content[0:startIndex[0]] + content[endIndex+2:]
 		} else {
 			options := strings.Split(imageContent, "|")
@@ -222,7 +221,7 @@ func (t *Tokenizer) parseImages(content string) string {
 			// Do some cleanup: Remove definitely uninteresting options.
 			var filteredOptions []string
 			for _, option := range options {
-				if !util.HasAnyPrefix(option, config.Current.IgnoredImageParams...) {
+				if !util.HasAnyPrefix(option, t.configService.Get().IgnoredImageParams...) {
 					filteredOptions = append(filteredOptions, option)
 				}
 			}

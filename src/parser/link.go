@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"strings"
-	"wiki2book/config"
 	"wiki2book/util"
 )
 
@@ -63,7 +62,7 @@ func (t *Tokenizer) parseLink(content string, openingBrackets string, closingBra
 		// Ignore all kind of files, they are parsed elsewhere
 		if strings.Contains(splitItem, ":") {
 			filePrefix := strings.ToLower(strings.SplitN(splitItem, ":", 2)[0])
-			if util.Contains(config.Current.FilePrefixes, filePrefix) {
+			if util.Contains(t.configService.Get().FilePrefixes, filePrefix) {
 				resultSegments = append(resultSegments, openingBrackets)
 				resultSegments = append(resultSegments, splitItem)
 				continue

@@ -89,7 +89,7 @@ func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile st
 		http.NewDefaultHttpService(),
 	)
 
-	tokenizer := parser.NewTokenizer(wikipediaService)
+	tokenizer := parser.NewTokenizer(wikipediaService, g.configService)
 	article, err := tokenizer.Tokenize(string(fileContent), title)
 	sigolo.FatalCheck(err)
 
@@ -226,7 +226,7 @@ func (g *EbookGenerator) processArticle(articleName string, currentArticleNumber
 		sigolo.FatalCheck(err)
 
 		sigolo.Debugf("Article '%s' (%d/%d): Tokenize content", articleName, currentArticleNumber, totalNumberOfArticles)
-		tokenizer := parser.NewTokenizer(wikipediaService)
+		tokenizer := parser.NewTokenizer(wikipediaService, g.configService)
 		article, err := tokenizer.Tokenize(wikiArticleDto.Parse.Wikitext.Content, wikiArticleDto.Parse.OriginalTitle)
 		sigolo.FatalCheck(err)
 

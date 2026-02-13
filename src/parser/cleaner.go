@@ -2,7 +2,6 @@ package parser
 
 import (
 	"strings"
-	"wiki2book/config"
 	"wiki2book/util"
 )
 
@@ -86,7 +85,7 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			// be treated as normal internal links, i.e. the "SomeLinkText" in this example should stay.
 			isNormalLinkToCategory := content[i+2] == ':'
 
-			if len(allPrefixes) > 0 && util.Contains(config.Current.FilePrefixes, strings.ToLower(allPrefixes[0])) {
+			if len(allPrefixes) > 0 && util.Contains(t.configService.Get().FilePrefixes, strings.ToLower(allPrefixes[0])) {
 				// We found an image. This extra treatment exists because images might contain colons and that would
 				// disturb the rest of the parsing below. Therefore, images get this fast exit.
 				continue
@@ -103,8 +102,8 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 			for j := 0; j < len(allPrefixes); j++ {
 				linkPrefix := strings.ToLower(allPrefixes[j])
 
-				isForbiddenPrefix := !util.Contains(config.Current.FilePrefixes, linkPrefix) && !util.Contains(config.Current.AllowedLinkPrefixes, linkPrefix)
-				isCategory := util.Contains(config.Current.CategoryPrefixes, linkPrefix)
+				isForbiddenPrefix := !util.Contains(t.configService.Get().FilePrefixes, linkPrefix) && !util.Contains(t.configService.Get().AllowedLinkPrefixes, linkPrefix)
+				isCategory := util.Contains(t.configService.Get().CategoryPrefixes, linkPrefix)
 
 				if linkPrefix != "" && (isForbiddenPrefix || isCategory) {
 					content = content[0:i] + content[endIndex+2:]
@@ -123,8 +122,8 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 
 func (t *Tokenizer) handleUnwantedAndTrailingTemplates(content string) string {
 	// All lower case. Makes things easier below.
-	ignoreTemplates := util.AllToLower(config.Current.IgnoredTemplates)
-	trailingTemplates := util.AllToLower(config.Current.TrailingTemplates)
+	ignoreTemplates := util.AllToLower(t.configService.Get().IgnoredTemplates)
+	trailingTemplates := util.AllToLower(t.configService.Get().TrailingTemplates)
 	var foundTrailingTemplates []string
 
 	for i := 0; i < len(content)-1; i++ {

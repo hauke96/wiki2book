@@ -2,7 +2,6 @@ package parser
 
 import (
 	"testing"
-	"wiki2book/config"
 	"wiki2book/test"
 )
 
@@ -93,7 +92,7 @@ func TestRemoveUnwantedLinks_unwantedCategoriesStayWhenNormalLink(t *testing.T) 
 func TestRemoveUnwantedLinks(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.AllowedLinkPrefixes = []string{"arxiv"}
+	tokenizer.configService.Get().AllowedLinkPrefixes = []string{"arxiv"}
 
 	content := `[[de:foo]][[arxiv:whatever]][[DE:FOO]][[EN:FOO:BAR
 $ome+µeird-string]]
@@ -131,7 +130,7 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 func TestUnwantedAndTrailingTemplates(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
+	tokenizer.configService.Get().IgnoredTemplates = []string{"graph:chart", "siehe auch", "toc"}
 
 	content := `{{siehe auch}}{{GRAPH:CHART
 |$ome+µeird-string}}{{let this template stay}}{{
@@ -143,7 +142,7 @@ toc }}`
 func TestUnwantedAndTrailingTemplates_multiLine(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.IgnoredTemplates = []string{"naviblock"}
+	tokenizer.configService.Get().IgnoredTemplates = []string{"naviblock"}
 
 	content := `foo
 {{NaviBlock
@@ -157,7 +156,7 @@ bar`
 func TestUnwantedAndTrailingTemplates_templateNameWithSpaces(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.IgnoredTemplates = []string{"navigationsleiste"}
+	tokenizer.configService.Get().IgnoredTemplates = []string{"navigationsleiste"}
 
 	content := `foo
 {{Navigationsleiste Foo Bar Blubb}}
@@ -169,7 +168,7 @@ bar`
 func TestUnwantedAndTrailingTemplates_moveTrailingTemplatesDown(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.TrailingTemplates = []string{"FOO", "bar"}
+	tokenizer.configService.Get().TrailingTemplates = []string{"FOO", "bar"}
 
 	content := `{{siehe auch}}{{foo}}{{foo}}{{let this template stay}}{{bar}}`
 	content = tokenizer.handleUnwantedAndTrailingTemplates(content)
@@ -187,7 +186,7 @@ func TestRemoveUnwantedHtml(t *testing.T) {
 func TestClean(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
+	tokenizer.configService.Get().IgnoredTemplates = []string{"wikisource", "gesprochene version", "naviblock", "positionskarte+", "positionskarte~", "hauptartikel"}
 	var err error
 
 	content := "<div foo>Some</div> [[Category:weird]]wikitext{{Wikisource}}"

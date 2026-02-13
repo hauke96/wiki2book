@@ -3,17 +3,15 @@ package parser
 import (
 	"fmt"
 	"testing"
-	"wiki2book/config"
 	"wiki2book/test"
 )
 
 func TestEscapeImages_removeVideos(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	var content string
 
-	for _, extension := range config.Current.IgnoredMediaTypes {
+	for _, extension := range tokenizer.configService.Get().IgnoredMediaTypes {
 		content = "file:foo." + extension
 		content = tokenizer.escapeImages(content)
 		test.AssertEmptyString(t, content)
@@ -27,10 +25,9 @@ func TestEscapeImages_removeVideos(t *testing.T) {
 }
 
 func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.CommandTemplatePdfToPng = "some-command"
+	tokenizer.configService.Get().CommandTemplatePdfToPng = "some-command"
 
 	var content string
 
@@ -42,10 +39,9 @@ func TestEscapeImages_keepPdfsEvenWhenIgnored(t *testing.T) {
 }
 
 func TestEscapeImages_keepSvgsEvenWhenIgnored(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
-	config.Current.CommandTemplateSvgToPng = "some-command"
+	tokenizer.configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	var content string
 
@@ -57,7 +53,6 @@ func TestEscapeImages_keepSvgsEvenWhenIgnored(t *testing.T) {
 }
 
 func TestEscapeImages_removeVideoWithMultilineCaption(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	content := `file:foo.webm|this caption<br>
@@ -78,7 +73,6 @@ important!`, content)
 }
 
 func TestEscapeImages_escapeFileNames(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	content := "file:some photo.png|with|properties"
@@ -88,7 +82,6 @@ func TestEscapeImages_escapeFileNames(t *testing.T) {
 }
 
 func TestEscapeImages_leadingNonAscii(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	content := "file:öäü.png|with|properties"
@@ -98,7 +91,6 @@ func TestEscapeImages_leadingNonAscii(t *testing.T) {
 }
 
 func TestEscapeImages_leadingSpecialChar(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	content := "file:\"öäü\".png|with|properties"
@@ -167,18 +159,17 @@ blubb`, content)
 }
 
 func TestParseImages_inlineHappyPath(t *testing.T) {
-	setup()
 	tokenizer := NewTokenizerWithMockWikipediaService()
-	config.Current.IgnoredMediaTypes = []string{}
+	tokenizer.configService.Get().IgnoredMediaTypes = []string{}
 
 	content := tokenizer.parseImages("foo [[file:image.jpg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 
-	config.Current.CommandTemplatePdfToPng = ""
+	tokenizer.configService.Get().CommandTemplatePdfToPng = ""
 	content = tokenizer.parseImages("foo [[file:image.pdf]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_1$$ bar", content)
 
-	config.Current.CommandTemplateSvgToPng = ""
+	tokenizer.configService.Get().CommandTemplateSvgToPng = ""
 	content = tokenizer.parseImages("foo [[file:image.svg]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_2$$ bar", content)
 }
@@ -196,7 +187,7 @@ func TestParseImages_withEscaping(t *testing.T) {
 	}, tokenizer.getTokenMap())
 
 	tokenizer = NewTokenizerWithMockWikipediaService()
-	config.Current.IgnoredMediaTypes = []string{"gif"}
+	tokenizer.configService.Get().IgnoredMediaTypes = []string{"gif"}
 	content = tokenizer.parseImages("foo [[file:nice image.gif]] bar")
 	test.AssertEqual(t, "foo  bar", content)
 	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
@@ -211,14 +202,18 @@ func TestParseImages_ignoreParameters(t *testing.T) {
 }
 
 func TestParseImages_ignoreParametersOnInlineImage(t *testing.T) {
-	config.Current.IgnoredImageParams = []string{
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	tokenizer.configService.Get().IgnoredImageParams = []string{
 		"param",
 		"otherParam",
 	}
 
-	for _, param := range config.Current.IgnoredImageParams {
-		tokenizer := NewTokenizerWithMockWikipediaService()
+	for _, param := range tokenizer.configService.Get().IgnoredImageParams {
+		tokenizer.tokenCounter = 0
+		tokenizer.images = []string{}
+
 		content := tokenizer.parseImages(fmt.Sprintf("foo [[file:image.jpg|%s]] bar", param))
+
 		test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE_INLINE+"_0$$ bar", content)
 	}
 }
@@ -333,11 +328,10 @@ func TestParseImages_withCaptionEndingWithLinks(t *testing.T) {
 }
 
 func TestParseImages_withCaptionAndTrailingParameter(t *testing.T) {
-	config.Current.IgnoredImageParams = []string{
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	tokenizer.configService.Get().IgnoredImageParams = []string{
 		"ignoredParam",
 	}
-
-	tokenizer := NewTokenizerWithMockWikipediaService()
 
 	content := tokenizer.parseImages("foo [[file:image.jpg|10x20px|mini|some caption|ignoredParam=blubb]] bar")
 	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_IMAGE+"_0$$ bar", content)

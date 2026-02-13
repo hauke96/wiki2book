@@ -2,6 +2,7 @@ package parser
 
 import (
 	"testing"
+	"wiki2book/config"
 	"wiki2book/test"
 	"wiki2book/wikipedia"
 )
@@ -13,7 +14,7 @@ func TestEvaluateTemplate_existingFile(t *testing.T) {
 	wikipediaService.EvaluateTemplateFunc = func(template string, cacheFile string) (string, error) {
 		return "blubb", nil
 	}
-	tokenizer := NewTokenizer(wikipediaService)
+	tokenizer := NewTokenizer(wikipediaService, config.NewConfigService())
 
 	content, err := tokenizer.evaluateTemplates("Wikitext with {{my-template}}.")
 	test.AssertNil(t, err)
@@ -26,7 +27,7 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	wikipediaService.EvaluateTemplateFunc = func(template string, cacheFile string) (string, error) {
 		return expectedTemplateContent, nil
 	}
-	tokenizer := NewTokenizer(wikipediaService)
+	tokenizer := NewTokenizer(wikipediaService, config.NewConfigService())
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{Hauptartikel|Sternentstehung}}.")
@@ -45,7 +46,7 @@ func TestEvaluateTemplate_nestedTemplates(t *testing.T) {
 	wikipediaService.EvaluateTemplateFunc = func(template string, cacheFile string) (string, error) {
 		return expectedTemplateContent, nil
 	}
-	tokenizer := NewTokenizer(wikipediaService)
+	tokenizer := NewTokenizer(wikipediaService, config.NewConfigService())
 
 	// Evaluate content
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}} bar}}")
@@ -64,7 +65,7 @@ func TestEvaluateTemplate_nestedTemplatesWithTouchingEnds(t *testing.T) {
 	wikipediaService.EvaluateTemplateFunc = func(template string, cacheFile string) (string, error) {
 		return expectedTemplateContent, nil
 	}
-	tokenizer := NewTokenizer(wikipediaService)
+	tokenizer := NewTokenizer(wikipediaService, config.NewConfigService())
 
 	// Evaluate content -> no space/separator between first }} and second }}
 	content, err := tokenizer.evaluateTemplates("Siehe {{FOO|{{FOO}}}}")

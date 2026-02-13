@@ -2,18 +2,22 @@ package parser
 
 import (
 	"testing"
+	"wiki2book/config"
 	"wiki2book/test"
 	"wiki2book/wikipedia"
 )
 
 func NewTokenizerWithMockWikipediaService() Tokenizer {
+	configService := config.NewConfigService()
+	configService.Get().CommandTemplatePdfToPng = ""
+	configService.Get().CommandTemplateSvgToPng = ""
 	return Tokenizer{
 		tokenMap:         map[string]Token{},
 		tokenCounter:     0,
 		images:           []string{},
 		wikipediaService: wikipedia.NewMockWikipediaService(),
-
-		tokenizeContent: tokenizeContent,
+		configService:    configService,
+		tokenizeContent:  tokenizeContent,
 	}
 }
 

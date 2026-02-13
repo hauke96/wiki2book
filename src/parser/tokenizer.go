@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"wiki2book/config"
 	"wiki2book/wikipedia"
 
 	"github.com/hauke96/sigolo/v2"
@@ -49,6 +50,7 @@ type Tokenizer struct {
 	tokenCounter     int
 	images           []string
 	wikipediaService wikipedia.WikipediaService
+	configService    *config.ConfigService
 
 	tokenizeContent func(tokenizer *Tokenizer, content string) string
 }
@@ -69,14 +71,14 @@ type StringToken struct {
 	String string
 }
 
-func NewTokenizer(wikipediaService wikipedia.WikipediaService) Tokenizer {
+func NewTokenizer(wikipediaService wikipedia.WikipediaService, configService *config.ConfigService) Tokenizer {
 	return Tokenizer{
 		tokenMap:         map[string]Token{},
 		tokenCounter:     0,
 		images:           []string{},
 		wikipediaService: wikipediaService,
-
-		tokenizeContent: tokenizeContent,
+		configService:    configService,
+		tokenizeContent:  tokenizeContent,
 	}
 }
 
