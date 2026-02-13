@@ -39,10 +39,10 @@ type ResultState struct {
 
 type Server struct {
 	configService         *config.ConfigService
-	ebookGeneratorService *generator.EbookGeneratorService
+	ebookGeneratorService *generator.EbookGenerator
 }
 
-func NewServer(configService *config.ConfigService, ebookGeneratorService *generator.EbookGeneratorService) *Server {
+func NewServer(configService *config.ConfigService, ebookGeneratorService *generator.EbookGenerator) *Server {
 	return &Server{
 		configService:         configService,
 		ebookGeneratorService: ebookGeneratorService,

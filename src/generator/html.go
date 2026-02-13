@@ -92,14 +92,22 @@ var (
 )
 
 type HtmlGenerator struct {
-	// TODO must they be public?
-	TokenMap         map[string]parser.Token
-	WikipediaService wikipedia.WikipediaService
+	tokenMap         map[string]parser.Token
+	configService    *config.ConfigService
+	wikipediaService wikipedia.WikipediaService
+}
+
+func NewHtmlGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService, wikipediaService wikipedia.WikipediaService) *HtmlGenerator {
+	return &HtmlGenerator{
+		tokenMap:         tokenMap,
+		configService:    configService,
+		wikipediaService: wikipediaService,
+	}
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
 func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
-	styleFile, err := util.ToRelativePathWithBasedir(config.Current.CacheDir, config.Current.StyleFile)
+	styleFile, err := util.ToRelativePathWithBasedir(g.configService.Get().CacheDir, g.configService.Get().StyleFile)
 	sigolo.FatalCheck(err)
 	content := strings.ReplaceAll(HEADER, "{{STYLE}}", styleFile)
 	content += "\n<h1>" + wikiArticle.Title + "</h1>\n"
@@ -113,7 +121,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 }
 
 func (g *HtmlGenerator) getToken(tokenKey string) (parser.Token, bool) {
-	token, hasToken := g.TokenMap[tokenKey]
+	token, hasToken := g.tokenMap[tokenKey]
 	return token, hasToken
 }
 func (g *HtmlGenerator) expandSimpleString(content string) string {
@@ -143,7 +151,7 @@ func (g *HtmlGenerator) expandHeadings(token parser.HeadingToken) (string, error
 
 func (g *HtmlGenerator) expandInlineImage(token parser.InlineImageToken) (string, error) {
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-	filename := filenameToImagePath(token.Filename)
+	filename := g.filenameToImagePath(token.Filename)
 
 	return fmt.Sprintf(IMAGE_INLINE_TEMPLATE, escapePathComponents(filename), sizeTemplate), nil
 }
@@ -155,7 +163,7 @@ func (g *HtmlGenerator) expandImage(token parser.ImageToken) (string, error) {
 	}
 
 	sizeTemplate := expandSizeTemplate(token.SizeX, token.SizeY)
-	filename := filenameToImagePath(token.Filename)
+	filename := g.filenameToImagePath(token.Filename)
 
 	return fmt.Sprintf(IMAGE_TEMPLATE, escapePathComponents(filename), sizeTemplate, caption), nil
 }
@@ -184,14 +192,14 @@ func expandSizeTemplate(xSize int, ySize int) string {
 	return sizeTemplate
 }
 
-func filenameToImagePath(filename string) string {
+func (g *HtmlGenerator) filenameToImagePath(filename string) string {
 	filePath := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
 
-	if config.Current.ShouldConvertPdfToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
+	if g.configService.Get().ShouldConvertPdfToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
 		filePath = util.GetPngPathForPdf(filePath)
-	} else if config.Current.ShouldConvertSvgToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
+	} else if g.configService.Get().ShouldConvertSvgToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingSvg {
 		filePath = util.GetPngPathForSvg(filePath)
-	} else if config.Current.ShouldConvertWebpToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingWebp {
+	} else if g.configService.Get().ShouldConvertWebpToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingWebp {
 		filePath = util.GetPngPathForFile(filePath)
 	}
 
@@ -372,7 +380,7 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 }
 
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgAbsolutePath, pngAbsolutePath, err := g.WikipediaService.RenderMath(token.Content)
+	svgAbsolutePath, pngAbsolutePath, err := g.wikipediaService.RenderMath(token.Content)
 	if err != nil {
 		return "", err
 	}

@@ -25,15 +25,19 @@ const (
 	defaultStatsTxtOutputFile  = "stats.txt"
 )
 
-type EbookGeneratorService struct {
-	configService *config.ConfigService
+type EbookGenerator struct {
+	configService        *config.ConfigService
+	epubGeneratorService *EpubGenerator
 }
 
-func NewEbookGenerator(configService *config.ConfigService) *EbookGeneratorService {
-	return &EbookGeneratorService{configService: configService}
+func NewEbookGenerator(configService *config.ConfigService) *EbookGenerator {
+	return &EbookGenerator{
+		configService:        configService,
+		epubGeneratorService: NewEpubGenerator(configService),
+	}
 }
 
-func (g *EbookGeneratorService) CreateProject(projectFile string, outputFile string, cliConfig *config.Configuration) *config.Project {
+func (g *EbookGenerator) CreateProject(projectFile string, outputFile string, cliConfig *config.Configuration) *config.Project {
 	var err error
 
 	sigolo.Infof("Use project file: '%s'", projectFile)
@@ -66,7 +70,7 @@ func (g *EbookGeneratorService) CreateProject(projectFile string, outputFile str
 	return proj
 }
 
-func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, outputFile string) {
+func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile string) {
 	g.configService.Get().Print()
 
 	fileContent, err := os.ReadFile(inputFile)
@@ -95,10 +99,7 @@ func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, output
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if g.shouldRecreateHtml(htmlFilePath, g.configService.Get().ForceRegenerateHtml) {
-		htmlGenerator := &HtmlGenerator{
-			TokenMap:         article.TokenMap,
-			WikipediaService: wikipediaService,
-		}
+		htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, wikipediaService)
 		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
@@ -108,7 +109,7 @@ func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, output
 		Title: title,
 	}
 
-	err = GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
+	err = g.epubGeneratorService.GenerateEpub([]string{htmlFilePath}, outputFile, metadata)
 	sigolo.FatalCheck(err)
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
@@ -116,7 +117,7 @@ func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, output
 	sigolo.Infof("Successfully created %s file '%s'", g.configService.Get().OutputType, absoluteOutputFile)
 }
 
-func (g *EbookGeneratorService) GenerateArticleEbook(articleName string, outputFile string) {
+func (g *EbookGenerator) GenerateArticleEbook(articleName string, outputFile string) {
 	var articles []string
 	articles = append(articles, articleName)
 
@@ -130,7 +131,7 @@ func (g *EbookGeneratorService) GenerateArticleEbook(articleName string, outputF
 	g.GenerateBookFromProject(proj)
 }
 
-func (g *EbookGeneratorService) GenerateBookFromProject(project *config.Project) {
+func (g *EbookGenerator) GenerateBookFromProject(project *config.Project) {
 	articles := project.Articles
 	metadata := project.Metadata
 
@@ -195,7 +196,7 @@ func (g *EbookGeneratorService) GenerateBookFromProject(project *config.Project)
 	case config.OutputTypeEpub2:
 		fallthrough
 	case config.OutputTypeEpub3:
-		err := GenerateEpub(articleOutputFiles, outputFile, metadata)
+		err := g.epubGeneratorService.GenerateEpub(articleOutputFiles, outputFile, metadata)
 		sigolo.FatalCheck(err)
 	case config.OutputTypeStatsJson:
 		fallthrough
@@ -211,7 +212,7 @@ func (g *EbookGeneratorService) GenerateBookFromProject(project *config.Project)
 
 // processArticle processes a given article, which means, the content (including images etc.) is downloaded and the
 // article will be tokenized, parsed and converted into the output format stored in the current configuration.
-func (g *EbookGeneratorService) processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
+func (g *EbookGenerator) processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", g.configService.Get().WikipediaInstance, g.configService.Get().WikipediaHost)
@@ -238,10 +239,7 @@ func (g *EbookGeneratorService) processArticle(articleName string, currentArticl
 			fallthrough
 		case config.OutputTypeEpub3:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
-			htmlGenerator := &HtmlGenerator{
-				TokenMap:         article.TokenMap,
-				WikipediaService: wikipediaService,
-			}
+			htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, wikipediaService)
 			htmlFilePath, err = htmlGenerator.Generate(article)
 			articleOutputFile = htmlFilePath
 			sigolo.FatalCheck(err)
@@ -260,7 +258,7 @@ func (g *EbookGeneratorService) processArticle(articleName string, currentArticl
 	return articleOutputFile
 }
 
-func (g *EbookGeneratorService) shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
+func (g *EbookGenerator) shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 	if forceHtmlRecreate || g.configService.Get().OutputType == config.OutputTypeStatsJson || g.configService.Get().OutputType == config.OutputTypeStatsTxt {
 		return true
 	}
@@ -274,7 +272,7 @@ func (g *EbookGeneratorService) shouldRecreateHtml(htmlFilePath string, forceHtm
 
 // ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
 // temporary files in the temp files folder that might still exist from previous runs.
-func (g *EbookGeneratorService) ensurePathsAndClearTempDir(outputFile string) string {
+func (g *EbookGenerator) ensurePathsAndClearTempDir(outputFile string) string {
 	var err error
 
 	if g.configService.Get().OutputType == config.OutputTypeStatsJson && !strings.HasSuffix(outputFile, "json") {

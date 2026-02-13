@@ -13,32 +13,40 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
+type EpubGenerator struct {
+	configService *config.ConfigService
+}
+
+func NewEpubGenerator(configService *config.ConfigService) *EpubGenerator {
+	return &EpubGenerator{configService: configService}
+}
+
+func (g *EpubGenerator) GenerateEpub(articleFiles []string, outputFile string, metadata config.Metadata) error {
 	var err error
 
 	sigolo.Debugf("Generate EPUB to '%s' for articles %v", outputFile, articleFiles)
 
-	if config.Current.OutputType != config.OutputTypeEpub2 && config.Current.OutputType != config.OutputTypeEpub3 {
-		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
+	if g.configService.Get().OutputType != config.OutputTypeEpub2 && g.configService.Get().OutputType != config.OutputTypeEpub3 {
+		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", g.configService.Get().OutputType)
 	}
 
-	if config.Current.OutputDriver == config.OutputDriverPandoc {
-		err = GenerateEpubWithPandoc(articleFiles, outputFile, metadata)
-	} else if config.Current.OutputDriver == config.OutputDriverInternal {
-		err = GenerateEpubWithGoLibrary(articleFiles, outputFile, metadata)
+	if g.configService.Get().OutputDriver == config.OutputDriverPandoc {
+		err = g.GenerateEpubWithPandoc(articleFiles, outputFile, metadata)
+	} else if g.configService.Get().OutputDriver == config.OutputDriverInternal {
+		err = g.GenerateEpubWithGoLibrary(articleFiles, outputFile, metadata)
 	} else {
-		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", config.Current.OutputType)
+		return errors.Errorf("Output type '%s' does not support EPUB generation. This is a Bug.", g.configService.Get().OutputType)
 	}
 
 	return err
 }
 
-func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata config.Metadata) error {
+func (g *EpubGenerator) GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 	// Example: pandoc -o Stern.epub --css ../../style.css --epub-embed-font="/usr/share/fonts/TTF/DejaVuSans*.ttf" Stern.html
 
 	args := []string{
 		"-f", "html",
-		"-t", config.Current.OutputType,
+		"-t", g.configService.Get().OutputType,
 		"-o", outputFile,
 		"--metadata", "title=" + metadata.Title,
 		"--metadata", "author=" + metadata.Author,
@@ -46,27 +54,27 @@ func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata co
 		"--metadata", "language=" + metadata.Language,
 		"--metadata", "date=" + metadata.Date,
 	}
-	if config.Current.TocDepth > 0 {
-		args = append(args, "--toc", "--toc-depth", strconv.Itoa(config.Current.TocDepth))
+	if g.configService.Get().TocDepth > 0 {
+		args = append(args, "--toc", "--toc-depth", strconv.Itoa(g.configService.Get().TocDepth))
 	}
-	if config.Current.PandocDataDir != "" {
-		args = append(args, "--data-dir", config.Current.PandocDataDir)
+	if g.configService.Get().PandocDataDir != "" {
+		args = append(args, "--data-dir", g.configService.Get().PandocDataDir)
 	}
-	if config.Current.StyleFile != "" {
-		args = append(args, "--css", config.Current.StyleFile)
+	if g.configService.Get().StyleFile != "" {
+		args = append(args, "--css", g.configService.Get().StyleFile)
 	}
-	if config.Current.CoverImage != "" {
-		args = append(args, "--epub-cover-image="+config.Current.CoverImage)
+	if g.configService.Get().CoverImage != "" {
+		args = append(args, "--epub-cover-image="+g.configService.Get().CoverImage)
 	}
-	if len(config.Current.FontFiles) > 0 {
-		for _, file := range config.Current.FontFiles {
+	if len(g.configService.Get().FontFiles) > 0 {
+		for _, file := range g.configService.Get().FontFiles {
 			args = append(args, "--epub-embed-font="+file)
 		}
 	}
 
 	args = append(args, sourceFiles...)
 
-	err := util.Execute(config.Current.PandocExecutable, config.Current.CacheDir, args...)
+	err := util.Execute(g.configService.Get().PandocExecutable, g.configService.Get().CacheDir, args...)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error generating EPUB file '%s' using pandoc", outputFile))
 	}
@@ -74,7 +82,7 @@ func GenerateEpubWithPandoc(sourceFiles []string, outputFile string, metadata co
 	return nil
 }
 
-func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata config.Metadata) error {
+func (g *EpubGenerator) GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata config.Metadata) error {
 
 	epubObj, err := epub.NewEpub("My title")
 	if err != nil {
@@ -85,9 +93,9 @@ func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata
 	epubObj.SetLang(metadata.Language)
 	epubObj.SetTitle(metadata.Title)
 
-	internalCoverImagePath, err := epubObj.AddImage(config.Current.CoverImage, "cover.png")
+	internalCoverImagePath, err := epubObj.AddImage(g.configService.Get().CoverImage, "cover.png")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error adding cover image '%s' to EPUB object", config.Current.CoverImage))
+		return errors.Wrap(err, fmt.Sprintf("Error adding cover image '%s' to EPUB object", g.configService.Get().CoverImage))
 	}
 
 	err = epubObj.SetCover(internalCoverImagePath, "")
@@ -116,9 +124,9 @@ func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata
 		epubObj.EmbedImages()
 	}
 
-	_, err = epubObj.AddCSS(config.Current.StyleFile, "style.css")
+	_, err = epubObj.AddCSS(g.configService.Get().StyleFile, "style.css")
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error adding CSS file %s to EPUB object", config.Current.StyleFile))
+		return errors.Wrap(err, fmt.Sprintf("Error adding CSS file %s to EPUB object", g.configService.Get().StyleFile))
 	}
 
 	//for _, image := range images {
@@ -132,7 +140,7 @@ func GenerateEpubWithGoLibrary(sourceFiles []string, outputFile string, metadata
 	//}
 
 	// TODO Test if this if working. The name in the CSS style and the name inside the EPUB probably need to match.
-	for _, fontFile := range config.Current.FontFiles {
+	for _, fontFile := range g.configService.Get().FontFiles {
 		sigolo.Debugf("Add font file %s to EPUB object", fontFile)
 		_, err = epubObj.AddFont(fontFile, fontFile)
 		if err != nil {
