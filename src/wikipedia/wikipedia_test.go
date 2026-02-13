@@ -30,8 +30,7 @@ func createTestConfigService() *config.ConfigService {
 	return configService
 }
 
-func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
-	// Arrange
+func setup() (*DefaultWikipediaService, *config.ConfigService, *image.MockImageProcessingService) {
 	mockHttpClient := http.NewMockHttpService(
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
 			return "", true, nil
@@ -39,12 +38,16 @@ func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
 		nil,
 	)
 	configService := createTestConfigService()
+	configService.Get().CommandTemplateImageProcessing = ""
+	configService.Get().CommandTemplateSvgToPng = ""
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	return wikipediaService, configService, imageProcessingServiceMock
+}
 
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = ""
-	config.Current.CommandTemplateSvgToPng = ""
+func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
+	// Arrange
+	wikipediaService, _, imageProcessingServiceMock := setup()
 
 	// Act
 	err := wikipediaService.postProcessImage("./foo.svg", true)
@@ -57,19 +60,9 @@ func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
 
 func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
 	// Arrange
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
-
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = "some-command"
-	config.Current.CommandTemplateSvgToPng = "some-command"
+	wikipediaService, configService, imageProcessingServiceMock := setup()
+	configService.Get().CommandTemplateImageProcessing = "some-command"
+	configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	// Act
 	err := wikipediaService.postProcessImage("./foo.svg", true)
@@ -82,19 +75,9 @@ func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
 
 func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
 	// Arrange
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
-
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = "some-command"
-	config.Current.CommandTemplatePdfToPng = "some-command"
+	wikipediaService, configService, imageProcessingServiceMock := setup()
+	configService.Get().CommandTemplateImageProcessing = "some-command"
+	configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	// Act
 	err := wikipediaService.postProcessImage("./foo.pdf", true)
@@ -107,19 +90,9 @@ func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
 
 func TestPostProcessImage_freshDownload_withWebpToPng(t *testing.T) {
 	// Arrange
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
-
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = "some-command"
-	config.Current.CommandTemplateWebpToPng = "some-command"
+	wikipediaService, configService, imageProcessingServiceMock := setup()
+	configService.Get().CommandTemplateImageProcessing = "some-command"
+	configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	// Act
 	err := wikipediaService.postProcessImage("./foo.webp", true)
@@ -132,19 +105,7 @@ func TestPostProcessImage_freshDownload_withWebpToPng(t *testing.T) {
 
 func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
 	// Arrange
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
-
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = ""
-	config.Current.CommandTemplateSvgToPng = ""
+	wikipediaService, _, imageProcessingServiceMock := setup()
 
 	// Act
 	err := wikipediaService.postProcessImage("./foo.svg", false)
@@ -157,23 +118,13 @@ func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.T) {
 	// Arrange
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	wikipediaService, configService, imageProcessingServiceMock := setup()
+	configService.Get().CommandTemplateImageProcessing = "some-command"
+	configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
 	_, err := os.OpenFile(svgFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
-
-	config.Current = config.NewDefaultConfig()
-	config.Current.CommandTemplateImageProcessing = "some-command"
-	config.Current.CommandTemplateSvgToPng = "some-command"
 
 	// Act
 	err = wikipediaService.postProcessImage(svgFilepath, false)
@@ -185,15 +136,8 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.
 }
 
 func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	// Arrange
+	wikipediaService, _, imageProcessingServiceMock := setup()
 
 	svgFilepath := filepath.Join(test.TestTempDirName, "foo.svg")
 	_, err := os.OpenFile(svgFilepath, os.O_RDONLY|os.O_CREATE, 0666)
@@ -203,45 +147,37 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 	_, err = os.OpenFile(pngFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
+	// Act
 	err = wikipediaService.postProcessImage(svgFilepath, false)
 
+	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	// Arrange
+	wikipediaService, configService, imageProcessingServiceMock := setup()
+	configService.Get().CommandTemplateImageProcessing = "some-command"
+	configService.Get().CommandTemplateSvgToPng = "some-command"
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
 	_, err := os.OpenFile(pdfFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
+	// Act
 	err = wikipediaService.postProcessImage(pdfFilepath, false)
 
+	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ResizeAndCompressImageCalls)
 	test.AssertEqual(t, 1, imageProcessingServiceMock.ConvertToPngCalls)
 }
 
 func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *testing.T) {
-	mockHttpClient := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
-			return "", true, nil
-		},
-		nil,
-	)
-	configService := createTestConfigService()
-	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	// Arrange
+	wikipediaService, _, imageProcessingServiceMock := setup()
 
 	pdfFilepath := filepath.Join(test.TestTempDirName, "foo.pdf")
 	_, err := os.OpenFile(pdfFilepath, os.O_RDONLY|os.O_CREATE, 0666)
@@ -251,8 +187,10 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 	_, err = os.OpenFile(pngFilepath, os.O_RDONLY|os.O_CREATE, 0666)
 	sigolo.FatalCheck(err)
 
+	// Act
 	err = wikipediaService.postProcessImage(pdfFilepath, false)
 
+	// Assert
 	test.AssertNil(t, err)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ResizeAndCompressImageCalls)
 	test.AssertEqual(t, 0, imageProcessingServiceMock.ConvertToPngCalls)

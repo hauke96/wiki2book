@@ -146,12 +146,12 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, freshl
 	outputFileExt := filepath.Ext(strings.ToLower(outputFilepath))
 
 	commandTemplate := ""
-	if config.Current.ShouldConvertPdfToPng() && outputFileExt == util.FileEndingPdf {
-		commandTemplate = config.Current.CommandTemplatePdfToPng
-	} else if config.Current.ShouldConvertSvgToPng() && outputFileExt == util.FileEndingSvg {
-		commandTemplate = config.Current.CommandTemplateSvgToPng
-	} else if config.Current.ShouldConvertWebpToPng() && outputFileExt == util.FileEndingWebp {
-		commandTemplate = config.Current.CommandTemplateWebpToPng
+	if w.configService.Get().ShouldConvertPdfToPng() && outputFileExt == util.FileEndingPdf {
+		commandTemplate = w.configService.Get().CommandTemplatePdfToPng
+	} else if w.configService.Get().ShouldConvertSvgToPng() && outputFileExt == util.FileEndingSvg {
+		commandTemplate = w.configService.Get().CommandTemplateSvgToPng
+	} else if w.configService.Get().ShouldConvertWebpToPng() && outputFileExt == util.FileEndingWebp {
+		commandTemplate = w.configService.Get().CommandTemplateWebpToPng
 	}
 
 	if commandTemplate != "" {
@@ -172,8 +172,8 @@ func (w *DefaultWikipediaService) postProcessImage(outputFilepath string, freshl
 	// If the file is new, rescale it using ImageMagick.
 	outputFileExt = filepath.Ext(strings.ToLower(outputFilepath))
 	fileFormatCanBeScaled := outputFileExt != util.FileEndingSvg && outputFileExt != util.FileEndingPdf
-	if freshlyDownloaded && config.Current.CommandTemplateImageProcessing != "" && fileFormatCanBeScaled {
-		err := w.imageProcessingService.ResizeAndCompressImage(outputFilepath, config.Current.CommandTemplateImageProcessing)
+	if freshlyDownloaded && w.configService.Get().CommandTemplateImageProcessing != "" && fileFormatCanBeScaled {
+		err := w.imageProcessingService.ResizeAndCompressImage(outputFilepath, w.configService.Get().CommandTemplateImageProcessing)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 		return "", freshlyDownloaded, err
 	}
 
-	if freshlyDownloaded && config.Current.SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
+	if freshlyDownloaded && w.configService.Get().SvgSizeToViewbox && filepath.Ext(cachedFilePath) == util.FileEndingSvg {
 		err = image.MakeSvgSizeAbsolute(cachedFilePath)
 		if err != nil {
 			sigolo.Errorf("Unable to make size of SVG '%s' absolute. This error will be ignored, since false errors exist for the XML parsing of SVGs. Error: %+v", cachedFilePath, err)
@@ -277,18 +277,18 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		return "", "", err
 	}
 
-	if config.Current.MathConverter == config.MathConverterNone {
+	if w.configService.Get().MathConverter == config.MathConverterNone {
 		return cachedSvgFile, cachedSvgFile, nil
-	} else if config.Current.MathConverter == config.MathConverterWikimedia {
+	} else if w.configService.Get().MathConverter == config.MathConverterWikimedia {
 		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
 		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		if err != nil {
 			return "", "", err
 		}
 		return cachedSvgFile, cachedPngFile, nil
-	} else if config.Current.MathConverter == config.MathConverterTemplate {
+	} else if w.configService.Get().MathConverter == config.MathConverterTemplate {
 		cachedPngFile := cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
-		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
+		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, w.configService.Get().CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
 		}
