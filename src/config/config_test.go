@@ -13,6 +13,10 @@ import (
 	"github.com/hauke96/sigolo/v2"
 )
 
+func setupConfigService() *ConfigService {
+	return &ConfigService{current: NewDefaultConfig()}
+}
+
 func testCallExpectingPanic(t *testing.T, call func()) {
 	defaultValidationErrorHandler = func(err error) {
 		panic(err)
@@ -27,7 +31,7 @@ func testCallExpectingPanic(t *testing.T, call func()) {
 }
 
 func TestMergeIntoCurrentConfig(t *testing.T) {
-	Current = NewDefaultConfig()
+	configService := setupConfigService()
 	expectedConfig := &Configuration{
 		ForceRegenerateHtml:            true,
 		SvgSizeToViewbox:               true,
@@ -65,9 +69,9 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		UserAgentTemplate:              "user-agent-template",
 	}
 
-	MergeIntoCurrentConfig(expectedConfig)
+	configService.MergeIntoCurrentConfig(expectedConfig)
 
-	vActual := reflect.ValueOf(*Current)
+	vActual := reflect.ValueOf(*configService.current)
 	vExpected := reflect.ValueOf(*expectedConfig)
 	actualValues := map[string]string{}
 	expectedValues := map[string]string{}
@@ -79,7 +83,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 }
 
 func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
-	Current = NewDefaultConfig()
+	configService := setupConfigService()
 	expectedConfig := NewDefaultConfig()
 	expectedConfig.CommandTemplateImageProcessing = ""
 	expectedConfig.CommandTemplateSvgToPng = ""
@@ -95,33 +99,33 @@ func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
 	expectedConfig.AllowedLinkPrefixes = []string{}
 	expectedConfig.CategoryPrefixes = []string{}
 
-	MergeIntoCurrentConfig(expectedConfig)
+	configService.MergeIntoCurrentConfig(expectedConfig)
 
-	test.AssertEqual(t, "", Current.CommandTemplateImageProcessing)
-	test.AssertEqual(t, "", Current.CommandTemplateWebpToPng)
-	test.AssertEqual(t, []string{}, Current.IgnoredTemplates)
-	test.AssertEqual(t, []string{}, Current.TrailingTemplates)
-	test.AssertEqual(t, []string{}, Current.IgnoredImageParams)
-	test.AssertEqual(t, []string{}, Current.IgnoredMediaTypes)
-	test.AssertEqual(t, []string{}, Current.WikipediaImageArticleHosts)
-	test.AssertEqual(t, []string{}, Current.FilePrefixes)
-	test.AssertEqual(t, []string{}, Current.AllowedLinkPrefixes)
-	test.AssertEqual(t, []string{}, Current.CategoryPrefixes)
+	test.AssertEqual(t, "", configService.current.CommandTemplateImageProcessing)
+	test.AssertEqual(t, "", configService.current.CommandTemplateWebpToPng)
+	test.AssertEqual(t, []string{}, configService.current.IgnoredTemplates)
+	test.AssertEqual(t, []string{}, configService.current.TrailingTemplates)
+	test.AssertEqual(t, []string{}, configService.current.IgnoredImageParams)
+	test.AssertEqual(t, []string{}, configService.current.IgnoredMediaTypes)
+	test.AssertEqual(t, []string{}, configService.current.WikipediaImageArticleHosts)
+	test.AssertEqual(t, []string{}, configService.current.FilePrefixes)
+	test.AssertEqual(t, []string{}, configService.current.AllowedLinkPrefixes)
+	test.AssertEqual(t, []string{}, configService.current.CategoryPrefixes)
 }
 
 func TestMergeIntoCurrentConfig_invalidMathConverter(t *testing.T) {
 	// Arrange
-	Current = NewDefaultConfig()
+	configService := setupConfigService()
 	expectedConfig := NewDefaultConfig()
 
 	expectedConfig.MathConverter = "foobar"
-	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
+	testCallExpectingPanic(t, func() { configService.MergeIntoCurrentConfig(expectedConfig) })
 
 	expectedConfig.MathConverter = "pandoc"
-	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
+	testCallExpectingPanic(t, func() { configService.MergeIntoCurrentConfig(expectedConfig) })
 
 	expectedConfig.MathConverter = "internal"
-	testCallExpectingPanic(t, func() { MergeIntoCurrentConfig(expectedConfig) })
+	testCallExpectingPanic(t, func() { configService.MergeIntoCurrentConfig(expectedConfig) })
 }
 
 func TestMakePathsAbsolute(t *testing.T) {

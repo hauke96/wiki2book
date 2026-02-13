@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/test"
 	"wiki2book/util"
@@ -21,14 +22,16 @@ func TestDownloadAndCache_withoutCachedFile(t *testing.T) {
 	content := "some interesting stuff"
 
 	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = test.TestCacheFolder
+	fileCache := cache.NewCache(configService)
 
-	httpService := NewDefaultHttpService()
+	httpService := NewDefaultHttpService(configService, fileCache)
 	httpService.httpClient = mockHttpClient
 
 	fsMock := util.NewDefaultMockFilesystem()
 	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return nil, os.ErrNotExist }
 	util.CurrentFilesystem = fsMock
-	config.Current.CacheDir = test.TestCacheFolder
 
 	// Act
 	cachedFilePath, freshlyDownloaded, err := httpService.DownloadAndCache("http://foobar", apiCacheFolder, key)
@@ -47,12 +50,13 @@ func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
 	content := "some interesting stuff"
 
 	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = test.TestCacheFolder
+	configService.Get().CacheMaxAge = 9999999
+	fileCache := cache.NewCache(configService)
 
-	httpService := NewDefaultHttpService()
+	httpService := NewDefaultHttpService(configService, fileCache)
 	httpService.httpClient = mockHttpClient
-
-	config.Current.CacheDir = test.TestCacheFolder
-	config.Current.CacheMaxAge = 9999999
 
 	fsMock := util.NewDefaultMockFilesystem()
 	fsMock.ReadFileFunc = func(name string) ([]byte, error) {
@@ -106,8 +110,10 @@ func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
 		}
 		return nil, errors.New("no more than 3 requests expected")
 	}
-
-	httpService := NewDefaultHttpService()
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = test.TestCacheFolder
+	fileCache := cache.NewCache(configService)
+	httpService := NewDefaultHttpService(configService, fileCache)
 	httpService.httpClient = mockHttpClient
 
 	// Act
@@ -155,8 +161,10 @@ func TestPostFormEncoded_tooManyRequestsResponse(t *testing.T) {
 		}
 		return nil, errors.New("no more than 3 requests expected")
 	}
-
-	httpService := NewDefaultHttpService()
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = test.TestCacheFolder
+	fileCache := cache.NewCache(configService)
+	httpService := NewDefaultHttpService(configService, fileCache)
 	httpService.httpClient = mockHttpClient
 
 	// Act

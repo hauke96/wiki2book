@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/http"
 	"wiki2book/image"
@@ -41,7 +42,8 @@ func setup() (*DefaultWikipediaService, *config.ConfigService, *image.MockImageP
 	configService.Get().CommandTemplateImageProcessing = ""
 	configService.Get().CommandTemplateSvgToPng = ""
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	cache := cache.NewCache(configService)
+	wikipediaService := NewWikipediaService(configService, cache, imageProcessingServiceMock, mockHttpClient)
 	return wikipediaService, configService, imageProcessingServiceMock
 }
 
@@ -225,7 +227,8 @@ func TestDownladImage(t *testing.T) {
 	configService := createTestConfigService()
 	configService.Get().WikipediaImageHost = "upload.wikimedia.org"
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpClient)
+	cache := cache.NewCache(configService)
+	wikipediaService := NewWikipediaService(configService, cache, imageProcessingServiceMock, mockHttpClient)
 
 	downloadImage, freshlyDownloaded, err := wikipediaService.downloadImage("en.wikipedia.org", "File:foo.jpg")
 
@@ -260,7 +263,8 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	)
 	configService := createTestConfigService()
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpService)
+	cache := cache.NewCache(configService)
+	wikipediaService := NewWikipediaService(configService, cache, imageProcessingServiceMock, mockHttpService)
 
 	// Evaluate content
 	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", key)
@@ -295,7 +299,8 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 	)
 	configService := createTestConfigService()
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpService)
+	cache := cache.NewCache(configService)
+	wikipediaService := NewWikipediaService(configService, cache, imageProcessingServiceMock, mockHttpService)
 
 	locationHeader, err := wikipediaService.getMathResource(mathString)
 
@@ -325,7 +330,8 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 	}
 	configService := createTestConfigService()
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
-	wikipediaService := NewWikipediaService(configService, imageProcessingServiceMock, mockHttpService)
+	cache := cache.NewCache(configService)
+	wikipediaService := NewWikipediaService(configService, cache, imageProcessingServiceMock, mockHttpService)
 
 	locationHeader, err := wikipediaService.getMathResource(mathString)
 

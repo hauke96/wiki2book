@@ -14,10 +14,12 @@ type ImageProcessingService interface {
 	ConvertToPng(webpFile string, pngFile string, commandTemplate string) error
 }
 
-type ImageProcessingServiceImpl struct{}
+type ImageProcessingServiceImpl struct {
+	configService *config.ConfigService
+}
 
-func NewImageProcessingService() ImageProcessingService {
-	return &ImageProcessingServiceImpl{}
+func NewImageProcessingService(configService *config.ConfigService) ImageProcessingService {
+	return &ImageProcessingServiceImpl{configService: configService}
 }
 
 // ResizeAndCompressImage will convert and rescale the image so that it's suitable for eBooks.
@@ -27,7 +29,7 @@ func (s *ImageProcessingServiceImpl) ResizeAndCompressImage(imageFilepath string
 	commandString := strings.ReplaceAll(commandTemplate, config.InputPlaceholder, imageFilepath)
 	commandString = strings.ReplaceAll(commandString, config.OutputPlaceholder, imageFilepath)
 
-	err := util.ExecuteCommandWithArgs(commandString, config.Current.CacheDir)
+	err := util.ExecuteCommandWithArgs(commandString, s.configService.Get().CacheDir)
 	return errors.Wrapf(err, "Converting image '%s' failed", imageFilepath)
 }
 

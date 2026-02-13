@@ -39,12 +39,14 @@ type ResultState struct {
 
 type Server struct {
 	configService         *config.ConfigService
+	fileCache             *cache.Cache
 	ebookGeneratorService *generator.EbookGenerator
 }
 
-func NewServer(configService *config.ConfigService, ebookGeneratorService *generator.EbookGenerator) *Server {
+func NewServer(configService *config.ConfigService, fileCache *cache.Cache, ebookGeneratorService *generator.EbookGenerator) *Server {
 	return &Server{
 		configService:         configService,
+		fileCache:             fileCache,
 		ebookGeneratorService: ebookGeneratorService,
 	}
 }
@@ -70,7 +72,7 @@ func (s *Server) handleArticleRequest(resp http.ResponseWriter, req *http.Reques
 	resultState := s.createNewResultState(articleName)
 
 	// Ensure output folder exists
-	outputFolderPath := cache.GetDirPathInCache(cache.TempDirName)
+	outputFolderPath := s.fileCache.GetDirPathInCache(cache.TempDirName)
 	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
@@ -82,7 +84,7 @@ func (s *Server) handleArticleRequest(resp http.ResponseWriter, req *http.Reques
 
 	// Create the output file
 	sanitizedFilename := util.SanitizeFilename(articleName)
-	tempFile, err := util.CurrentFilesystem.CreateTemp(cache.GetTempPath(), sanitizedFilename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(s.fileCache.GetTempPath(), sanitizedFilename)
 	if err != nil {
 		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", articleName))

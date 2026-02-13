@@ -13,57 +13,64 @@ import (
 	"github.com/pkg/errors"
 )
 
+func setupCache() (*Cache, *config.ConfigService) {
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = "cache-dir"
+	return &Cache{configService: configService}, configService
+}
+
 func TestGetFilePathInCache(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
+	fileCache, configService := setupCache()
 
 	// Act & Assert
 	filename := "foobar.png"
-	path := GetFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+	path := fileCache.GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(configService.Get().CacheDir, ImageCacheDirName, filename), path)
 
 	filename = "fööbär.png"
-	path = GetFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+	path = fileCache.GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(configService.Get().CacheDir, ImageCacheDirName, filename), path)
 
 	filename = "123_-!§()µ→.png"
-	path = GetFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, filename), path)
+	path = fileCache.GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(configService.Get().CacheDir, ImageCacheDirName, filename), path)
 
 	filename = "a\"b|c/d\\e.p*n:g%"
-	path = GetFilePathInCache(ImageCacheDirName, filename)
-	test.AssertEqual(t, filepath.Join(config.Current.CacheDir, ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
+	path = fileCache.GetFilePathInCache(ImageCacheDirName, filename)
+	test.AssertEqual(t, filepath.Join(configService.Get().CacheDir, ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
 }
 
 func TestGetRelativeFilePathInCache(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
+	fileCache, _ := setupCache()
 
 	// Act & Assert
 	filename := "foobar.png"
-	path := GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	path := fileCache.GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
 
 	filename = "fööbär.png"
-	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	path = fileCache.GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
 
 	filename = "123_-!§()µ→.png"
-	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	path = fileCache.GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, filename), path)
 
 	filename = "a\"b|c/d\\e.p*n:g%"
-	path = GetRelativeFilePathInCache(ImageCacheDirName, filename)
+	path = fileCache.GetRelativeFilePathInCache(ImageCacheDirName, filename)
 	test.AssertEqual(t, filepath.Join(".", ImageCacheDirName, "a%22b%7Cc%2Fd%5Ce.p%2An%3Ag%25"), path)
 }
 
 func TestGetPathRelativeToCache(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = filepath.Join("foo", "bar", "cache")
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = filepath.Join("foo", "bar", "cache")
 
 	// Act
 	filename := "foobar.png"
-	path, err := GetPathRelativeToCache(filepath.Join("foo", "other-dir", filename))
+	path, err := fileCache.GetPathRelativeToCache(filepath.Join("foo", "other-dir", filename))
 
 	// Assert
 	test.AssertEqual(t, filepath.Join("..", "..", "other-dir", filename), path)
@@ -84,9 +91,10 @@ func TestDeleteLargestFileFromCache(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLargestFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLargestFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -103,9 +111,10 @@ func TestDeleteLargestFileFromCache_errorFindingFile(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLargestFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLargestFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -126,9 +135,10 @@ func TestDeleteLargestFileFromCache_errorRemovingFile(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLargestFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLargestFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -150,9 +160,10 @@ func TestDeleteLruFromCache(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLruFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -169,9 +180,10 @@ func TestDeleteLruFromCache_errorFindingFile(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLruFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -192,9 +204,10 @@ func TestDeleteLruFromCache_errorRemovingFile(t *testing.T) {
 		},
 	}
 	util.CurrentFilesystem = fsMock
+	fileCache, _ := setupCache()
 
 	// Act
-	err, newCacheSize := deleteLruFileFromCache(1_230_000)
+	err, newCacheSize := fileCache.deleteLruFileFromCache(1_230_000)
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -204,8 +217,9 @@ func TestDeleteLruFromCache_errorRemovingFile(t *testing.T) {
 
 func TestDeleteFilesFromCacheIfNeeded_largest(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxSize = 5_000_000
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
 	currentCacheSize := int64(10_000_000)
 	fileSize := int64(3_000_000)
@@ -225,7 +239,7 @@ func TestDeleteFilesFromCacheIfNeeded_largest(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := fileCache.deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -234,8 +248,9 @@ func TestDeleteFilesFromCacheIfNeeded_largest(t *testing.T) {
 
 func TestDeleteFilesFromCacheIfNeeded_withExistingFileIncreasingCacheSize(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxSize = 5_000_000
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
 	currentCacheSize := int64(6_600_000)
 	existingFileSize := int64(1_500_000)
@@ -258,7 +273,7 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileIncreasingCacheSize(t *tes
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := fileCache.deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -268,8 +283,9 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileIncreasingCacheSize(t *tes
 
 func TestDeleteFilesFromCacheIfNeeded_withExistingFileReducingCacheSize(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxSize = 5_000_000
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
 	currentCacheSize := int64(6_900_000)
 	existingFileSize := int64(3_000_000)
@@ -292,7 +308,7 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileReducingCacheSize(t *testi
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := fileCache.deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -302,8 +318,9 @@ func TestDeleteFilesFromCacheIfNeeded_withExistingFileReducingCacheSize(t *testi
 
 func TestDeleteFilesFromCacheIfNeeded_errorDeletingFile(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLargest
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxSize = 5_000_000
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLargest
 
 	currentCacheSize := int64(6_900_000)
 	existingFileSize := int64(3_000_000)
@@ -324,7 +341,7 @@ func TestDeleteFilesFromCacheIfNeeded_errorDeletingFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := fileCache.deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertTrue(t, strings.Contains(err.Error(), expectedError.Error()))
@@ -333,8 +350,9 @@ func TestDeleteFilesFromCacheIfNeeded_errorDeletingFile(t *testing.T) {
 
 func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxSize = 5_000_000
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLru
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxSize = 5_000_000
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLru
 
 	currentCacheSize := int64(10_000_000)
 	fileSize := int64(3_000_000)
@@ -354,7 +372,7 @@ func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	err := deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
+	err := fileCache.deleteFilesFromCacheIfNeeded("cache/folder", "filename.txt", fileSize, currentCacheSize)
 
 	// Assert
 	test.AssertNil(t, err)
@@ -363,8 +381,9 @@ func TestDeleteFilesFromCacheIfNeeded_lru(t *testing.T) {
 
 func TestGetFile(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 100
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 100
 
 	fsMock := util.NewDefaultMockFilesystem()
 	fsMock.StatFunc = func(path string) (os.FileInfo, error) {
@@ -375,7 +394,7 @@ func TestGetFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -385,8 +404,9 @@ func TestGetFile(t *testing.T) {
 
 func TestGetFile_outdated(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 10
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 10
 
 	fsMock := util.NewDefaultMockFilesystem()
 	fsMock.StatFunc = func(path string) (os.FileInfo, error) {
@@ -400,7 +420,7 @@ func TestGetFile_outdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -410,8 +430,9 @@ func TestGetFile_outdated(t *testing.T) {
 
 func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 10
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 10
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -426,7 +447,7 @@ func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -436,8 +457,9 @@ func TestGetFile_outdatedAndRmovalFailed(t *testing.T) {
 
 func TestGetFile_fileNotExists(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 10
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 10
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -447,7 +469,7 @@ func TestGetFile_fileNotExists(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -457,8 +479,9 @@ func TestGetFile_fileNotExists(t *testing.T) {
 
 func TestGetFile_errorGettingStats(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 10
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 10
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -468,7 +491,7 @@ func TestGetFile_errorGettingStats(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, _, err := GetFile("cache", "file")
+	filePath, _, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNotNil(t, err)
@@ -477,9 +500,10 @@ func TestGetFile_errorGettingStats(t *testing.T) {
 
 func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 99999
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLru
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 99999
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLru
 
 	chtimesCalls := 0
 	chTimesCallNameParam := ""
@@ -498,7 +522,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -510,9 +534,10 @@ func TestGetFile_updatingModTimeWhenUsingLruCache(t *testing.T) {
 
 func TestGetFile_updatingModTimeWhenUsingLruCache_errorUpdatingTime(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 99999
-	config.Current.CacheEvictionStrategy = config.CacheEvictionStrategyLru
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 99999
+	configService.Get().CacheEvictionStrategy = config.CacheEvictionStrategyLru
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -527,7 +552,7 @@ func TestGetFile_updatingModTimeWhenUsingLruCache_errorUpdatingTime(t *testing.T
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, exists, err := GetFile("cache", "file")
+	filePath, exists, err := fileCache.GetFile("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -537,7 +562,8 @@ func TestGetFile_updatingModTimeWhenUsingLruCache_errorUpdatingTime(t *testing.T
 
 func TestIsOutdated_outdated(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxAge = 10
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxAge = 10
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -549,7 +575,7 @@ func TestIsOutdated_outdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, exists, err := isOutdated("cache", "file")
+	outdated, exists, err := fileCache.isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -559,7 +585,8 @@ func TestIsOutdated_outdated(t *testing.T) {
 
 func TestIsOutdated_notOutdated(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxAge = 100
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxAge = 100
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -571,7 +598,7 @@ func TestIsOutdated_notOutdated(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, exists, err := isOutdated("cache", "file")
+	outdated, exists, err := fileCache.isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -581,7 +608,8 @@ func TestIsOutdated_notOutdated(t *testing.T) {
 
 func TestIsOutdated_notExistingFile(t *testing.T) {
 	// Arrange
-	config.Current.CacheMaxAge = 100
+	fileCache, configService := setupCache()
+	configService.Get().CacheMaxAge = 100
 
 	fsMock := &util.MockFilesystem{
 		StatFunc: func(path string) (os.FileInfo, error) {
@@ -591,7 +619,7 @@ func TestIsOutdated_notExistingFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	outdated, exists, err := isOutdated("cache", "file")
+	outdated, exists, err := fileCache.isOutdated("cache", "file")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -601,8 +629,9 @@ func TestIsOutdated_notExistingFile(t *testing.T) {
 
 func TestCacheToFile(t *testing.T) {
 	// Arrange
-	config.Current.CacheDir = "cache-dir"
-	config.Current.CacheMaxAge = 100
+	fileCache, configService := setupCache()
+	configService.Get().CacheDir = "cache-dir"
+	configService.Get().CacheMaxAge = 100
 
 	outputFilename := "File:ima*ge.png"
 	fileContent := "foo bar"
@@ -618,7 +647,7 @@ func TestCacheToFile(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	// Act
-	filePath, err := CacheToFile(ImageCacheDirName, outputFilename, stringReader)
+	filePath, err := fileCache.CacheToFile(ImageCacheDirName, outputFilename, stringReader)
 
 	// Assert
 	expectedOutputFilename := "File%3Aima%2Age.png"

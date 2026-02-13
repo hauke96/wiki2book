@@ -28,42 +28,50 @@ var (
 	cacheWriteMutex = &sync.Mutex{}
 )
 
-func GetFilePathInCache(cacheFolderName string, filename string) string {
-	return filepath.Join(config.Current.CacheDir, cacheFolderName, util.SanitizeFilename(filename))
+type Cache struct {
+	configService *config.ConfigService
 }
 
-func GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
+func NewCache(configService *config.ConfigService) *Cache {
+	return &Cache{configService: configService}
+}
+
+func (c *Cache) GetFilePathInCache(cacheFolderName string, filename string) string {
+	return filepath.Join(c.configService.Get().CacheDir, cacheFolderName, util.SanitizeFilename(filename))
+}
+
+func (c *Cache) GetRelativeFilePathInCache(cacheFolderName string, filename string) string {
 	return filepath.Join(".", cacheFolderName, util.SanitizeFilename(filename))
 }
 
 // GetPathRelativeToCache returns the path relative to the given cache dir. If the given path is an absolute path to
 // a file in the cache, the resulting path is a relative path to the same file within the cache.
-func GetPathRelativeToCache(path string) (string, error) {
-	return util.ToRelativePathWithBasedir(config.Current.CacheDir, path)
+func (c *Cache) GetPathRelativeToCache(path string) (string, error) {
+	return util.ToRelativePathWithBasedir(c.configService.Get().CacheDir, path)
 }
 
-func GetDirPathInCache(cacheFolderName string) string {
-	return filepath.Join(config.Current.CacheDir, cacheFolderName)
+func (c *Cache) GetDirPathInCache(cacheFolderName string) string {
+	return filepath.Join(c.configService.Get().CacheDir, cacheFolderName)
 }
 
-func GetTempPath() string {
-	return filepath.Join(config.Current.CacheDir, TempDirName)
+func (c *Cache) GetTempPath() string {
+	return filepath.Join(c.configService.Get().CacheDir, TempDirName)
 }
 
 // CacheToFile writes the data from the reader into a file within the app cache. The cacheFolderName is the name of the
 // folder within the cache, not a whole path. The filename is the name of the file in the cache. The full path is always
 // returned. The error is only set when an error occurred.
-func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (string, error) {
+func (c *Cache) CacheToFile(cacheFolderName string, filename string, reader io.Reader) (string, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
 	sanitizedFilename := util.SanitizeFilename(filename)
 
-	outputFilepath := GetFilePathInCache(cacheFolderName, filename)
+	outputFilepath := c.GetFilePathInCache(cacheFolderName, filename)
 	sigolo.Debugf("Write data to cache file '%s'", outputFilepath)
 
 	// Create the output folder
-	outputFolderPath := GetDirPathInCache(cacheFolderName)
+	outputFolderPath := c.GetDirPathInCache(cacheFolderName)
 	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
@@ -75,9 +83,9 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	//
 
 	// Create the output file
-	tempFile, err := util.CurrentFilesystem.CreateTemp(GetTempPath(), sanitizedFilename)
+	tempFile, err := util.CurrentFilesystem.CreateTemp(c.GetTempPath(), sanitizedFilename)
 	if err != nil {
-		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to create temporary file '%s'", filepath.Join(c.GetTempPath(), filename)))
 	}
 	defer tempFile.Close()
 	tempFilepath := tempFile.Name()
@@ -94,12 +102,12 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	//
 	// 2. Evict files from cache in case it's overflowing when the new file is added.
 	//
-	sigolo.Tracef("Caching strategy is '%s'", config.Current.CacheEvictionStrategy)
-	if config.Current.CacheEvictionStrategy != config.CacheEvictionStrategyNone {
+	sigolo.Tracef("Caching strategy is '%s'", c.configService.Get().CacheEvictionStrategy)
+	if c.configService.Get().CacheEvictionStrategy != config.CacheEvictionStrategyNone {
 		var cacheSizeInBytes int64
-		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(config.Current.CacheDir)
+		err, cacheSizeInBytes = util.CurrentFilesystem.DirSizeInBytes(c.configService.Get().CacheDir)
 		if err != nil {
-			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", config.Current.CacheDir))
+			return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to determine size of cache folder '%s'", c.configService.Get().CacheDir))
 		}
 
 		var tempFileStat os.FileInfo
@@ -109,7 +117,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 		}
 
 		tempFileSizeInBytes := tempFileStat.Size()
-		err = deleteFilesFromCacheIfNeeded(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
+		err = c.deleteFilesFromCacheIfNeeded(cacheFolderName, filename, tempFileSizeInBytes, cacheSizeInBytes)
 		if err != nil {
 			return outputFilepath, err
 		}
@@ -118,7 +126,7 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	// Close file as it's not needed anymore. Without closing it, Windows has problems moving the file.
 	err = tempFile.Close()
 	if err != nil {
-		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to close temporary file '%s'", filepath.Join(GetTempPath(), filename)))
+		return outputFilepath, errors.Wrap(err, fmt.Sprintf("Unable to close temporary file '%s'", filepath.Join(c.GetTempPath(), filename)))
 	}
 
 	//
@@ -135,35 +143,35 @@ func CacheToFile(cacheFolderName string, filename string, reader io.Reader) (str
 	return outputFilepath, nil
 }
 
-func CleanUpTempDir() {
-	err := os.RemoveAll(GetTempPath())
+func (c *Cache) CleanUpTempDir() {
+	err := os.RemoveAll(c.GetTempPath())
 	if err != nil {
-		sigolo.Warnf("Error cleaning up '%s' directory", GetTempPath())
+		sigolo.Warnf("Error cleaning up '%s' directory", c.GetTempPath())
 	}
 }
 
 // deleteFilesFromCacheIfNeeded deletes files from the cache based on the configured cache eviction strategy. When the
 // cache is small enough for the new file, no (further) files will be deleted.
-func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, newFileSizeInBytes int64, cacheSizeInBytes int64) error {
+func (c *Cache) deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, newFileSizeInBytes int64, cacheSizeInBytes int64) error {
 	// The new file might already exist in an older state (and thus with different size). The file will, therefore, not
 	// just be added to the cache, but instead the old file will be replaced. The cache then grows much less in size or
 	// might even shrink (in case the new file is smaller than the old one).
 	var netCacheSizeChangeInBytes = newFileSizeInBytes
-	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(GetFilePathInCache(cacheFolderName, newFileName))
+	existingFileSizeInBytes, err := util.CurrentFilesystem.GetSizeInBytes(c.GetFilePathInCache(cacheFolderName, newFileName))
 	if err == nil {
 		netCacheSizeChangeInBytes = newFileSizeInBytes - existingFileSizeInBytes
 	}
 
-	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (NaN means there's no existing file); net cache size change: %f MB", util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(newFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
-	for config.Current.CacheMaxSize <= cacheSizeInBytes+netCacheSizeChangeInBytes {
-		sigolo.Debugf("New file (%s ; %f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", newFileName, util.ToMB(newFileSizeInBytes), util.ToMB(config.Current.CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
+	sigolo.Debugf("Max cache size: %f MB; current size: %f MB; new file size: %f MB; existing file size: %f MB (NaN means there's no existing file); net cache size change: %f MB", util.ToMB(c.configService.Get().CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(newFileSizeInBytes), util.ToMB(existingFileSizeInBytes), util.ToMB(netCacheSizeChangeInBytes))
+	for c.configService.Get().CacheMaxSize <= cacheSizeInBytes+netCacheSizeChangeInBytes {
+		sigolo.Debugf("New file (%s ; %f MB) would exceed max cache size: Max cache size of %f MB < current size of %f MB + net size change of %f MB = new size of %f MB. Remove largest files until cache is small enough.", newFileName, util.ToMB(newFileSizeInBytes), util.ToMB(c.configService.Get().CacheMaxSize), util.ToMB(cacheSizeInBytes), util.ToMB(netCacheSizeChangeInBytes), util.ToMB(cacheSizeInBytes+netCacheSizeChangeInBytes))
 
-		if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLargest {
-			err, cacheSizeInBytes = deleteLargestFileFromCache(cacheSizeInBytes)
-		} else if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLru {
-			err, cacheSizeInBytes = deleteLruFileFromCache(cacheSizeInBytes)
+		if c.configService.Get().CacheEvictionStrategy == config.CacheEvictionStrategyLargest {
+			err, cacheSizeInBytes = c.deleteLargestFileFromCache(cacheSizeInBytes)
+		} else if c.configService.Get().CacheEvictionStrategy == config.CacheEvictionStrategyLru {
+			err, cacheSizeInBytes = c.deleteLruFileFromCache(cacheSizeInBytes)
 		} else {
-			sigolo.Fatalf("Unsupported cache eviction strategy '%s'. This is a Bug.", config.Current.CacheEvictionStrategy)
+			sigolo.Fatalf("Unsupported cache eviction strategy '%s'. This is a Bug.", c.configService.Get().CacheEvictionStrategy)
 		}
 		if err != nil {
 			return err
@@ -173,13 +181,13 @@ func deleteFilesFromCacheIfNeeded(cacheFolderName string, newFileName string, ne
 	return nil
 }
 
-func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
+func (c *Cache) deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
 	var largestFilePath string
 	var largestFileSizeInBytes int64
-	err, largestFileSizeInBytes, largestFilePath = util.CurrentFilesystem.FindLargestFile(config.Current.CacheDir, TempDirName)
+	err, largestFileSizeInBytes, largestFilePath = util.CurrentFilesystem.FindLargestFile(c.configService.Get().CacheDir, TempDirName)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
+		return errors.Wrap(err, fmt.Sprintf("Unable to determine largest file in cache '%s'", c.configService.Get().CacheDir)), cacheSizeInBytes
 	}
 
 	sigolo.Debugf("Delete largest file from cache: '%s' (%f MB)", largestFilePath, util.ToMB(largestFileSizeInBytes))
@@ -191,13 +199,13 @@ func deleteLargestFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	return err, cacheSizeInBytes - largestFileSizeInBytes
 }
 
-func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
+func (c *Cache) deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 	var err error
 	var lruFilePath string
 	var lruFileSizeInBytes int64
-	err, lruFileSizeInBytes, lruFilePath = util.CurrentFilesystem.FindLruFile(config.Current.CacheDir, TempDirName)
+	err, lruFileSizeInBytes, lruFilePath = util.CurrentFilesystem.FindLruFile(c.configService.Get().CacheDir, TempDirName)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to determine least recently used file in cache '%s'", config.Current.CacheDir)), cacheSizeInBytes
+		return errors.Wrap(err, fmt.Sprintf("Unable to determine least recently used file in cache '%s'", c.configService.Get().CacheDir)), cacheSizeInBytes
 	}
 
 	sigolo.Debugf("Delete least recently used file from cache: '%s' (%f MB)", lruFilePath, util.ToMB(lruFileSizeInBytes))
@@ -212,13 +220,13 @@ func deleteLruFileFromCache(cacheSizeInBytes int64) (error, int64) {
 // GetFile determines whether the file is caches or not. It already returns the full file path, a boolean and an error.
 // The boolean only has a meaning when the error is nil. In such cases "true" means the file exists and can be used,
 // "false" means the file doesn't exist. In case of an error, the boolean is always "false".
-func GetFile(cacheFolderName string, filename string) (string, bool, error) {
+func (c *Cache) GetFile(cacheFolderName string, filename string) (string, bool, error) {
 	cacheWriteMutex.Lock()
 	defer cacheWriteMutex.Unlock()
 
-	filePath := GetFilePathInCache(cacheFolderName, filename)
+	filePath := c.GetFilePathInCache(cacheFolderName, filename)
 
-	fileIsOutdated, fileExists, err := isOutdated(cacheFolderName, filename)
+	fileIsOutdated, fileExists, err := c.isOutdated(cacheFolderName, filename)
 	if err != nil {
 		return filePath, false, errors.Wrapf(err, "Unable to determine if file '%s' is outdated", filename)
 	}
@@ -235,7 +243,7 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 		}
 	}
 
-	if config.Current.CacheEvictionStrategy == config.CacheEvictionStrategyLru {
+	if c.configService.Get().CacheEvictionStrategy == config.CacheEvictionStrategyLru {
 		// When using the LRU cache, update access and modification time (both, since linux usually only knows the
 		// latter) to correctly determine the least recently used file.
 		now := time.Now()
@@ -251,8 +259,8 @@ func GetFile(cacheFolderName string, filename string) (string, bool, error) {
 // isOutdated returns whether the file is outdated and if the file even exists. When an error is returned, both boolean
 // values have no defined meaning. When the second boolean (whether the file exists) is "false", the other values
 // have no defined meaning.
-func isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
-	filePath := GetFilePathInCache(cacheFolderName, filename)
+func (c *Cache) isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
+	filePath := c.GetFilePathInCache(cacheFolderName, filename)
 
 	fileStat, err := util.CurrentFilesystem.Stat(filePath)
 	if os.IsNotExist(err) {
@@ -264,8 +272,8 @@ func isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
 
 	fileAgeDuration := time.Now().Sub(fileStat.ModTime())
 	fileAgeInMinutes := int64(fileAgeDuration.Minutes())
-	fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
-	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
+	fileIsOutdated := fileAgeInMinutes > c.configService.Get().CacheMaxAge
+	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(c.configService.Get().CacheMaxAge)*time.Minute)
 
 	return fileIsOutdated, true, nil
 }

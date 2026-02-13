@@ -2,6 +2,7 @@ package generator
 
 import (
 	"testing"
+	"wiki2book/cache"
 	"wiki2book/config"
 
 	"github.com/hauke96/sigolo/v2"
@@ -13,7 +14,8 @@ func testArticleGermanLong(t *testing.T) {
 	configService := config.NewConfigService()
 	err := configService.LoadFromConfig("../configs/de.json")
 	sigolo.FatalCheck(err)
-	ebookGeneratorService := NewEbookGenerator(configService)
+	fileCache := cache.NewCache(configService)
+	ebookGeneratorService := NewEbookGenerator(configService, fileCache)
 
 	ebookGeneratorService.GenerateArticleEbook(
 		"Commodore 128",
@@ -25,7 +27,8 @@ func testProjectGerman(t *testing.T) {
 	configService := config.NewConfigService()
 	err := configService.LoadFromConfig("../configs/de.json")
 	sigolo.FatalCheck(err)
-	ebookGeneratorService := NewEbookGenerator(configService)
+	fileCache := cache.NewCache(configService)
+	ebookGeneratorService := NewEbookGenerator(configService, fileCache)
 
 	proj := ebookGeneratorService.CreateProject(
 		"../projects/de/astronomie/astronomie.json",

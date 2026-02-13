@@ -31,8 +31,7 @@ func (p *Project) Print() {
 	sigolo.Debugf("Project:\n  OutputFile: %s\n  Articles: %v\n  Metadata: %s", p.OutputFile, strings.Join(p.Articles, ", "), string(jsonBytes))
 }
 
-// LoadProject reads the given file and creates a corresponding Project instance. It also alters the config.Current
-// object to override default configurations since project specific configs have a higher precedence.
+// LoadProject reads the given file and creates a corresponding Project instance.
 func LoadProject(file string) (*Project, error) {
 	projectString, err := os.ReadFile(file)
 	if err != nil {

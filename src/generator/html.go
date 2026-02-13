@@ -94,12 +94,14 @@ var (
 type HtmlGenerator struct {
 	tokenMap         map[string]parser.Token
 	configService    *config.ConfigService
+	fileCache        *cache.Cache
 	wikipediaService wikipedia.WikipediaService
 }
 
-func NewHtmlGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService, wikipediaService wikipedia.WikipediaService) *HtmlGenerator {
+func NewHtmlGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService, fileCache *cache.Cache, wikipediaService wikipedia.WikipediaService) *HtmlGenerator {
 	return &HtmlGenerator{
 		tokenMap:         tokenMap,
+		fileCache:        fileCache,
 		configService:    configService,
 		wikipediaService: wikipediaService,
 	}
@@ -117,7 +119,7 @@ func (g *HtmlGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	}
 	content += expandedContent
 	content += FOOTER
-	return write(wikiArticle.Title, cache.HtmlCacheDirName, content)
+	return g.write(wikiArticle.Title, cache.HtmlCacheDirName, content)
 }
 
 func (g *HtmlGenerator) getToken(tokenKey string) (parser.Token, bool) {
@@ -193,7 +195,7 @@ func expandSizeTemplate(xSize int, ySize int) string {
 }
 
 func (g *HtmlGenerator) filenameToImagePath(filename string) string {
-	filePath := cache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
+	filePath := g.fileCache.GetRelativeFilePathInCache(cache.ImageCacheDirName, filename)
 
 	if g.configService.Get().ShouldConvertPdfToPng() && filepath.Ext(strings.ToLower(filePath)) == util.FileEndingPdf {
 		filePath = util.GetPngPathForPdf(filePath)
@@ -391,7 +393,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	}
 
 	// Use the relative path in the HTML, otherwise the image files are not found
-	pngRelativePath, err := cache.GetPathRelativeToCache(pngAbsolutePath)
+	pngRelativePath, err := g.fileCache.GetPathRelativeToCache(pngAbsolutePath)
 	if err != nil {
 		return "", err
 	}
@@ -406,8 +408,8 @@ func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {
 }
 
 // write returns the output path or an error.
-func write(title string, outputFolder string, content string) (string, error) {
-	outputFolder = cache.GetDirPathInCache(outputFolder)
+func (g *HtmlGenerator) write(title string, outputFolder string, content string) (string, error) {
+	outputFolder = g.fileCache.GetDirPathInCache(outputFolder)
 
 	// Create the output folder
 	sigolo.Debugf("Ensure output folder '%s'", outputFolder)
@@ -419,7 +421,7 @@ func write(title string, outputFolder string, content string) (string, error) {
 	// Write HTML content to cache file
 	outputFilename := title + ".html"
 	stringReader := strings.NewReader(content)
-	outputFilepath, err := cache.CacheToFile(cache.HtmlCacheDirName, outputFilename, stringReader)
+	outputFilepath, err := g.fileCache.CacheToFile(cache.HtmlCacheDirName, outputFilename, stringReader)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error writing HTML of article '%s' to cache-file '%s'", title, outputFilepath)
 	}

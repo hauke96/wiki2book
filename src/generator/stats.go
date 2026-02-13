@@ -25,6 +25,7 @@ type StatsGenerator struct {
 	tokenMap      map[string]parser.Token
 	stats         *articleStats
 	configService *config.ConfigService
+	fileCache     *cache.Cache
 }
 
 type articleStats struct {
@@ -43,11 +44,12 @@ type articleStats struct {
 	EstimatedReadingTimeMinutes int            `json:"estimated-reading-time-minutes"`
 }
 
-func NewStatsGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService) *StatsGenerator {
+func NewStatsGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService, fileCache *cache.Cache) *StatsGenerator {
 	return &StatsGenerator{
 		tokenMap:      tokenMap,
 		stats:         &articleStats{},
 		configService: configService,
+		fileCache:     fileCache,
 	}
 }
 
@@ -68,7 +70,7 @@ func (g *StatsGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 	sigolo.FatalCheck(errors.Wrapf(err, "Error creating stats for article '%s'", wikiArticle.Title))
 
 	stringReader := strings.NewReader(string(statsBytes))
-	return cache.CacheToFile(cache.StatsCacheDirName, filename, stringReader)
+	return g.fileCache.CacheToFile(cache.StatsCacheDirName, filename, stringReader)
 }
 
 func (g *StatsGenerator) getEstimatedReadingTimeInMinutes() int {

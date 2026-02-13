@@ -54,13 +54,15 @@ type WikipediaService interface {
 
 type DefaultWikipediaService struct {
 	configService          *config.ConfigService
+	cache                  *cache.Cache
 	imageProcessingService image.ImageProcessingService
 	httpService            ownHttp.HttpService
 }
 
-func NewWikipediaService(configService *config.ConfigService, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
+func NewWikipediaService(configService *config.ConfigService, cache *cache.Cache, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
 		configService:          configService,
+		cache:                  cache,
 		imageProcessingService: imageProcessingService,
 		httpService:            httpClient,
 	}
@@ -287,7 +289,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 		}
 		return cachedSvgFile, cachedPngFile, nil
 	} else if w.configService.Get().MathConverter == config.MathConverterTemplate {
-		cachedPngFile := cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
+		cachedPngFile := w.cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
 		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, w.configService.Get().CommandTemplateMathSvgToPng)
 		if err != nil {
 			return "", "", err
@@ -309,7 +311,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 
 	// If file exists -> ignore
 	filename := util.Hash(mathString)
-	outputFilepath, fileIsCached, err := cache.GetFile(cache.MathCacheDirName, filename)
+	outputFilepath, fileIsCached, err := w.cache.GetFile(cache.MathCacheDirName, filename)
 	if fileIsCached {
 		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
 		mathSvgFilename := string(mathSvgFilenameBytes)
@@ -348,7 +350,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
 	}
 
-	_, err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
+	_, err = w.cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
 	if err != nil {
 		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
 	}

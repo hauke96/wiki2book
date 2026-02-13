@@ -27,12 +27,14 @@ const (
 
 type EbookGenerator struct {
 	configService        *config.ConfigService
+	fileCache            *cache.Cache
 	epubGeneratorService *EpubGenerator
 }
 
-func NewEbookGenerator(configService *config.ConfigService) *EbookGenerator {
+func NewEbookGenerator(configService *config.ConfigService, cache *cache.Cache) *EbookGenerator {
 	return &EbookGenerator{
 		configService:        configService,
+		fileCache:            cache,
 		epubGeneratorService: NewEpubGenerator(configService),
 	}
 }
@@ -85,8 +87,9 @@ func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile st
 
 	wikipediaService := wikipedia.NewWikipediaService(
 		g.configService,
-		image.NewImageProcessingService(),
-		http.NewDefaultHttpService(),
+		g.fileCache,
+		image.NewImageProcessingService(g.configService),
+		http.NewDefaultHttpService(g.configService, g.fileCache),
 	)
 
 	tokenizer := parser.NewTokenizer(wikipediaService, g.configService)
@@ -99,7 +102,7 @@ func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile st
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if g.shouldRecreateHtml(htmlFilePath, g.configService.Get().ForceRegenerateHtml) {
-		htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, wikipediaService)
+		htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, g.fileCache, wikipediaService)
 		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
 	}
@@ -147,8 +150,9 @@ func (g *EbookGenerator) GenerateBookFromProject(project *config.Project) {
 
 	wikipediaService := wikipedia.NewWikipediaService(
 		g.configService,
-		image.NewImageProcessingService(),
-		http.NewDefaultHttpService(),
+		g.fileCache,
+		image.NewImageProcessingService(g.configService),
+		http.NewDefaultHttpService(g.configService, g.fileCache),
 	)
 
 	// Create a wait-group that is zero when all threads are done
@@ -239,7 +243,7 @@ func (g *EbookGenerator) processArticle(articleName string, currentArticleNumber
 			fallthrough
 		case config.OutputTypeEpub3:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
-			htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, wikipediaService)
+			htmlGenerator := NewHtmlGenerator(article.TokenMap, g.configService, g.fileCache, wikipediaService)
 			htmlFilePath, err = htmlGenerator.Generate(article)
 			articleOutputFile = htmlFilePath
 			sigolo.FatalCheck(err)
@@ -247,7 +251,7 @@ func (g *EbookGenerator) processArticle(articleName string, currentArticleNumber
 			fallthrough
 		case config.OutputTypeStatsTxt:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			statsGenerator := NewStatsGenerator(article.TokenMap, g.configService)
+			statsGenerator := NewStatsGenerator(article.TokenMap, g.configService, g.fileCache)
 			articleOutputFile, err = statsGenerator.Generate(article)
 			sigolo.FatalCheck(err)
 		}
@@ -326,14 +330,14 @@ func (g *EbookGenerator) ensurePathsAndClearTempDir(outputFile string) string {
 	outputFile, err = util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
 
-	sigolo.Debug("Ensure cache directories exist")
-	util.EnsureDirectory(cache.GetTempPath())
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.ArticleCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.HtmlCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.ImageCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.MathCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.TemplateCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.TempDirName))
+	sigolo.Debug("Ensure fileCache directories exist")
+	util.EnsureDirectory(g.fileCache.GetTempPath())
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.ArticleCacheDirName))
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.HtmlCacheDirName))
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.ImageCacheDirName))
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.MathCacheDirName))
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.TemplateCacheDirName))
+	util.EnsureDirectory(g.fileCache.GetDirPathInCache(cache.TempDirName))
 
 	return outputFile
 }

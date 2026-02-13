@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
 	"wiki2book/util"
 )
 
-func setupStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
-	return NewStatsGenerator(tokenMap, config.NewConfigService())
+func setupStatsGenerator(tokenMap map[string]parser.Token) (*StatsGenerator, *config.ConfigService) {
+	configService := config.NewConfigService()
+	configService.Get().CacheDir = test.TestCacheFolder
+	configService.Get().OutputType = config.OutputTypeStatsJson
+	return NewStatsGenerator(tokenMap, configService, cache.NewCache(configService)), configService
 }
 
 func setupCache() *util.MockFile {
@@ -22,14 +26,13 @@ func setupCache() *util.MockFile {
 	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return nil, os.ErrNotExist }
 	fsMock.CreateTempFunc = func(dir, pattern string) (util.FileLike, error) { return mockFile, nil }
 	util.CurrentFilesystem = fsMock
-	config.Current.CacheDir = test.TestCacheFolder
 
 	return mockFile
 }
 
-func getAndAssertStats(t *testing.T, err error, articleName string, statsOutputFilename string, mockFile *util.MockFile) *articleStats {
+func getAndAssertStats(t *testing.T, err error, articleName string, statsOutputFilename string, mockFile *util.MockFile, configService *config.ConfigService) *articleStats {
 	test.AssertNil(t, err)
-	test.AssertEqual(t, config.Current.CacheDir+"/stats/"+articleName+".json", statsOutputFilename)
+	test.AssertEqual(t, configService.Get().CacheDir+"/stats/"+articleName+".json", statsOutputFilename)
 
 	stats := &articleStats{}
 	err = json.Unmarshal(mockFile.WrittenBytes, stats)
@@ -46,7 +49,7 @@ func TestGenerate_plainText(t *testing.T) {
 		TokenMap: map[string]parser.Token{},
 		Images:   []string{},
 	}
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -54,7 +57,7 @@ func TestGenerate_plainText(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 14, stats.NumberOfCharacters)
 }
@@ -69,42 +72,42 @@ func TestGenerate_plainText_countWordsCorrectly(t *testing.T) {
 	}
 
 	// Act & Assert
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 	mockFile := setupCache()
 	statsOutputFilename, err := statsGenerator.Generate(article)
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 	test.AssertEqual(t, 0, stats.NumberOfWords)
 
 	// Act & Assert - Spaces
-	statsGenerator = setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "Some simple\rtest\nwith\tnormal \rwords \nrand \tonly \r\n\tspaces."
 	statsOutputFilename, err = statsGenerator.Generate(article)
-	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 	test.AssertEqual(t, 9, stats.NumberOfWords)
 
 	// Act & Assert - Single letters
-	statsGenerator = setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "a b c ö ä ü ß µ ø"
 	statsOutputFilename, err = statsGenerator.Generate(article)
-	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 	test.AssertEqual(t, 9, stats.NumberOfWords)
 
 	// Act & Assert - Numbers
-	statsGenerator = setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "a 1 b 2 c 3 a1 b2 c3 1a 2b 3c 1a1 2b2 3c3 a1a b2b c3c"
 	statsOutputFilename, err = statsGenerator.Generate(article)
-	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 	test.AssertEqual(t, 18, stats.NumberOfWords)
 
 	// Act & Assert - Special characters
-	statsGenerator = setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "{{This|is}} [a]] \"test\"\n(with some separate) wórds and/or späcial-characterß."
 	statsOutputFilename, err = statsGenerator.Generate(article)
-	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats = getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 	test.AssertEqual(t, 12, stats.NumberOfWords)
 }
 
@@ -125,7 +128,7 @@ func TestGenerate_headings(t *testing.T) {
 		TokenMap: tokenMap,
 		Images:   []string{},
 	}
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -133,7 +136,7 @@ func TestGenerate_headings(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 21, stats.NumberOfCharacters)
 }
@@ -162,7 +165,7 @@ func TestGenerate_countRefDefinitionsCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -170,7 +173,7 @@ func TestGenerate_countRefDefinitionsCorrectly(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 2, stats.NumberOfRefDefinitions)
 }
@@ -197,7 +200,7 @@ func TestGenerate_countRefUsagesCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -205,7 +208,7 @@ func TestGenerate_countRefUsagesCorrectly(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 2, stats.NumberOfRefUsages)
 }
@@ -232,7 +235,7 @@ func TestGenerate_countMathUsagesCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -240,7 +243,7 @@ func TestGenerate_countMathUsagesCorrectly(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 2, stats.NumberOfMath)
 }
@@ -298,7 +301,7 @@ func TestGenerate_table(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := setupStatsGenerator(article.TokenMap)
+	statsGenerator, configService := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -306,7 +309,7 @@ func TestGenerate_table(t *testing.T) {
 	statsOutputFilename, err := statsGenerator.Generate(article)
 
 	// Assert
-	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
+	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile, configService)
 
 	test.AssertEqual(t, 93, stats.NumberOfCharacters)
 	test.AssertEqual(t, 1, stats.NumberOfInternalLinks)
@@ -315,8 +318,6 @@ func TestGenerate_table(t *testing.T) {
 
 func TestGenerateCombinedStats(t *testing.T) {
 	// Arrange
-	config.Current.OutputType = config.OutputTypeStatsJson
-
 	setupCache()
 
 	mockFile := util.NewMockFile("result mock file")
@@ -363,8 +364,6 @@ func TestGenerateCombinedStats(t *testing.T) {
 
 func TestGenerateCombinedStats_top10UncoveredLinks(t *testing.T) {
 	// Arrange
-	config.Current.OutputType = config.OutputTypeStatsJson
-
 	setupCache()
 
 	mockFile := util.NewMockFile("result mock file")

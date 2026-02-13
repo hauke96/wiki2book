@@ -38,12 +38,16 @@ type HttpService interface {
 }
 
 type DefaultHttpService struct {
-	httpClient HttpClient
+	httpClient    HttpClient
+	configService *config.ConfigService
+	cache         *cache.Cache
 }
 
-func NewDefaultHttpService() *DefaultHttpService {
+func NewDefaultHttpService(configService *config.ConfigService, cache *cache.Cache) *DefaultHttpService {
 	return &DefaultHttpService{
-		httpClient: &http.Client{},
+		httpClient:    &http.Client{},
+		configService: configService,
+		cache:         cache,
 	}
 }
 
@@ -52,7 +56,7 @@ func NewDefaultHttpService() *DefaultHttpService {
 // together with "false" are returned.
 func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string, filename string) (string, bool, error) {
 	// If file already cached -> don't download and use cached file
-	outputFilepath, fileIsCached, err := cache.GetFile(cacheFolderName, filename)
+	outputFilepath, fileIsCached, err := d.cache.GetFile(cacheFolderName, filename)
 	if err == nil && fileIsCached {
 		sigolo.Debugf("File '%s' does already exist -> use this cached file", outputFilepath)
 		return outputFilepath, false, nil
@@ -76,7 +80,7 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 		return "", true, err
 	}
 
-	outputFilepath, err = cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
+	outputFilepath, err = d.cache.CacheToFile(cacheFolderName, filename, responseBodyReader)
 	if err != nil {
 		return "", true, errors.Wrapf(err, "Unable to cache to '%s'", outputFilepath)
 	}
@@ -97,7 +101,7 @@ func (d *DefaultHttpService) download(url string) (io.ReadCloser, error) {
 		return nil, errors.Wrap(err, fmt.Sprintf("Unable to create GET request for url %s", url))
 	}
 
-	userAgentString := config.Current.UserAgentTemplate
+	userAgentString := d.configService.Get().UserAgentTemplate
 	userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
 	request.Header.Set(HeaderUserAgent, userAgentString)
 
@@ -116,7 +120,7 @@ func (d *DefaultHttpService) PostFormEncoded(url, requestData string) (resp *htt
 		return nil, errors.Wrap(err, fmt.Sprintf("Unable to create POST request for url %s", url))
 	}
 
-	userAgentString := config.Current.UserAgentTemplate
+	userAgentString := d.configService.Get().UserAgentTemplate
 	userAgentString = strings.ReplaceAll(userAgentString, "{{VERSION}}", util.VERSION)
 	request.Header.Set(HeaderUserAgent, userAgentString)
 	request.Header.Set(HeaderContentType, "application/x-www-form-urlencoded")

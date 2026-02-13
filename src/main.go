@@ -41,7 +41,8 @@ func initCli() *cobra.Command {
 	var start time.Time
 
 	configService := config.NewConfigService()
-	ebookGeneratorService := generator.NewEbookGenerator(configService)
+	fileCache := cache.NewCache(configService)
+	ebookGeneratorService := generator.NewEbookGenerator(configService, fileCache)
 
 	rootCmd := &cobra.Command{
 		Use:   "wiki2book",
@@ -52,7 +53,7 @@ func initCli() *cobra.Command {
 	rootCmd.Version = util.VERSION
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		cliOutputFile = initialize(cliLogging, cliConfig, cliConfigFile, cliDiagnosticsProfiling, cliDiagnosticsTrace, cliOutputFile)
+		cliOutputFile = initialize(configService, cliLogging, cliConfig, cliConfigFile, cliDiagnosticsProfiling, cliDiagnosticsTrace, cliOutputFile)
 		start = time.Now()
 	}
 	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
@@ -123,7 +124,7 @@ func initCli() *cobra.Command {
 		)
 		// TODO Should not be necessary since it's done by the CreateProject function: config.MergeIntoCurrentConfig(cliConfig)
 		ebookGeneratorService.GenerateBookFromProject(proj)
-		cache.CleanUpTempDir()
+		fileCache.CleanUpTempDir()
 	}
 
 	articleCmd := getCommand("article [name]", "Renders a single article into an eBook.", 1)
@@ -135,7 +136,7 @@ func initCli() *cobra.Command {
 			args[0],
 			cliOutputFile,
 		)
-		cache.CleanUpTempDir()
+		fileCache.CleanUpTempDir()
 	}
 
 	standaloneCmd := getCommand("standalone [file]", "Renders a single mediawiki file into an eBook.", 1)
@@ -147,7 +148,7 @@ func initCli() *cobra.Command {
 			args[0],
 			cliOutputFile,
 		)
-		cache.CleanUpTempDir()
+		fileCache.CleanUpTempDir()
 	}
 
 	serverCmd := getCommand("server", "Starts wiki2book in server mode handling HTTP requests to create eBooks.", 0)
@@ -155,9 +156,9 @@ func initCli() *cobra.Command {
 	serverCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare starting wiki2book in server mode")
 		configService.MergeIntoCurrentConfig(cliConfig)
-		serverInstance := server.NewServer(configService, ebookGeneratorService)
+		serverInstance := server.NewServer(configService, fileCache, ebookGeneratorService)
 		serverInstance.Start()
-		cache.CleanUpTempDir()
+		fileCache.CleanUpTempDir()
 	}
 
 	rootCmd.AddCommand(projectCmd, articleCmd, standaloneCmd, serverCmd)
@@ -179,7 +180,7 @@ func initCli() *cobra.Command {
 	return rootCmd
 }
 
-func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFile string, cliDiagnosticsProfiling bool, cliDiagnosticsTrace bool, cliOutputFile string) string {
+func initialize(configService *config.ConfigService, cliLogging string, cliConfig *config.Configuration, cliConfigFile string, cliDiagnosticsProfiling bool, cliDiagnosticsTrace bool, cliOutputFile string) string {
 	if strings.ToLower(cliLogging) == "debug" {
 		sigolo.SetDefaultLogLevel(sigolo.LOG_DEBUG)
 	} else if strings.ToLower(cliLogging) == "trace" {
@@ -195,7 +196,7 @@ func initialize(cliLogging string, cliConfig *config.Configuration, cliConfigFil
 	sigolo.Tracef("CLI config:\n%+v", cliConfig)
 
 	if cliConfigFile != "" {
-		err := config.LoadConfig(cliConfigFile)
+		err := configService.LoadFromConfig(cliConfigFile)
 		sigolo.FatalCheck(err)
 	}
 
