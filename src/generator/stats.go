@@ -22,8 +22,9 @@ import (
 )
 
 type StatsGenerator struct {
-	tokenMap map[string]parser.Token
-	stats    *articleStats
+	tokenMap      map[string]parser.Token
+	stats         *articleStats
+	configService *config.ConfigService
 }
 
 type articleStats struct {
@@ -42,10 +43,11 @@ type articleStats struct {
 	EstimatedReadingTimeMinutes int            `json:"estimated-reading-time-minutes"`
 }
 
-func NewStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
+func NewStatsGenerator(tokenMap map[string]parser.Token, configService *config.ConfigService) *StatsGenerator {
 	return &StatsGenerator{
-		tokenMap: tokenMap,
-		stats:    &articleStats{},
+		tokenMap:      tokenMap,
+		stats:         &articleStats{},
+		configService: configService,
 	}
 }
 
@@ -72,7 +74,7 @@ func (g *StatsGenerator) Generate(wikiArticle *parser.Article) (string, error) {
 func (g *StatsGenerator) getEstimatedReadingTimeInMinutes() int {
 	// Average word/min based on 17 major languages according to a 2012 study by Trauzettel-Klosinski et al.
 	averageWordsPerMinute := 183
-	switch config.Current.WikipediaInstance {
+	switch g.configService.Get().WikipediaInstance {
 	case "en":
 		averageWordsPerMinute = 228
 	case "de":
@@ -251,7 +253,7 @@ func (g *StatsGenerator) expandNowiki(token parser.NowikiToken) string {
 	return ""
 }
 
-func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
+func GenerateCombinedStats(statFiles []string, outputFilePath string, outputType string) error {
 	var err error
 
 	sigolo.Debugf("Generate stats to '%s' for articles %v", outputFilePath, statFiles)
@@ -317,12 +319,12 @@ func GenerateCombinedStats(statFiles []string, outputFilePath string) error {
 
 	var outputConent []byte
 
-	if config.Current.OutputType == config.OutputTypeStatsJson {
+	if outputType == config.OutputTypeStatsJson {
 		outputConent, err = generateJsonStatsContent(combinedStats)
-	} else if config.Current.OutputType == config.OutputTypeStatsTxt {
+	} else if outputType == config.OutputTypeStatsTxt {
 		outputConent, err = generateTxtStatsContent(articles, combinedStats)
 	} else {
-		return errors.Errorf("Invalid output type '%s' for stats", config.Current.OutputType)
+		return errors.Errorf("Invalid output type '%s' for stats", outputType)
 	}
 
 	// Just to make it easier to simply open the read the file in CLI because usually files have a newline at the end.

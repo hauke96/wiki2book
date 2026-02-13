@@ -201,7 +201,7 @@ func (g *EbookGenerator) GenerateBookFromProject(project *config.Project) {
 	case config.OutputTypeStatsJson:
 		fallthrough
 	case config.OutputTypeStatsTxt:
-		err := GenerateCombinedStats(articleOutputFiles, outputFile)
+		err := GenerateCombinedStats(articleOutputFiles, outputFile, g.configService.Get().OutputType)
 		sigolo.FatalCheck(err)
 	}
 
@@ -247,7 +247,7 @@ func (g *EbookGenerator) processArticle(articleName string, currentArticleNumber
 			fallthrough
 		case config.OutputTypeStatsTxt:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate stats", articleName, currentArticleNumber, totalNumberOfArticles)
-			statsGenerator := NewStatsGenerator(article.TokenMap)
+			statsGenerator := NewStatsGenerator(article.TokenMap, g.configService)
 			articleOutputFile, err = statsGenerator.Generate(article)
 			sigolo.FatalCheck(err)
 		}

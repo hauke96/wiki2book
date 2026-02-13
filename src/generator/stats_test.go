@@ -11,6 +11,10 @@ import (
 	"wiki2book/util"
 )
 
+func setupStatsGenerator(tokenMap map[string]parser.Token) *StatsGenerator {
+	return NewStatsGenerator(tokenMap, config.NewConfigService())
+}
+
 func setupCache() *util.MockFile {
 	mockFile := util.NewMockFile("mock file")
 
@@ -36,18 +40,15 @@ func getAndAssertStats(t *testing.T, err error, articleName string, statsOutputF
 
 func TestGenerate_plainText(t *testing.T) {
 	// Arrange
-	tokenMap := map[string]parser.Token{}
-
 	article := &parser.Article{
 		Title:    "Foobar",
 		Content:  "Foó bar\nblübb.",
-		TokenMap: tokenMap,
+		TokenMap: map[string]parser.Token{},
 		Images:   []string{},
 	}
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
-
-	statsGenerator := NewStatsGenerator(tokenMap)
 
 	// Act
 	statsOutputFilename, err := statsGenerator.Generate(article)
@@ -60,24 +61,22 @@ func TestGenerate_plainText(t *testing.T) {
 
 func TestGenerate_plainText_countWordsCorrectly(t *testing.T) {
 	// Arrange
-	tokenMap := map[string]parser.Token{}
-
 	article := &parser.Article{
 		Title:    "Foobar",
 		Content:  "",
-		TokenMap: tokenMap,
+		TokenMap: map[string]parser.Token{},
 		Images:   []string{},
 	}
 
 	// Act & Assert
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 	mockFile := setupCache()
 	statsOutputFilename, err := statsGenerator.Generate(article)
 	stats := getAndAssertStats(t, err, article.Title, statsOutputFilename, mockFile)
 	test.AssertEqual(t, 0, stats.NumberOfWords)
 
 	// Act & Assert - Spaces
-	statsGenerator = NewStatsGenerator(tokenMap)
+	statsGenerator = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "Some simple\rtest\nwith\tnormal \rwords \nrand \tonly \r\n\tspaces."
 	statsOutputFilename, err = statsGenerator.Generate(article)
@@ -85,7 +84,7 @@ func TestGenerate_plainText_countWordsCorrectly(t *testing.T) {
 	test.AssertEqual(t, 9, stats.NumberOfWords)
 
 	// Act & Assert - Single letters
-	statsGenerator = NewStatsGenerator(tokenMap)
+	statsGenerator = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "a b c ö ä ü ß µ ø"
 	statsOutputFilename, err = statsGenerator.Generate(article)
@@ -93,7 +92,7 @@ func TestGenerate_plainText_countWordsCorrectly(t *testing.T) {
 	test.AssertEqual(t, 9, stats.NumberOfWords)
 
 	// Act & Assert - Numbers
-	statsGenerator = NewStatsGenerator(tokenMap)
+	statsGenerator = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "a 1 b 2 c 3 a1 b2 c3 1a 2b 3c 1a1 2b2 3c3 a1a b2b c3c"
 	statsOutputFilename, err = statsGenerator.Generate(article)
@@ -101,7 +100,7 @@ func TestGenerate_plainText_countWordsCorrectly(t *testing.T) {
 	test.AssertEqual(t, 18, stats.NumberOfWords)
 
 	// Act & Assert - Special characters
-	statsGenerator = NewStatsGenerator(tokenMap)
+	statsGenerator = setupStatsGenerator(article.TokenMap)
 	mockFile = setupCache()
 	article.Content = "{{This|is}} [a]] \"test\"\n(with some separate) wórds and/or späcial-characterß."
 	statsOutputFilename, err = statsGenerator.Generate(article)
@@ -126,8 +125,7 @@ func TestGenerate_headings(t *testing.T) {
 		TokenMap: tokenMap,
 		Images:   []string{},
 	}
-
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -164,7 +162,7 @@ func TestGenerate_countRefDefinitionsCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -199,7 +197,7 @@ func TestGenerate_countRefUsagesCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -234,7 +232,7 @@ func TestGenerate_countMathUsagesCorrectly(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -300,7 +298,7 @@ func TestGenerate_table(t *testing.T) {
 		Images:   []string{},
 	}
 
-	statsGenerator := NewStatsGenerator(tokenMap)
+	statsGenerator := setupStatsGenerator(article.TokenMap)
 
 	mockFile := setupCache()
 
@@ -344,7 +342,7 @@ func TestGenerateCombinedStats(t *testing.T) {
 	statsFiles := []string{"stats-file-1", "stats-file-2"}
 
 	// Act
-	err := GenerateCombinedStats(statsFiles, "output-path")
+	err := GenerateCombinedStats(statsFiles, "output-path", "stats-json")
 
 	// Assert
 	test.AssertNil(t, err)
@@ -416,7 +414,7 @@ func TestGenerateCombinedStats_top10UncoveredLinks(t *testing.T) {
 	statsFiles := []string{"stats-file", "stats-file-2"}
 
 	// Act
-	err := GenerateCombinedStats(statsFiles, "output-path")
+	err := GenerateCombinedStats(statsFiles, "output-path", "stats-json")
 
 	// Assert
 	test.AssertNil(t, err)

@@ -11,7 +11,7 @@ import (
 	"wiki2book/wikipedia"
 )
 
-func setup() *HtmlGenerator {
+func setupHtmlGenerator() *HtmlGenerator {
 	tokenMap := map[string]parser.Token{}
 	configService := config.NewConfigService()
 	wikipediaService := wikipedia.NewMockWikipediaService()
@@ -19,7 +19,7 @@ func setup() *HtmlGenerator {
 }
 
 func TestExpandMarker(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 
 	test.AssertEqual(t, "<b>", generator.expandMarker(parser.MARKER_BOLD_OPEN))
 	test.AssertEqual(t, "</b>", generator.expandMarker(parser.MARKER_BOLD_CLOSE))
@@ -31,7 +31,7 @@ func TestExpandMarker(t *testing.T) {
 }
 
 func TestExpandHeadings(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_HEADING, 3)
 	token := parser.HeadingToken{
 		Content: "foobar",
@@ -45,7 +45,7 @@ func TestExpandHeadings(t *testing.T) {
 }
 
 func TestExpandMath(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<img alt="image" src="./images/image.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.MathToken{
@@ -69,7 +69,7 @@ func TestExpandMath(t *testing.T) {
 }
 
 func TestExpandImage(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<div class="figure">
 <img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
@@ -93,7 +93,7 @@ some <b>caption</b>
 func TestExpandImage_usePngFileForPdf(t *testing.T) {
 	config.Current.CommandTemplatePdfToPng = "some-command"
 
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<div class="figure">
 <img alt="image" src="./images/document.pdf.png" style="vertical-align: middle; width: 200px; height: auto;">
 <div class="caption">
@@ -116,7 +116,7 @@ func TestExpandImage_usePngFileForPdf(t *testing.T) {
 func TestExpandImage_usePngFileForWebp(t *testing.T) {
 	config.Current.CommandTemplateWebpToPng = "some-command"
 
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<div class="figure">
 <img alt="image" src="./images/image.webp.png" style="vertical-align: middle; width: 200px; height: auto;">
 <div class="caption">
@@ -137,7 +137,7 @@ func TestExpandImage_usePngFileForWebp(t *testing.T) {
 }
 
 func TestExpandImage_encodeSpecialCharacters(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<div class="figure">
 <img alt="image" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
@@ -159,7 +159,7 @@ some <b>caption</b>
 }
 
 func TestExpandImage_noCaption(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<div class="figure">
 <img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">
 <div class="caption">
@@ -181,7 +181,7 @@ func TestExpandImage_noCaption(t *testing.T) {
 }
 
 func TestExpandImage_onlyOneSizeSpecified(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	// Only width
 	result := `<div class="figure">
 <img alt="image" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: auto;">
@@ -224,7 +224,7 @@ some <b>caption</b>
 }
 
 func TestExpandImageInline(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<img alt="image" class="inline" src="./images/image.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
@@ -240,7 +240,7 @@ func TestExpandImageInline(t *testing.T) {
 }
 
 func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	result := `<img alt="image" class="inline" src="./images/%2522some%27special%253Achars.jpg" style="vertical-align: middle; width: 10px; height: 20px;">`
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE_INLINE, 1)
 	token := parser.InlineImageToken{
@@ -256,7 +256,7 @@ func TestExpandImageInline_encodeSpecialCharacters(t *testing.T) {
 }
 
 func TestExpandInternalLink(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
 	token := parser.InternalLinkToken{
 		ArticleName: "foo",
@@ -270,7 +270,7 @@ func TestExpandInternalLink(t *testing.T) {
 }
 
 func TestExpandExternalLink(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	url := "https://foo.com"
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 0)
 	token := parser.ExternalLinkToken{
@@ -285,7 +285,7 @@ func TestExpandExternalLink(t *testing.T) {
 }
 
 func TestExpandTable(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 0)
 	token := parser.TableToken{
 		Caption: parser.TableCaptionToken{
@@ -322,7 +322,7 @@ caption
 }
 
 func TestExpandTable_captionWithTokens(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKeyInternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_INTERNAL_LINK, 0)
 	tokenKeyExternalLink := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_EXTERNAL_LINK, 1)
 	tokenKeyTable := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_TABLE, 2)
@@ -373,7 +373,7 @@ caption with internal-link and <a href="https://foo.com">external-link</a>.
 }
 
 func TestExpandTableRow(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenRow := parser.TableRowToken{
 		Columns: []parser.TableColToken{
 			{
@@ -391,7 +391,7 @@ func TestExpandTableRow(t *testing.T) {
 }
 
 func TestExpandTableColumn(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenCol := parser.TableColToken{
 		Attributes: parser.TableColAttributeToken{},
 		Content:    "b" + parser.MARKER_BOLD_OPEN + "a" + parser.MARKER_BOLD_CLOSE + "r",
@@ -405,7 +405,7 @@ func TestExpandTableColumn(t *testing.T) {
 }
 
 func TestExpandTableColumnWithAttributes(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenCol := parser.TableColToken{
 		Attributes: parser.TableColAttributeToken{
 			Attributes: []string{"style=\"width: infinity lol\""},
@@ -421,7 +421,7 @@ func TestExpandTableColumnWithAttributes(t *testing.T) {
 }
 
 func TestExpandUnorderedList(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
@@ -440,7 +440,7 @@ b<b>a</b>r
 }
 
 func TestExpandOrderedList(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "f"} // very short item
 	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: ""}  // empty item
@@ -467,7 +467,7 @@ b<b>a</b>r
 }
 
 func TestExpandOrderedList_specifyNumberOfItems(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=42> bar"}
 	item3 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "<li value=10> another item with custom value   </li>"}
@@ -490,7 +490,7 @@ b<b>a</b>r
 }
 
 func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	item1 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  foobar  "}
 	item2 := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "  f"} // string without left space being <3 chars long caused crash
 	list := parser.UnorderedListToken{Items: []parser.ListItemToken{item1, item2}}
@@ -509,7 +509,7 @@ func TestExpandOrderedList_withWhitespacePadding(t *testing.T) {
 }
 
 func TestExpandDescriptionList(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	item1 := parser.ListItemToken{Type: parser.DESCRIPTION_HEAD, Content: "foo"}
 	item2 := parser.ListItemToken{Type: parser.DESCRIPTION_ITEM, Content: fmt.Sprintf("b%sa%sr", parser.MARKER_BOLD_OPEN, parser.MARKER_BOLD_CLOSE)}
 	list := parser.DescriptionListToken{Items: []parser.ListItemToken{item1, item2}}
@@ -528,7 +528,7 @@ b<b>a</b>r
 }
 
 func TestExpandNestedLists(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_UNORDERED_LIST, 2)
 
 	itemInner := parser.ListItemToken{Type: parser.NORMAL_ITEM, Content: "bar"}
@@ -553,7 +553,7 @@ bar
 }
 
 func TestExpandRefDefinition(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
 	token := parser.RefDefinitionToken{
 		Index:   42,
@@ -568,7 +568,7 @@ func TestExpandRefDefinition(t *testing.T) {
 }
 
 func TestExpandRefUsage(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_REF_DEF, 2)
 	token := parser.RefUsageToken{
 		Index: 42,
@@ -582,7 +582,7 @@ func TestExpandRefUsage(t *testing.T) {
 }
 
 func TestExpandNowiki(t *testing.T) {
-	generator := setup()
+	generator := setupHtmlGenerator()
 	tokenKey := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_NOWIKI, 0)
 	token := parser.NowikiToken{
 		Content: "something",
