@@ -40,6 +40,9 @@ func initCli() *cobra.Command {
 	var cliDiagnosticsTrace = false
 	var start time.Time
 
+	configService := config.NewConfigService()
+	ebookGeneratorService := generator.NewEbookGenerator(configService)
+
 	rootCmd := &cobra.Command{
 		Use:   "wiki2book",
 		Short: "A CLI tool to turn one or multiple Wikipedia articles into a good-looking eBook.",
@@ -113,13 +116,13 @@ func initCli() *cobra.Command {
 			cliOutputFile = ""
 		}
 
-		proj := generator.CreateProject(
+		proj := ebookGeneratorService.CreateProject(
 			args[0],
 			cliOutputFile,
 			cliConfig,
 		)
-		config.MergeIntoCurrentConfig(cliConfig)
-		generator.GenerateBookFromProject(proj)
+		// TODO Should not be necessary since it's done by the CreateProject function: config.MergeIntoCurrentConfig(cliConfig)
+		ebookGeneratorService.GenerateBookFromProject(proj)
 		cache.CleanUpTempDir()
 	}
 
@@ -127,8 +130,8 @@ func initCli() *cobra.Command {
 	articleCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	articleCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from single article")
-		config.MergeIntoCurrentConfig(cliConfig)
-		generator.GenerateArticleEbook(
+		configService.MergeIntoCurrentConfig(cliConfig)
+		ebookGeneratorService.GenerateArticleEbook(
 			args[0],
 			cliOutputFile,
 		)
@@ -139,8 +142,8 @@ func initCli() *cobra.Command {
 	standaloneCmd.Args = cobra.MatchAll(cobra.ExactArgs(1))
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
-		config.MergeIntoCurrentConfig(cliConfig)
-		generator.GenerateStandaloneEbook(
+		configService.MergeIntoCurrentConfig(cliConfig)
+		ebookGeneratorService.GenerateStandaloneEbook(
 			args[0],
 			cliOutputFile,
 		)
@@ -151,8 +154,9 @@ func initCli() *cobra.Command {
 	serverCmd.PersistentFlags().IntVar(&cliConfig.ServerPort, "server-port", cliConfig.ServerPort, "Port on which wiki2book should receive HTTP requests.")
 	serverCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare starting wiki2book in server mode")
-		config.MergeIntoCurrentConfig(cliConfig)
-		server.Start()
+		configService.MergeIntoCurrentConfig(cliConfig)
+		serverInstance := server.NewServer(configService, ebookGeneratorService)
+		serverInstance.Start()
 		cache.CleanUpTempDir()
 	}
 

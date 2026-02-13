@@ -25,7 +25,15 @@ const (
 	defaultStatsTxtOutputFile  = "stats.txt"
 )
 
-func CreateProject(projectFile string, outputFile string, cliConfig *config.Configuration) *config.Project {
+type EbookGeneratorService struct {
+	configService *config.ConfigService
+}
+
+func NewEbookGenerator(configService *config.ConfigService) *EbookGeneratorService {
+	return &EbookGeneratorService{configService: configService}
+}
+
+func (g *EbookGeneratorService) CreateProject(projectFile string, outputFile string, cliConfig *config.Configuration) *config.Project {
 	var err error
 
 	sigolo.Infof("Use project file: '%s'", projectFile)
@@ -49,17 +57,17 @@ func CreateProject(projectFile string, outputFile string, cliConfig *config.Conf
 	proj.OutputFile, err = util.ToAbsolutePath(proj.OutputFile)
 	sigolo.FatalCheck(err)
 
-	config.MergeIntoCurrentConfig(&proj.Configuration)
-	config.MergeIntoCurrentConfig(cliConfig)
+	g.configService.MergeIntoCurrentConfig(&proj.Configuration)
+	g.configService.MergeIntoCurrentConfig(cliConfig)
 
-	config.Current.Print()
+	g.configService.Get().Print()
 	proj.Print()
 
 	return proj
 }
 
-func GenerateStandaloneEbook(inputFile string, outputFile string) {
-	config.Current.Print()
+func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, outputFile string) {
+	g.configService.Get().Print()
 
 	fileContent, err := os.ReadFile(inputFile)
 	sigolo.FatalCheck(err)
@@ -67,16 +75,16 @@ func GenerateStandaloneEbook(inputFile string, outputFile string) {
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
-	outputFile = ensurePathsAndClearTempDir(outputFile)
+	outputFile = g.ensurePathsAndClearTempDir(outputFile)
 
-	config.Current.AssertFilesAndPathsExists()
+	g.configService.Get().AssertFilesAndPathsExists()
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		config.Current.WikipediaInstance,
-		config.Current.WikipediaHost,
-		config.Current.WikipediaImageArticleHosts,
-		config.Current.WikipediaImageHost,
-		config.Current.WikipediaMathRestApi,
+		g.configService.Get().WikipediaInstance,
+		g.configService.Get().WikipediaHost,
+		g.configService.Get().WikipediaImageArticleHosts,
+		g.configService.Get().WikipediaImageHost,
+		g.configService.Get().WikipediaMathRestApi,
 		image.NewImageProcessingService(),
 		http.NewDefaultHttpService(),
 	)
@@ -90,7 +98,7 @@ func GenerateStandaloneEbook(inputFile string, outputFile string) {
 
 	// TODO Adjust this when additional non-epub output types are supported.
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
-	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
+	if g.shouldRecreateHtml(htmlFilePath, g.configService.Get().ForceRegenerateHtml) {
 		htmlGenerator := &HtmlGenerator{
 			TokenMap:         article.TokenMap,
 			WikipediaService: wikipediaService,
@@ -99,7 +107,7 @@ func GenerateStandaloneEbook(inputFile string, outputFile string) {
 		sigolo.FatalCheck(err)
 	}
 
-	sigolo.Infof("Start generating %s file", config.Current.OutputType)
+	sigolo.Infof("Start generating %s file", g.configService.Get().OutputType)
 	metadata := config.Metadata{
 		Title: title,
 	}
@@ -109,10 +117,10 @@ func GenerateStandaloneEbook(inputFile string, outputFile string) {
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", g.configService.Get().OutputType, absoluteOutputFile)
 }
 
-func GenerateArticleEbook(articleName string, outputFile string) {
+func (g *EbookGeneratorService) GenerateArticleEbook(articleName string, outputFile string) {
 	var articles []string
 	articles = append(articles, articleName)
 
@@ -121,41 +129,41 @@ func GenerateArticleEbook(articleName string, outputFile string) {
 	proj.OutputFile = outputFile
 	proj.Articles = articles
 
-	config.Current.Print()
+	g.configService.Get().Print()
 
-	GenerateBookFromProject(proj)
+	g.GenerateBookFromProject(proj)
 }
 
-func GenerateBookFromProject(project *config.Project) {
+func (g *EbookGeneratorService) GenerateBookFromProject(project *config.Project) {
 	articles := project.Articles
 	metadata := project.Metadata
 
-	outputFile := ensurePathsAndClearTempDir(project.OutputFile)
+	outputFile := g.ensurePathsAndClearTempDir(project.OutputFile)
 
-	config.Current.AssertFilesAndPathsExists()
+	g.configService.Get().AssertFilesAndPathsExists()
 
 	numberOfArticles := len(articles)
 	articleOutputFiles := make([]string, numberOfArticles)
 
-	articleChan := make(chan string, config.Current.WorkerThreads)
-	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
+	articleChan := make(chan string, g.configService.Get().WorkerThreads)
+	sigolo.Debugf("Use %d worker threads to process the articles", g.configService.Get().WorkerThreads)
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		config.Current.WikipediaInstance,
-		config.Current.WikipediaHost,
-		config.Current.WikipediaImageArticleHosts,
-		config.Current.WikipediaImageHost,
-		config.Current.WikipediaMathRestApi,
+		g.configService.Get().WikipediaInstance,
+		g.configService.Get().WikipediaHost,
+		g.configService.Get().WikipediaImageArticleHosts,
+		g.configService.Get().WikipediaImageHost,
+		g.configService.Get().WikipediaMathRestApi,
 		image.NewImageProcessingService(),
 		http.NewDefaultHttpService(),
 	)
 
 	// Create a wait-group that is zero when all threads are done
 	threadPoolWaitGroup := &sync.WaitGroup{}
-	threadPoolWaitGroup.Add(config.Current.WorkerThreads)
+	threadPoolWaitGroup.Add(g.configService.Get().WorkerThreads)
 
 	// Start threads which pick an article from the channel to work on
-	for i := 0; i < config.Current.WorkerThreads; i++ {
+	for i := 0; i < g.configService.Get().WorkerThreads; i++ {
 		sigolo.Debugf("Start worker thread %d", i)
 
 		go func(threadNumber int) {
@@ -169,7 +177,7 @@ func GenerateBookFromProject(project *config.Project) {
 					}
 				}
 
-				thisArticleOutputFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
+				thisArticleOutputFile := g.processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
 				articleOutputFiles[articleNumber] = thisArticleOutputFile
 			}
 
@@ -190,8 +198,8 @@ func GenerateBookFromProject(project *config.Project) {
 	threadPoolWaitGroup.Wait()
 	sigolo.Debugf("Worker threads are done processing articles")
 
-	sigolo.Infof("Start generating %s file", config.Current.OutputType)
-	switch config.Current.OutputType {
+	sigolo.Infof("Start generating %s file", g.configService.Get().OutputType)
+	switch g.configService.Get().OutputType {
 	case config.OutputTypeEpub2:
 		fallthrough
 	case config.OutputTypeEpub3:
@@ -206,18 +214,18 @@ func GenerateBookFromProject(project *config.Project) {
 
 	absoluteOutputFile, err := util.ToAbsolutePath(outputFile)
 	sigolo.FatalCheck(err)
-	sigolo.Infof("Successfully created %s file '%s'", config.Current.OutputType, absoluteOutputFile)
+	sigolo.Infof("Successfully created %s file '%s'", g.configService.Get().OutputType, absoluteOutputFile)
 }
 
 // processArticle processes a given article, which means, the content (including images etc.) is downloaded and the
 // article will be tokenized, parsed and converted into the output format stored in the current configuration.
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
+func (g *EbookGeneratorService) processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
-	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
+	wikipediaArticleHost := fmt.Sprintf("%s.%s", g.configService.Get().WikipediaInstance, g.configService.Get().WikipediaHost)
 	htmlFilePath := filepath.Join(cache.HtmlCacheDirName, articleName+".html") // TODO use generator to get this file (currently determining the filepath happens twice)
 	articleOutputFile := ""
-	if !shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
+	if !g.shouldRecreateHtml(htmlFilePath, g.configService.Get().ForceRegenerateHtml) {
 		sigolo.Debugf("Article '%s' (%d/%d): HTML for article does already exist. Skip parsing and HTML generation.", articleName, currentArticleNumber, totalNumberOfArticles)
 	} else {
 		sigolo.Debugf("Article '%s' (%d/%d): Download article", articleName, currentArticleNumber, totalNumberOfArticles)
@@ -233,7 +241,7 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		err = wikipediaService.DownloadImages(article.Images)
 		sigolo.FatalCheck(err)
 
-		switch config.Current.OutputType {
+		switch g.configService.Get().OutputType {
 		case config.OutputTypeEpub2:
 			fallthrough
 		case config.OutputTypeEpub3:
@@ -260,8 +268,8 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 	return articleOutputFile
 }
 
-func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
-	if forceHtmlRecreate || config.Current.OutputType == config.OutputTypeStatsJson || config.Current.OutputType == config.OutputTypeStatsTxt {
+func (g *EbookGeneratorService) shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
+	if forceHtmlRecreate || g.configService.Get().OutputType == config.OutputTypeStatsJson || g.configService.Get().OutputType == config.OutputTypeStatsTxt {
 		return true
 	}
 
@@ -274,17 +282,17 @@ func shouldRecreateHtml(htmlFilePath string, forceHtmlRecreate bool) bool {
 
 // ensurePathsAndClearTempDir ensures that the output folder for the given outputFile exists and clears up any
 // temporary files in the temp files folder that might still exist from previous runs.
-func ensurePathsAndClearTempDir(outputFile string) string {
+func (g *EbookGeneratorService) ensurePathsAndClearTempDir(outputFile string) string {
 	var err error
 
-	if config.Current.OutputType == config.OutputTypeStatsJson && !strings.HasSuffix(outputFile, "json") {
+	if g.configService.Get().OutputType == config.OutputTypeStatsJson && !strings.HasSuffix(outputFile, "json") {
 		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
 		outputFile = defaultStatsJsonOutputFile
 		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
 		outputFile, err = util.ToAbsolutePath(outputFile)
 		sigolo.FatalCheck(err)
 	}
-	if config.Current.OutputType == config.OutputTypeStatsTxt && !strings.HasSuffix(outputFile, "txt") {
+	if g.configService.Get().OutputType == config.OutputTypeStatsTxt && !strings.HasSuffix(outputFile, "txt") {
 		// For stats, the output file is not an EPUB, therefore we change the default file in case it's the default EPUB one.
 		outputFile = defaultStatsTxtOutputFile
 		sigolo.Infof("Notice: Changing output file from default '%s' to '%s'", defaultEpubOutputFile, outputFile)
@@ -312,7 +320,7 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	sigolo.FatalCheck(err)
 
 	if fileInfo.IsDir() {
-		switch config.Current.OutputType {
+		switch g.configService.Get().OutputType {
 		case config.OutputTypeEpub2:
 			fallthrough
 		case config.OutputTypeEpub3:

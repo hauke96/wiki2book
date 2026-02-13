@@ -43,10 +43,12 @@ const (
 	defaultCommandTemplateWebpToPng                  = "magick " + InputPlaceholder + " " + OutputPlaceholder
 )
 
-var tocDepthDefault = 2
-var workerThreadsDefault = 5
+const tocDepthDefault = 2
+const workerThreadsDefault = 5
 
 // Current config initialized with default values, which allows wiki2book to run without any specified config file.
+//
+// Deprecated: Use ConfigService instead.
 var Current = NewDefaultConfig()
 
 // Used during merging to only copy values of fields that have non-default values.
@@ -488,8 +490,213 @@ type Configuration struct {
 	ServerPort int `json:"server-port"`
 }
 
+type ConfigService struct {
+	current *Configuration
+}
+
+func NewConfigService() *ConfigService {
+	return &ConfigService{current: NewDefaultConfig()}
+}
+
+func (s *ConfigService) Get() *Configuration {
+	return s.current
+}
+
+// MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field
+// in the current configuration of this service in case the field of the given config is different to the default value.
+func (s *ConfigService) MergeIntoCurrentConfig(c *Configuration) {
+	if c == nil {
+		return
+	}
+	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
+		sigolo.Tracef("Override ForceRegenerateHtml with %v", c.ForceRegenerateHtml)
+		s.current.ForceRegenerateHtml = c.ForceRegenerateHtml
+	}
+	if c.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
+		sigolo.Tracef("Override SvgSizeToViewbox with %v", c.SvgSizeToViewbox)
+		s.current.SvgSizeToViewbox = c.SvgSizeToViewbox
+	}
+	if c.OutputType != defaultConfig.OutputType {
+		sigolo.Tracef("Override OutputType with %s", c.OutputType)
+		s.current.OutputType = c.OutputType
+	}
+	if c.OutputDriver != defaultConfig.OutputDriver {
+		sigolo.Tracef("Override OutputDriver with %s", c.OutputDriver)
+		s.current.OutputDriver = c.OutputDriver
+	}
+	if c.CacheDir != defaultConfig.CacheDir {
+		absolutePath, err := util.ToAbsolutePath(c.CacheDir)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override CacheDir with %s", absolutePath)
+		s.current.CacheDir = absolutePath
+	}
+	if c.CacheMaxSize != defaultConfig.CacheMaxSize {
+		sigolo.Tracef("Override CacheMaxSize with %d", c.CacheMaxSize)
+		s.current.CacheMaxSize = c.CacheMaxSize
+	}
+	if c.CacheMaxAge != defaultConfig.CacheMaxAge {
+		sigolo.Tracef("Override CacheMaxAge with %d", c.CacheMaxAge)
+		s.current.CacheMaxAge = c.CacheMaxAge
+	}
+	if c.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
+		sigolo.Tracef("Override CacheEvictionStrategy with %s", c.CacheEvictionStrategy)
+		s.current.CacheEvictionStrategy = c.CacheEvictionStrategy
+	}
+	if c.StyleFile != defaultConfig.StyleFile {
+		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override StyleFile with '%s'", absolutePath)
+		s.current.StyleFile = absolutePath
+	}
+	if c.CoverImage != defaultConfig.CoverImage {
+		absolutePath, err := util.ToAbsolutePath(c.CoverImage)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override CoverImage with %s", absolutePath)
+		s.current.CoverImage = absolutePath
+	}
+	if c.CommandTemplateSvgToPng != defaultConfig.CommandTemplateSvgToPng {
+		sigolo.Tracef("Override CommandTemplateSvgToPng with %s", c.CommandTemplateSvgToPng)
+		s.current.CommandTemplateSvgToPng = c.CommandTemplateSvgToPng
+	}
+	if c.CommandTemplateMathSvgToPng != defaultConfig.CommandTemplateMathSvgToPng {
+		sigolo.Tracef("Override CommandTemplateMathSvgToPng with %s", c.CommandTemplateMathSvgToPng)
+		s.current.CommandTemplateMathSvgToPng = c.CommandTemplateMathSvgToPng
+	}
+	if c.CommandTemplateImageProcessing != defaultConfig.CommandTemplateImageProcessing {
+		sigolo.Tracef("Override CommandTemplateImageProcessing with %s", c.CommandTemplateImageProcessing)
+		s.current.CommandTemplateImageProcessing = c.CommandTemplateImageProcessing
+	}
+	if c.CommandTemplatePdfToPng != defaultConfig.CommandTemplatePdfToPng {
+		sigolo.Tracef("Override CommandTemplatePdfToPng with %s", c.CommandTemplatePdfToPng)
+		s.current.CommandTemplatePdfToPng = c.CommandTemplatePdfToPng
+	}
+	if c.CommandTemplateWebpToPng != defaultConfig.CommandTemplateWebpToPng {
+		sigolo.Tracef("Override CommandTemplateWebpToPng with %s", c.CommandTemplateWebpToPng)
+		s.current.CommandTemplateWebpToPng = c.CommandTemplateWebpToPng
+	}
+	if c.PandocExecutable != defaultConfig.PandocExecutable {
+		var err error
+		newPath := c.PandocExecutable
+		if strings.Contains(c.PandocExecutable, "/") {
+			// Only convert paths to absolute paths that are actual paths. Just the name of the executable, e.g. just
+			// "pandoc", should of course not be converted into a path.
+			newPath, err = util.ToAbsolutePath(c.PandocExecutable)
+			sigolo.FatalCheck(err)
+		}
+		sigolo.Tracef("Override PandocExecutable with %s", c.PandocExecutable)
+		s.current.PandocExecutable = newPath
+	}
+	if c.PandocDataDir != defaultConfig.PandocDataDir {
+		absolutePath, err := util.ToAbsolutePath(c.PandocDataDir)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override PandocDataDir with %s", absolutePath)
+		s.current.PandocDataDir = absolutePath
+	}
+	if !util.EqualsInAnyOrder(c.FontFiles, defaultConfig.FontFiles) {
+		absolutePaths, err := util.ToAbsolutePaths(c.FontFiles...)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override FontFiles with %v", c.SvgSizeToViewbox)
+		s.current.FontFiles = absolutePaths
+	}
+	if !util.EqualsInAnyOrder(c.IgnoredTemplates, defaultConfig.IgnoredTemplates) {
+		sigolo.Tracef("Override IgnoredTemplates with %v", c.IgnoredTemplates)
+		s.current.IgnoredTemplates = c.IgnoredTemplates
+	}
+	if !util.EqualsInAnyOrder(c.TrailingTemplates, defaultConfig.TrailingTemplates) {
+		sigolo.Tracef("Override TrailingTemplates with %v", c.TrailingTemplates)
+		s.current.TrailingTemplates = c.TrailingTemplates
+	}
+	if !util.EqualsInAnyOrder(c.IgnoredImageParams, defaultConfig.IgnoredImageParams) {
+		sigolo.Tracef("Override IgnoredImageParams with %v", c.IgnoredImageParams)
+		s.current.IgnoredImageParams = c.IgnoredImageParams
+	}
+	if !util.EqualsInAnyOrder(c.IgnoredMediaTypes, defaultConfig.IgnoredMediaTypes) {
+		sigolo.Tracef("Override IgnoredMediaTypes with %v", c.IgnoredMediaTypes)
+		s.current.IgnoredMediaTypes = c.IgnoredMediaTypes
+	}
+	if c.WikipediaInstance != defaultConfig.WikipediaInstance {
+		sigolo.Tracef("Override WikipediaInstance with %s", c.WikipediaInstance)
+		s.current.WikipediaInstance = c.WikipediaInstance
+	}
+	if c.WikipediaHost != defaultConfig.WikipediaHost {
+		sigolo.Tracef("Override WikipediaHost with %s", c.WikipediaHost)
+		s.current.WikipediaHost = c.WikipediaHost
+	}
+	if c.WikipediaImageHost != defaultConfig.WikipediaImageHost {
+		sigolo.Tracef("Override WikipediaImageHost with %s", c.WikipediaImageHost)
+		s.current.WikipediaImageHost = c.WikipediaImageHost
+	}
+	if c.WikipediaMathRestApi != defaultConfig.WikipediaMathRestApi {
+		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
+		s.current.WikipediaMathRestApi = c.WikipediaMathRestApi
+	}
+	if !util.EqualsInAnyOrder(c.WikipediaImageArticleHosts, defaultConfig.WikipediaImageArticleHosts) {
+		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)
+		s.current.WikipediaImageArticleHosts = c.WikipediaImageArticleHosts
+	}
+	if !util.EqualsInAnyOrder(c.FilePrefixes, defaultConfig.FilePrefixes) {
+		sigolo.Tracef("Override FilePrefixes with %v", c.FilePrefixes)
+		s.current.FilePrefixes = c.FilePrefixes
+	}
+	if !util.EqualsInAnyOrder(c.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
+		sigolo.Tracef("Override AllowedLinkPrefixes with %v", c.AllowedLinkPrefixes)
+		s.current.AllowedLinkPrefixes = c.AllowedLinkPrefixes
+	}
+	if !util.EqualsInAnyOrder(c.CategoryPrefixes, defaultConfig.CategoryPrefixes) {
+		sigolo.Tracef("Override CategoryPrefixes with %v", c.CategoryPrefixes)
+		s.current.CategoryPrefixes = c.CategoryPrefixes
+	}
+	if c.MathConverter != defaultConfig.MathConverter {
+		sigolo.Tracef("Override MathConverter with %s", c.MathConverter)
+		s.current.MathConverter = c.MathConverter
+	}
+	if c.TocDepth != defaultConfig.TocDepth {
+		sigolo.Tracef("Override TocDepth with %d", c.TocDepth)
+		s.current.TocDepth = c.TocDepth
+	}
+	if c.WorkerThreads != defaultConfig.WorkerThreads {
+		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
+		s.current.WorkerThreads = c.WorkerThreads
+	}
+	if c.UserAgentTemplate != defaultConfig.UserAgentTemplate {
+		sigolo.Tracef("Override UserAgentTemplate with %s", c.UserAgentTemplate)
+		s.current.UserAgentTemplate = c.UserAgentTemplate
+	}
+	if c.ServerPort != defaultConfig.ServerPort {
+		sigolo.Tracef("Override ServerPort with %d", c.ServerPort)
+		s.current.ServerPort = c.ServerPort
+	}
+
+	s.current.MakePathsAbsoluteToWorkingDir()
+
+	s.current.AssertValidity()
+}
+
+// LoadFromConfig reads the given file and stores it as configuration in the service. Any existing configuration will
+// be replaced by the config of the file.
+func (s *ConfigService) LoadFromConfig(file string) error {
+	sigolo.Debugf("Load config from file %s", file)
+
+	configString, err := os.ReadFile(file)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Error reading config file %s", file))
+	}
+
+	err = json.Unmarshal(configString, s.current)
+	if err != nil {
+		return errors.Wrap(err, "Error parsing config file content")
+	}
+
+	s.current.makePathsAbsolute(file)
+	s.current.AssertValidity()
+
+	return nil
+}
+
 // MergeIntoCurrentConfig goes through all the properties of the given configuration and overwrites the respective field
 // in the Current configuration in case the field of the given config is different to the default value.
+//
+// Deprecated: Use ConfigService instead.
 func MergeIntoCurrentConfig(c *Configuration) {
 	if c == nil {
 		return
@@ -801,6 +1008,7 @@ func (c *Configuration) AssertValidity() {
 }
 
 // VerifyOutputAndDriver returns an error if the output type and driver are not compatible and returns nil if they are.
+// TODO make function of Configuration struct
 func VerifyOutputAndDriver(outputType string, outputDriver string) error {
 	sigolo.Tracef("Verify compatibility of outputType '%s' and outputDriver '%s'", outputType, outputDriver)
 
@@ -849,6 +1057,7 @@ func (c *Configuration) ShouldConvertWebpToPng() bool {
 	return c.CommandTemplateWebpToPng != ""
 }
 
+// Deprecated: Use ConfigService instead.
 func LoadConfig(file string) error {
 	sigolo.Debugf("Load config from file %s", file)
 
