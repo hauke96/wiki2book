@@ -80,11 +80,7 @@ func (g *EbookGeneratorService) GenerateStandaloneEbook(inputFile string, output
 	g.configService.Get().AssertFilesAndPathsExists()
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		g.configService.Get().WikipediaInstance,
-		g.configService.Get().WikipediaHost,
-		g.configService.Get().WikipediaImageArticleHosts,
-		g.configService.Get().WikipediaImageHost,
-		g.configService.Get().WikipediaMathRestApi,
+		g.configService,
 		image.NewImageProcessingService(),
 		http.NewDefaultHttpService(),
 	)
@@ -149,11 +145,7 @@ func (g *EbookGeneratorService) GenerateBookFromProject(project *config.Project)
 	sigolo.Debugf("Use %d worker threads to process the articles", g.configService.Get().WorkerThreads)
 
 	wikipediaService := wikipedia.NewWikipediaService(
-		g.configService.Get().WikipediaInstance,
-		g.configService.Get().WikipediaHost,
-		g.configService.Get().WikipediaImageArticleHosts,
-		g.configService.Get().WikipediaImageHost,
-		g.configService.Get().WikipediaMathRestApi,
+		g.configService,
 		image.NewImageProcessingService(),
 		http.NewDefaultHttpService(),
 	)

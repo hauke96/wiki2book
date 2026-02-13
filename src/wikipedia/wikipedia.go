@@ -53,24 +53,16 @@ type WikipediaService interface {
 }
 
 type DefaultWikipediaService struct {
-	wikipediaInstance          string
-	wikipediaHost              string
-	wikipediaImageArticleHosts []string
-	wikipediaImageHost         string
-	wikipediaMathRestApi       string
-	imageProcessingService     image.ImageProcessingService
-	httpService                ownHttp.HttpService
+	configService          *config.ConfigService
+	imageProcessingService image.ImageProcessingService
+	httpService            ownHttp.HttpService
 }
 
-func NewWikipediaService(wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
+func NewWikipediaService(configService *config.ConfigService, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
-		wikipediaInstance:          wikipediaInstance,
-		wikipediaHost:              wikipediaHost,
-		wikipediaImageArticleHosts: wikipediaImageInstances,
-		wikipediaImageHost:         wikipediaImageHost,
-		wikipediaMathRestApi:       wikipediaMathRestApi,
-		imageProcessingService:     imageProcessingService,
-		httpService:                httpClient,
+		configService:          configService,
+		imageProcessingService: imageProcessingService,
+		httpService:            httpClient,
 	}
 }
 
@@ -93,7 +85,7 @@ func (w *DefaultWikipediaService) DownloadArticle(host string, title string) (*W
 	wikiArticleDto := &WikiArticleDto{}
 	err = json.Unmarshal(cachedResponseBytes, wikiArticleDto)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s.%s/%s", w.wikipediaInstance, w.wikipediaHost, title))
+		return nil, errors.Wrap(err, fmt.Sprintf("Error parsing JSON from article %s.%s/%s", w.configService.Get().WikipediaInstance, w.configService.Get().WikipediaHost, title))
 	}
 
 	// Use the given title. When the article is behind a redirect, the actual title is used which might be unexpected
@@ -122,10 +114,10 @@ func (w *DefaultWikipediaService) DownloadImages(images []string) error {
 func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string) error {
 	var downloadErr error
 
-	for i, articleHost := range w.wikipediaImageArticleHosts {
+	for i, articleHost := range w.configService.Get().WikipediaImageArticleHosts {
 		var outputFilepath string
 		var freshlyDownloaded bool
-		isLastSource := i == len(w.wikipediaImageArticleHosts)-1
+		isLastSource := i == len(w.configService.Get().WikipediaImageArticleHosts)-1
 		outputFilepath, freshlyDownloaded, downloadErr = w.downloadImage(articleHost, image)
 		if downloadErr != nil {
 			if isLastSource {
@@ -134,7 +126,7 @@ func (w *DefaultWikipediaService) downloadImageUsingAllSources(image string) err
 			} else {
 				// This image is not available at the current source. Maybe one of the following sources hold the
 				// image. Therefore, this is not a real error that needs to be handled.
-				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, articleHost, w.wikipediaHost, downloadErr.Error())
+				sigolo.Debugf("Could not downloading image %s from source %s.%s: %s", image, articleHost, w.configService.Get().WikipediaHost, downloadErr.Error())
 			}
 			continue
 		}
@@ -228,7 +220,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 		wikiInstancePathSegment = strings.SplitN(imageArticleHost, ".", 2)[0]
 	}
 
-	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.wikipediaImageHost, wikiInstancePathSegment, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
+	imageUrl := fmt.Sprintf("https://%s/wikipedia/%s/%c/%c%c/%s", w.configService.Get().WikipediaImageHost, wikiInstancePathSegment, md5sum[0], md5sum[0], md5sum[1], url.QueryEscape(actualImageName))
 
 	cachedFilePath, freshlyDownloaded, err := w.httpService.DownloadAndCache(imageUrl, cache.ImageCacheDirName, originalImageName)
 	if err != nil {
@@ -248,7 +240,7 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
-	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.wikipediaInstance, w.wikipediaHost, url.QueryEscape(template))
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.configService.Get().WikipediaInstance, w.configService.Get().WikipediaHost, url.QueryEscape(template))
 	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.TemplateCacheDirName, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
@@ -272,7 +264,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 	sigolo.Debugf("Render math %s", util.TruncString(mathString))
 	sigolo.Tracef("  Complete math text: %s", mathString)
 
-	mathApiUrl := w.wikipediaMathRestApi
+	mathApiUrl := w.configService.Get().WikipediaMathRestApi
 
 	mathSvgFilename, err := w.getMathResource(mathString)
 	if err != nil {
@@ -308,7 +300,7 @@ func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string,
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
 func (w *DefaultWikipediaService) getMathResource(mathString string) (string, error) {
-	urlString := w.wikipediaMathRestApi + "/check/tex"
+	urlString := w.configService.Get().WikipediaMathRestApi + "/check/tex"
 
 	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
 	// formulae as in the original article. This is not only nice for debugging but also might increase speed due to
