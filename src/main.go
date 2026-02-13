@@ -156,7 +156,7 @@ func initCli() *cobra.Command {
 	serverCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare starting wiki2book in server mode")
 		configService.MergeIntoCurrentConfig(cliConfig)
-		serverInstance := server.NewServer(configService, fileCache, ebookGeneratorService)
+		serverInstance := server.NewServer(configService, fileCache)
 		serverInstance.Start()
 		fileCache.CleanUpTempDir()
 	}

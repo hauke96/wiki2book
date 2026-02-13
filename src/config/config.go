@@ -490,7 +490,11 @@ type ConfigService struct {
 }
 
 func NewConfigService() *ConfigService {
-	return &ConfigService{current: NewDefaultConfig()}
+	return NewConfigServiceForConfig(NewDefaultConfig())
+}
+
+func NewConfigServiceForConfig(config *Configuration) *ConfigService {
+	return &ConfigService{current: config}
 }
 
 func (s *ConfigService) Get() *Configuration {
@@ -503,167 +507,9 @@ func (s *ConfigService) MergeIntoCurrentConfig(c *Configuration) {
 	if c == nil {
 		return
 	}
-	if c.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
-		sigolo.Tracef("Override ForceRegenerateHtml with %v", c.ForceRegenerateHtml)
-		s.current.ForceRegenerateHtml = c.ForceRegenerateHtml
-	}
-	if c.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
-		sigolo.Tracef("Override SvgSizeToViewbox with %v", c.SvgSizeToViewbox)
-		s.current.SvgSizeToViewbox = c.SvgSizeToViewbox
-	}
-	if c.OutputType != defaultConfig.OutputType {
-		sigolo.Tracef("Override OutputType with %s", c.OutputType)
-		s.current.OutputType = c.OutputType
-	}
-	if c.OutputDriver != defaultConfig.OutputDriver {
-		sigolo.Tracef("Override OutputDriver with %s", c.OutputDriver)
-		s.current.OutputDriver = c.OutputDriver
-	}
-	if c.CacheDir != defaultConfig.CacheDir {
-		absolutePath, err := util.ToAbsolutePath(c.CacheDir)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CacheDir with %s", absolutePath)
-		s.current.CacheDir = absolutePath
-	}
-	if c.CacheMaxSize != defaultConfig.CacheMaxSize {
-		sigolo.Tracef("Override CacheMaxSize with %d", c.CacheMaxSize)
-		s.current.CacheMaxSize = c.CacheMaxSize
-	}
-	if c.CacheMaxAge != defaultConfig.CacheMaxAge {
-		sigolo.Tracef("Override CacheMaxAge with %d", c.CacheMaxAge)
-		s.current.CacheMaxAge = c.CacheMaxAge
-	}
-	if c.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
-		sigolo.Tracef("Override CacheEvictionStrategy with %s", c.CacheEvictionStrategy)
-		s.current.CacheEvictionStrategy = c.CacheEvictionStrategy
-	}
-	if c.StyleFile != defaultConfig.StyleFile {
-		absolutePath, err := util.ToAbsolutePath(c.StyleFile)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override StyleFile with '%s'", absolutePath)
-		s.current.StyleFile = absolutePath
-	}
-	if c.CoverImage != defaultConfig.CoverImage {
-		absolutePath, err := util.ToAbsolutePath(c.CoverImage)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override CoverImage with %s", absolutePath)
-		s.current.CoverImage = absolutePath
-	}
-	if c.CommandTemplateSvgToPng != defaultConfig.CommandTemplateSvgToPng {
-		sigolo.Tracef("Override CommandTemplateSvgToPng with %s", c.CommandTemplateSvgToPng)
-		s.current.CommandTemplateSvgToPng = c.CommandTemplateSvgToPng
-	}
-	if c.CommandTemplateMathSvgToPng != defaultConfig.CommandTemplateMathSvgToPng {
-		sigolo.Tracef("Override CommandTemplateMathSvgToPng with %s", c.CommandTemplateMathSvgToPng)
-		s.current.CommandTemplateMathSvgToPng = c.CommandTemplateMathSvgToPng
-	}
-	if c.CommandTemplateImageProcessing != defaultConfig.CommandTemplateImageProcessing {
-		sigolo.Tracef("Override CommandTemplateImageProcessing with %s", c.CommandTemplateImageProcessing)
-		s.current.CommandTemplateImageProcessing = c.CommandTemplateImageProcessing
-	}
-	if c.CommandTemplatePdfToPng != defaultConfig.CommandTemplatePdfToPng {
-		sigolo.Tracef("Override CommandTemplatePdfToPng with %s", c.CommandTemplatePdfToPng)
-		s.current.CommandTemplatePdfToPng = c.CommandTemplatePdfToPng
-	}
-	if c.CommandTemplateWebpToPng != defaultConfig.CommandTemplateWebpToPng {
-		sigolo.Tracef("Override CommandTemplateWebpToPng with %s", c.CommandTemplateWebpToPng)
-		s.current.CommandTemplateWebpToPng = c.CommandTemplateWebpToPng
-	}
-	if c.PandocExecutable != defaultConfig.PandocExecutable {
-		var err error
-		newPath := c.PandocExecutable
-		if strings.Contains(c.PandocExecutable, "/") {
-			// Only convert paths to absolute paths that are actual paths. Just the name of the executable, e.g. just
-			// "pandoc", should of course not be converted into a path.
-			newPath, err = util.ToAbsolutePath(c.PandocExecutable)
-			sigolo.FatalCheck(err)
-		}
-		sigolo.Tracef("Override PandocExecutable with %s", c.PandocExecutable)
-		s.current.PandocExecutable = newPath
-	}
-	if c.PandocDataDir != defaultConfig.PandocDataDir {
-		absolutePath, err := util.ToAbsolutePath(c.PandocDataDir)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override PandocDataDir with %s", absolutePath)
-		s.current.PandocDataDir = absolutePath
-	}
-	if !util.EqualsInAnyOrder(c.FontFiles, defaultConfig.FontFiles) {
-		absolutePaths, err := util.ToAbsolutePaths(c.FontFiles...)
-		sigolo.FatalCheck(err)
-		sigolo.Tracef("Override FontFiles with %v", c.SvgSizeToViewbox)
-		s.current.FontFiles = absolutePaths
-	}
-	if !util.EqualsInAnyOrder(c.IgnoredTemplates, defaultConfig.IgnoredTemplates) {
-		sigolo.Tracef("Override IgnoredTemplates with %v", c.IgnoredTemplates)
-		s.current.IgnoredTemplates = c.IgnoredTemplates
-	}
-	if !util.EqualsInAnyOrder(c.TrailingTemplates, defaultConfig.TrailingTemplates) {
-		sigolo.Tracef("Override TrailingTemplates with %v", c.TrailingTemplates)
-		s.current.TrailingTemplates = c.TrailingTemplates
-	}
-	if !util.EqualsInAnyOrder(c.IgnoredImageParams, defaultConfig.IgnoredImageParams) {
-		sigolo.Tracef("Override IgnoredImageParams with %v", c.IgnoredImageParams)
-		s.current.IgnoredImageParams = c.IgnoredImageParams
-	}
-	if !util.EqualsInAnyOrder(c.IgnoredMediaTypes, defaultConfig.IgnoredMediaTypes) {
-		sigolo.Tracef("Override IgnoredMediaTypes with %v", c.IgnoredMediaTypes)
-		s.current.IgnoredMediaTypes = c.IgnoredMediaTypes
-	}
-	if c.WikipediaInstance != defaultConfig.WikipediaInstance {
-		sigolo.Tracef("Override WikipediaInstance with %s", c.WikipediaInstance)
-		s.current.WikipediaInstance = c.WikipediaInstance
-	}
-	if c.WikipediaHost != defaultConfig.WikipediaHost {
-		sigolo.Tracef("Override WikipediaHost with %s", c.WikipediaHost)
-		s.current.WikipediaHost = c.WikipediaHost
-	}
-	if c.WikipediaImageHost != defaultConfig.WikipediaImageHost {
-		sigolo.Tracef("Override WikipediaImageHost with %s", c.WikipediaImageHost)
-		s.current.WikipediaImageHost = c.WikipediaImageHost
-	}
-	if c.WikipediaMathRestApi != defaultConfig.WikipediaMathRestApi {
-		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
-		s.current.WikipediaMathRestApi = c.WikipediaMathRestApi
-	}
-	if !util.EqualsInAnyOrder(c.WikipediaImageArticleHosts, defaultConfig.WikipediaImageArticleHosts) {
-		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)
-		s.current.WikipediaImageArticleHosts = c.WikipediaImageArticleHosts
-	}
-	if !util.EqualsInAnyOrder(c.FilePrefixes, defaultConfig.FilePrefixes) {
-		sigolo.Tracef("Override FilePrefixes with %v", c.FilePrefixes)
-		s.current.FilePrefixes = c.FilePrefixes
-	}
-	if !util.EqualsInAnyOrder(c.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
-		sigolo.Tracef("Override AllowedLinkPrefixes with %v", c.AllowedLinkPrefixes)
-		s.current.AllowedLinkPrefixes = c.AllowedLinkPrefixes
-	}
-	if !util.EqualsInAnyOrder(c.CategoryPrefixes, defaultConfig.CategoryPrefixes) {
-		sigolo.Tracef("Override CategoryPrefixes with %v", c.CategoryPrefixes)
-		s.current.CategoryPrefixes = c.CategoryPrefixes
-	}
-	if c.MathConverter != defaultConfig.MathConverter {
-		sigolo.Tracef("Override MathConverter with %s", c.MathConverter)
-		s.current.MathConverter = c.MathConverter
-	}
-	if c.TocDepth != defaultConfig.TocDepth {
-		sigolo.Tracef("Override TocDepth with %d", c.TocDepth)
-		s.current.TocDepth = c.TocDepth
-	}
-	if c.WorkerThreads != defaultConfig.WorkerThreads {
-		sigolo.Tracef("Override WorkerThreads with %d", c.WorkerThreads)
-		s.current.WorkerThreads = c.WorkerThreads
-	}
-	if c.UserAgentTemplate != defaultConfig.UserAgentTemplate {
-		sigolo.Tracef("Override UserAgentTemplate with %s", c.UserAgentTemplate)
-		s.current.UserAgentTemplate = c.UserAgentTemplate
-	}
-	if c.ServerPort != defaultConfig.ServerPort {
-		sigolo.Tracef("Override ServerPort with %d", c.ServerPort)
-		s.current.ServerPort = c.ServerPort
-	}
 
+	s.current.MergeNonDefaultValues(c)
 	s.current.MakePathsAbsoluteToWorkingDir()
-
 	s.current.AssertValidity()
 }
 
@@ -686,6 +532,167 @@ func (s *ConfigService) LoadFromConfig(file string) error {
 	s.current.AssertValidity()
 
 	return nil
+}
+
+func (c *Configuration) MergeNonDefaultValues(otherConfig *Configuration) {
+	if otherConfig.ForceRegenerateHtml != defaultConfig.ForceRegenerateHtml {
+		sigolo.Tracef("Override ForceRegenerateHtml with %v", otherConfig.ForceRegenerateHtml)
+		c.ForceRegenerateHtml = otherConfig.ForceRegenerateHtml
+	}
+	if otherConfig.SvgSizeToViewbox != defaultConfig.SvgSizeToViewbox {
+		sigolo.Tracef("Override SvgSizeToViewbox with %v", otherConfig.SvgSizeToViewbox)
+		c.SvgSizeToViewbox = otherConfig.SvgSizeToViewbox
+	}
+	if otherConfig.OutputType != defaultConfig.OutputType {
+		sigolo.Tracef("Override OutputType with %s", otherConfig.OutputType)
+		c.OutputType = otherConfig.OutputType
+	}
+	if otherConfig.OutputDriver != defaultConfig.OutputDriver {
+		sigolo.Tracef("Override OutputDriver with %s", otherConfig.OutputDriver)
+		c.OutputDriver = otherConfig.OutputDriver
+	}
+	if otherConfig.CacheDir != defaultConfig.CacheDir {
+		absolutePath, err := util.ToAbsolutePath(otherConfig.CacheDir)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override CacheDir with %s", absolutePath)
+		c.CacheDir = absolutePath
+	}
+	if otherConfig.CacheMaxSize != defaultConfig.CacheMaxSize {
+		sigolo.Tracef("Override CacheMaxSize with %d", otherConfig.CacheMaxSize)
+		c.CacheMaxSize = otherConfig.CacheMaxSize
+	}
+	if otherConfig.CacheMaxAge != defaultConfig.CacheMaxAge {
+		sigolo.Tracef("Override CacheMaxAge with %d", otherConfig.CacheMaxAge)
+		c.CacheMaxAge = otherConfig.CacheMaxAge
+	}
+	if otherConfig.CacheEvictionStrategy != defaultConfig.CacheEvictionStrategy {
+		sigolo.Tracef("Override CacheEvictionStrategy with %s", otherConfig.CacheEvictionStrategy)
+		c.CacheEvictionStrategy = otherConfig.CacheEvictionStrategy
+	}
+	if otherConfig.StyleFile != defaultConfig.StyleFile {
+		absolutePath, err := util.ToAbsolutePath(otherConfig.StyleFile)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override StyleFile with '%s'", absolutePath)
+		c.StyleFile = absolutePath
+	}
+	if otherConfig.CoverImage != defaultConfig.CoverImage {
+		absolutePath, err := util.ToAbsolutePath(otherConfig.CoverImage)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override CoverImage with %s", absolutePath)
+		c.CoverImage = absolutePath
+	}
+	if otherConfig.CommandTemplateSvgToPng != defaultConfig.CommandTemplateSvgToPng {
+		sigolo.Tracef("Override CommandTemplateSvgToPng with %s", otherConfig.CommandTemplateSvgToPng)
+		c.CommandTemplateSvgToPng = otherConfig.CommandTemplateSvgToPng
+	}
+	if otherConfig.CommandTemplateMathSvgToPng != defaultConfig.CommandTemplateMathSvgToPng {
+		sigolo.Tracef("Override CommandTemplateMathSvgToPng with %s", otherConfig.CommandTemplateMathSvgToPng)
+		c.CommandTemplateMathSvgToPng = otherConfig.CommandTemplateMathSvgToPng
+	}
+	if otherConfig.CommandTemplateImageProcessing != defaultConfig.CommandTemplateImageProcessing {
+		sigolo.Tracef("Override CommandTemplateImageProcessing with %s", otherConfig.CommandTemplateImageProcessing)
+		c.CommandTemplateImageProcessing = otherConfig.CommandTemplateImageProcessing
+	}
+	if otherConfig.CommandTemplatePdfToPng != defaultConfig.CommandTemplatePdfToPng {
+		sigolo.Tracef("Override CommandTemplatePdfToPng with %s", otherConfig.CommandTemplatePdfToPng)
+		c.CommandTemplatePdfToPng = otherConfig.CommandTemplatePdfToPng
+	}
+	if otherConfig.CommandTemplateWebpToPng != defaultConfig.CommandTemplateWebpToPng {
+		sigolo.Tracef("Override CommandTemplateWebpToPng with %s", otherConfig.CommandTemplateWebpToPng)
+		c.CommandTemplateWebpToPng = otherConfig.CommandTemplateWebpToPng
+	}
+	if otherConfig.PandocExecutable != defaultConfig.PandocExecutable {
+		var err error
+		newPath := otherConfig.PandocExecutable
+		if strings.Contains(otherConfig.PandocExecutable, "/") {
+			// Only convert paths to absolute paths that are actual paths. Just the name of the executable, e.g. just
+			// "pandoc", should of course not be converted into a path.
+			newPath, err = util.ToAbsolutePath(otherConfig.PandocExecutable)
+			sigolo.FatalCheck(err)
+		}
+		sigolo.Tracef("Override PandocExecutable with %s", otherConfig.PandocExecutable)
+		c.PandocExecutable = newPath
+	}
+	if otherConfig.PandocDataDir != defaultConfig.PandocDataDir {
+		absolutePath, err := util.ToAbsolutePath(otherConfig.PandocDataDir)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override PandocDataDir with %s", absolutePath)
+		c.PandocDataDir = absolutePath
+	}
+	if !util.EqualsInAnyOrder(otherConfig.FontFiles, defaultConfig.FontFiles) {
+		absolutePaths, err := util.ToAbsolutePaths(otherConfig.FontFiles...)
+		sigolo.FatalCheck(err)
+		sigolo.Tracef("Override FontFiles with %v", otherConfig.SvgSizeToViewbox)
+		c.FontFiles = absolutePaths
+	}
+	if !util.EqualsInAnyOrder(otherConfig.IgnoredTemplates, defaultConfig.IgnoredTemplates) {
+		sigolo.Tracef("Override IgnoredTemplates with %v", otherConfig.IgnoredTemplates)
+		c.IgnoredTemplates = otherConfig.IgnoredTemplates
+	}
+	if !util.EqualsInAnyOrder(otherConfig.TrailingTemplates, defaultConfig.TrailingTemplates) {
+		sigolo.Tracef("Override TrailingTemplates with %v", otherConfig.TrailingTemplates)
+		c.TrailingTemplates = otherConfig.TrailingTemplates
+	}
+	if !util.EqualsInAnyOrder(otherConfig.IgnoredImageParams, defaultConfig.IgnoredImageParams) {
+		sigolo.Tracef("Override IgnoredImageParams with %v", otherConfig.IgnoredImageParams)
+		c.IgnoredImageParams = otherConfig.IgnoredImageParams
+	}
+	if !util.EqualsInAnyOrder(otherConfig.IgnoredMediaTypes, defaultConfig.IgnoredMediaTypes) {
+		sigolo.Tracef("Override IgnoredMediaTypes with %v", otherConfig.IgnoredMediaTypes)
+		c.IgnoredMediaTypes = otherConfig.IgnoredMediaTypes
+	}
+	if otherConfig.WikipediaInstance != defaultConfig.WikipediaInstance {
+		sigolo.Tracef("Override WikipediaInstance with %s", otherConfig.WikipediaInstance)
+		c.WikipediaInstance = otherConfig.WikipediaInstance
+	}
+	if otherConfig.WikipediaHost != defaultConfig.WikipediaHost {
+		sigolo.Tracef("Override WikipediaHost with %s", otherConfig.WikipediaHost)
+		c.WikipediaHost = otherConfig.WikipediaHost
+	}
+	if otherConfig.WikipediaImageHost != defaultConfig.WikipediaImageHost {
+		sigolo.Tracef("Override WikipediaImageHost with %s", otherConfig.WikipediaImageHost)
+		c.WikipediaImageHost = otherConfig.WikipediaImageHost
+	}
+	if otherConfig.WikipediaMathRestApi != defaultConfig.WikipediaMathRestApi {
+		sigolo.Tracef("Override WikipediaMathRestApi with %s", otherConfig.WikipediaMathRestApi)
+		c.WikipediaMathRestApi = otherConfig.WikipediaMathRestApi
+	}
+	if !util.EqualsInAnyOrder(otherConfig.WikipediaImageArticleHosts, defaultConfig.WikipediaImageArticleHosts) {
+		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", otherConfig.WikipediaImageArticleHosts)
+		c.WikipediaImageArticleHosts = otherConfig.WikipediaImageArticleHosts
+	}
+	if !util.EqualsInAnyOrder(otherConfig.FilePrefixes, defaultConfig.FilePrefixes) {
+		sigolo.Tracef("Override FilePrefixes with %v", otherConfig.FilePrefixes)
+		c.FilePrefixes = otherConfig.FilePrefixes
+	}
+	if !util.EqualsInAnyOrder(otherConfig.AllowedLinkPrefixes, defaultConfig.AllowedLinkPrefixes) {
+		sigolo.Tracef("Override AllowedLinkPrefixes with %v", otherConfig.AllowedLinkPrefixes)
+		c.AllowedLinkPrefixes = otherConfig.AllowedLinkPrefixes
+	}
+	if !util.EqualsInAnyOrder(otherConfig.CategoryPrefixes, defaultConfig.CategoryPrefixes) {
+		sigolo.Tracef("Override CategoryPrefixes with %v", otherConfig.CategoryPrefixes)
+		c.CategoryPrefixes = otherConfig.CategoryPrefixes
+	}
+	if otherConfig.MathConverter != defaultConfig.MathConverter {
+		sigolo.Tracef("Override MathConverter with %s", otherConfig.MathConverter)
+		c.MathConverter = otherConfig.MathConverter
+	}
+	if otherConfig.TocDepth != defaultConfig.TocDepth {
+		sigolo.Tracef("Override TocDepth with %d", otherConfig.TocDepth)
+		c.TocDepth = otherConfig.TocDepth
+	}
+	if otherConfig.WorkerThreads != defaultConfig.WorkerThreads {
+		sigolo.Tracef("Override WorkerThreads with %d", otherConfig.WorkerThreads)
+		c.WorkerThreads = otherConfig.WorkerThreads
+	}
+	if otherConfig.UserAgentTemplate != defaultConfig.UserAgentTemplate {
+		sigolo.Tracef("Override UserAgentTemplate with %s", otherConfig.UserAgentTemplate)
+		c.UserAgentTemplate = otherConfig.UserAgentTemplate
+	}
+	if otherConfig.ServerPort != defaultConfig.ServerPort {
+		sigolo.Tracef("Override ServerPort with %d", otherConfig.ServerPort)
+		c.ServerPort = otherConfig.ServerPort
+	}
 }
 
 func (c *Configuration) makePathsAbsolute(file string) {

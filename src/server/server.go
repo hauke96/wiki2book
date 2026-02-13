@@ -38,23 +38,22 @@ type ResultState struct {
 }
 
 type Server struct {
-	configService         *config.ConfigService
-	fileCache             *cache.Cache
-	ebookGeneratorService *generator.EbookGenerator
+	configService *config.ConfigService
+	fileCache     *cache.Cache
 }
 
-func NewServer(configService *config.ConfigService, fileCache *cache.Cache, ebookGeneratorService *generator.EbookGenerator) *Server {
+func NewServer(configService *config.ConfigService, fileCache *cache.Cache) *Server {
 	return &Server{
-		configService:         configService,
-		fileCache:             fileCache,
-		ebookGeneratorService: ebookGeneratorService,
+		configService: configService,
+		fileCache:     fileCache,
 	}
 }
 
 func (s *Server) Start() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), s.handleArticleRequest) // TODO Make a POST handler too, which accepts a whole config JSON in the body
+	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), s.handleArticleGetRequest)
+	mux.HandleFunc(fmt.Sprintf("POST /article/{%s}", pathVarArticleName), s.handleArticlePostRequest)
 	// TODO POST handler for projects
 	// TODO POST handle for standalone
 	mux.HandleFunc(fmt.Sprintf("GET /states/{%s}", pathVarResultToken), s.handleGetStateRequest)
@@ -65,12 +64,78 @@ func (s *Server) Start() {
 	sigolo.FatalCheck(errors.Wrapf(err, "Error starting HTTP server on port %d", s.configService.Get().ServerPort))
 }
 
-func (s *Server) handleArticleRequest(resp http.ResponseWriter, req *http.Request) {
+func (s *Server) handleArticleGetRequest(resp http.ResponseWriter, req *http.Request) {
 	articleName := req.PathValue(pathVarArticleName)
 	sigolo.Debugf("Received request %s %s for article %s", req.Method, req.URL, articleName)
 
 	resultState := s.createNewResultState(articleName)
 
+	s.handleArticleRequest(resp, resultState, s.configService)
+}
+
+func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Request) {
+	articleName := req.PathValue(pathVarArticleName)
+	sigolo.Debugf("Received request %s %s for article %s", req.Method, req.URL, articleName)
+
+	resultState := s.createNewResultState(articleName)
+
+	currentConfig := config.NewDefaultConfig()
+	currentConfig.MergeNonDefaultValues(s.configService.Get())
+
+	// Read body to current config. Fields not set by the given request-config stay unchanged, so only the fields that
+	// are present in the request-config will be set here.
+	err := json.NewDecoder(req.Body).Decode(currentConfig)
+	if err != nil {
+		resultState.Status = ResultStatusFailed
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
+		s.returnInternalServerError(resp, "Error reading request body")
+		return
+	}
+
+	// Restore certain config entries that should not be set by users of the API:
+	// TODO test this logic
+	currentConfig.ForceRegenerateHtml = s.configService.Get().ForceRegenerateHtml
+	// Should not be set by user: currentConfig.SvgSizeToViewbox
+	// Should not be set by user: currentConfig.OutputType
+	currentConfig.OutputDriver = s.configService.Get().OutputDriver
+	currentConfig.CacheDir = s.configService.Get().CacheDir
+	currentConfig.CacheMaxSize = s.configService.Get().CacheMaxSize
+	currentConfig.CacheMaxAge = s.configService.Get().CacheMaxAge
+	currentConfig.CacheEvictionStrategy = s.configService.Get().CacheEvictionStrategy
+	currentConfig.StyleFile = s.configService.Get().StyleFile
+	currentConfig.CoverImage = s.configService.Get().CoverImage
+	currentConfig.CommandTemplateSvgToPng = s.configService.Get().CommandTemplateSvgToPng
+	currentConfig.CommandTemplateMathSvgToPng = s.configService.Get().CommandTemplateMathSvgToPng
+	currentConfig.CommandTemplateImageProcessing = s.configService.Get().CommandTemplateImageProcessing
+	currentConfig.CommandTemplatePdfToPng = s.configService.Get().CommandTemplatePdfToPng
+	currentConfig.CommandTemplateWebpToPng = s.configService.Get().CommandTemplateWebpToPng
+	currentConfig.PandocExecutable = s.configService.Get().PandocExecutable
+	currentConfig.PandocDataDir = s.configService.Get().PandocDataDir
+	currentConfig.FontFiles = s.configService.Get().FontFiles
+	// Should not be set by user: currentConfig.IgnoredTemplates
+	// Should not be set by user: currentConfig.TrailingTemplates
+	// Should not be set by user: currentConfig.IgnoredImageParams
+	// Should not be set by user: currentConfig.IgnoredMediaTypes
+	// Should not be set by user: currentConfig.WikipediaInstance
+	// Should not be set by user: currentConfig.WikipediaHost
+	// Should not be set by user: currentConfig.WikipediaImageHost
+	// Should not be set by user: currentConfig.WikipediaImageArticleHosts
+	// Should not be set by user: currentConfig.WikipediaMathRestApi
+	// Should not be set by user: currentConfig.FilePrefixes
+	// Should not be set by user: currentConfig.AllowedLinkPrefixes
+	// Should not be set by user: currentConfig.CategoryPrefixes
+	currentConfig.MathConverter = s.configService.Get().MathConverter
+	// Should not be set by user: currentConfig.TocDepth
+	currentConfig.WorkerThreads = s.configService.Get().WorkerThreads
+	currentConfig.UserAgentTemplate = s.configService.Get().UserAgentTemplate
+	currentConfig.ServerPort = s.configService.Get().ServerPort
+
+	configServiceForRequest := config.NewConfigServiceForConfig(currentConfig)
+
+	s.handleArticleRequest(resp, resultState, configServiceForRequest)
+}
+
+func (s *Server) handleArticleRequest(resp http.ResponseWriter, resultState *ResultState, configService *config.ConfigService) {
 	// Ensure output folder exists
 	outputFolderPath := s.fileCache.GetDirPathInCache(cache.TempDirName)
 	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
@@ -83,12 +148,12 @@ func (s *Server) handleArticleRequest(resp http.ResponseWriter, req *http.Reques
 	}
 
 	// Create the output file
-	sanitizedFilename := util.SanitizeFilename(articleName)
+	sanitizedFilename := util.SanitizeFilename(resultState.ArticleName)
 	tempFile, err := util.CurrentFilesystem.CreateTemp(s.fileCache.GetTempPath(), sanitizedFilename)
 	if err != nil {
 		resultState.Status = ResultStatusFailed
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", articleName))
-		s.returnInternalServerError(resp, fmt.Sprintf("Error creating temporary file for article '%s'", articleName))
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", resultState.ArticleName))
+		s.returnInternalServerError(resp, fmt.Sprintf("Error creating temporary file for article '%s'", resultState.ArticleName))
 		return
 	}
 	defer tempFile.Close()
@@ -97,8 +162,10 @@ func (s *Server) handleArticleRequest(resp http.ResponseWriter, req *http.Reques
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
 
 	go func() {
-		s.ebookGeneratorService.GenerateArticleEbook(articleName, tempFilepath)
-		resultState.Status = ResultStatusFailed
+		ebookGeneratorService := generator.NewEbookGenerator(configService, s.fileCache)
+		ebookGeneratorService.GenerateArticleEbook(resultState.ArticleName, tempFilepath)
+		resultState.Status = ResultStatusSuccess
+		resultState.resultPath = tempFilepath
 	}()
 
 	s.returnState(resp, resultState)
