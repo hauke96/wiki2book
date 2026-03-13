@@ -34,6 +34,34 @@ some footer`
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseReferences_caseInsensitivity(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := `some text<REF>bar</ref>
+some<ref name="blubb">blubbeldy</REF> other<REF name="fooref" /> text
+<ReferenCES responsive>
+<REF name="fooref">foo</REF>
+</REFerENces>
+some footer`
+	expectedContent := "some text" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + "\n" +
+		"some" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + " other" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + " text\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 5) + "\n" +
+		"some footer"
+
+	newContent := tokenizer.parseReferences(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0): RefUsageToken{Index: 0},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1): RefUsageToken{Index: 1},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2): RefUsageToken{Index: 2},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3):   RefDefinitionToken{Index: 0, Content: "bar"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4):   RefDefinitionToken{Index: 1, Content: "blubbeldy"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 5):   RefDefinitionToken{Index: 2, Content: "foo"},
+	}, tokenizer.getTokenMap())
+}
+
 func TestParseReferences_tokenizeRefContent(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := `some text<ref>foo [[bar|Bar]]</ref>.`

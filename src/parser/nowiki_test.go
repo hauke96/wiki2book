@@ -19,6 +19,20 @@ func TestNowiki(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestNowiki_caseInsensitivity(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := "Foo<NOWIKI>something</nowiki> bar <nowiki>something else</NOWIKI> blubb"
+	expectedContent := "Foo" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0) + " bar " + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 1) + " blubb"
+
+	newContent := tokenizer.parseNowiki(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 0): NowikiToken{Content: "something"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_NOWIKI, 1): NowikiToken{Content: "something else"},
+	}, tokenizer.getTokenMap())
+}
+
 func TestNowiki_endOfText(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := "Foo<nowiki>something</nowiki>"
