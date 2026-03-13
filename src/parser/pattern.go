@@ -40,9 +40,9 @@ var (
 
 // Media files
 var (
-	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
-	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
-	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
+	galleryStartRegex          = regexp.MustCompile(`(?i)^<gallery.*?>`)
+	imagemapStartRegex         = regexp.MustCompile(`(?i)^<imagemap.*?>`)
+	hasNonInlineParameterRegex = regexp.MustCompile("(?i)(" + strings.Join(imageNonInlineParameters, "|") + ")")
 )
 
 // Tables
