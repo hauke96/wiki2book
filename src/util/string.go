@@ -3,6 +3,7 @@ package util
 import (
 	"io"
 	"math"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -27,6 +28,19 @@ func HasAnyPrefix(element string, prefixes ...string) bool {
 		}
 	}
 	return false
+}
+
+func HasPrefixIgnoreCase(text string, prefix string) bool {
+	return strings.HasPrefix(strings.ToLower(text), strings.ToLower(prefix))
+}
+
+func EqualsIgnoreCase(text string, elementToCheck string) bool {
+	return strings.ToLower(text) == strings.ToLower(elementToCheck)
+}
+
+func ReplaceAllIgnoreCase(text string, old string, new string) string {
+	matcher := regexp.MustCompile("(?i)" + regexp.QuoteMeta(old))
+	return matcher.ReplaceAllString(text, new)
 }
 
 func AllToLower(items []string) []string {

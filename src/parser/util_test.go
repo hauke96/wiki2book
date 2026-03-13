@@ -103,3 +103,28 @@ func TestFindCorrespondingCloseToken_equalStartAndEndToken(t *testing.T) {
 	index = FindCorrespondingCloseToken("abc$$defghi$$", 5, "$$", "$$")
 	test.AssertEqual(t, 11, index)
 }
+
+func TestFindCorrespondingCloseTokenIgnoreCase(t *testing.T) {
+	var index int
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "foo", "bar")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcFOOdefbarghbari", 0, "foo", "bar")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefBARghBARi", 0, "foo", "bar")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcFOOdefBARghBARi", 0, "foo", "bar")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "FOO", "bar")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "foo", "BAR")
+	test.AssertEqual(t, 14, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "FOO", "BAR")
+	test.AssertEqual(t, 14, index)
+}

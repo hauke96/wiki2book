@@ -1,5 +1,7 @@
 package parser
 
+import "wiki2book/util"
+
 type NowikiToken struct {
 	Token
 	Content string
@@ -19,8 +21,8 @@ func (t *Tokenizer) parseNowiki(content string) string {
 	for i := 0; i < len(content)-nowikiEndLen; i++ {
 		cursor := content[i : i+nowikiStartLen]
 
-		if cursor == nowikiStart {
-			endIndex := FindCorrespondingCloseToken(content, i+nowikiStartLen, nowikiStart, nowikiEnd)
+		if util.EqualsIgnoreCase(cursor, nowikiStart) {
+			endIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+nowikiStartLen, nowikiStart, nowikiEnd)
 
 			token := NowikiToken{
 				Content: content[i+nowikiStartLen : endIndex],
