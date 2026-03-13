@@ -88,18 +88,18 @@ All (raster) images will be scaled down and turned into grayscale images. SVGs s
 
 === Galleries ===
 
-<gallery>
+<GALLery>
 Wikimedia_Servers-0051_19.jpg|With some caption.
 Datei:Wikipedia-logo-v2.svg
-</gallery>
+</gallERY>
 
 === Image maps ===
 
-<imagemap>
+<IMAGEmap>
 Image:Wikimedia_Servers-0051_19.jpg|With some caption
 rect 1 1 741 445 [[Oregon|Oregon]]
 desc none
-</imagemap>
+</imageMAP>
 
 == Tables ==
 
@@ -130,9 +130,9 @@ A bit tricky but they work as well:
 
 == References ==
 
-They will be collected<ref name="another-ref">This is true</ref> and are visible<ref>Some reference</ref> at the end of the document:<ref name="another-ref" /><br>
+They will be collected<ref name="another-ref">This is true</ref> and are visible<REF>Some reference</ref> at the end of the document:<REF name="another-ref" /><br>
 
-There are also grouped references possible.<ref group="some-group">Some grouped ref</ref><br>
+There are also grouped references possible.<ref group="some-group">Some grouped ref</REF><br>
 Even named<ref group="some-group" name="grouped-ref-name"/> grouped references work!<ref group="some-group" name="grouped-ref-name">Some named grouped ref</ref><br>
 
 Normal refs:<br>
@@ -158,7 +158,7 @@ Grouped refs:<br>
 Some text has the <nowiki>keyword</nowiki>.
 
 It can also be used in the following ways:
-* <nowiki>in lists</nowiki>
+* <NOwiki>in lists</noWIKI>
 * also with <nowiki>lists</nowiki> containing text
 
 Also in comments: <!-- this <nowiki>part</nowiki> should not be visible -->
