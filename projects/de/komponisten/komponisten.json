@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "title": "Das schreibt Wikipedia über ... Komponisten",
+    "author": "Wikipedia contributors",
+    "license": "Creative Commons Non-Commercial Share Alike 4.0",
+    "language": "de-DE",
+    "date": "2026-03-12"
+  },
+  "output-file": "komponisten.epub",
+  "cover-image": "cover.png",
+  "style-file": "../../../configs/style.css",
+  "pandoc-data-dir": "../../../pandoc/data",
+  "articles": [
+    "Antonio Vivaldi",
+    "Johann Sebastian Bach",
+    "Georg Friedrich Händel",
+    "Wolfgang Amadeus Mozart",
+    "Ludwig van Beethoven",
+    "Gioachino Rossini",
+    "Franz Schubert",
+    "Frédéric Chopin",
+    "Robert Schumann",
+    "Franz Liszt",
+    "Giuseppe Verdi",
+    "Richard Wagner",
+    "Anton Bruckner",
+    "Johannes Brahms",
+    "Antonín Dvořák",
+    "Camille Saint-Saëns",
+    "Pjotr Iljitsch Tschaikowski",
+    "Gustav Mahler",
+    "Sergei Wassiljewitsch Rachmaninow",
+    "Igor Stravinsky",
+    "Sergei Sergejewitsch Prokofjew",
+    "John Williams (Komponist)",
+    "Hans Zimmer"
+  ]
+}
