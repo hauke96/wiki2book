@@ -25,7 +25,8 @@ Some get ignored (due to layout reasons or low significance for an ebook) but so
 
 === Interwiki links ===
 
-Some links lead to other [[:de:Wikipedia|Wikipedia]] instances.
+Some links lead to other [[:de:Wikipedia|Wikipedia]] instances or simply to [[article|articles]].
+They may have sections ([[article#section]]) or contain complex [[article#section:colon|names]].
 
 == Math ==
 Let us do some <math>m \cdot a + t - \mathbb{H}</math> stuff:

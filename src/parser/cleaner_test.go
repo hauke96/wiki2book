@@ -128,6 +128,26 @@ func TestRemoveUnwantedLinks_nestedLinks(t *testing.T) {
 	test.AssertEqual(t, expected, actual)
 }
 
+func TestRemoveUnwantedLinks_normalLinksWithSectionsStay(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+
+	content := `foo [[article#section]] bar`
+	cleanedContent := tokenizer.removeUnwantedInternalLinks(content)
+	test.AssertEqual(t, content, cleanedContent)
+
+	content = `foo [[article#section|name]] bar`
+	cleanedContent = tokenizer.removeUnwantedInternalLinks(content)
+	test.AssertEqual(t, content, cleanedContent)
+
+	content = `foo [[article#section: and colon]] bar`
+	cleanedContent = tokenizer.removeUnwantedInternalLinks(content)
+	test.AssertEqual(t, content, cleanedContent)
+
+	content = `foo [[article#section: and colon|name]] bar`
+	cleanedContent = tokenizer.removeUnwantedInternalLinks(content)
+	test.AssertEqual(t, content, cleanedContent)
+}
+
 func TestUnwantedAndTrailingTemplates(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 
