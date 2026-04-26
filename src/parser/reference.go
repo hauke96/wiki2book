@@ -61,12 +61,12 @@ func (t *Tokenizer) parseReferences(content string) string {
 
 	for i := 0; i < len(content)-refDefStartLen; i++ {
 		cursor := content[i : i+refDefStartLen]
-		if cursor != refDefStart && cursor != refPlaceholderEnd {
+		if !util.EqualsIgnoreCase(cursor, refDefStart) && !util.EqualsIgnoreCase(cursor, refPlaceholderEnd) {
 			// Cursor is not on the beginning of any reference related tag.
 			continue
 		}
 
-		startEndIndex := FindCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
+		startEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+refDefStartLen, refDefStart, xmlClosing)
 		if startEndIndex == -1 {
 			// XML for <ref not closed -> broken wikitext
 			sigolo.Errorf("XML element for reference start '%s' not closed (i.e. missing '%s'). Text around this location: ...%s...", refDefStart, xmlClosing, util.GetTextAround(content, i, 50))
@@ -117,7 +117,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
-				refEndIndex := FindCorrespondingCloseToken(content, startEndIndex, refDefStart, refDefLongEnd)
+				refEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, startEndIndex, refDefStart, refDefLongEnd)
 				if refEndIndex == -1 {
 					// No end token found -> probably unsupported wikitext syntax (like nested refs)
 					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))

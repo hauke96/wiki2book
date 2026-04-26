@@ -102,7 +102,7 @@ func TestEscapeImages_leadingSpecialChar(t *testing.T) {
 func TestParseGalleries(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 	content := tokenizer.parseGalleries(`foo
-<gallery>file0.jpg
+<gallery>file0.jpg|thumb
 file:file1.jpg|captiion
 </gallery>
 bar
@@ -112,10 +112,33 @@ File:file2.jpg|test123
 </gallery>blubb`)
 
 	test.AssertEqual(t, `foo
-[[File:File0.jpg|mini]]
+[[File:File0.jpg|thumb]]
 [[file:File1.jpg|mini|captiion]]
 bar
 [[File:File2.jpg|mini|test123]]
+[[File:File_3.jpg|mini]]
+blubb`, content)
+
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
+}
+
+func TestParseGalleries_caseInsensitivity(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := tokenizer.parseGalleries(`foo
+<GALLERY>file0.jpg|thumb
+file:file1.jpg|captiion
+</gallery>
+bar
+ <gallery some="parameter">
+File:file2.jpg|test123|THUMB
+  file 3.jpg
+</GALLERY>blubb`)
+
+	test.AssertEqual(t, `foo
+[[File:File0.jpg|thumb]]
+[[file:File1.jpg|mini|captiion]]
+bar
+[[File:File2.jpg|test123|THUMB]]
 [[File:File_3.jpg|mini]]
 blubb`, content)
 
@@ -147,6 +170,29 @@ bar
 Image:picture.jpg
 some stuff
 </imagemap>
+blubb`)
+
+	test.AssertEqual(t, `foo
+[[File:Picture.jpg]]
+bar
+[[Image:Picture.jpg]]
+blubb`, content)
+
+	test.AssertMapEqual(t, map[string]Token{}, tokenizer.getTokenMap())
+}
+
+func TestParseImagemaps_caseInsensitivity(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := tokenizer.parseImageMaps(`foo
+<IMAGEMAP>File:picture.jpg
+some
+stuff
+</imagemap>
+bar
+<imagemap some="parameter">
+Image:picture.jpg
+some stuff
+</IMAGEMAP>
 blubb`)
 
 	test.AssertEqual(t, `foo

@@ -92,16 +92,16 @@ func (t *Tokenizer) parseGalleries(content string) string {
 		trimmedLine := strings.TrimSpace(line)
 
 		// Gallery ends -> Simply remove line and end "withinGallery" mode
-		if strings.HasPrefix(trimmedLine, "</gallery>") {
+		if util.HasPrefixIgnoreCase(trimmedLine, "</gallery>") {
 			withinGallery = false
 
-			if trimmedLine == "</gallery>" {
+			if util.EqualsIgnoreCase(trimmedLine, "</gallery>") {
 				// This line just contains the tag -> ignore it and proceed with parsing
 				continue
 			}
 
 			// If the line contains more than the closing tag -> Keep it and proceed with the processing
-			line = strings.ReplaceAll(line, "</gallery>", "")
+			line = util.ReplaceAllIgnoreCase(line, "</gallery>", "")
 		} else if galleryStartRegex.MatchString(trimmedLine) {
 			withinGallery = true
 
@@ -158,13 +158,13 @@ func (t *Tokenizer) parseImageMaps(content string) string {
 		line := lines[i]
 
 		// Delete uninteresting lines (end of map or all the polygon-map-stuff in between)
-		if withinImageMap || line == "</imagemap>" {
+		if withinImageMap || util.EqualsIgnoreCase(line, "</imagemap>") {
 			// delete this line i
 			lines = append(lines[:i], lines[i+1:]...)
 			i--
 
 			// Imagemap ends -> end "withinImageMap" mode
-			if line == "</imagemap>" {
+			if util.EqualsIgnoreCase(line, "</imagemap>") {
 				withinImageMap = false
 			}
 

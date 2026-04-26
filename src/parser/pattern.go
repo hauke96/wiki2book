@@ -40,9 +40,9 @@ var (
 
 // Media files
 var (
-	galleryStartRegex          = regexp.MustCompile(`^<gallery.*?>`)
-	imagemapStartRegex         = regexp.MustCompile(`^<imagemap.*?>`)
-	hasNonInlineParameterRegex = regexp.MustCompile("(" + strings.Join(imageNonInlineParameters, "|") + ")")
+	galleryStartRegex          = regexp.MustCompile(`(?i)^<gallery.*?>`)
+	imagemapStartRegex         = regexp.MustCompile(`(?i)^<imagemap.*?>`)
+	hasNonInlineParameterRegex = regexp.MustCompile("(?i)(" + strings.Join(imageNonInlineParameters, "|") + ")")
 )
 
 // Tables
@@ -54,9 +54,9 @@ var (
 
 // References
 var (
-	referencePlaceholderShortRegex = regexp.MustCompile(`<references.*?/\s*>`) // <references />
-	referencePlaceholderStartRegex = regexp.MustCompile(`<references.*?\s*>`)  // <references group="foo" >
-	referencePlaceholderEndRegex   = regexp.MustCompile(`</references\s*>`)    // </references>
+	referencePlaceholderShortRegex = regexp.MustCompile(`(?i)<references.*?/\s*>`) // <references />
+	referencePlaceholderStartRegex = regexp.MustCompile(`(?i)<references.*?\s*>`)  // <references group="foo" >
+	referencePlaceholderEndRegex   = regexp.MustCompile(`(?i)</references\s*>`)    // </references>
 )
 
 // Math

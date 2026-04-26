@@ -76,9 +76,22 @@ func (t *Tokenizer) removeUnwantedInternalLinks(content string) string {
 
 		if cursor == "[[" {
 			endIndex := FindCorrespondingCloseToken(content, i+2, "[", "]")
-
 			totalLinkContent := content[i+2 : endIndex]
-			linkSegments := strings.SplitN(totalLinkContent, ":", -1)
+
+			/*
+				Possible formats of links are (among many others):
+					article
+					article#section|name
+					:Category:foo
+					:Category:foo#section|name
+
+				Split e.g. "article#section|name" into "article" and the rest. Strings without "#" will not be touched.
+				Since valid article names cannot contain "#" in their name, this splitting will not cut article or
+				category names in half.
+			*/
+			articleWithoutSection := strings.SplitN(totalLinkContent, "#", 2)[0]
+
+			linkSegments := strings.Split(articleWithoutSection, ":")
 			allPrefixes := linkSegments[:len(linkSegments)-1]
 
 			// It's possible to link categories with a leading colon, e.g. [[:SomeCategory:SomeLinkText]]. They should

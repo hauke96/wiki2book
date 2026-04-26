@@ -56,6 +56,16 @@ func TestParseInternalLinks_withSectionReference(t *testing.T) {
 			LinkText:    "article",
 		},
 	}, tokenizer.getTokenMap())
+
+	tokenizer = NewTokenizerWithMockWikipediaService()
+	content = tokenizer.parseInternalLinks("foo [[article#section: and colon|with name]]")
+	test.AssertEqual(t, "foo $$TOKEN_"+TOKEN_INTERNAL_LINK+"_0$$", content)
+	test.AssertMapEqual(t, map[string]Token{
+		"$$TOKEN_" + TOKEN_INTERNAL_LINK + "_0$$": InternalLinkToken{
+			ArticleName: "article",
+			LinkText:    "with name",
+		},
+	}, tokenizer.getTokenMap())
 }
 
 func TestParseInternalLinks_externalLinkWillNotBeTouched(t *testing.T) {
