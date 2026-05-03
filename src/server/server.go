@@ -93,42 +93,7 @@ func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Re
 	}
 
 	// Restore certain config entries that should not be set by users of the API:
-	// TODO test this logic
-	currentConfig.ForceRegenerateHtml = s.configService.Get().ForceRegenerateHtml
-	// Should not be set by user: currentConfig.SvgSizeToViewbox
-	// Should not be set by user: currentConfig.OutputType
-	currentConfig.OutputDriver = s.configService.Get().OutputDriver
-	currentConfig.CacheDir = s.configService.Get().CacheDir
-	currentConfig.CacheMaxSize = s.configService.Get().CacheMaxSize
-	currentConfig.CacheMaxAge = s.configService.Get().CacheMaxAge
-	currentConfig.CacheEvictionStrategy = s.configService.Get().CacheEvictionStrategy
-	currentConfig.StyleFile = s.configService.Get().StyleFile
-	currentConfig.CoverImage = s.configService.Get().CoverImage
-	currentConfig.CommandTemplateSvgToPng = s.configService.Get().CommandTemplateSvgToPng
-	currentConfig.CommandTemplateMathSvgToPng = s.configService.Get().CommandTemplateMathSvgToPng
-	currentConfig.CommandTemplateImageProcessing = s.configService.Get().CommandTemplateImageProcessing
-	currentConfig.CommandTemplatePdfToPng = s.configService.Get().CommandTemplatePdfToPng
-	currentConfig.CommandTemplateWebpToPng = s.configService.Get().CommandTemplateWebpToPng
-	currentConfig.PandocExecutable = s.configService.Get().PandocExecutable
-	currentConfig.PandocDataDir = s.configService.Get().PandocDataDir
-	currentConfig.FontFiles = s.configService.Get().FontFiles
-	// Should not be set by user: currentConfig.IgnoredTemplates
-	// Should not be set by user: currentConfig.TrailingTemplates
-	// Should not be set by user: currentConfig.IgnoredImageParams
-	// Should not be set by user: currentConfig.IgnoredMediaTypes
-	// Should not be set by user: currentConfig.WikipediaInstance
-	// Should not be set by user: currentConfig.WikipediaHost
-	// Should not be set by user: currentConfig.WikipediaImageHost
-	// Should not be set by user: currentConfig.WikipediaImageArticleHosts
-	// Should not be set by user: currentConfig.WikipediaMathRestApi
-	// Should not be set by user: currentConfig.FilePrefixes
-	// Should not be set by user: currentConfig.AllowedLinkPrefixes
-	// Should not be set by user: currentConfig.CategoryPrefixes
-	currentConfig.MathConverter = s.configService.Get().MathConverter
-	// Should not be set by user: currentConfig.TocDepth
-	currentConfig.WorkerThreads = s.configService.Get().WorkerThreads
-	currentConfig.UserAgentTemplate = s.configService.Get().UserAgentTemplate
-	currentConfig.ServerPort = s.configService.Get().ServerPort
+	s.resetNonUploadableConfigProperties(currentConfig)
 
 	configServiceForRequest := config.NewConfigServiceForConfig(currentConfig)
 
@@ -199,6 +164,46 @@ func (s *Server) handleGetResultRequest(resp http.ResponseWriter, req *http.Requ
 	}
 
 	s.returnFile(resp, resultState.resultPath, resultState.ArticleName)
+}
+
+// resetNonUploadableConfigProperties resets properties of "config" to the configured values of the application. Not
+// all properties are allowed to be set by users and this function takes care of that.
+func (s *Server) resetNonUploadableConfigProperties(config *config.Configuration) {
+	config.ForceRegenerateHtml = s.configService.Get().ForceRegenerateHtml
+	// Should not be set by user: currentConfig.SvgSizeToViewbox
+	// Should not be set by user: currentConfig.OutputType
+	config.OutputDriver = s.configService.Get().OutputDriver
+	config.CacheDir = s.configService.Get().CacheDir
+	config.CacheMaxSize = s.configService.Get().CacheMaxSize
+	config.CacheMaxAge = s.configService.Get().CacheMaxAge
+	config.CacheEvictionStrategy = s.configService.Get().CacheEvictionStrategy
+	config.StyleFile = s.configService.Get().StyleFile
+	config.CoverImage = s.configService.Get().CoverImage
+	config.CommandTemplateSvgToPng = s.configService.Get().CommandTemplateSvgToPng
+	config.CommandTemplateMathSvgToPng = s.configService.Get().CommandTemplateMathSvgToPng
+	config.CommandTemplateImageProcessing = s.configService.Get().CommandTemplateImageProcessing
+	config.CommandTemplatePdfToPng = s.configService.Get().CommandTemplatePdfToPng
+	config.CommandTemplateWebpToPng = s.configService.Get().CommandTemplateWebpToPng
+	config.PandocExecutable = s.configService.Get().PandocExecutable
+	config.PandocDataDir = s.configService.Get().PandocDataDir
+	config.FontFiles = s.configService.Get().FontFiles
+	// Should not be set by user: currentConfig.IgnoredTemplates
+	// Should not be set by user: currentConfig.TrailingTemplates
+	// Should not be set by user: currentConfig.IgnoredImageParams
+	// Should not be set by user: currentConfig.IgnoredMediaTypes
+	// Should not be set by user: currentConfig.WikipediaInstance
+	// Should not be set by user: currentConfig.WikipediaHost
+	// Should not be set by user: currentConfig.WikipediaImageHost
+	// Should not be set by user: currentConfig.WikipediaImageArticleHosts
+	// Should not be set by user: currentConfig.WikipediaMathRestApi
+	// Should not be set by user: currentConfig.FilePrefixes
+	// Should not be set by user: currentConfig.AllowedLinkPrefixes
+	// Should not be set by user: currentConfig.CategoryPrefixes
+	config.MathConverter = s.configService.Get().MathConverter
+	// Should not be set by user: currentConfig.TocDepth
+	config.WorkerThreads = s.configService.Get().WorkerThreads
+	config.UserAgentTemplate = s.configService.Get().UserAgentTemplate
+	config.ServerPort = s.configService.Get().ServerPort
 }
 
 func (s *Server) createNewResultState(articleName string) *ResultState {
