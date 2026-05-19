@@ -3,7 +3,9 @@ Some basic stuff to work with this project.
 # Preliminaries
 
 Make sure `go` is installed (s. minimal go-version in `go.mod`) and then just import the project to your IDE.
-You also need Pandoc (for the `pandoc` command) and ImageMagick (for the `convert` command) to turn HTML into EPUB files and to process images.
+
+For the default setup, you also need the tools listed in the [Preliminaries section](../README.md#preliminaries) of the main README.
+Only Pandoc is essential, all other tools can be replaced using command-templates (s. [configuration documentation](../doc/configuration.md)).
 
 # Build project
 
