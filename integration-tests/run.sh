@@ -1,5 +1,37 @@
 #!/bin/bash
 
+function checkCommand()
+{
+	# $1 - executable name
+	# $2 - human readable explanation
+	COMMAND_NAME="$1"
+	COMMAND_DESCRIPTION="$2"
+
+	if ! command -v "$COMMAND_NAME" > /dev/null 2>&1
+	then
+		MISSING_REQUIREMENTS+="$COMMAND_NAME ($COMMAND_DESCRIPTION)"$'\n'
+	fi
+}
+
+function checkPrerequisites()
+{
+	MISSING_REQUIREMENTS=""
+
+	checkCommand "go" "build the wiki2book CLI"
+	checkCommand "pandoc" "generate EPUB output in the integration tests"
+	checkCommand "magick" "process downloaded raster images"
+	checkCommand "rsvg-convert" "convert rendered math SVGs to PNGs"
+
+	if [[ "$MISSING_REQUIREMENTS" != "" ]]
+	then
+		echo "Missing prerequisites for the integration tests:"
+		printf "%s" "$MISSING_REQUIREMENTS" | sed '/^$/d; s/^/  - /g'
+		echo
+		echo "Install the missing tools and run the tests again."
+		exit 1
+	fi
+}
+
 if [[ $@ == *--help* || $@ == *-h* ]]
 then
 	cat<<EOF
@@ -10,6 +42,8 @@ Example: ./run.sh bold-italic real-article-Erde
 EOF
 	exit 0
 fi
+
+checkPrerequisites
 
 GLOBAL_START=$(($(date +%s%N)/1000000))
 

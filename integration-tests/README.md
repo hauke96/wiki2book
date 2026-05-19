@@ -62,6 +62,7 @@ Updating files is easy: Either modify them manually or -- what I recommend -- us
 
 Running tests happens with the `run.sh` script.
 Use `run.sh -h` for usage information.
+The script first checks whether the required executables are installed (`go`, `pandoc`, `magick`, `rsvg-convert`) and exits with a clear error message if one of them is missing.
 
 Mediawiki files are used as basis for the test.
 The generated HTML output and the file list, both written to `results/test-<name>/`, are compared to the expected HTML and file list, which are locates directly here next to each `.mediawiki` file.
