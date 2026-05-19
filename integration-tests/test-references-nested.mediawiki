@@ -1,0 +1,5 @@
+== Nested references ==
+
+This reproduces issue #102.<ref group="lower-alpha">Outer reference text with a nested usage <ref name=inner /> inside.</ref>
+
+<references group="lower-alpha" />
