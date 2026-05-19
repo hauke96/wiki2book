@@ -13,7 +13,7 @@ fi
 
 GLOBAL_START=$(($(date +%s%N)/1000000))
 
-HOME=$PWD
+WORK_DIR=$PWD
 LOGS="./logs"              # Folder with log files for each test
 FAILED_TESTS_WITH_CAUSE="" # List of test names with the fail-cause (e.g. "[HTML]")
 FAILED_TESTS=""            # List of failed test names only
@@ -25,13 +25,13 @@ echo "Build project..."
 
 cd ../src
 go build .
-mv wiki2book "$HOME/wiki2book"
+mv wiki2book "$WORK_DIR/wiki2book"
 
 echo "Building project done"
 echo
 
 # Go back into test directory
-cd $HOME
+cd $WORK_DIR
 
 # Create empty log-directory
 echo "Prepare log directory"
