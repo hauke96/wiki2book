@@ -31,6 +31,8 @@ integration-tests/wiki2book
 integration-tests/logs
 integration-tests/results
 integration-tests/.cache
+integration-tests/.config/
+integration-tests/go/
 !integration-tests/*.html
 standalone.mediawiki
 
