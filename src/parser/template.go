@@ -34,18 +34,20 @@ func (t *Tokenizer) evaluateTemplates(content string) (string, error) {
 
 	// Replace all template placeholders with the actual content until no placeholders are unresolved. This is not very
 	// elegant or fast but due to the nesting a simple and working approach.
-	sigolo.Debugf("Replace %d template placeholder with evaluated content", len(placeholderToContent))
+	sigolo.Debugf("Check %d template placeholders whether they can be replaced with an evaluated content. This happens over any over again until no more template placeholders exist.", len(placeholderToContent))
 	for strings.Contains(content, templatePlaceholderPrefix) {
-		sigolo.Tracef("Check content for template placeholders (%d remain)", len(placeholderToContent))
+		sigolo.Tracef("Check content for template placeholders (%d template placeholders to check)", len(placeholderToContent))
 
 		for key, template := range placeholderToContent {
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
 			containsPlaceholder := strings.Contains(content, placeholder)
-			sigolo.Tracef("Check template placeholder %s -> content contains placeholder? %v", key, containsPlaceholder)
 
 			if containsPlaceholder {
+				sigolo.Tracef("Template placeholder %s occurs and will be replaced with content: %s", key, util.TruncString(template))
 				content = strings.ReplaceAll(content, placeholder, template)
 				sigolo.Tracef("Replaced template placeholder %s in content", key)
+			} else {
+				sigolo.Tracef("Template placeholder %s doesn't occur and will not be replaced", key)
 			}
 		}
 	}
