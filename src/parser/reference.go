@@ -70,6 +70,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 		if startEndIndex == -1 {
 			// XML for <ref not closed -> broken wikitext
 			sigolo.Errorf("XML element for reference start '%s' not closed (i.e. missing '%s'). Text around this location: ...%s...", refDefStart, xmlClosing, util.GetTextAround(content, i, 50))
+			continue
 		}
 
 		if referencePlaceholderEndRegex.MatchString(content[i:startEndIndex+1]) || referencePlaceholderShortRegex.MatchString(content[i:startEndIndex+1]) {
@@ -117,10 +118,11 @@ func (t *Tokenizer) parseReferences(content string) string {
 				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
-				refEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, startEndIndex, refDefStart, refDefLongEnd)
+				refEndIndex := t.findReferenceDefinitionEnd(content, startEndIndex, refDefStart, refDefLongEnd, xmlClosing)
 				if refEndIndex == -1 {
-					// No end token found -> probably unsupported wikitext syntax (like nested refs)
+					// No end token found -> broken or unsupported wikitext
 					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))
+					continue
 				}
 				refNumberCounterForCurrentGroup, content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, refNumberCounterForCurrentGroup, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
 			}
@@ -130,6 +132,47 @@ func (t *Tokenizer) parseReferences(content string) string {
 	}
 
 	return content
+}
+
+func (t *Tokenizer) findReferenceDefinitionEnd(content string, startEndIndex int, refDefStart string, refDefLongEnd string, xmlClosing string) int {
+	refDefStartLen := len(refDefStart)
+	refDefLongEndLen := len(refDefLongEnd)
+	nestingLevel := 0
+
+	for i := startEndIndex + 1; i < len(content); i++ {
+		if i < len(content)-refDefLongEndLen+1 && util.EqualsIgnoreCase(content[i:i+refDefLongEndLen], refDefLongEnd) {
+			if nestingLevel == 0 {
+				return i
+			}
+
+			nestingLevel--
+			i += refDefLongEndLen - 1
+			continue
+		}
+
+		if i >= len(content)-refDefStartLen+1 || !util.EqualsIgnoreCase(content[i:i+refDefStartLen], refDefStart) {
+			continue
+		}
+
+		innerStartEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+refDefStartLen, refDefStart, xmlClosing)
+		if innerStartEndIndex == -1 {
+			return -1
+		}
+
+		refTag := content[i : innerStartEndIndex+1]
+		if referencePlaceholderEndRegex.MatchString(refTag) || referencePlaceholderShortRegex.MatchString(refTag) || referencePlaceholderStartRegex.MatchString(refTag) {
+			i = innerStartEndIndex
+			continue
+		}
+
+		if content[innerStartEndIndex-1] != '/' {
+			nestingLevel++
+		}
+
+		i = innerStartEndIndex
+	}
+
+	return -1
 }
 
 // parseReferenceEndPlaceholder replaces the end of the given reference placeholder at index i, such as "<references />"
