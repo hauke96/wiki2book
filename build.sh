@@ -25,17 +25,42 @@ function build()
 {
 	OS=$1
 	ARCH=$2
-	OUTPUT=$3
+	VERSION=$3
+	ARTIFACT_KEY="wiki2book-$VERSION-$OS-$ARCH"
+	BINARY_FILE=$(realpath $ARTIFACT_KEY)
 
 	if [[ $OS == "windows" ]]
 	then
-		OUTPUT="$OUTPUT.exe"
+		BINARY_FILE="$BINARY_FILE.exe"
 	fi
 
-	echo "Build for $OS with $ARCH arch to $OUTPUT"
+	echo "Build for $OS with $ARCH arch to $BINARY_FILE"
 
 	# The -ldflags "-s -w" parameter makes the binary smaller by not generating symbol table and debugging information.
-	GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w" -o $OUTPUT .
+	GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w" -o $BINARY_FILE .
+
+	# Packaging into compressed files
+	(
+		cd ..
+
+		echo "---"
+		pwd
+		echo "$BINARY_FILE"
+		cp $BINARY_FILE ./wiki2book
+
+		if [[ $OS == "windows" ]]
+		then
+			ARTIFACT_FILE="$ARTIFACT_KEY.zip"
+			echo "Package artifact to $ARTIFACT_FILE"
+			zip -r $ARTIFACT_FILE wiki2book LICENSE README.md doc/ configs/ pandoc/
+		else
+			ARTIFACT_FILE="$ARTIFACT_KEY.tar.gz"
+			echo "Package artifact to $ARTIFACT_FILE"
+			tar -c -f $ARTIFACT_FILE wiki2book LICENSE README.md doc/ configs/ pandoc/
+		fi
+
+		rm wiki2book
+	)
 }
 
 while getopts "a:o:f:h" opt; do
@@ -68,21 +93,14 @@ then
 	ARCH="amd64"
 fi
 
-if [[ "$GIVEN_OUTPUT" != "" ]]
-then
-	OUTPUT=$(realpath "$GIVEN_OUTPUT")
-else
-	OUTPUT=$(realpath "wiki2book-$VERSION-$OS-$ARCH")
-fi
-
 (
 	cd src
 	if [[ $OS == "all" ]]
 	then
-		build "windows" $ARCH $(realpath "wiki2book-$VERSION-windows-$ARCH")
-		build "linux" $ARCH $(realpath "wiki2book-$VERSION-linux-$ARCH")
-		build "darwin" $ARCH $(realpath "wiki2book-$VERSION-darwin-$ARCH")
+		build "windows" $ARCH $VERSION
+		build "linux" $ARCH $VERSION
+		build "darwin" $ARCH $VERSION
 	else
-		build $OS $ARCH $OUTPUT
+		build $OS $ARCH $VERSION
 	fi
 )
