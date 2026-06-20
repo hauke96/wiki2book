@@ -160,7 +160,7 @@ func TestPostFormEncoded_tooManyRequestsResponse(t *testing.T) {
 	httpService.httpClient = mockHttpClient
 
 	// Act
-	response, err := httpService.PostFormEncoded("http://foobar", "some data")
+	response, err := httpService.PerformHttpRequest("http://foobar", "POST", "some data")
 
 	// Assert
 	test.AssertNil(t, err)

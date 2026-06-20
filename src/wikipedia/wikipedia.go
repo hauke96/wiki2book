@@ -328,7 +328,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return mathSvgFilename, nil
 	}
 
-	response, err := w.httpService.PostFormEncoded(urlString, requestData)
+	response, err := w.httpService.PerformHttpRequest(urlString, "POST", requestData)
 
 	responseBodyText := ""
 	if response != nil {
