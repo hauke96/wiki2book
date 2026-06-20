@@ -67,24 +67,10 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 				return "", errors.Errorf("Found %s but no corresponding %s. I'll ignore this but something's wrong with the input wikitext!", templateStartToken, templateEndToken)
 			}
 
-			originalTemplateText := content[i : endIndex+templateEndTokenLen]
-			templateText := originalTemplateText
-			sigolo.Tracef("Found template: %s", util.TruncString(templateText))
-
-			if strings.Contains(templateText[templateStartTokenLen:], templateStartToken) {
-				// If the template itself contains a template, then proceed to first evaluate the inner template and
-				// to evaluate the outer template in a later run
-				sigolo.Trace("Template contains templates, inner templates are replaced first")
-				newContent, err := t.replaceTemplateByPlaceholders(templateText[templateStartTokenLen:], placeholderToContent)
-				if err != nil {
-					return "", err
-				}
-				templateText = templateStartToken + newContent
-			}
-
+			templateText := content[i : endIndex+templateEndTokenLen]
 			key := util.Hash(templateText)
 
-			sigolo.Tracef("Evaluate template: %s", util.TruncString(templateText))
+			sigolo.Tracef("Evaluate template (key=%s): %s", key, util.TruncString(templateText))
 			evaluatedTemplate, err := t.wikipediaService.EvaluateTemplate(templateText, key)
 			if err != nil {
 				return "", err
@@ -94,7 +80,7 @@ func (t *Tokenizer) replaceTemplateByPlaceholders(content string, placeholderToC
 			// evaluated form because nested templates might lead to too long URLs.
 			placeholderToContent[key] = evaluatedTemplate
 			placeholder := fmt.Sprintf(templatePlaceholderTemplate, key)
-			content = strings.Replace(content, originalTemplateText, placeholder, 1)
+			content = strings.Replace(content, templateText, placeholder, 1)
 		}
 	}
 	sigolo.Tracef("Finished replacing templates in: %s", util.TruncString(content))

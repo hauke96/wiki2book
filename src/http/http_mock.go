@@ -62,10 +62,12 @@ func (h *mockHttpClient) Post(url, contentType string, body io.Reader) (resp *ht
 }
 
 type mockHttpService struct {
-	DownloadAndCacheCounter int
-	DownloadAndCacheFunc    func(url string, cacheFolder string, filename string) (string, bool, error)
-	PostFormEncodedCounter  int
-	PostFormEncodedFunc     func(url, contentType string) (resp *http.Response, err error)
+	DownloadAndCacheCounter   int
+	DownloadAndCacheFunc      func(url string, cacheFolder string, filename string) (string, bool, error)
+	PostAndCacheCounter       int
+	PostAndCacheFunc          func(url string, requestBody string, cacheFolder string, filename string) (string, bool, error)
+	PerformHttpRequestCounter int
+	PerformHttpRequestFunc    func(url, method, contentType string) (resp *http.Response, err error)
 }
 
 func (h *mockHttpService) DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error) {
@@ -73,20 +75,28 @@ func (h *mockHttpService) DownloadAndCache(url string, cacheFolder string, filen
 	return h.DownloadAndCacheFunc(url, cacheFolder, filename)
 }
 
-func (h *mockHttpService) PostFormEncoded(url, contentType string) (resp *http.Response, err error) {
-	h.PostFormEncodedCounter++
-	return h.PostFormEncodedFunc(url, contentType)
+func (h *mockHttpService) PostAndCache(url string, requestBody string, cacheFolder string, filename string) (string, bool, error) {
+	h.PostAndCacheCounter++
+	return h.PostAndCacheFunc(url, requestBody, cacheFolder, filename)
+}
+
+func (h *mockHttpService) PerformHttpRequest(url string, method string, contentType string) (*http.Response, error) {
+	h.PerformHttpRequestCounter++
+	return h.PerformHttpRequestFunc(url, method, contentType)
 }
 
 func NewMockHttpService(
 	downloadAndCacheFunc func(url string, cacheFolder string, filename string) (string, bool, error),
-	postFormEncodedFunc func(url, contentType string) (resp *http.Response, err error),
+	postAndCacheFunc func(url string, requestBody string, cacheFolder string, filename string) (string, bool, error),
+	performHttpRequestFunc func(url string, method, contentType string) (*http.Response, error),
 ) *mockHttpService {
 	mockedHttpClient := &mockHttpService{
-		DownloadAndCacheCounter: 0,
-		DownloadAndCacheFunc:    downloadAndCacheFunc,
-		PostFormEncodedCounter:  0,
-		PostFormEncodedFunc:     postFormEncodedFunc,
+		DownloadAndCacheCounter:   0,
+		DownloadAndCacheFunc:      downloadAndCacheFunc,
+		PostAndCacheCounter:       0,
+		PostAndCacheFunc:          postAndCacheFunc,
+		PerformHttpRequestCounter: 0,
+		PerformHttpRequestFunc:    performHttpRequestFunc,
 	}
 	return mockedHttpClient
 }

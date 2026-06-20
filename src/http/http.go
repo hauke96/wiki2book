@@ -18,6 +18,7 @@ import (
 const (
 	HeaderContentType       = "Content-Type"
 	HeaderMediawikiApiError = "mediawiki-api-error"
+	HeaderPromiseNotWrite   = "Promise-Non-Write-API-Action" // Suggested by the mediawiki documentation to use the nearest data center.
 	HeaderRetryAfter        = "Retry-After"
 	HeaderUserAgent         = "User-Agent"
 	HeaderXResourceLocation = "x-resource-location"
@@ -37,6 +38,7 @@ type HttpClient interface {
 type HttpService interface {
 	PerformHttpRequest(url, method, contentType string) (resp *http.Response, err error)
 	DownloadAndCache(url string, cacheFolder string, filename string) (string, bool, error)
+	PostAndCache(url string, requestBody string, cacheFolder string, filename string) (string, bool, error)
 }
 
 // DefaultHttpService is the default implementation of the HttpService using the normal http.Client from the stdlib.
@@ -54,6 +56,17 @@ func NewDefaultHttpService() *DefaultHttpService {
 // file was downloaded and an error. In case the file is already cached, nothing is downloaded and the cached path
 // together with "false" are returned.
 func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string, filename string) (string, bool, error) {
+	return d.performHttpRequestAndCache(url, cacheFolderName, filename, "GET", "")
+}
+
+// PostAndCache downloads the data of the given URL and returns the full output path, a flag indicating whether the
+// file was downloaded and an error. In case the file is already cached, nothing is downloaded and the cached path
+// together with "false" are returned.
+func (d *DefaultHttpService) PostAndCache(url string, requestBody string, cacheFolderName string, filename string) (string, bool, error) {
+	return d.performHttpRequestAndCache(url, cacheFolderName, filename, "POST", requestBody)
+}
+
+func (d *DefaultHttpService) performHttpRequestAndCache(url string, cacheFolderName string, filename string, method string, body string) (string, bool, error) {
 	// If file already cached -> don't download and use cached file
 	outputFilepath, fileIsCached, err := cache.GetFile(cacheFolderName, filename)
 	if err == nil && fileIsCached {
@@ -66,12 +79,12 @@ func (d *DefaultHttpService) DownloadAndCache(url string, cacheFolderName string
 	sigolo.Debugf("File '%s' not cached -> download fresh one", outputFilepath)
 
 	// Get the data
-	response, err := d.PerformHttpRequest(url, "GET", "")
+	response, err := d.PerformHttpRequest(url, method, body)
 	if err != nil {
 		return "", true, err
 	}
 	if response == nil || response.Body == nil {
-		return "", true, errors.Errorf("Response or response body was nil from GET %s", url)
+		return "", true, errors.Errorf("Response or response body was nil from %s %s", method, url)
 	}
 
 	responseBodyReader := response.Body
@@ -122,7 +135,9 @@ func (d *DefaultHttpService) PerformHttpRequest(url, method, requestBody string)
 	request.Header.Set(HeaderUserAgent, userAgentString)
 
 	if method == "POST" {
+		// Details: https://www.mediawiki.org/wiki/API:Etiquette#POST_requests
 		request.Header.Set(HeaderContentType, "application/x-www-form-urlencoded")
+		request.Header.Set(HeaderPromiseNotWrite, "true")
 	}
 
 	response, err = d.doRequest(url, request)
