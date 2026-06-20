@@ -27,6 +27,7 @@ func TestPostProcessImage_freshDownload_noPostProcessing(t *testing.T) {
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
@@ -50,6 +51,7 @@ func TestPostProcessImage_freshDownload_withSvgToPng(t *testing.T) {
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
 			return "", true, nil
 		},
+		nil,
 		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
@@ -75,6 +77,7 @@ func TestPostProcessImage_freshDownload_withPdfToPng(t *testing.T) {
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
@@ -98,6 +101,7 @@ func TestPostProcessImage_freshDownload_withWebpToPng(t *testing.T) {
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
 			return "", true, nil
 		},
+		nil,
 		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
@@ -123,6 +127,7 @@ func TestPostProcessImage_noFreshDownload_noPostProcessing(t *testing.T) {
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
@@ -146,6 +151,7 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_noExistingPng(t *testing.
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
 			return "", true, nil
 		},
+		nil,
 		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
@@ -174,6 +180,7 @@ func TestPostProcessImage_noFreshDownload_withSvgToPng_alreadyExistingPng(t *tes
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
@@ -199,6 +206,7 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_noExistingPng(t *testing.
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpClient)
@@ -219,6 +227,7 @@ func TestPostProcessImage_noFreshDownload_withPdfToPng_alreadyExistingPng(t *tes
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
 			return "", true, nil
 		},
+		nil,
 		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
@@ -264,6 +273,7 @@ func TestDownladImage(t *testing.T) {
 			return "", false, errors.New("no mock behavior for url " + url)
 		},
 		nil,
+		nil,
 	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "upload.wikimedia.org", "", imageProcessingServiceMock, mockHttpClient)
@@ -289,10 +299,11 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	util.CurrentFilesystem = fsMock
 
 	mockHttpService := http.NewMockHttpService(
-		func(url string, cacheFolder string, filename string) (string, bool, error) {
+		nil,
+		func(url string, method, cacheFolder string, filename string) (string, bool, error) {
 			return cachedFilepath, true, nil
 		},
-		func(url, contentType string) (resp *netHttp.Response, err error) {
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
 			return &netHttp.Response{
 				Body:       io.NopCloser(bytes.NewReader(jsonBytes)),
 				StatusCode: netHttp.StatusOK,
@@ -305,8 +316,9 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	// Evaluate content
 	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", key)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
+	test.AssertEqual(t, 1, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PerformHttpRequestCounter)
 	test.AssertEqual(t, expectedTemplateContent, content)
 }
 
@@ -325,7 +337,8 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 
 	mockHttpService := http.NewMockHttpService(
 		nil,
-		func(url, contentType string) (resp *netHttp.Response, err error) {
+		nil,
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
 			return &netHttp.Response{
 				Body:       io.NopCloser(bytes.NewReader([]byte(mathString))),
 				StatusCode: netHttp.StatusOK,
@@ -341,7 +354,8 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, string(mockFile.WrittenBytes), locationHeader)
 	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 1, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 1, mockHttpService.PerformHttpRequestCounter)
 }
 
 func TestGetMathResource_withCachedFile(t *testing.T) {
@@ -353,15 +367,18 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return util.NewMockFileInfoWithTime("file", time.Now()), nil }
 	util.CurrentFilesystem = fsMock
 
-	mockHttpService := http.NewMockHttpService(nil, nil)
-	mockHttpService.PostFormEncodedFunc = func(url, contentType string) (resp *netHttp.Response, err error) {
-		return &netHttp.Response{
-			StatusCode: netHttp.StatusOK,
-			Header: netHttp.Header{
-				"X-Resource-Location": {"some-value"},
-			},
-		}, nil
-	}
+	mockHttpService := http.NewMockHttpService(
+		nil,
+		nil,
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
+			return &netHttp.Response{
+				StatusCode: netHttp.StatusOK,
+				Header: netHttp.Header{
+					"X-Resource-Location": {"some-value"},
+				},
+			}, nil
+		},
+	)
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	wikipediaService := NewWikipediaService("", "", []string{}, "", "", imageProcessingServiceMock, mockHttpService)
 
@@ -371,5 +388,6 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 	test.AssertEqual(t, filename, locationHeader)
 
 	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PerformHttpRequestCounter)
 }

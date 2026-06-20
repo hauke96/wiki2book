@@ -74,6 +74,65 @@ func TestDownloadAndCache_withAlreadyCachedFile(t *testing.T) {
 	test.AssertFalse(t, freshlyDownloaded)
 }
 
+func TestPostAndCache_withoutCachedFile(t *testing.T) {
+	// Arrange
+	key := "foobar"
+	content := "some interesting stuff"
+
+	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+
+	httpService := NewDefaultHttpService()
+	httpService.httpClient = mockHttpClient
+
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return nil, os.ErrNotExist }
+	util.CurrentFilesystem = fsMock
+	config.Current.CacheDir = test.TestCacheFolder
+
+	// Act
+	cachedFilePath, freshlyDownloaded, err := httpService.PostAndCache("http://foobar", "POST", apiCacheFolder, key)
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
+	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
+	test.AssertEqual(t, 1, mockHttpClient.PostCalls)
+	test.AssertTrue(t, freshlyDownloaded)
+}
+
+func TestPostAndCache_withAlreadyCachedFile(t *testing.T) {
+	// Arrange
+	key := "foobar"
+	content := "some interesting stuff"
+
+	mockHttpClient := NewMockHttpClient(content, http.StatusOK)
+
+	httpService := NewDefaultHttpService()
+	httpService.httpClient = mockHttpClient
+
+	config.Current.CacheDir = test.TestCacheFolder
+	config.Current.CacheMaxAge = 9999999
+
+	fsMock := util.NewDefaultMockFilesystem()
+	fsMock.ReadFileFunc = func(name string) ([]byte, error) {
+		return []byte(content), nil
+	}
+	fsMock.StatFunc = func(path string) (os.FileInfo, error) {
+		return util.NewMockFileInfoWithTime("file", time.Now()), nil
+	}
+	util.CurrentFilesystem = fsMock
+
+	// Act
+	cachedFilePath, freshlyDownloaded, err := httpService.PostAndCache("http://foobar", "POST", apiCacheFolder, key)
+
+	// Assert
+	test.AssertNil(t, err)
+	test.AssertEqual(t, apiCacheFolder+"/"+key, cachedFilePath)
+	test.AssertEqual(t, 0, mockHttpClient.GetCalls)
+	test.AssertEqual(t, 0, mockHttpClient.PostCalls)
+	test.AssertFalse(t, freshlyDownloaded)
+}
+
 func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
 	// Arrange
 	expectedSleepCallParam := 123
@@ -111,12 +170,12 @@ func TestDownloadAndCache_tooManyRequestsResponse(t *testing.T) {
 	httpService.httpClient = mockHttpClient
 
 	// Act
-	reader, err := httpService.download("http://foobar")
+	response, err := httpService.PerformHttpRequest("http://foobar", "GET", "")
 
 	// Assert
 	test.AssertNil(t, err)
 
-	all, err := io.ReadAll(reader)
+	all, err := io.ReadAll(response.Body)
 	test.AssertNil(t, err)
 	test.AssertEqual(t, "response of call3", string(all))
 
@@ -160,7 +219,7 @@ func TestPostFormEncoded_tooManyRequestsResponse(t *testing.T) {
 	httpService.httpClient = mockHttpClient
 
 	// Act
-	response, err := httpService.PostFormEncoded("http://foobar", "some data")
+	response, err := httpService.PerformHttpRequest("http://foobar", "POST", "some data")
 
 	// Assert
 	test.AssertNil(t, err)
