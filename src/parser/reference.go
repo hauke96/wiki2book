@@ -20,7 +20,9 @@ type RefUsageToken struct {
 
 var (
 	// Store content of references (i.e. their actual text), ref-name to ref-number mapping and the ref-number counters
-	// all per group. Every ref without explicit group is part of the default group.
+	// all per group. Every ref without explicit group is part of the default group. These maps are global so that they
+	// work through recursive parsing of nested references. Otherwise, e.g. the parseReferences function would create
+	// new maps for each recusrive call messing up the numbering of references.
 	refNumberToContent = map[string]map[int]string{}
 	nameToRefNumber    = map[string]map[string]int{}
 	refNumberCounter   = map[string]int{}
