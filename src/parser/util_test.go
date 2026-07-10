@@ -48,19 +48,6 @@ func TestFindCorrespondingCloseToken(t *testing.T) {
 	test.AssertEqual(t, 10, index)
 }
 
-func TestFindCorrespondingCloseToken_multipleStopToken(t *testing.T) {
-	var index int
-
-	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb</ref> bar", 8, "<ref", "</ref>", "/>")
-	test.AssertEqual(t, 13, index)
-
-	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb <ref /> blubb</ref> bar", 8, "<ref", "</ref>", "/>")
-	test.AssertEqual(t, 27, index)
-
-	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb <ref /> <ref/> <ref inner</ref> blubb</ref> bar", 8, "<ref", "</ref>", "/>")
-	test.AssertEqual(t, 51, index)
-}
-
 func TestFindCorrespondingCloseToken_multiLineStrings(t *testing.T) {
 	var index int
 
@@ -117,27 +104,21 @@ func TestFindCorrespondingCloseToken_equalStartAndEndToken(t *testing.T) {
 	test.AssertEqual(t, 11, index)
 }
 
-func TestFindCorrespondingCloseTokenIgnoreCase(t *testing.T) {
+func TestFindCorrespondingXmlCloseToken(t *testing.T) {
 	var index int
 
-	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "foo", "bar")
+	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 8)
 	test.AssertEqual(t, 14, index)
 
-	index = FindCorrespondingCloseTokenIgnoreCase("abcFOOdefbarghbari", 0, "foo", "bar")
-	test.AssertEqual(t, 14, index)
+	index = FindXmlCloseToken("Foo<ref> blubb <ref /> blubb</ref> bar", 8)
+	test.AssertEqual(t, 28, index)
 
-	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefBARghBARi", 0, "foo", "bar")
-	test.AssertEqual(t, 14, index)
+	index = FindXmlCloseToken("Foo<ref> blubb <ref /> <ref/> <ref inner</ref> blubb</ref> bar", 8)
+	test.AssertEqual(t, 52, index)
 
-	index = FindCorrespondingCloseTokenIgnoreCase("abcFOOdefBARghBARi", 0, "foo", "bar")
-	test.AssertEqual(t, 14, index)
+	index = FindXmlCloseToken("Foo<ref> blubb <br /> </ref> bar", 8)
+	test.AssertEqual(t, 22, index)
 
-	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "FOO", "bar")
-	test.AssertEqual(t, 14, index)
-
-	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "foo", "BAR")
-	test.AssertEqual(t, 14, index)
-
-	index = FindCorrespondingCloseTokenIgnoreCase("abcfoodefbarghbari", 0, "FOO", "BAR")
-	test.AssertEqual(t, 14, index)
+	index = FindXmlCloseToken("Foo<ref> blubb <b>bold</b> </ref> bar", 8)
+	test.AssertEqual(t, 27, index)
 }

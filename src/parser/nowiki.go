@@ -22,7 +22,7 @@ func (t *Tokenizer) parseNowiki(content string) string {
 		cursor := content[i : i+nowikiStartLen]
 
 		if util.EqualsIgnoreCase(cursor, nowikiStart) {
-			endIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+nowikiStartLen, nowikiStart, nowikiEnd)
+			endIndex := FindXmlCloseToken(content, i+nowikiStartLen)
 
 			token := NowikiToken{
 				Content: content[i+nowikiStartLen : endIndex],

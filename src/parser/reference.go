@@ -51,7 +51,6 @@ func (t *Tokenizer) parseReferences(content string) string {
 	*/
 	refDefStart := "<ref"
 	refDefLongEnd := "</ref>"
-	refDefShortEnd := "/>"
 	refPlaceholderEnd := "</re" // Only four characters just as the refDefStart, which defined the cursor size.
 	xmlClosing := ">"
 	refDefStartLen := len(refDefStart)
@@ -71,7 +70,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 			continue
 		}
 
-		startEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+refDefStartLen, refDefStart, xmlClosing)
+		startEndIndex := FindCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
 		if startEndIndex == -1 {
 			// XML for <ref not closed -> broken wikitext
 			sigolo.Errorf("XML element for reference start '%s' not closed (i.e. missing '%s'). Text around this location: ...%s...", refDefStart, xmlClosing, util.GetTextAround(content, i, 50))
@@ -123,11 +122,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 				refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
-				// Using long and short ref ends adds support for simple nested refs. However, other XML elements might
-				// disturb this. Mediawiki itself doesn't support nested refs, so this already adds support for
-				// additional features in the language. More support (i.e. other XML elements within the refs) will
-				// probably not be added here, since this probably increases parsing complexity enormously.
-				refEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, startEndIndex, refDefStart, refDefLongEnd, refDefShortEnd)
+				refEndIndex := FindXmlCloseToken(content, startEndIndex)
 				if refEndIndex == -1 {
 					// No end token found -> probably unsupported wikitext syntax (like nested refs)
 					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))
