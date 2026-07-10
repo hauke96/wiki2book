@@ -107,7 +107,7 @@ func TestFindCorrespondingCloseToken_equalStartAndEndToken(t *testing.T) {
 func TestFindCorrespondingXmlCloseToken(t *testing.T) {
 	var index int
 
-	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 8)
+	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 4)
 	test.AssertEqual(t, 14, index)
 
 	index = FindXmlCloseToken("Foo<ref> blubb <ref /> blubb</ref> bar", 8)
@@ -121,4 +121,13 @@ func TestFindCorrespondingXmlCloseToken(t *testing.T) {
 
 	index = FindXmlCloseToken("Foo<ref> blubb <b>bold</b> </ref> bar", 8)
 	test.AssertEqual(t, 27, index)
+
+	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 0)
+	test.AssertEqual(t, -1, index)
+
+	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 3)
+	test.AssertEqual(t, -1, index)
+
+	index = FindXmlCloseToken("Foo<ref> blubb</ref> bar", 20)
+	test.AssertEqual(t, -1, index)
 }
