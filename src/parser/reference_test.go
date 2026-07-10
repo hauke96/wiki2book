@@ -323,6 +323,48 @@ func TestParseReferences_nestedRef(t *testing.T) {
 	}, tokenizer.getTokenMap())
 }
 
+func TestParseReferences_refUsageInsideRefDefinition(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := `Inner ref<ref name="inner">inner</ref>.
+Foo <ref name="outer">Outer ref<ref name="inner" />.</ref> Bar.
+<references/>`
+	expectedContent := "Inner ref" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + ".\n" +
+		"Foo " + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + " Bar.\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4)
+
+	newContent := tokenizer.parseReferences(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0): RefUsageToken{Index: 0},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1): RefUsageToken{Index: 0},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2): RefUsageToken{Index: 1},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3):   RefDefinitionToken{Index: 0, Content: "inner"},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4):   RefDefinitionToken{Index: 1, Content: "Outer ref" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "."},
+	}, tokenizer.getTokenMap())
+}
+
+func TestParseReferences_refDefAndUsageInsideOtherRef(t *testing.T) {
+	tokenizer := NewTokenizerWithMockWikipediaService()
+	content := `Foo <ref name="outer">Outer<ref name="inner">inner</ref> ref<ref name="inner" />.</ref> Bar.
+<references/>`
+	expectedContent := "Foo " + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2) + " Bar.\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3) + "\n" +
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4)
+
+	newContent := tokenizer.parseReferences(content)
+
+	test.AssertEqual(t, expectedContent, newContent)
+	test.AssertMapEqual(t, map[string]Token{
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0): RefUsageToken{Index: 1},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1): RefUsageToken{Index: 1},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 2): RefUsageToken{Index: 0},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 3):   RefDefinitionToken{Index: 0, Content: "Outer" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 0) + " ref" + fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_USAGE, 1) + "."},
+		fmt.Sprintf(TOKEN_TEMPLATE, TOKEN_REF_DEF, 4):   RefDefinitionToken{Index: 1, Content: "inner"},
+	}, tokenizer.getTokenMap())
+}
+
 func TestGetNameAttribute(t *testing.T) {
 	tokenizer := NewTokenizerWithMockWikipediaService()
 

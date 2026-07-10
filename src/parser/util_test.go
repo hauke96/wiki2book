@@ -48,6 +48,19 @@ func TestFindCorrespondingCloseToken(t *testing.T) {
 	test.AssertEqual(t, 10, index)
 }
 
+func TestFindCorrespondingCloseToken_multipleStopToken(t *testing.T) {
+	var index int
+
+	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb</ref> bar", 8, "<ref", "</ref>", "/>")
+	test.AssertEqual(t, 13, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb <ref /> blubb</ref> bar", 8, "<ref", "</ref>", "/>")
+	test.AssertEqual(t, 27, index)
+
+	index = FindCorrespondingCloseTokenIgnoreCase("Foo<ref blubb <ref /> <ref/> <ref inner</ref> blubb</ref> bar", 8, "<ref", "</ref>", "/>")
+	test.AssertEqual(t, 51, index)
+}
+
 func TestFindCorrespondingCloseToken_multiLineStrings(t *testing.T) {
 	var index int
 
