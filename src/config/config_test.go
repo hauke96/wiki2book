@@ -472,7 +472,19 @@ type configEntry struct {
 }
 
 func (c *configEntry) toMarkdown() string {
-	return fmt.Sprintf("| `%s` | %s | %s | %s |\n", c.name, c.description, c.defaultValue, c.allowedValues)
+	// Convert code words in description from CamelCase to kebap-case (e.g. `FooBarBlubb` to `foo-bar-blubb`), since
+	// it's easier for readers to mention only the config entry names as they appear in the JSON files.
+	camelCaseRegex := regexp.MustCompile("([a-zA-Z])([A-Z])")
+	inlineCodeRegex := regexp.MustCompile("\x60[a-zA-Z]*\x60")
+
+	description := c.description
+	description = inlineCodeRegex.ReplaceAllStringFunc(description, func(inlineCode string) string {
+		inlineCode = camelCaseRegex.ReplaceAllString(inlineCode, "${1}-${2}") // FooBarBlubb -> Foo-Bar-Blubb
+		inlineCode = strings.ToLower(inlineCode)                              // Foo-Bar-Blubb -> foo-bar-blubb
+		return inlineCode
+	})
+
+	return fmt.Sprintf("| `%s` | %s | %s | %s |\n", c.name, description, c.defaultValue, c.allowedValues)
 }
 
 // Not a test, but generates markdown that can be pasted into the "doc/configuration.md" file.
