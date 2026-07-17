@@ -88,4 +88,6 @@ With `cyclonedx-gomod`, a software bill of materials (SBOM) can be created to vi
 # Generate Documentation
 
 The `configuration.md` contains a table with all config entries.
-This table can be generated via a test in `config_test.go`.
+This table can be updated via the `TestGenerateDoc` test function in `config_test.go`.
+It generated the Markdown and replaced the old table in the `configuration.md` file.
+After this, the table should be re-formated using the Goland Markdown formatter.

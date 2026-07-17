@@ -4,7 +4,7 @@
 
 The goal is to create eBooks (EPUB files) as beautiful as real books from a given list of Wikipedia articles.
 To achieve this, wiki2book contains specific treatments of Wikipedia- and website-specific content of the articles and therefore provides different results than general converters (more on this below).
-This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge. 
+This should make reading Wikipedia articles even more fun and may create a whole new readership for this awesome and imperceptibly large database of knowledge.
 
 eBook of the German article about astronomy on a Tolino eBook-reader:
 <p align="center">
@@ -49,7 +49,7 @@ You need the following tools and fonts when using the **default** configuration:
 * rsvg (to have the `rsvg-convert` command).
 * Only applies to Linux systems:
   DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf`, which are referenced in the default style. If these files
-  should be embedded into the eBook, use the `font-files` config entry, which is empty by default. 
+  should be embedded into the eBook, use the `font-files` config entry, which is empty by default.
 
 The usage of external tools can be configured, e.g. to use explicit paths to executables, to use completely different tools or to use a custom script.
 See [doc/configuration](./doc/configuration.md#configure-external-tool-calls) for further details.
@@ -85,6 +85,7 @@ Alternatively install pandoc 3, which [avoids CSS3 parameters](https://github.co
 Feel free to open [a new issue](https://github.com/hauke96/wiki2book/issues/new/choose) and filling out the issue-template.
 
 Please keep in mind:
+
 1. This is a hobby-project and my time is limited.
 2. Things that are of little or no use to me personally will be given low/no priority.
 
