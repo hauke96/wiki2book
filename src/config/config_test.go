@@ -606,7 +606,31 @@ func _TestGenerateDoc(t *testing.T) {
 		resultMarkdown += configEntries[key].toMarkdown()
 	}
 
-	sigolo.Infof("Markdown:\n\n%s", resultMarkdown)
+	// Write result to markdown file
+
+	markdownFile := "../../doc/configuration.md"
+	markdownFileContentBytes, err := os.ReadFile(markdownFile)
+	sigolo.FatalCheck(err)
+
+	markdownFileContent := string(markdownFileContentBytes)
+
+	newMarkdownFileContent := ""
+
+	for _, line := range strings.Split(markdownFileContent, "\n") {
+		if strings.HasPrefix(line, "| Name") {
+			for _, resultLine := range strings.Split(resultMarkdown, "\n") {
+				newMarkdownFileContent += resultLine + "\n"
+			}
+			break
+		} else {
+			newMarkdownFileContent += line + "\n"
+		}
+	}
+
+	err = os.WriteFile(markdownFile, []byte(newMarkdownFileContent), os.ModePerm)
+	sigolo.FatalCheck(err)
+
+	sigolo.Infof("Write markdown to %s", markdownFile)
 }
 
 func toHtml(lines []string) string {
