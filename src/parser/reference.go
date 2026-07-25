@@ -18,6 +18,16 @@ type RefUsageToken struct {
 	Index int
 }
 
+var (
+	// Store content of references (i.e. their actual text), ref-name to ref-number mapping and the ref-number counters
+	// all per group. Every ref without explicit group is part of the default group. These maps are global so that they
+	// work through recursive parsing of nested references. Otherwise, e.g. the parseReferences function would create
+	// new maps for each recusrive call messing up the numbering of references.
+	refNumberToContent = map[string]map[int]string{}
+	nameToRefNumber    = map[string]map[string]int{}
+	refNumberCounter   = map[string]int{}
+)
+
 // This is the default group in which all ungrouped references fall
 const defaultReferenceGroup = "__wiki2book_ungrouped_references_group__"
 
@@ -46,12 +56,6 @@ func (t *Tokenizer) parseReferences(content string) string {
 	refDefStartLen := len(refDefStart)
 	refDefLongEndLen := len(refDefLongEnd)
 
-	// Store content of references (i.e. their actual text), ref-name to ref-number mapping and the ref-number counters
-	// all per group. Every ref without explicit group is part of the default group.
-	refNumberToContent := map[string]map[int]string{}
-	nameToRefNumber := map[string]map[string]int{}
-	refNumberCounter := map[string]int{}
-
 	// Whether the current cursor is within a "<references>...</references>" block. Within this block, further reference
 	// definitions might occur. These references will not be turned into any usage-token because they are not used at
 	// that location but just defined.
@@ -66,7 +70,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 			continue
 		}
 
-		startEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, i+refDefStartLen, refDefStart, xmlClosing)
+		startEndIndex := FindCorrespondingCloseToken(content, i+refDefStartLen, refDefStart, xmlClosing)
 		if startEndIndex == -1 {
 			// XML for <ref not closed -> broken wikitext
 			sigolo.Errorf("XML element for reference start '%s' not closed (i.e. missing '%s'). Text around this location: ...%s...", refDefStart, xmlClosing, util.GetTextAround(content, i, 50))
@@ -115,17 +119,16 @@ func (t *Tokenizer) parseReferences(content string) string {
 			if isReferenceUsage {
 				// Reference usage like "<ref name=foo />"
 				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
+				refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
-				refEndIndex := FindCorrespondingCloseTokenIgnoreCase(content, startEndIndex, refDefStart, refDefLongEnd)
+				refEndIndex := FindXmlCloseToken(content, startEndIndex)
 				if refEndIndex == -1 {
 					// No end token found -> probably unsupported wikitext syntax (like nested refs)
 					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))
 				}
-				refNumberCounterForCurrentGroup, content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, refNumberCounterForCurrentGroup, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
+				content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, groupName, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
 			}
-
-			refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 		}
 	}
 
@@ -198,8 +201,8 @@ func (t *Tokenizer) parseNamedReferenceUsage(content string, i int, nameAttribut
 // case the reference definition has a name attribute, an entry is added to the nameToRefNumber. When the reference is
 // new, the refNumberCounter will be incremented and its new value returned. In case of an already known named reference,
 // this counter will not change and its current value will be returned.
-func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndIndex int, refEndIndex int, refNumberCounter int, nameAttributeValue string, nameToRefNumber map[string]int, refNumberToContent map[int]string, cursorWithinReferencePlaceholder bool, refDefLongEndLen int) (int, string) {
-	refNumber := refNumberCounter
+func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndIndex int, refEndIndex int, groupName string, nameAttributeValue string, nameToRefNumber map[string]int, refNumberToContent map[int]string, cursorWithinReferencePlaceholder bool, refDefLongEndLen int) string {
+	refNumber := refNumberCounter[groupName]
 	if nameAttributeValue != "" {
 		if _, ok := nameToRefNumber[nameAttributeValue]; ok {
 			// Ref name already used before, so we use the number of this existing ref usage.
@@ -207,11 +210,18 @@ func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndInde
 		} else {
 			// Ref name appears for the first time, so we save the current counter value for later
 			// usages of this ref name.
-			nameToRefNumber[nameAttributeValue] = refNumberCounter
+			nameToRefNumber[nameAttributeValue] = refNumberCounter[groupName]
 		}
 	}
 
-	refNumberToContent[refNumber] = t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
+	if refNumber == refNumberCounter[groupName] {
+		// We actually used the current count value, so we increase it for the next token.
+		refNumberCounter[groupName]++
+	}
+
+	tokenizedRefContent := t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
+
+	refNumberToContent[refNumber] = tokenizedRefContent
 
 	if !cursorWithinReferencePlaceholder {
 		tokenKey := t.getToken(TOKEN_REF_USAGE)
@@ -223,12 +233,7 @@ func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndInde
 		content = content[0:i] + content[refEndIndex+refDefLongEndLen:]
 	}
 
-	if refNumber == refNumberCounter {
-		// We actually used the current count value, so we increase it for the next token.
-		refNumberCounter++
-	}
-
-	return refNumberCounter, content
+	return content
 }
 
 func (t *Tokenizer) getNameAttribute(content string) string {

@@ -242,8 +242,14 @@ func (w *DefaultWikipediaService) downloadImage(imageArticleHost string, imageNa
 func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile string) (string, error) {
 	sigolo.Debugf("Evaluate template %s (hash/filename: %s)", util.TruncString(template), cacheFile)
 
-	urlString := fmt.Sprintf("https://%s.%s/w/api.php?action=expandtemplates&format=json&prop=wikitext&text=%s", w.configService.Get().WikipediaInstance, w.configService.Get().WikipediaHost, url.QueryEscape(template))
-	cacheFilePath, _, err := w.httpService.DownloadAndCache(urlString, cache.TemplateCacheDirName, cacheFile)
+	bodyValues := url.Values{}
+	bodyValues.Set("action", "expandtemplates")
+	bodyValues.Set("format", "json")
+	bodyValues.Set("prop", "wikitext")
+	bodyValues.Set("text", template)
+
+	urlString := fmt.Sprintf("https://%s.%s/w/api.php", w.configService.Get().WikipediaInstance, w.configService.Get().WikipediaHost)
+	cacheFilePath, _, err := w.httpService.PostAndCache(urlString, bodyValues.Encode(), cache.TemplateCacheDirName, cacheFile)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error calling evaluation API and caching result for template:\n%s", template)
 	}
@@ -322,7 +328,7 @@ func (w *DefaultWikipediaService) getMathResource(mathString string) (string, er
 		return mathSvgFilename, nil
 	}
 
-	response, err := w.httpService.PostFormEncoded(urlString, requestData)
+	response, err := w.httpService.PerformHttpRequest(urlString, "POST", requestData)
 
 	responseBodyText := ""
 	if response != nil {

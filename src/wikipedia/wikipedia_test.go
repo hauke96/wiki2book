@@ -37,6 +37,7 @@ func setup() (*DefaultWikipediaService, *config.ConfigService, *image.MockImageP
 			return "", true, nil
 		},
 		nil,
+		nil,
 	)
 	configService := createTestConfigService()
 	configService.Get().CommandTemplateImageProcessing = ""
@@ -223,6 +224,7 @@ func TestDownladImage(t *testing.T) {
 			return "", false, errors.New("no mock behavior for url " + url)
 		},
 		nil,
+		nil,
 	)
 	configService := createTestConfigService()
 	configService.Get().WikipediaImageHost = "upload.wikimedia.org"
@@ -252,13 +254,13 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 
 	mockHttpService := http.NewMockHttpService(
 		func(url string, cacheFolder string, filename string) (string, bool, error) {
+			return "", false, errors.New("Unexpected call")
+		},
+		func(url string, method, cacheFolder string, filename string) (string, bool, error) {
 			return cachedFilepath, true, nil
 		},
-		func(url, contentType string) (resp *netHttp.Response, err error) {
-			return &netHttp.Response{
-				Body:       io.NopCloser(bytes.NewReader(jsonBytes)),
-				StatusCode: netHttp.StatusOK,
-			}, nil
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
+			return nil, errors.New("Unexpected call")
 		},
 	)
 	configService := createTestConfigService()
@@ -269,8 +271,9 @@ func TestEvaluateTemplate_newTemplate(t *testing.T) {
 	// Evaluate content
 	content, err := wikipediaService.EvaluateTemplate("{{Hauptartikel|Sternentstehung}}", key)
 	test.AssertNil(t, err)
-	test.AssertEqual(t, 1, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
+	test.AssertEqual(t, 1, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PerformHttpRequestCounter)
 	test.AssertEqual(t, expectedTemplateContent, content)
 }
 
@@ -289,7 +292,8 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 
 	mockHttpService := http.NewMockHttpService(
 		nil,
-		func(url, contentType string) (resp *netHttp.Response, err error) {
+		nil,
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
 			return &netHttp.Response{
 				Body:       io.NopCloser(bytes.NewReader([]byte(mathString))),
 				StatusCode: netHttp.StatusOK,
@@ -307,7 +311,8 @@ func TestGetMathResource_withoutCachedFile(t *testing.T) {
 	test.AssertNil(t, err)
 	test.AssertEqual(t, string(mockFile.WrittenBytes), locationHeader)
 	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 1, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 1, mockHttpService.PerformHttpRequestCounter)
 }
 
 func TestGetMathResource_withCachedFile(t *testing.T) {
@@ -319,15 +324,18 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 	fsMock.StatFunc = func(name string) (os.FileInfo, error) { return util.NewMockFileInfoWithTime("file", time.Now()), nil }
 	util.CurrentFilesystem = fsMock
 
-	mockHttpService := http.NewMockHttpService(nil, nil)
-	mockHttpService.PostFormEncodedFunc = func(url, contentType string) (resp *netHttp.Response, err error) {
-		return &netHttp.Response{
-			StatusCode: netHttp.StatusOK,
-			Header: netHttp.Header{
-				"X-Resource-Location": {"some-value"},
-			},
-		}, nil
-	}
+	mockHttpService := http.NewMockHttpService(
+		nil,
+		nil,
+		func(url, method, contentType string) (resp *netHttp.Response, err error) {
+			return &netHttp.Response{
+				StatusCode: netHttp.StatusOK,
+				Header: netHttp.Header{
+					"X-Resource-Location": {"some-value"},
+				},
+			}, nil
+		},
+	)
 	configService := createTestConfigService()
 	imageProcessingServiceMock := image.NewMockImageProcessingService()
 	cache := cache.NewCache(configService)
@@ -339,5 +347,6 @@ func TestGetMathResource_withCachedFile(t *testing.T) {
 	test.AssertEqual(t, filename, locationHeader)
 
 	test.AssertEqual(t, 0, mockHttpService.DownloadAndCacheCounter)
-	test.AssertEqual(t, 0, mockHttpService.PostFormEncodedCounter)
+	test.AssertEqual(t, 0, mockHttpService.PostAndCacheCounter)
+	test.AssertEqual(t, 0, mockHttpService.PerformHttpRequestCounter)
 }
