@@ -76,6 +76,8 @@ func (s *Server) handleArticleGetRequest(resp http.ResponseWriter, req *http.Req
 }
 
 func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Request) {
+	req.Body = http.MaxBytesReader(resp, req.Body, s.configService.Get().ServerMaxRequestBodySize)
+
 	articleName := req.PathValue(pathVarArticleName)
 	sigolo.Debugf("Received request %s %s for article %s", req.Method, req.URL, articleName)
 
@@ -88,6 +90,13 @@ func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Re
 	// are present in the request-config will be set here.
 	err := json.NewDecoder(req.Body).Decode(currentConfig)
 	if err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			sigolo.Errorf("%+v", errors.Wrapf(err, "Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+			s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+			return
+		}
+
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
 		s.returnInternalServerError(resp, resultState, "Error reading request body")
 		return
@@ -121,6 +130,8 @@ func (s *Server) handleArticleRequest(resp http.ResponseWriter, resultState *Res
 }
 
 func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Request) {
+	req.Body = http.MaxBytesReader(resp, req.Body, s.configService.Get().ServerMaxRequestBodySize)
+
 	sigolo.Debugf("Received request %s %s for project", req.Method, req.URL)
 
 	// Set dummy-title and later fill the title in the result state
@@ -128,6 +139,13 @@ func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Re
 
 	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			sigolo.Errorf("%+v", errors.Wrapf(err, "Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+			s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+			return
+		}
+
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
 		s.returnInternalServerError(resp, resultState, "Error reading request body")
 		return
@@ -172,6 +190,8 @@ func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Re
 }
 
 func (s *Server) handleStandalonePostRequest(resp http.ResponseWriter, req *http.Request) {
+	req.Body = http.MaxBytesReader(resp, req.Body, s.configService.Get().ServerMaxRequestBodySize)
+
 	sigolo.Debugf("Received request %s %s for standalone eBook", req.Method, req.URL)
 
 	// Set dummy-title and later fill the title in the result state
@@ -180,8 +200,6 @@ func (s *Server) handleStandalonePostRequest(resp http.ResponseWriter, req *http
 	var configBytes []byte
 	var contentBytes []byte
 	var err error
-
-	req.Body = http.MaxBytesReader(resp, req.Body, s.configService.Get().ServerMaxRequestBodySize)
 
 	if strings.HasPrefix(req.Header.Get("content-type"), "multipart/form-data") {
 		err = req.ParseMultipartForm(10 << 20) // Allow 10MB of the body to stay in memory
