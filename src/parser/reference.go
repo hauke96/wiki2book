@@ -18,16 +18,6 @@ type RefUsageToken struct {
 	Index int
 }
 
-var (
-	// Store content of references (i.e. their actual text), ref-name to ref-number mapping and the ref-number counters
-	// all per group. Every ref without explicit group is part of the default group. These maps are global so that they
-	// work through recursive parsing of nested references. Otherwise, e.g. the parseReferences function would create
-	// new maps for each recusrive call messing up the numbering of references.
-	refNumberToContent = map[string]map[int]string{}
-	nameToRefNumber    = map[string]map[string]int{}
-	refNumberCounter   = map[string]int{}
-)
-
 // This is the default group in which all ungrouped references fall
 const defaultReferenceGroup = "__wiki2book_ungrouped_references_group__"
 
@@ -82,12 +72,12 @@ func (t *Tokenizer) parseReferences(content string) string {
 				currentPlaceholderGroup = t.getGroupOrDefault(content[i:startEndIndex])
 			}
 
-			if refNumberToContent[currentPlaceholderGroup] == nil {
-				refNumberToContent[currentPlaceholderGroup] = map[int]string{}
+			if t.refNumberToContent[currentPlaceholderGroup] == nil {
+				t.refNumberToContent[currentPlaceholderGroup] = map[int]string{}
 			}
 
-			refNumberCounterForCurrentGroup := refNumberCounter[currentPlaceholderGroup]
-			refNumberToContentForCurrentGroup := refNumberToContent[currentPlaceholderGroup]
+			refNumberCounterForCurrentGroup := t.refNumberCounter[currentPlaceholderGroup]
+			refNumberToContentForCurrentGroup := t.refNumberToContent[currentPlaceholderGroup]
 
 			content = t.parseReferenceEndPlaceholder(content, i, startEndIndex, refNumberCounterForCurrentGroup, refNumberToContentForCurrentGroup)
 			cursorWithinReferencePlaceholder = false
@@ -103,23 +93,23 @@ func (t *Tokenizer) parseReferences(content string) string {
 			nameAttributeValue := t.getNameAttribute(content[i+refDefStartLen : startEndIndex])
 			groupName := t.getGroupOrDefault(content[i+refDefStartLen : startEndIndex])
 
-			if nameToRefNumber[groupName] == nil {
-				nameToRefNumber[groupName] = map[string]int{}
+			if t.nameToRefNumber[groupName] == nil {
+				t.nameToRefNumber[groupName] = map[string]int{}
 			}
 
-			if refNumberToContent[groupName] == nil {
-				refNumberToContent[groupName] = map[int]string{}
+			if t.refNumberToContent[groupName] == nil {
+				t.refNumberToContent[groupName] = map[int]string{}
 			}
 
-			nameToRefNumberForCurrentGroup := nameToRefNumber[groupName]
-			refNumberToContentForCurrentGroup := refNumberToContent[groupName]
-			refNumberCounterForCurrentGroup := refNumberCounter[groupName]
+			nameToRefNumberForCurrentGroup := t.nameToRefNumber[groupName]
+			refNumberToContentForCurrentGroup := t.refNumberToContent[groupName]
+			refNumberCounterForCurrentGroup := t.refNumberCounter[groupName]
 
 			isReferenceUsage := content[startEndIndex-1] == '/' // Reference definitions end with "/>" instead of "</ref>"
 			if isReferenceUsage {
 				// Reference usage like "<ref name=foo />"
 				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
-				refNumberCounter[groupName] = refNumberCounterForCurrentGroup
+				t.refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
 				refEndIndex := FindXmlCloseToken(content, startEndIndex)
@@ -202,21 +192,21 @@ func (t *Tokenizer) parseNamedReferenceUsage(content string, i int, nameAttribut
 // new, the refNumberCounter will be incremented and its new value returned. In case of an already known named reference,
 // this counter will not change and its current value will be returned.
 func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndIndex int, refEndIndex int, groupName string, nameAttributeValue string, nameToRefNumber map[string]int, refNumberToContent map[int]string, cursorWithinReferencePlaceholder bool, refDefLongEndLen int) string {
-	refNumber := refNumberCounter[groupName]
+	refNumber := t.refNumberCounter[groupName]
 	if nameAttributeValue != "" {
-		if _, ok := nameToRefNumber[nameAttributeValue]; ok {
+		if _, ok := t.nameToRefNumber[nameAttributeValue]; ok {
 			// Ref name already used before, so we use the number of this existing ref usage.
 			refNumber = nameToRefNumber[nameAttributeValue]
 		} else {
 			// Ref name appears for the first time, so we save the current counter value for later
 			// usages of this ref name.
-			nameToRefNumber[nameAttributeValue] = refNumberCounter[groupName]
+			nameToRefNumber[nameAttributeValue] = t.refNumberCounter[groupName]
 		}
 	}
 
-	if refNumber == refNumberCounter[groupName] {
+	if refNumber == t.refNumberCounter[groupName] {
 		// We actually used the current count value, so we increase it for the next token.
-		refNumberCounter[groupName]++
+		t.refNumberCounter[groupName]++
 	}
 
 	tokenizedRefContent := t.tokenizeContent(t, content[startEndIndex+1:refEndIndex])
