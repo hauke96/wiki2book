@@ -432,7 +432,7 @@ func (s *Server) returnState(resp http.ResponseWriter, resultState *ResultState)
 
 func (s *Server) returnInternalServerError(resp http.ResponseWriter, resultState *ResultState, errorMessage string) {
 	resultState.Status = ResultStatusFailed
-	resp.Header().Set("Content-Type", "application/text")
+	resp.Header().Set("Content-Type", "text/plain")
 	resp.WriteHeader(http.StatusInternalServerError)
 	_, err := resp.Write([]byte(fmt.Sprintf("Internal server error: %s", errorMessage)))
 	if err != nil {
@@ -443,7 +443,7 @@ func (s *Server) returnInternalServerError(resp http.ResponseWriter, resultState
 
 func (s *Server) returnRequestTooLargeError(resp http.ResponseWriter, resultState *ResultState, errorMessage string) {
 	resultState.Status = ResultStatusFailed
-	resp.Header().Set("Content-Type", "application/text")
+	resp.Header().Set("Content-Type", "text/plain")
 	resp.WriteHeader(http.StatusRequestEntityTooLarge)
 	_, err := resp.Write([]byte(fmt.Sprintf("Request entity too large: %s", errorMessage)))
 	if err != nil {
@@ -453,7 +453,7 @@ func (s *Server) returnRequestTooLargeError(resp http.ResponseWriter, resultStat
 }
 
 func (s *Server) returnNotFound(resp http.ResponseWriter, errorMessage string) {
-	resp.Header().Set("Content-Type", "application/text")
+	resp.Header().Set("Content-Type", "text/plain")
 	resp.WriteHeader(http.StatusNotFound)
 	_, err := resp.Write([]byte(fmt.Sprintf("Not found: %s", errorMessage)))
 	if err != nil {
