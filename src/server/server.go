@@ -181,12 +181,20 @@ func (s *Server) handleStandalonePostRequest(resp http.ResponseWriter, req *http
 	var contentBytes []byte
 	var err error
 
+	req.Body = http.MaxBytesReader(resp, req.Body, s.configService.Get().ServerMaxRequestBodySize)
+
 	if strings.HasPrefix(req.Header.Get("content-type"), "multipart/form-data") {
-		maxBodySizeInMB := int64(100)
-		err = req.ParseMultipartForm(maxBodySizeInMB << 20)
+		err = req.ParseMultipartForm(10 << 20) // Allow 10MB of the body to stay in memory
 		if err != nil {
-			sigolo.Errorf("%+v", errors.Wrapf(err, "Request body too large, only %d MB allowed", maxBodySizeInMB))
-			s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request body too large, only %d MB allowed", maxBodySizeInMB))
+			var maxBytesError *http.MaxBytesError
+			if errors.As(err, &maxBytesError) {
+				sigolo.Errorf("%+v", errors.Wrapf(err, "Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+				s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+				return
+			}
+
+			sigolo.Errorf("%+v", errors.Wrapf(err, "Error parsing form-data"))
+			s.returnInternalServerError(resp, resultState, "Error parsing form-data")
 			return
 		}
 	}
@@ -195,6 +203,13 @@ func (s *Server) handleStandalonePostRequest(resp http.ResponseWriter, req *http
 		sigolo.Debug("Process non-multi-part request and treat body as content")
 		contentBytes, err = io.ReadAll(req.Body)
 		if err != nil {
+			var maxBytesError *http.MaxBytesError
+			if errors.As(err, &maxBytesError) {
+				sigolo.Errorf("%+v", errors.Wrapf(err, "Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+				s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request too large, only %d bytes allowed", s.configService.Get().ServerMaxRequestBodySize))
+				return
+			}
+
 			sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
 			s.returnInternalServerError(resp, resultState, "Error reading request body")
 			return
@@ -404,6 +419,17 @@ func (s *Server) returnInternalServerError(resp http.ResponseWriter, resultState
 	_, err := resp.Write([]byte(fmt.Sprintf("Internal server error: %s", errorMessage)))
 	if err != nil {
 		sigolo.Errorf("%+v", errors.Wrap(err, "Could not write internal server error response"))
+		return
+	}
+}
+
+func (s *Server) returnRequestTooLargeError(resp http.ResponseWriter, resultState *ResultState, errorMessage string) {
+	resultState.Status = ResultStatusFailed
+	resp.Header().Set("Content-Type", "application/text")
+	resp.WriteHeader(http.StatusRequestEntityTooLarge)
+	_, err := resp.Write([]byte(fmt.Sprintf("Request entity too large: %s", errorMessage)))
+	if err != nil {
+		sigolo.Errorf("%+v", errors.Wrap(err, "Could not write request too larger error response"))
 		return
 	}
 }

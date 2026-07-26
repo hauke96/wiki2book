@@ -87,6 +87,7 @@ func NewDefaultConfig() *Configuration {
 		WorkerThreads:                  workerThreadsDefault,
 		UserAgentTemplate:              "wiki2book {{VERSION}} (https://github.com/hauke96/wiki2book)",
 		ServerPort:                     8080,
+		ServerMaxRequestBodySize:       100000000,
 	}
 }
 
@@ -483,6 +484,13 @@ type Configuration struct {
 		Default: 8080
 	*/
 	ServerPort int `json:"server-port"`
+
+	/*
+		Max size of requests in bytes.
+
+		Default: 100000000 (100 MB)
+	*/
+	ServerMaxRequestBodySize int64 `json:"server-max-request-body-size"`
 }
 
 type ConfigService struct {
@@ -692,6 +700,10 @@ func (c *Configuration) MergeNonDefaultValues(otherConfig *Configuration) {
 	if otherConfig.ServerPort != defaultConfig.ServerPort {
 		sigolo.Tracef("Override ServerPort with %d", otherConfig.ServerPort)
 		c.ServerPort = otherConfig.ServerPort
+	}
+	if otherConfig.ServerMaxRequestBodySize != defaultConfig.ServerMaxRequestBodySize {
+		sigolo.Tracef("Override ServerMaxRequestBodySize with %d", otherConfig.ServerMaxRequestBodySize)
+		c.ServerMaxRequestBodySize = otherConfig.ServerMaxRequestBodySize
 	}
 }
 

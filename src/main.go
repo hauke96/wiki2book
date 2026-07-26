@@ -153,6 +153,7 @@ func initCli() *cobra.Command {
 
 	serverCmd := getCommand("server", "Starts wiki2book in server mode handling HTTP requests to create eBooks.", 0)
 	serverCmd.PersistentFlags().IntVar(&cliConfig.ServerPort, "server-port", cliConfig.ServerPort, "Port on which wiki2book should receive HTTP requests.")
+	serverCmd.PersistentFlags().Int64Var(&cliConfig.ServerMaxRequestBodySize, "server-max-request-body-size", cliConfig.ServerMaxRequestBodySize, "Max size of requests in bytes.")
 	serverCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare starting wiki2book in server mode")
 		configService.MergeIntoCurrentConfig(cliConfig)
