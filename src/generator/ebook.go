@@ -72,7 +72,7 @@ func (g *EbookGenerator) CreateProject(projectFile string, outputFile string, cl
 	return proj
 }
 
-func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile string) {
+func (g *EbookGenerator) GenerateStandaloneEbookFromFile(inputFile string, outputFile string) {
 	g.configService.Get().Print()
 
 	fileContent, err := os.ReadFile(inputFile)
@@ -81,6 +81,10 @@ func (g *EbookGenerator) GenerateStandaloneEbook(inputFile string, outputFile st
 	_, inputFileName := path.Split(inputFile)
 	title := strings.Split(inputFileName, ".")[0]
 
+	g.GenerateStandaloneEbookFromString(fileContent, outputFile, title)
+}
+
+func (g *EbookGenerator) GenerateStandaloneEbookFromString(fileContent []byte, outputFile string, title string) {
 	outputFile = g.ensurePathsAndClearTempDir(outputFile)
 
 	g.configService.Get().AssertFilesAndPathsExists()

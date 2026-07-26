@@ -144,7 +144,7 @@ func initCli() *cobra.Command {
 	standaloneCmd.Run = func(cmd *cobra.Command, args []string) {
 		sigolo.Infof("Prepare generating eBook from standalone mediawiki file")
 		configService.MergeIntoCurrentConfig(cliConfig)
-		ebookGeneratorService.GenerateStandaloneEbook(
+		ebookGeneratorService.GenerateStandaloneEbookFromFile(
 			args[0],
 			cliOutputFile,
 		)

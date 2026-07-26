@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"wiki2book/cache"
 	"wiki2book/config"
@@ -56,7 +57,7 @@ func (s *Server) Start() {
 	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), s.handleArticleGetRequest)
 	mux.HandleFunc(fmt.Sprintf("POST /article/{%s}", pathVarArticleName), s.handleArticlePostRequest)
 	mux.HandleFunc("POST /project", s.handleProjectPostRequest)
-	//mux.HandleFunc("POST /standalonw", s.handleStandalonePostRequest)
+	mux.HandleFunc("POST /standalone", s.handleStandalonePostRequest)
 	mux.HandleFunc(fmt.Sprintf("GET /states/{%s}", pathVarResultToken), s.handleGetStateRequest)
 	mux.HandleFunc(fmt.Sprintf("GET /results/{%s}", pathVarResultToken), s.handleGetResultRequest)
 
@@ -165,6 +166,75 @@ func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Re
 		ebookGeneratorService.GenerateBookFromProject(project)
 		resultState.Status = ResultStatusSuccess
 		resultState.resultPath = project.OutputFile
+	}()
+
+	s.returnState(resp, resultState)
+}
+
+func (s *Server) handleStandalonePostRequest(resp http.ResponseWriter, req *http.Request) {
+	sigolo.Debugf("Received request %s %s for standalone eBook", req.Method, req.URL)
+
+	// Set dummy-title and later fill the title in the result state
+	resultState := s.createNewResultState("standalone")
+
+	var configBytes []byte
+	var contentBytes []byte
+	var err error
+
+	if strings.HasPrefix(req.Header.Get("content-type"), "multipart/form-data") {
+		maxBodySizeInMB := int64(100)
+		err = req.ParseMultipartForm(maxBodySizeInMB << 20)
+		if err != nil {
+			sigolo.Errorf("%+v", errors.Wrapf(err, "Request body too large, only %d MB allowed", maxBodySizeInMB))
+			s.returnInternalServerError(resp, resultState, fmt.Sprintf("Request body too large, only %d MB allowed", maxBodySizeInMB))
+			return
+		}
+	}
+
+	if req.MultipartForm == nil {
+		sigolo.Debug("Process non-multi-part request and treat body as content")
+		contentBytes, err = io.ReadAll(req.Body)
+		if err != nil {
+			sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
+			s.returnInternalServerError(resp, resultState, "Error reading request body")
+			return
+		}
+	} else {
+		sigolo.Debug("Process multi-part request")
+		configBytes = []byte(req.FormValue("config"))
+		contentBytes = []byte(req.FormValue("content"))
+	}
+
+	currentConfig := config.NewDefaultConfig()
+	currentConfig.MergeNonDefaultValues(s.configService.Get())
+
+	// Read body to current config. Fields not set by the given request-config stay unchanged, so only the fields that
+	// are present in the request-config will be set here.
+	err = json.Unmarshal(configBytes, currentConfig)
+	if err != nil {
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
+		s.returnInternalServerError(resp, resultState, "Error reading request body")
+		return
+	}
+
+	// Restore certain config entries that should not be set by users of the API:
+	s.resetNonUploadableConfigProperties(currentConfig)
+
+	configServiceForRequest := config.NewConfigServiceForConfig(currentConfig)
+
+	outputFilename := resultState.ResultToken
+
+	resultFilepath, err := s.initFilePaths(resp, resultState, outputFilename)
+	if err != nil {
+		// Logging and setting error states already happened in initHandleRequest
+		return
+	}
+
+	go func() {
+		ebookGeneratorService := generator.NewEbookGenerator(configServiceForRequest, s.fileCache)
+		ebookGeneratorService.GenerateStandaloneEbookFromString(contentBytes, resultFilepath, resultState.Title)
+		resultState.Status = ResultStatusSuccess
+		resultState.resultPath = resultFilepath
 	}()
 
 	s.returnState(resp, resultState)
