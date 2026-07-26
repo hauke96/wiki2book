@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,7 +33,7 @@ var (
 
 type ResultState struct {
 	Status      string `json:"status"`
-	ArticleName string `json:"article-name"`
+	Title       string `json:"title"`
 	ResultToken string `json:"result-token"`
 	resultPath  string // No JSON mapping. This should not be visible to API users.
 }
@@ -54,8 +55,8 @@ func (s *Server) Start() {
 
 	mux.HandleFunc(fmt.Sprintf("GET /article/{%s}", pathVarArticleName), s.handleArticleGetRequest)
 	mux.HandleFunc(fmt.Sprintf("POST /article/{%s}", pathVarArticleName), s.handleArticlePostRequest)
-	// TODO POST handler for projects
-	// TODO POST handle for standalone
+	mux.HandleFunc("POST /project", s.handleProjectPostRequest)
+	//mux.HandleFunc("POST /standalonw", s.handleStandalonePostRequest)
 	mux.HandleFunc(fmt.Sprintf("GET /states/{%s}", pathVarResultToken), s.handleGetStateRequest)
 	mux.HandleFunc(fmt.Sprintf("GET /results/{%s}", pathVarResultToken), s.handleGetResultRequest)
 
@@ -70,7 +71,7 @@ func (s *Server) handleArticleGetRequest(resp http.ResponseWriter, req *http.Req
 
 	resultState := s.createNewResultState(articleName)
 
-	s.handleArticleRequest(resp, resultState, s.configService)
+	s.handleArticleRequest(resp, resultState, articleName, s.configService)
 }
 
 func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Request) {
@@ -101,39 +102,107 @@ func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Re
 }
 
 func (s *Server) handleArticleRequest(resp http.ResponseWriter, resultState *ResultState, configService *config.ConfigService) {
+	outputFilename := resultState.Title
+
+	resultFilepath, err := s.initFilePaths(resp, resultState, outputFilename)
+	if err != nil {
+		// Logging and setting error states already happened in initHandleRequest
+		return
+	}
+
+	go func() {
+		ebookGeneratorService := generator.NewEbookGenerator(configService, s.fileCache)
+		ebookGeneratorService.GenerateArticleEbook(resultState.Title, resultFilepath)
+		resultState.Status = ResultStatusSuccess
+		resultState.resultPath = resultFilepath
+	}()
+
+	s.returnState(resp, resultState)
+}
+
+func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Request) {
+	sigolo.Debugf("Received request %s %s for project", req.Method, req.URL)
+
+	// Set dummy-title and later fill the title in the result state
+	resultState := s.createNewResultState("project")
+
+	bodyBytes, err := io.ReadAll(req.Body)
+	if err != nil {
+		// TODO move "resultState.Status = ResultStatusFailed" into returnInternalServerError?
+		resultState.Status = ResultStatusFailed
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
+		s.returnInternalServerError(resp, "Error reading request body")
+		return
+	}
+
+	// Read body to current config. Fields not set by the given request-config stay unchanged, so only the fields that
+	// are present in the request-project will be set here.
+	project, err := config.LoadProjectFromBytes(bodyBytes)
+	if err != nil {
+		resultState.Status = ResultStatusFailed
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error turning request body into project instance"))
+		s.returnInternalServerError(resp, "Error turning request body into project instance")
+		return
+	}
+
+	cgf := config.NewDefaultConfig()
+	cgf.MergeNonDefaultValues(&project.Configuration)
+	project.Configuration = *cgf
+
+	resultState.Title = project.Metadata.Title
+
+	// Restore certain config entries that should not be set by users of the API:
+	s.resetNonUploadableProjectProperties(project)
+
+	configServiceForRequest := config.NewConfigServiceForConfig(&project.Configuration)
+
+	resultFilepath, err := s.initFilePaths(resp, resultState, resultState.ResultToken)
+	if err != nil {
+		// Logging and setting error states already happened in initHandleRequest
+		return
+	}
+
+	project.OutputFile = resultFilepath
+
+	go func() {
+		ebookGeneratorService := generator.NewEbookGenerator(configServiceForRequest, s.fileCache)
+		ebookGeneratorService.GenerateBookFromProject(project)
+		resultState.Status = ResultStatusSuccess
+		resultState.resultPath = project.OutputFile
+	}()
+
+	s.returnState(resp, resultState)
+}
+
+// initFilePaths initializes the processing of the input, i.e. creating the output file. In case an error is
+// returned, the response is already an internal server error and the result status is already set.
+func (s *Server) initFilePaths(resp http.ResponseWriter, resultState *ResultState, outputFilename string) (string, error) {
 	// Ensure output folder exists
 	outputFolderPath := s.fileCache.GetDirPathInCache(cache.TempDirName)
-	sigolo.Tracef("Ensure cache folder '%s'", outputFolderPath)
+	sigolo.Tracef("Ensure temp directory in cache folder '%s' exists", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
 		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error folder for temporary files"))
 		s.returnInternalServerError(resp, "Error creating folder for temporary files")
-		return
+		return "", err
 	}
 
 	// Create the output file
-	sanitizedFilename := util.SanitizeFilename(resultState.ArticleName)
+	sanitizedFilename := util.SanitizeFilename(outputFilename)
 	tempFile, err := util.CurrentFilesystem.CreateTemp(s.fileCache.GetTempPath(), sanitizedFilename)
 	if err != nil {
 		resultState.Status = ResultStatusFailed
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", resultState.ArticleName))
-		s.returnInternalServerError(resp, fmt.Sprintf("Error creating temporary file for article '%s'", resultState.ArticleName))
-		return
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", outputFilename))
+		s.returnInternalServerError(resp, fmt.Sprintf("Error creating temporary file for article '%s'", outputFilename))
+		return "", err
 	}
 	defer tempFile.Close()
 	tempFilepath := tempFile.Name()
 	defer util.CurrentFilesystem.Remove(tempFilepath)
 	sigolo.Tracef("Create temp file '%s'", tempFilepath)
 
-	go func() {
-		ebookGeneratorService := generator.NewEbookGenerator(configService, s.fileCache)
-		ebookGeneratorService.GenerateArticleEbook(resultState.ArticleName, tempFilepath)
-		resultState.Status = ResultStatusSuccess
-		resultState.resultPath = tempFilepath
-	}()
-
-	s.returnState(resp, resultState)
+	return tempFilepath, nil
 }
 
 func (s *Server) handleGetStateRequest(resp http.ResponseWriter, req *http.Request) {
@@ -163,7 +232,15 @@ func (s *Server) handleGetResultRequest(resp http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	s.returnFile(resp, resultState.resultPath, resultState.ArticleName)
+	s.returnFile(resp, resultState)
+}
+
+// resetNonUploadableProjectProperties resets properties of the project to the configured values of the application. Not
+// all properties are allowed to be set by users and this function takes care of that.
+func (s *Server) resetNonUploadableProjectProperties(project *config.Project) {
+	s.resetNonUploadableConfigProperties(&project.Configuration)
+
+	project.OutputFile = ""
 }
 
 // resetNonUploadableConfigProperties resets properties of "config" to the configured values of the application. Not
@@ -206,11 +283,11 @@ func (s *Server) resetNonUploadableConfigProperties(config *config.Configuration
 	config.ServerPort = s.configService.Get().ServerPort
 }
 
-func (s *Server) createNewResultState(articleName string) *ResultState {
-	resultToken := util.Hash(fmt.Sprintf("%s%d", articleName, time.Now().UnixNano()))
+func (s *Server) createNewResultState(title string) *ResultState {
+	resultToken := util.Hash(fmt.Sprintf("%s%d", title, time.Now().UnixNano()))
 	resultState := &ResultState{
 		Status:      ResultStatusInProgress,
-		ArticleName: articleName,
+		Title:       title,
 		ResultToken: resultToken,
 		resultPath:  "",
 	}
@@ -218,21 +295,22 @@ func (s *Server) createNewResultState(articleName string) *ResultState {
 	return resultState
 }
 
-func (s *Server) returnFile(resp http.ResponseWriter, filePath string, articleName string) {
-	fileContent, err := util.CurrentFilesystem.ReadFile(filePath)
+// returnFile writes the result file from the resulState to the given response.
+func (s *Server) returnFile(resp http.ResponseWriter, resultState *ResultState) {
+	fileContent, err := util.CurrentFilesystem.ReadFile(resultState.resultPath)
 	if err != nil {
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading file '%s' for article '%s'", filePath, articleName))
-		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the response for article '%s'", articleName))
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading file '%s' for '%s'", resultState.resultPath, resultState.Title))
+		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the response for '%s'", resultState.Title))
 		return
 	}
 
 	resp.Header().Set("Content-Type", "application/octet-stream")
-	resp.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", filepath.Base(filePath)))
+	resp.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", filepath.Base(resultState.resultPath)))
 	resp.WriteHeader(http.StatusOK)
 
 	_, err = resp.Write(fileContent)
 	if err != nil {
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Could not write response for file '%s': %+v", filePath, err))
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Could not write response for file '%s': %+v", resultState.resultPath, err))
 		return
 	}
 }
@@ -241,7 +319,7 @@ func (s *Server) returnState(resp http.ResponseWriter, state *ResultState) {
 	content, err := json.Marshal(state)
 	if err != nil {
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error marshalling state to JSON: %#v", state))
-		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the status response for article '%s'", state.ArticleName))
+		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the status response for '%s'", state.Title))
 		return
 	}
 

@@ -51,7 +51,7 @@ func (g *EbookGenerator) CreateProject(projectFile string, outputFile string, cl
 		sigolo.FatalCheck(err)
 	}
 
-	proj, err := config.LoadProject(projectFile)
+	proj, err := config.LoadProjectFromFile(projectFile)
 	sigolo.FatalCheck(err)
 
 	if outputFile != "" {
