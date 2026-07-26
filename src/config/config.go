@@ -479,6 +479,7 @@ type Configuration struct {
 	UserAgentTemplate string `json:"user-agent-template"`
 
 	/*
+		Only used when started in server mode.
 		Port on which wiki2book should receive HTTP requests in server mode.
 
 		Default: 8080
@@ -486,6 +487,7 @@ type Configuration struct {
 	ServerPort int `json:"server-port"`
 
 	/*
+		Only used when started in server mode.
 		Max size of requests in bytes.
 
 		Default: 100000000 (100 MB)

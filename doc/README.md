@@ -10,3 +10,4 @@ This is the documentation of the codebase for *wiki2book*.
 * [Rendering math](rendering-math.md): Documentation on how to render math code (TeX code) using the Wikipedia API.
 * [Caches](caches.md): This tool uses its own caching infrastructure, this is why and how.
 * [Parsing strategies](parsing.md): Descriptions of the used parsing strategies.
+* [Server](server.md): Documentation about the server mode of wiki2book.

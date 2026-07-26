@@ -36,8 +36,9 @@ Wiki2book is a tool addressing all these issues and nice features to generate be
 
 # Usage
 
-Currently only a CLI (_command line interface_) version of wiki2book exists, so no GUI.
-Wiki2book uses configuration files, project files and CLI arguments to be configured.
+Wiki2book can be used in two ways: locally via a CLI (see [CLI](#cli) section) and via HTTP endpoints (see [HTTP](#http) section).
+
+Configuration is done by config file, project file and CLI arguments.
 See the [documentation](./doc/configuration.md) for further information including a list of all options or use the `--help` flag for an overview.
 
 ## Preliminaries
@@ -63,6 +64,10 @@ The CLI contains three sub-commands that generate an EPUB file from different so
 3. Standalone: `wiki2book standalone ./path/to/file.mediawiki`
 
 Use `wiki2book -h` for more information and `wiki2book <command> -h` for information on a specific command.
+
+## HTTP
+
+When starting via `wiki2book server`, wiki2book starts in server mode and accepts HTTP requests as documented in the [server doc](./doc/server.md).
 
 ### Configuration
 
@@ -98,5 +103,4 @@ Please open an issue, describe your ideas, how you plan to implement this and we
 
 # Long-term goals
 
-* Create a public API and web app (#7)
 * Ask Wikipedia if they want to embed/link to this tool in any way (that would be super cool :D)
