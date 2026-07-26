@@ -71,7 +71,7 @@ func (s *Server) handleArticleGetRequest(resp http.ResponseWriter, req *http.Req
 
 	resultState := s.createNewResultState(articleName)
 
-	s.handleArticleRequest(resp, resultState, articleName, s.configService)
+	s.handleArticleRequest(resp, resultState, s.configService)
 }
 
 func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Request) {
