@@ -87,9 +87,8 @@ func (s *Server) handleArticlePostRequest(resp http.ResponseWriter, req *http.Re
 	// are present in the request-config will be set here.
 	err := json.NewDecoder(req.Body).Decode(currentConfig)
 	if err != nil {
-		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
-		s.returnInternalServerError(resp, "Error reading request body")
+		s.returnInternalServerError(resp, resultState, "Error reading request body")
 		return
 	}
 
@@ -128,10 +127,8 @@ func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Re
 
 	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
-		// TODO move "resultState.Status = ResultStatusFailed" into returnInternalServerError?
-		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading request body"))
-		s.returnInternalServerError(resp, "Error reading request body")
+		s.returnInternalServerError(resp, resultState, "Error reading request body")
 		return
 	}
 
@@ -139,9 +136,8 @@ func (s *Server) handleProjectPostRequest(resp http.ResponseWriter, req *http.Re
 	// are present in the request-project will be set here.
 	project, err := config.LoadProjectFromBytes(bodyBytes)
 	if err != nil {
-		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error turning request body into project instance"))
-		s.returnInternalServerError(resp, "Error turning request body into project instance")
+		s.returnInternalServerError(resp, resultState, "Error turning request body into project instance")
 		return
 	}
 
@@ -182,9 +178,8 @@ func (s *Server) initFilePaths(resp http.ResponseWriter, resultState *ResultStat
 	sigolo.Tracef("Ensure temp directory in cache folder '%s' exists", outputFolderPath)
 	err := util.CurrentFilesystem.MkdirAll(outputFolderPath)
 	if err != nil && !os.IsExist(err) {
-		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error folder for temporary files"))
-		s.returnInternalServerError(resp, "Error creating folder for temporary files")
+		s.returnInternalServerError(resp, resultState, "Error creating folder for temporary files")
 		return "", err
 	}
 
@@ -192,9 +187,8 @@ func (s *Server) initFilePaths(resp http.ResponseWriter, resultState *ResultStat
 	sanitizedFilename := util.SanitizeFilename(outputFilename)
 	tempFile, err := util.CurrentFilesystem.CreateTemp(s.fileCache.GetTempPath(), sanitizedFilename)
 	if err != nil {
-		resultState.Status = ResultStatusFailed
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error creating temporary file for article '%s'", outputFilename))
-		s.returnInternalServerError(resp, fmt.Sprintf("Error creating temporary file for article '%s'", outputFilename))
+		s.returnInternalServerError(resp, resultState, fmt.Sprintf("Error creating temporary file for article '%s'", outputFilename))
 		return "", err
 	}
 	defer tempFile.Close()
@@ -300,7 +294,7 @@ func (s *Server) returnFile(resp http.ResponseWriter, resultState *ResultState) 
 	fileContent, err := util.CurrentFilesystem.ReadFile(resultState.resultPath)
 	if err != nil {
 		sigolo.Errorf("%+v", errors.Wrapf(err, "Error reading file '%s' for '%s'", resultState.resultPath, resultState.Title))
-		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the response for '%s'", resultState.Title))
+		s.returnInternalServerError(resp, resultState, fmt.Sprintf("An error occurred while creating the response for '%s'", resultState.Title))
 		return
 	}
 
@@ -315,11 +309,11 @@ func (s *Server) returnFile(resp http.ResponseWriter, resultState *ResultState) 
 	}
 }
 
-func (s *Server) returnState(resp http.ResponseWriter, state *ResultState) {
-	content, err := json.Marshal(state)
+func (s *Server) returnState(resp http.ResponseWriter, resultState *ResultState) {
+	content, err := json.Marshal(resultState)
 	if err != nil {
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Error marshalling state to JSON: %#v", state))
-		s.returnInternalServerError(resp, fmt.Sprintf("An error occurred while creating the status response for '%s'", state.Title))
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Error marshalling state to JSON: %#v", resultState))
+		s.returnInternalServerError(resp, resultState, fmt.Sprintf("An error occurred while creating the status response for '%s'", resultState.Title))
 		return
 	}
 
@@ -328,12 +322,13 @@ func (s *Server) returnState(resp http.ResponseWriter, state *ResultState) {
 
 	_, err = resp.Write(content)
 	if err != nil {
-		sigolo.Errorf("%+v", errors.Wrapf(err, "Could not write response for result state with token '%s': %+v", state.ResultToken, err))
+		sigolo.Errorf("%+v", errors.Wrapf(err, "Could not write response for result state with token '%s': %+v", resultState.ResultToken, err))
 		return
 	}
 }
 
-func (s *Server) returnInternalServerError(resp http.ResponseWriter, errorMessage string) {
+func (s *Server) returnInternalServerError(resp http.ResponseWriter, resultState *ResultState, errorMessage string) {
+	resultState.Status = ResultStatusFailed
 	resp.Header().Set("Content-Type", "application/text")
 	resp.WriteHeader(http.StatusInternalServerError)
 	_, err := resp.Write([]byte(fmt.Sprintf("Internal server error: %s", errorMessage)))
