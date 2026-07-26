@@ -132,7 +132,7 @@ type Configuration struct {
 	ForceRegenerateHtml bool `json:"force-regenerate-html"`
 
 	/*
-		Sets the 'width' and 'height' property of an SimpleSvgAttributes image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
+		Sets the `width` and `height` property of an `SimpleSvgAttributes` image to its viewbox width and height. This might fix wrong SVG sizes on some eBook-readers.
 
 		Default: `false`
 		JSON example: `"svg-size-to-viewbox": true`
@@ -159,7 +159,7 @@ type Configuration struct {
 
 	/*
 		The directory where all intermediate files are stored. Relative paths are relative to the config file. The
-		default value is the default cache directory returned by the golang function os.UserCacheDir().
+		default value is the default cache directory returned by the golang function `os.UserCacheDir()`.
 
 		Default: `"<user-cache-dir>/wiki2book"`
 		JSON example: `"cache-dir": "/path/to/cache"`
@@ -175,7 +175,7 @@ type Configuration struct {
 
 	/*
 		The maximum age in minutes of files in the cache. All files older than this, will be downloaded/recreated again.
-		Note that setting CacheEvictionStrategy to "lru" stays in conflict with this setting, because the LRU cache
+		Note that setting `CacheEvictionStrategy` to `lru` stays in conflict with this setting, because the LRU cache
 		constantly updates timestamps on files.
 
 		Default: `40320` (four weeks)
@@ -190,11 +190,11 @@ type Configuration struct {
 		<ul>
 			<li>`"largest"` - In case the maximum cache size has been reached, the largest file will be removed first.</li>
 			<li>`"lru"`     - In case the maximum cache size has been reached, the least recently used file will be removed
-			                  first. Note that the LRU cache stays in conflict with the CacheMaxAge setting. Using the
+			                  first. Note that the LRU cache stays in conflict with the `CacheMaxAge` setting. Using the
 			                  LRU cache constantly updates timestamps on files, which then might stay longer in cache
-			                  than CacheMaxAge defines.</li>
+			                  than `CacheMaxAge` defines.</li>
 			<li>`"none"`    - No cache eviction strategy, i.e. all files are cached and never evicted. Therefore, the
-			                  CacheMaxSize setting has no effect.</li>
+			                  `CacheMaxSize` setting has no effect.</li>
 		</ul>
 	*/
 	CacheEvictionStrategy string `json:"cache-eviction-strategy"`
@@ -234,7 +234,7 @@ type Configuration struct {
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files of math expressions into
-		PNGs. This template is only used when setting MathConverter to "template". This command might use additional
+		PNGs. This template is only used when setting `MathConverter` to `template`. This command might use additional
 		parameters in comparison to the normal SVG to PNG command template.
 
 		This template must contain the following placeholders that will be replaced by the actual values before
@@ -387,7 +387,7 @@ type Configuration struct {
 	WikipediaImageHost string `json:"wikipedia-image-host"`
 
 	/*
-		Domains used to search for image articles (not the image files themselves, s. WikipediaImageHost). The given
+		Domains used to search for image articles (not the image files themselves, s. `WikipediaImageHost`). The given
 		values are tried in the configured order until a request was successful or the last host has been tried.
 
 		Default: `[ "commons.wikimedia.org", "en.wikipedia.org" ]`
@@ -435,7 +435,7 @@ type Configuration struct {
 		<ul>
 			<li>"none": Uses no converter, instead the plain SVG file is inserted into the ebook.</li>
 			<li>"wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.</li>
-			<li>"template": Uses the CommandTemplateMathSvgToPng to convert math SVG files to PNGs.</li>
+			<li>"template": Uses the `CommandTemplateMathSvgToPng` to convert math SVG files to PNGs.</li>
 		</ul>
 
 		Default: `[ "wikimedia" ]`
