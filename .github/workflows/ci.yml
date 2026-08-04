@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc librsvg2-bin imagemagick fonts-dejavu-core
+          # apparently older versions of imagemagick only set up the convert symlink and we need it to be called magick
+          sudo ln -s /usr/bin/convert /usr/bin/magick
+
+      - name: Verify system dependencies
+        run: |
+          which go
+          go version
+          which pandoc
+          pandoc --version
+          which rsvg-convert
+          rsvg-convert --version
+          ls -l /usr/bin
+          which magick
+          magick --version
+
+      - name: Build CLI
+        working-directory: src
+        run: go build .
+
+      - name: Run unit tests
+        working-directory: src
+        run: ./test.sh
+
+      - name: Run integration tests
+        working-directory: integration-tests
+        run: ./run.sh
+
+      - name: Upload integration test logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration-test-logs
+          path: |
+            integration-tests/logs
+            integration-tests/results
