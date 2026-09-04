@@ -116,7 +116,6 @@
     "zentriert"
   ],
   "math-converter": "template-to-svg",
-  "command-template-svg-to-png": "",
   "style-file": "./style.css",
   "cache-max-size": 1000000000
 }

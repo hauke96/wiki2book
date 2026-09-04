@@ -92,6 +92,7 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "style-file", cliConfig.StyleFile)
 	test.AssertEqual(t, "cover-image", cliConfig.CoverImage)
 	test.AssertEqual(t, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng)
+	test.AssertEqual(t, "command-template-math-to-png", cliConfig.CommandTemplateMathToSvg)
 	test.AssertEqual(t, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng)
 	test.AssertEqual(t, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing)
 	test.AssertEqual(t, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng)

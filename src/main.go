@@ -89,6 +89,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.StyleFile, "style-file", cliConfig.StyleFile, "The CSS file that should be used.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CoverImage, "cover-image", cliConfig.CoverImage, "A cover image for the front cover of the eBook.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateSvgToPng, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng, "Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathToSvg, "command-template-math-to-png", cliConfig.CommandTemplateMathToSvg, "Command template to use for math to SVG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathSvgToPng, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng, "Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateImageProcessing, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing, "Command template to use for math SVG to PNG conversion. Disables processing and uses original images when empty. When set, it must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplatePdfToPng, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng, "Command template to use for PDF to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
@@ -552,7 +553,6 @@ func ensurePathsAndClearTempDir(outputFile string) string {
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.ArticleCacheDirName))
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.HtmlCacheDirName))
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.ImageCacheDirName))
-	util.EnsureDirectory(cache.GetDirPathInCache(cache.MathCacheDirName))
 	util.EnsureDirectory(cache.GetDirPathInCache(cache.TemplateCacheDirName))
 
 	return outputFile

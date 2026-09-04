@@ -40,6 +40,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		StyleFile:                      "/style-file",
 		CoverImage:                     "/cover-image",
 		CommandTemplateSvgToPng:        "command-template-svg-to-png" + InputPlaceholder + OutputPlaceholder,
+		CommandTemplateMathToSvg:       "command-template-math-to-png" + InputPlaceholder + OutputPlaceholder,
 		CommandTemplateMathSvgToPng:    "command-template-math-svg-to-png" + InputPlaceholder + OutputPlaceholder,
 		CommandTemplateImageProcessing: "command-template-image-processing" + InputPlaceholder + OutputPlaceholder,
 		CommandTemplatePdfToPng:        "command-template-pdf-to-png" + InputPlaceholder + OutputPlaceholder,
@@ -83,6 +84,7 @@ func TestMergeIntoCurrentConfig_validEmptyValues(t *testing.T) {
 	expectedConfig := NewDefaultConfig()
 	expectedConfig.CommandTemplateImageProcessing = ""
 	expectedConfig.CommandTemplateSvgToPng = ""
+	expectedConfig.CommandTemplateMathToSvg = ""
 	expectedConfig.CommandTemplatePdfToPng = ""
 	expectedConfig.CommandTemplateWebpToPng = ""
 	expectedConfig.FontFiles = []string{}
@@ -320,6 +322,25 @@ func TestAssertValidity_commandTemplateSvgToPng(t *testing.T) {
 	config.AssertValidity()
 
 	config.CommandTemplateSvgToPng = InputPlaceholder + OutputPlaceholder
+	config.AssertValidity()
+}
+
+func TestAssertValidity_commandTemplateMathToSvg(t *testing.T) {
+	config := NewDefaultConfig()
+
+	config.CommandTemplateMathToSvg = "foobar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateMathToSvg = "foo" + InputPlaceholder + "bar"
+	testCallExpectingPanic(t, func() { config.AssertValidity() })
+
+	config.CommandTemplateMathToSvg = "foo" + InputPlaceholder + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateMathToSvg = "foo" + InputPlaceholder + "blubb" + OutputPlaceholder + "bar"
+	config.AssertValidity()
+
+	config.CommandTemplateMathToSvg = InputPlaceholder + OutputPlaceholder
 	config.AssertValidity()
 }
 

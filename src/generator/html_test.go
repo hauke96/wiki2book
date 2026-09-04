@@ -47,6 +47,7 @@ func TestExpandHeadings(t *testing.T) {
 
 func TestExpandMath(t *testing.T) {
 	config.Current.MathConverter = config.MathConverterTemplateToSvg
+	config.Current.CacheDir = "cache-dir"
 
 	generator := NewHtmlGeneratorWithMockWikipediaService()
 	result := `<img alt="image" src="./images/image.svg.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
@@ -68,10 +69,20 @@ func TestExpandMath(t *testing.T) {
 		return "image.svg", nil
 	}
 
+	imageProcessingSvgInputFile := ""
+	imageProcessingPngOutputFile := ""
+	generator.ImageProcessingService.(*image.MockImageProcessingService).ConvertToPngFunc = func(inputFile string, pngFile string, commandTemplate string) error {
+		imageProcessingSvgInputFile = inputFile
+		imageProcessingPngOutputFile = pngFile
+		return nil
+	}
+
 	actualResult, err := expand(generator, token)
 
 	test.AssertNil(t, err)
 	test.AssertEqual(t, result, actualResult)
+	test.AssertEqual(t, "cache-dir/images/image.svg", imageProcessingSvgInputFile)
+	test.AssertEqual(t, "cache-dir/images/image.svg.png", imageProcessingPngOutputFile)
 }
 
 func TestExpandImage(t *testing.T) {

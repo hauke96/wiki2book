@@ -36,6 +36,7 @@ const (
 	CacheEvictionStrategyNone    = "none"
 
 	defaultCommandTemplateSvgToPng                   = "rsvg-convert -o " + OutputPlaceholder + " " + InputPlaceholder
+	defaultCommandTemplateMathToSvg                  = "node /usr/share/wiki2book/math-renderer/index.mjs \"" + InputPlaceholder + "\" " + OutputPlaceholder
 	defaultCommandTemplateLinuxMathSvgToPngWithStyle = "rsvg-convert -s " + linuxDefaultRsvgMathStyleFile + " -o " + OutputPlaceholder + " " + InputPlaceholder
 	defaultCommandTemplateImageProcessing            = "magick " + InputPlaceholder + " -resize 600x600> -quality 75 -define PNG:compression-level=9 -define PNG:compression-filter=0 -colorspace gray " + OutputPlaceholder
 	defaultCommandTemplatePdfToPng                   = "magick -density 300 " + InputPlaceholder + " " + OutputPlaceholder
@@ -78,6 +79,7 @@ func NewDefaultConfig() *Configuration {
 		CategoryPrefixes:               []string{"category"},
 		MathConverter:                  MathConverterNone,
 		CommandTemplateSvgToPng:        defaultCommandTemplateSvgToPng,
+		CommandTemplateMathToSvg:       defaultCommandTemplateMathToSvg,
 		CommandTemplateMathSvgToPng:    getDefaultMathSvgToPngCommandTemplate(),
 		CommandTemplateImageProcessing: defaultCommandTemplateImageProcessing,
 		CommandTemplatePdfToPng:        defaultCommandTemplatePdfToPng,
@@ -230,6 +232,22 @@ type Configuration struct {
 		JSON example: `"command-template-svg-to-png": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateSvgToPng string `json:"command-template-svg-to-png"`
+
+	/*
+		Specifies the template for the command that should be used to convert math expressions (i.e. TeX code) into
+		SVGs. This template is only used when setting `MathConverter` to `template`.
+
+		This template must contain the following placeholders that will be replaced by the actual values before
+		executing the command:
+		<ul>
+			<li>`{INPUT}` : The input TeX content as one string.</li>
+			<li>`{OUTPUT}` : The output SVG file.</li>
+		</ul>
+
+		Default: `'node /usr/share/wiki2book/math-converter "{INPUT}" {OUTPUT}'`
+		JSON example: `"command-template-math-to-svg": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
+	*/
+	CommandTemplateMathToSvg string `json:"command-template-math-to-svg"`
 
 	/*
 		Specifies the template for the command that should be used to convert the SVG files of math expressions into
@@ -532,6 +550,10 @@ func MergeIntoCurrentConfig(c *Configuration) {
 		sigolo.Tracef("Override CommandTemplateSvgToPng with %s", c.CommandTemplateSvgToPng)
 		Current.CommandTemplateSvgToPng = c.CommandTemplateSvgToPng
 	}
+	if c.CommandTemplateMathToSvg != defaultConfig.CommandTemplateMathToSvg {
+		sigolo.Tracef("Override CommandTemplateMathToSvg with %s", c.CommandTemplateMathToSvg)
+		Current.CommandTemplateMathToSvg = c.CommandTemplateMathToSvg
+	}
 	if c.CommandTemplateMathSvgToPng != defaultConfig.CommandTemplateMathSvgToPng {
 		sigolo.Tracef("Override CommandTemplateMathSvgToPng with %s", c.CommandTemplateMathSvgToPng)
 		Current.CommandTemplateMathSvgToPng = c.CommandTemplateMathSvgToPng
@@ -733,6 +755,15 @@ func (c *Configuration) AssertValidity() {
 		}
 		if !strings.Contains(c.CommandTemplateSvgToPng, OutputPlaceholder) {
 			defaultValidationErrorHandler(errors.Errorf("CommandTemplateSvgToPng must contain the '" + OutputPlaceholder + "' placeholder"))
+		}
+	}
+
+	if c.CommandTemplateMathToSvg != "" {
+		if !strings.Contains(c.CommandTemplateMathToSvg, InputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateMathToSvg must contain the '" + InputPlaceholder + "' placeholder"))
+		}
+		if !strings.Contains(c.CommandTemplateMathToSvg, OutputPlaceholder) {
+			defaultValidationErrorHandler(errors.Errorf("CommandTemplateMathToSvg must contain the '" + OutputPlaceholder + "' placeholder"))
 		}
 	}
 

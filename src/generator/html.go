@@ -377,18 +377,20 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	if config.Current.MathConverter == config.MathConverterNone {
 		return token.Content, nil
 	} else if config.Current.MathConverter == config.MathConverterTemplateToSvg {
-		cachedSvgFile, err := g.MathGenerator.RenderMathToSvg(token.Content)
+		svgFilename, err := g.MathGenerator.RenderMathToSvg(token.Content)
 		if err != nil {
 			return "", err
 		}
+
+		cachedSvgFile := cache.GetFilePathInCache(cache.ImageCacheDirName, svgFilename)
 
 		svg, err := image.ReadSimpleAvgAttributes(cachedSvgFile)
 		if err != nil {
 			return "", err
 		}
 
-		cachedPngFilePath := cache.GetFilePathInCache(cache.ImageCacheDirName, cachedSvgFile+util.FileEndingPng)
-		err = g.ImageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFilePath, config.Current.CommandTemplateMathSvgToPng)
+		cachedPngFilePath := cache.GetFilePathInCache(cache.ImageCacheDirName, svgFilename+util.FileEndingPng)
+		err = g.ImageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFilePath, config.Current.CommandTemplateSvgToPng)
 		if err != nil {
 			return "", err
 		}
