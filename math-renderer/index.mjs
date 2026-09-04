@@ -14,11 +14,16 @@ await MathJax.init({
 const texString = process.argv[2];
 const outputFile = process.argv[3];
 
+console.log("Input", texString)
+console.log("Output", outputFile)
+
 const mathjaxContainerNode = await MathJax.tex2svgPromise(texString, {display: true});
 const svgNode = mathjaxContainerNode.children[0];
 const svgContent = MathJax.startup.adaptor.serializeXML(svgNode)
+console.log("SVG content", svgContent)
 
 fs.writeFile(outputFile, svgContent, err => {
+    console.log("Writing error", err)
     if (err) {
         console.error("Could not write to output file " + outputFile, err);
     } else {
