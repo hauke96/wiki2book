@@ -508,7 +508,7 @@ func (c *configEntry) toMarkdown() string {
 }
 
 // Not a test, but generates markdown that can be pasted into the "doc/configuration.md" file.
-func TestGenerateDoc(t *testing.T) {
+func _TestGenerateDoc(t *testing.T) {
 	contentBytes, err := os.ReadFile("config.go")
 	sigolo.FatalCheck(err)
 
