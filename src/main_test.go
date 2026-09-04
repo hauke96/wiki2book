@@ -46,6 +46,7 @@ func TestCliArgs(t *testing.T) {
 		"--style-file", "style-file",
 		"--cover-image", "cover-image",
 		"--command-template-svg-to-png", "command-template-svg-to-png",
+		"--command-template-math-to-svg", "command-template-math-to-svg",
 		"--command-template-math-svg-to-png", "command-template-math-svg-to-png",
 		"--command-template-image-processing", "command-template-image-processing",
 		"--command-template-pdf-to-png", "command-template-pdf-to-png",
