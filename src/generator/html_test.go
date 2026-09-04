@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"testing"
 	"wiki2book/config"
+	"wiki2book/image"
 	"wiki2book/parser"
 	"wiki2book/test"
 	"wiki2book/util"
-	"wiki2book/wikipedia"
 )
 
 var generator = &HtmlGenerator{}
 
 func NewHtmlGeneratorWithMockWikipediaService() *HtmlGenerator {
 	return &HtmlGenerator{
-		WikipediaService: wikipedia.NewMockWikipediaService(),
+		ImageProcessingService: image.NewMockImageProcessingService(),
+		MathGenerator:          newMockMathGenerator(),
 	}
 }
 
@@ -45,8 +46,10 @@ func TestExpandHeadings(t *testing.T) {
 }
 
 func TestExpandMath(t *testing.T) {
+	config.Current.MathConverter = config.MathConverterTemplateToSvg
+
 	generator := NewHtmlGeneratorWithMockWikipediaService()
-	result := `<img alt="image" src="./images/image.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
+	result := `<img alt="image" src="./images/image.svg.png" style="width: 5.1ex; height: 2.3ex; vertical-align: -0.5ex;">`
 	tokenImage := fmt.Sprintf(parser.TOKEN_TEMPLATE, parser.TOKEN_IMAGE, 1)
 	token := parser.MathToken{
 		Content: "x=y",
@@ -61,10 +64,9 @@ func TestExpandMath(t *testing.T) {
 	fsMock.ReadFileFunc = func(name string) ([]byte, error) { return svgFileBytes, nil }
 	util.CurrentFilesystem = fsMock
 
-	// TODO Use new function
-	//generator.WikipediaService.(*wikipedia.MockWikipediaService).RenderMathFunc = func(mathString string) (string, string, error) {
-	//	return "image.svg", cache.GetFilePathInCache(cache.ImageCacheDirName, "image.png"), nil
-	//}
+	generator.MathGenerator.(*mockMathGenerator).RenderMathToSvgFunc = func(mathString string) (string, error) {
+		return "image.svg", nil
+	}
 
 	actualResult, err := expand(generator, token)
 

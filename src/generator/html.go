@@ -12,7 +12,6 @@ import (
 	"wiki2book/image"
 	"wiki2book/parser"
 	"wiki2book/util"
-	"wiki2book/wikipedia"
 
 	"github.com/hauke96/sigolo/v2"
 	"github.com/pkg/errors"
@@ -94,8 +93,8 @@ var (
 type HtmlGenerator struct {
 	// TODO must they be public?
 	TokenMap               map[string]parser.Token
-	WikipediaService       wikipedia.WikipediaService
 	ImageProcessingService image.ImageProcessingService
+	MathGenerator          MathGenerator
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
@@ -378,7 +377,7 @@ func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
 	if config.Current.MathConverter == config.MathConverterNone {
 		return token.Content, nil
 	} else if config.Current.MathConverter == config.MathConverterTemplateToSvg {
-		cachedSvgFile, err := "foobar", error(nil) // TODO call new function
+		cachedSvgFile, err := g.MathGenerator.RenderMathToSvg(token.Content)
 		if err != nil {
 			return "", err
 		}

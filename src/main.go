@@ -295,8 +295,8 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &generator.HtmlGenerator{
 			TokenMap:               article.TokenMap,
-			WikipediaService:       wikipediaService,
 			ImageProcessingService: imageProcessingService,
+			MathGenerator:          generator.NewMathGenerator(),
 		}
 		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
@@ -455,8 +455,8 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
 			htmlGenerator := &generator.HtmlGenerator{
 				TokenMap:               article.TokenMap,
-				WikipediaService:       wikipediaService,
 				ImageProcessingService: imageProcessingService,
+				MathGenerator:          generator.NewMathGenerator(),
 			}
 			htmlFilePath, err = htmlGenerator.Generate(article)
 			articleOutputFile = htmlFilePath
