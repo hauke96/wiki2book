@@ -1,0 +1,12 @@
+{
+  "name": "math-renderer",
+  "version": "0.1.0",
+  "description": "A CLI tool to render TeX strings to SVG files using MathJax.",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+  },
+  "devDependencies": {
+    "mathjax": "^4.1.3"
+  }
+}
