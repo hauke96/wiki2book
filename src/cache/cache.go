@@ -20,7 +20,7 @@ const (
 	HtmlCacheDirName     = "html"
 	StatsCacheDirName    = "stats"
 	ImageCacheDirName    = "images"
-	MathCacheDirName     = "math"
+	MathCacheDirName     = "math" // TODO remove
 	TemplateCacheDirName = "templates"
 )
 
@@ -258,7 +258,8 @@ func isOutdated(cacheFolderName string, filename string) (bool, bool, error) {
 	fileAgeDuration := time.Now().Sub(fileStat.ModTime())
 	fileAgeInMinutes := int64(fileAgeDuration.Minutes())
 	fileIsOutdated := fileAgeInMinutes > config.Current.CacheMaxAge
-	sigolo.Tracef("File '%s' is outdated (age: %s, max age for files: %s)", filePath, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
+
+	sigolo.Tracef("Is file '%s' outdated? -> %v (age: %s, max age for files: %s)", filePath, fileIsOutdated, fileAgeDuration, time.Duration(config.Current.CacheMaxAge)*time.Minute)
 
 	return fileIsOutdated, true, nil
 }
