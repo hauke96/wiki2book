@@ -70,28 +70,11 @@ There might be a lot of files with hash values as names and `.svg` as well as `.
 
 ## Math
 
-* Folder: `math`
-* Filenames: SHA1 hash of the url-encoded math string.
+* Folder: `images`
+* Filenames: SHA1 hash of the url-encoded math string followed by `.svg` and `.svg.png`.
 
-Each file containing a hash value and files with that exact hash value as filename exist in the `images` cache.
-The files from the `math` cache are therefore pointing to files in the `images` cache.
-
-**Example:**<br>
-Having `<math>\sqrt{x} + x</math>` the resulting url-encoded string would be `%5Csqrt%7Bx%7D+%2B+x` (see [golang doc](https://pkg.go.dev/net/url#QueryEscape) for details).
-The `math` cache folder will then contain a file with he SHA1 hash value of that encoded string (in this case `44fdead768517de73cbc9ce9c9e4300c060b6a84`) as filename.
-This file then contains the resource token (another SHA1 hash) received by the Wikipedia API (see [rendering math documentation](./rendering-math.md) for details).
-The `images` cache folder will contain two image files (an `.svg` and `.png` file) with exact that resource token as filename so that the `math` cache files always point to these image files.
-
-The file structure for the above example would look like this:
-```
-|– your-cache-folder/
-   |– images/
-      |– 5bbe82a3c29d695afc67eb99a18ed8453e28f12f.png
-      |– 5bbe82a3c29d695afc67eb99a18ed8453e28f12f.svg
-   |– math/
-      |– 44fdead768517de73cbc9ce9c9e4300c060b6a84
-```
-The file `math/44fdead768517de73cbc9ce9c9e4300c060b6a84` has as only content the string `5bbe82a3c29d695afc67eb99a18ed8453e28f12f` which was received by the Wikipedia API.
+The images are not downloaded but created locally from the math expressions in the wikitext input.
+Apart from that, these files behave and are used just like normal images.
 
 ## Templates
 

@@ -4,8 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -54,18 +52,16 @@ type DefaultWikipediaService struct {
 	wikipediaHost              string
 	wikipediaImageArticleHosts []string
 	wikipediaImageHost         string
-	wikipediaMathRestApi       string
 	imageProcessingService     image.ImageProcessingService
 	httpService                ownHttp.HttpService
 }
 
-func NewWikipediaService(wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, wikipediaMathRestApi string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
+func NewWikipediaService(wikipediaInstance string, wikipediaHost string, wikipediaImageInstances []string, wikipediaImageHost string, imageProcessingService image.ImageProcessingService, httpClient ownHttp.HttpService) *DefaultWikipediaService {
 	return &DefaultWikipediaService{
 		wikipediaInstance:          wikipediaInstance,
 		wikipediaHost:              wikipediaHost,
 		wikipediaImageArticleHosts: wikipediaImageInstances,
 		wikipediaImageHost:         wikipediaImageHost,
-		wikipediaMathRestApi:       wikipediaMathRestApi,
 		imageProcessingService:     imageProcessingService,
 		httpService:                httpClient,
 	}
@@ -270,62 +266,4 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 	}
 
 	return evaluatedTemplate.ExpandTemplate.Content, nil
-}
-
-// getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.
-func (w *DefaultWikipediaService) getMathResource(mathString string) (string, error) {
-	urlString := w.wikipediaMathRestApi + "/check/tex"
-
-	// Wikipedia itself adds the "{\displaystyle ...}" part. Having this here as well generated the same IDs for the
-	// formulae as in the original article. This is not only nice for debugging but also might increase speed due to
-	// caching on the Wikimedia servers.
-	requestData := "q=" + url.QueryEscape(fmt.Sprintf(`{\displaystyle %s}`, mathString))
-
-	// If file exists -> ignore
-	filename := util.Hash(mathString)
-	outputFilepath, fileIsCached, err := cache.GetFile(cache.MathCacheDirName, filename)
-	if fileIsCached {
-		mathSvgFilenameBytes, err := util.CurrentFilesystem.ReadFile(outputFilepath)
-		mathSvgFilename := string(mathSvgFilenameBytes)
-		if err != nil {
-			return "", errors.Wrapf(err, "Unable to read cache file %s for math string %s", outputFilepath, util.TruncString(mathString))
-		}
-		sigolo.Debugf("File %s does already exist. Skip.", outputFilepath)
-		return mathSvgFilename, nil
-	}
-
-	response, err := w.httpService.PerformHttpRequest(urlString, "POST", requestData)
-
-	responseBodyText := ""
-	if response != nil {
-		responseBodyReader := response.Body
-		if responseBodyReader != nil {
-			defer responseBodyReader.Close()
-		}
-		responseBodyText = util.ReaderToString(response.Body)
-	}
-
-	if err != nil {
-		return "", errors.Wrapf(err, "Response body for math '%s' on URL %s : %s", mathString, urlString, responseBodyText)
-	}
-
-	if response == nil {
-		return "", errors.Errorf("No error but empty response returned for math '%s' on URL %s", mathString, urlString)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		return "", errors.Errorf("Rendering math failed with status code %d for math '%s' on URL %s with body: %s", response.StatusCode, mathString, urlString, responseBodyText)
-	}
-
-	locationHeader := response.Header.Get(ownHttp.HeaderXResourceLocation)
-	if locationHeader == "" {
-		return "", errors.Errorf("Unable to get location header for math '%s' on URL %s with body: %s", mathString, urlString, responseBodyText)
-	}
-
-	_, err = cache.CacheToFile(cache.MathCacheDirName, filename, io.NopCloser(strings.NewReader(locationHeader)))
-	if err != nil {
-		return "", errors.Wrapf(err, "Unable to cache math resource for math string \"%s\" to %s", util.TruncString(mathString), outputFilepath)
-	}
-
-	return locationHeader, nil
 }

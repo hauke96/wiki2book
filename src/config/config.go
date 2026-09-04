@@ -73,7 +73,6 @@ func NewDefaultConfig() *Configuration {
 		WikipediaHost:                  "wikipedia.org",
 		WikipediaImageHost:             "upload.wikimedia.org",
 		WikipediaImageArticleHosts:     []string{"commons.wikimedia.org", "en.wikipedia.org"},
-		WikipediaMathRestApi:           "https://wikimedia.org/api/rest_v1/media/math",
 		FilePrefixes:                   []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
@@ -244,7 +243,7 @@ type Configuration struct {
 			<li>`{OUTPUT}` : The output SVG file.</li>
 		</ul>
 
-		Default: `'node /usr/share/wiki2book/math-converter "{INPUT}" {OUTPUT}'`
+		Default: `'node /usr/share/wiki2book/math-renderer/index.mjs "{INPUT}" {OUTPUT}'`
 		JSON example: `"command-template-math-to-svg": "my-command --some-arg -i {INPUT} -o {OUTPUT}"`
 	*/
 	CommandTemplateMathToSvg string `json:"command-template-math-to-svg"`
@@ -411,15 +410,6 @@ type Configuration struct {
 		JSON example: `"wikipedia-image-article-hosts": [ "commons.wikimedia.org" ]`
 	*/
 	WikipediaImageArticleHosts []string `json:"wikipedia-image-article-hosts"`
-
-	/*
-		The URL to the math API of wikipedia. This API provides rendering functionality to turn math-objects into PNGs or SVGs.
-
-		Default: `"https://wikimedia.org/api/rest_v1/media/math"`
-		JSON example: `"wikipedia-math-rest-api": "my-math-server.com/api"`
-	*/
-	// TODO remove
-	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
 		A list of prefixes to detect files, e.g. in "File:picture.jpg" the substring "File" is the image prefix. The list
@@ -621,10 +611,6 @@ func MergeIntoCurrentConfig(c *Configuration) {
 	if c.WikipediaImageHost != defaultConfig.WikipediaImageHost {
 		sigolo.Tracef("Override WikipediaImageHost with %s", c.WikipediaImageHost)
 		Current.WikipediaImageHost = c.WikipediaImageHost
-	}
-	if c.WikipediaMathRestApi != defaultConfig.WikipediaMathRestApi {
-		sigolo.Tracef("Override WikipediaMathRestApi with %s", c.WikipediaMathRestApi)
-		Current.WikipediaMathRestApi = c.WikipediaMathRestApi
 	}
 	if !util.EqualsInAnyOrder(c.WikipediaImageArticleHosts, defaultConfig.WikipediaImageArticleHosts) {
 		sigolo.Tracef("Override WikipediaImageArticleHosts with %v", c.WikipediaImageArticleHosts)

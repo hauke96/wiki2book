@@ -42,11 +42,13 @@ See the [documentation](./doc/configuration.md) for further information includin
 
 ## Preliminaries
 
-You need the following tools and fonts when using the **default** configuration:
+You need the following tools and fonts when using the **default** configuration (you can change the usage of external tools using the [command templates](doc/configuration.md#configure-external-tool-calls)):
 
 * ImageMagick (to have the `magick` command).
 * Pandoc (when using the `pandoc` output driver). See notes on pandoc versions 2 and 3 below.
 * rsvg (to have the `rsvg-convert` command).
+* NodeJS (to have the `node` command).
+  * When you _don't_ use wiki2book via a package: Installed MathJax by executing `npm install` in the `math-renderer` directory.
 * Only applies to Linux systems:
   DejaVu fonts in `/usr/share/fonts/TTF/DejaVuSans*.ttf`, which are referenced in the default style. If these files
   should be embedded into the eBook, use the `font-files` config entry, which is empty by default.

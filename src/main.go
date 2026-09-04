@@ -89,7 +89,7 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.StyleFile, "style-file", cliConfig.StyleFile, "The CSS file that should be used.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CoverImage, "cover-image", cliConfig.CoverImage, "A cover image for the front cover of the eBook.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateSvgToPng, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng, "Command template to use for SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathToSvg, "command-template-math-to-png", cliConfig.CommandTemplateMathToSvg, "Command template to use for math to SVG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
+	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathToSvg, "command-template-math-to-svg", cliConfig.CommandTemplateMathToSvg, "Command template to use for math to SVG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateMathSvgToPng, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng, "Command template to use for math SVG to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplateImageProcessing, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing, "Command template to use for math SVG to PNG conversion. Disables processing and uses original images when empty. When set, it must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.CommandTemplatePdfToPng, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng, "Command template to use for PDF to PNG conversion. Must contain the placeholders '{INPUT}' and '{OUTPUT}'.")
@@ -104,7 +104,6 @@ func initCli() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaInstance, "wikipedia-instance", cliConfig.WikipediaInstance, "The subdomain of the Wikipedia instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaHost, "wikipedia-host", cliConfig.WikipediaHost, "The domain of the Wikipedia instance.")
 	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaImageHost, "wikipedia-image-host", cliConfig.WikipediaImageHost, "The domain of the Wikipedia image instance.")
-	rootCmd.PersistentFlags().StringVar(&cliConfig.WikipediaMathRestApi, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi, "The URL to the math API of wikipedia.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.WikipediaImageArticleHosts, "wikipedia-image-article-hosts", cliConfig.WikipediaImageArticleHosts, "Hosts used to search for image article files.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.FilePrefixes, "file-prefixes", cliConfig.FilePrefixes, "A list of prefixes to detect files, e.g. in 'File:picture.jpg' the substring 'File' is the image prefix.")
 	rootCmd.PersistentFlags().StringArrayVar(&cliConfig.AllowedLinkPrefixes, "allowed-link-prefixes", cliConfig.AllowedLinkPrefixes, "A list of prefixes that are considered links and are therefore not removed.")
@@ -279,7 +278,6 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
-		config.Current.WikipediaMathRestApi,
 		imageProcessingService,
 		http.NewDefaultHttpService(),
 	)
@@ -356,7 +354,6 @@ func generateBookFromArticles(project *config.Project) {
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
-		config.Current.WikipediaMathRestApi,
 		imageProcessingService,
 		http.NewDefaultHttpService(),
 	)

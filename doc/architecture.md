@@ -24,7 +24,7 @@ To generate an eBook based on a project file, the following high-level steps are
 2. This might be executed in parallel, depending on the config: For each Wikipedia article in the project, do the following:
    1. Download the wikitext of the article.
    2. The wikitext is tokenized, resulting in the tokenized text and a token map.
-      During this step, templates are evaluated and math is rendered to an SVG.
+      During this step, templates are evaluated and math is rendered to an image.
    3. After tokenization all images that have been found are downloaded and cached to disk.
    4. Finally, an HTML file for the article is generated.
 3. All HTML files and the metadata provided in the project file are used to generate an EPUB file.

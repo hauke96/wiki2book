@@ -60,7 +60,6 @@ func TestCliArgs(t *testing.T) {
 		"--wikipedia-instance", "wikipedia-instance",
 		"--wikipedia-host", "wikipedia-host",
 		"--wikipedia-image-host", "wikipedia-image-host",
-		"--wikipedia-math-rest-api", "wikipedia-math-rest-api",
 		"--wikipedia-image-article-hosts", "wikipedia-image-article-hosts",
 		"--file-prefixes", "file-prefixes",
 		"--allowed-link-prefixes", "allowed-link-prefixes",
@@ -92,7 +91,7 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "style-file", cliConfig.StyleFile)
 	test.AssertEqual(t, "cover-image", cliConfig.CoverImage)
 	test.AssertEqual(t, "command-template-svg-to-png", cliConfig.CommandTemplateSvgToPng)
-	test.AssertEqual(t, "command-template-math-to-png", cliConfig.CommandTemplateMathToSvg)
+	test.AssertEqual(t, "command-template-math-to-svg", cliConfig.CommandTemplateMathToSvg)
 	test.AssertEqual(t, "command-template-math-svg-to-png", cliConfig.CommandTemplateMathSvgToPng)
 	test.AssertEqual(t, "command-template-image-processing", cliConfig.CommandTemplateImageProcessing)
 	test.AssertEqual(t, "command-template-pdf-to-png", cliConfig.CommandTemplatePdfToPng)
@@ -107,7 +106,6 @@ func TestCliArgs(t *testing.T) {
 	test.AssertEqual(t, "wikipedia-instance", cliConfig.WikipediaInstance)
 	test.AssertEqual(t, "wikipedia-host", cliConfig.WikipediaHost)
 	test.AssertEqual(t, "wikipedia-image-host", cliConfig.WikipediaImageHost)
-	test.AssertEqual(t, "wikipedia-math-rest-api", cliConfig.WikipediaMathRestApi)
 	test.AssertEqual(t, []string{"wikipedia-image-article-hosts"}, cliConfig.WikipediaImageArticleHosts)
 	test.AssertEqual(t, []string{"file-prefixes"}, cliConfig.FilePrefixes)
 	test.AssertEqual(t, []string{"allowed-link-prefixes"}, cliConfig.AllowedLinkPrefixes)
