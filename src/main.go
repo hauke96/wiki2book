@@ -271,13 +271,15 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 
 	config.Current.AssertFilesAndPathsExists()
 
+	imageProcessingService := image.NewImageProcessingService()
+
 	wikipediaService := wikipedia.NewWikipediaService(
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
-		image.NewImageProcessingService(),
+		imageProcessingService,
 		http.NewDefaultHttpService(),
 	)
 
@@ -292,8 +294,9 @@ func generateStandaloneEbook(inputFile string, outputFile string) {
 	htmlFilePath := path.Join(cache.HtmlCacheDirName, article.Title+".html")
 	if shouldRecreateHtml(htmlFilePath, config.Current.ForceRegenerateHtml) {
 		htmlGenerator := &generator.HtmlGenerator{
-			TokenMap:         article.TokenMap,
-			WikipediaService: wikipediaService,
+			TokenMap:               article.TokenMap,
+			WikipediaService:       wikipediaService,
+			ImageProcessingService: imageProcessingService,
 		}
 		htmlFilePath, err = htmlGenerator.Generate(article)
 		sigolo.FatalCheck(err)
@@ -345,13 +348,15 @@ func generateBookFromArticles(project *config.Project) {
 	articleChan := make(chan string, config.Current.WorkerThreads)
 	sigolo.Debugf("Use %d worker threads to process the articles", config.Current.WorkerThreads)
 
+	imageProcessingService := image.NewImageProcessingService()
+
 	wikipediaService := wikipedia.NewWikipediaService(
 		config.Current.WikipediaInstance,
 		config.Current.WikipediaHost,
 		config.Current.WikipediaImageArticleHosts,
 		config.Current.WikipediaImageHost,
 		config.Current.WikipediaMathRestApi,
-		image.NewImageProcessingService(),
+		imageProcessingService,
 		http.NewDefaultHttpService(),
 	)
 
@@ -374,7 +379,7 @@ func generateBookFromArticles(project *config.Project) {
 					}
 				}
 
-				thisArticleOutputFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService)
+				thisArticleOutputFile := processArticle(articleName, articleNumber+1, numberOfArticles, wikipediaService, imageProcessingService)
 				articleOutputFiles[articleNumber] = thisArticleOutputFile
 			}
 
@@ -421,7 +426,7 @@ func generateBookFromArticles(project *config.Project) {
 
 // processArticle processes a given article, which means, the content (including images etc.) is downloaded and the
 // article will be tokenized, parsed and converted into the output format stored in the current configuration.
-func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService) string {
+func processArticle(articleName string, currentArticleNumber int, totalNumberOfArticles int, wikipediaService *wikipedia.DefaultWikipediaService, imageProcessingService image.ImageProcessingService) string {
 	sigolo.Infof("Article '%s' (%d/%d): Start processing", articleName, currentArticleNumber, totalNumberOfArticles)
 
 	wikipediaArticleHost := fmt.Sprintf("%s.%s", config.Current.WikipediaInstance, config.Current.WikipediaHost)
@@ -449,8 +454,9 @@ func processArticle(articleName string, currentArticleNumber int, totalNumberOfA
 		case config.OutputTypeEpub3:
 			sigolo.Debugf("Article '%s' (%d/%d): Generate HTML", articleName, currentArticleNumber, totalNumberOfArticles)
 			htmlGenerator := &generator.HtmlGenerator{
-				TokenMap:         article.TokenMap,
-				WikipediaService: wikipediaService,
+				TokenMap:               article.TokenMap,
+				WikipediaService:       wikipediaService,
+				ImageProcessingService: imageProcessingService,
 			}
 			htmlFilePath, err = htmlGenerator.Generate(article)
 			articleOutputFile = htmlFilePath

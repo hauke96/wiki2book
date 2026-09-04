@@ -93,8 +93,9 @@ var (
 
 type HtmlGenerator struct {
 	// TODO must they be public?
-	TokenMap         map[string]parser.Token
-	WikipediaService wikipedia.WikipediaService
+	TokenMap               map[string]parser.Token
+	WikipediaService       wikipedia.WikipediaService
+	ImageProcessingService image.ImageProcessingService
 }
 
 // Generate creates the HTML for the given article and returns either the HTML file path or an error.
@@ -372,25 +373,39 @@ func (g *HtmlGenerator) expandRefUsage(token parser.RefUsageToken) string {
 }
 
 func (g *HtmlGenerator) expandMath(token parser.MathToken) (string, error) {
-	svgAbsolutePath, pngAbsolutePath, err := g.WikipediaService.RenderMath(token.Content)
-	if err != nil {
-		return "", err
+	sigolo.Debugf("Render math '%s' with converter '%s'", util.TruncString(token.Content), config.Current.MathConverter)
+
+	if config.Current.MathConverter == config.MathConverterNone {
+		return token.Content, nil
+	} else if config.Current.MathConverter == config.MathConverterTemplateToSvg {
+		cachedSvgFile, err := "foobar", error(nil) // TODO call new function
+		if err != nil {
+			return "", err
+		}
+
+		svg, err := image.ReadSimpleAvgAttributes(cachedSvgFile)
+		if err != nil {
+			return "", err
+		}
+
+		cachedPngFilePath := cache.GetFilePathInCache(cache.ImageCacheDirName, cachedSvgFile+util.FileEndingPng)
+		err = g.ImageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFilePath, config.Current.CommandTemplateMathSvgToPng)
+		if err != nil {
+			return "", err
+		}
+
+		// Use the relative path in the HTML, otherwise the image files are not found
+		relativePngFilePath, err := cache.GetPathRelativeToCache(cachedPngFilePath)
+		if err != nil {
+			return "", err
+		}
+
+		sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", relativePngFilePath, svg.Width, svg.Height, svg.Style)
+
+		return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(relativePngFilePath), svg.Width, svg.Height, svg.Style), nil
 	}
 
-	svg, err := image.ReadSimpleAvgAttributes(svgAbsolutePath)
-	if err != nil {
-		return "", err
-	}
-
-	// Use the relative path in the HTML, otherwise the image files are not found
-	pngRelativePath, err := cache.GetPathRelativeToCache(pngAbsolutePath)
-	if err != nil {
-		return "", err
-	}
-
-	sigolo.Debugf("Expanded math | file: %s, width: %s, height: %s, style: %s", pngAbsolutePath, svg.Width, svg.Height, svg.Style)
-
-	return fmt.Sprintf(MATH_TEMPLATE, escapePathComponents(pngRelativePath), svg.Width, svg.Height, svg.Style), nil
+	return "", errors.Errorf("Unknown math converter config '%s'", config.Current.MathConverter)
 }
 
 func (g *HtmlGenerator) expandNowiki(token parser.NowikiToken) string {

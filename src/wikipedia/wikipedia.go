@@ -47,9 +47,6 @@ type WikipediaService interface {
 	DownloadArticle(host string, title string) (*WikiArticleDto, error)
 	DownloadImages(images []string) error
 	EvaluateTemplate(template string, cacheFile string) (string, error)
-	// RenderMath takes the math string and turns it into an image. The absolute paths of the SVG and PNG images are
-	// returned. In case of an error, these paths are empty.
-	RenderMath(mathString string) (string, string, error)
 }
 
 type DefaultWikipediaService struct {
@@ -273,44 +270,6 @@ func (w *DefaultWikipediaService) EvaluateTemplate(template string, cacheFile st
 	}
 
 	return evaluatedTemplate.ExpandTemplate.Content, nil
-}
-
-func (w *DefaultWikipediaService) RenderMath(mathString string) (string, string, error) {
-	sigolo.Debugf("Render math %s", util.TruncString(mathString))
-	sigolo.Tracef("  Complete math text: %s", mathString)
-
-	mathApiUrl := w.wikipediaMathRestApi
-
-	mathSvgFilename, err := w.getMathResource(mathString)
-	if err != nil {
-		return "", "", err
-	}
-
-	imageSvgUrl := mathApiUrl + "/render/svg/" + mathSvgFilename
-	cachedSvgFile, _, err := w.httpService.DownloadAndCache(imageSvgUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingSvg)
-	if err != nil {
-		return "", "", err
-	}
-
-	if config.Current.MathConverter == config.MathConverterNone {
-		return cachedSvgFile, cachedSvgFile, nil
-	} else if config.Current.MathConverter == config.MathConverterWikimedia {
-		imagePngUrl := mathApiUrl + "/render/png/" + mathSvgFilename
-		cachedPngFile, _, err := w.httpService.DownloadAndCache(imagePngUrl, cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
-		if err != nil {
-			return "", "", err
-		}
-		return cachedSvgFile, cachedPngFile, nil
-	} else if config.Current.MathConverter == config.MathConverterTemplate {
-		cachedPngFile := cache.GetFilePathInCache(cache.ImageCacheDirName, mathSvgFilename+util.FileEndingPng)
-		err = w.imageProcessingService.ConvertToPng(cachedSvgFile, cachedPngFile, config.Current.CommandTemplateMathSvgToPng)
-		if err != nil {
-			return "", "", err
-		}
-		return cachedSvgFile, cachedPngFile, nil
-	}
-
-	return "", "", errors.New("No supported math converter found")
 }
 
 // getMathResource uses a POST request to generate the SVG from the given math TeX string. This function returns the SimpleSvgAttributes filename.

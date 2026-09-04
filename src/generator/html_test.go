@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"testing"
-	"wiki2book/cache"
 	"wiki2book/config"
 	"wiki2book/parser"
 	"wiki2book/test"
@@ -62,9 +61,10 @@ func TestExpandMath(t *testing.T) {
 	fsMock.ReadFileFunc = func(name string) ([]byte, error) { return svgFileBytes, nil }
 	util.CurrentFilesystem = fsMock
 
-	generator.WikipediaService.(*wikipedia.MockWikipediaService).RenderMathFunc = func(mathString string) (string, string, error) {
-		return "image.svg", cache.GetFilePathInCache(cache.ImageCacheDirName, "image.png"), nil
-	}
+	// TODO Use new function
+	//generator.WikipediaService.(*wikipedia.MockWikipediaService).RenderMathFunc = func(mathString string) (string, string, error) {
+	//	return "image.svg", cache.GetFilePathInCache(cache.ImageCacheDirName, "image.png"), nil
+	//}
 
 	actualResult, err := expand(generator, token)
 

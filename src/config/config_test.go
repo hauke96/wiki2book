@@ -59,7 +59,7 @@ func TestMergeIntoCurrentConfig(t *testing.T) {
 		FilePrefixes:                   []string{"file-prefixes"},
 		AllowedLinkPrefixes:            []string{"allowed-link-prefixes"},
 		CategoryPrefixes:               []string{"category-prefixes"},
-		MathConverter:                  MathConverterWikimedia,
+		MathConverter:                  MathConverterTemplateToSvg,
 		TocDepth:                       3,
 		WorkerThreads:                  234,
 		UserAgentTemplate:              "user-agent-template",
@@ -238,19 +238,19 @@ func TestAssertValidity_mathConverter(t *testing.T) {
 	config.MathConverter = "foobar"
 	testCallExpectingPanic(t, func() { config.AssertValidity() })
 
-	config.MathConverter = MathConverterWikimedia + "blubb"
+	config.MathConverter = MathConverterTemplateToSvg + "blubb"
 	testCallExpectingPanic(t, func() { config.AssertValidity() })
 
-	config.MathConverter = "blubb" + MathConverterWikimedia
+	config.MathConverter = "blubb" + MathConverterTemplateToSvg
 	testCallExpectingPanic(t, func() { config.AssertValidity() })
 
 	config.MathConverter = MathConverterNone
 	config.AssertValidity()
 
-	config.MathConverter = MathConverterWikimedia
+	config.MathConverter = MathConverterTemplateToSvg
 	config.AssertValidity()
 
-	config.MathConverter = MathConverterTemplate
+	config.MathConverter = MathConverterTemplateToSvg
 	config.AssertValidity()
 }
 
@@ -488,7 +488,7 @@ func (c *configEntry) toMarkdown() string {
 }
 
 // Not a test, but generates markdown that can be pasted into the "doc/configuration.md" file.
-func _TestGenerateDoc(t *testing.T) {
+func TestGenerateDoc(t *testing.T) {
 	contentBytes, err := os.ReadFile("config.go")
 	sigolo.FatalCheck(err)
 

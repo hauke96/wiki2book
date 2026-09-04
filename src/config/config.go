@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	MathConverterNone      = "none"
-	MathConverterWikimedia = "wikimedia"
-	MathConverterTemplate  = "template"
+	MathConverterNone          = "none"
+	MathConverterTemplateToSvg = "template-to-svg"
 
 	OutputTypeEpub2     = "epub2"
 	OutputTypeEpub3     = "epub3"
@@ -77,7 +76,7 @@ func NewDefaultConfig() *Configuration {
 		FilePrefixes:                   []string{"file", "image", "media"},
 		AllowedLinkPrefixes:            []string{"arxiv", "doi"},
 		CategoryPrefixes:               []string{"category"},
-		MathConverter:                  "wikimedia",
+		MathConverter:                  MathConverterNone,
 		CommandTemplateSvgToPng:        defaultCommandTemplateSvgToPng,
 		CommandTemplateMathSvgToPng:    getDefaultMathSvgToPngCommandTemplate(),
 		CommandTemplateImageProcessing: defaultCommandTemplateImageProcessing,
@@ -401,6 +400,7 @@ type Configuration struct {
 		Default: `"https://wikimedia.org/api/rest_v1/media/math"`
 		JSON example: `"wikipedia-math-rest-api": "my-math-server.com/api"`
 	*/
+	// TODO remove
 	WikipediaMathRestApi string `json:"wikipedia-math-rest-api"`
 
 	/*
@@ -433,12 +433,11 @@ type Configuration struct {
 	/*
 		Sets the converter to turn math SVGs into PNGs. This can be one of the following values:
 		<ul>
-			<li>"none": Uses no converter, instead the plain SVG file is inserted into the ebook.</li>
-			<li>"wikimedia": Uses the online API of Wikimedia to get the PNG version of a math expression.</li>
-			<li>"template": Uses the `CommandTemplateMathSvgToPng` to convert math SVG files to PNGs.</li>
+			<li>"none": Uses no converter, instead the plain TeX text is used.</li>
+			<li>"template-to-svg": Uses the `CommandTemplateTexToSvg` followed by `CommandTemplateMathSvgToPng` to convert math SVG files to PNGs.</li>
 		</ul>
 
-		Default: `[ "wikimedia" ]`
+		Default: `[ "none" ]`
 	*/
 	MathConverter string `json:"math-converter"`
 
@@ -718,7 +717,7 @@ func (c *Configuration) AssertValidity() {
 		}
 	}
 
-	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterWikimedia && c.MathConverter != MathConverterTemplate {
+	if c.MathConverter != MathConverterNone && c.MathConverter != MathConverterTemplateToSvg {
 		defaultValidationErrorHandler(errors.Errorf("Invalid math converter '%s'", c.MathConverter))
 	}
 	if c.TocDepth < 0 || c.TocDepth > 6 {
