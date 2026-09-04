@@ -101,14 +101,11 @@ func (t *Tokenizer) parseReferences(content string) string {
 				t.refNumberToContent[groupName] = map[int]string{}
 			}
 
-			nameToRefNumberForCurrentGroup := t.nameToRefNumber[groupName]
-			refNumberToContentForCurrentGroup := t.refNumberToContent[groupName]
-			refNumberCounterForCurrentGroup := t.refNumberCounter[groupName]
-
 			isReferenceUsage := content[startEndIndex-1] == '/' // Reference definitions end with "/>" instead of "</ref>"
 			if isReferenceUsage {
 				// Reference usage like "<ref name=foo />"
-				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberCounterForCurrentGroup, cursorWithinReferencePlaceholder, startEndIndex)
+				var refNumberCounterForCurrentGroup int
+				refNumberCounterForCurrentGroup, content = t.parseNamedReferenceUsage(content, i, startEndIndex, groupName, nameAttributeValue, cursorWithinReferencePlaceholder)
 				t.refNumberCounter[groupName] = refNumberCounterForCurrentGroup
 			} else {
 				// Reference definition like "<ref name=...>Foobar</ref".
@@ -117,7 +114,7 @@ func (t *Tokenizer) parseReferences(content string) string {
 					// No end token found -> probably unsupported wikitext syntax (like nested refs)
 					sigolo.Errorf("No end-part for reference start '%s' found. Text around this location: ...%s...", refDefStart, util.GetTextAround(content, i, 50))
 				}
-				content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, groupName, nameAttributeValue, nameToRefNumberForCurrentGroup, refNumberToContentForCurrentGroup, cursorWithinReferencePlaceholder, refDefLongEndLen)
+				content = t.parseReferenceDefinition(content, i, startEndIndex, refEndIndex, groupName, nameAttributeValue, cursorWithinReferencePlaceholder, refDefLongEndLen)
 			}
 		}
 	}
@@ -160,11 +157,14 @@ func (t *Tokenizer) parseReferenceEndPlaceholder(content string, i int, startEnd
 // index i with a reference usage token. It might increase the refNumberCounter, in case the reference appeared for the
 // first time, might change the nameToRefNumber map and returns the new content containing the key of the new reference
 // usage token.
-func (t *Tokenizer) parseNamedReferenceUsage(content string, i int, nameAttributeValue string, nameToRefNumber map[string]int, refNumberCounter int, cursorWithinReferencePlaceholder bool, startEndIndex int) (int, string) {
+func (t *Tokenizer) parseNamedReferenceUsage(content string, i int, startEndIndex int, groupName string, nameAttributeValue string, cursorWithinReferencePlaceholder bool) (int, string) {
+	refNumberCounter := t.refNumberCounter[groupName]
+
 	if nameAttributeValue != "" {
 		// Names reference usage
-		refNumber, ok := nameToRefNumber[nameAttributeValue]
-		if !ok {
+		nameToRefNumber := t.nameToRefNumber[groupName]
+		refNumber, hasRefNumberForName := nameToRefNumber[nameAttributeValue]
+		if !hasRefNumberForName {
 			// Name appears the first time, the definition might come later
 			refNumber = refNumberCounter
 			nameToRefNumber[nameAttributeValue] = refNumber
@@ -191,10 +191,13 @@ func (t *Tokenizer) parseNamedReferenceUsage(content string, i int, nameAttribut
 // case the reference definition has a name attribute, an entry is added to the nameToRefNumber. When the reference is
 // new, the refNumberCounter will be incremented and its new value returned. In case of an already known named reference,
 // this counter will not change and its current value will be returned.
-func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndIndex int, refEndIndex int, groupName string, nameAttributeValue string, nameToRefNumber map[string]int, refNumberToContent map[int]string, cursorWithinReferencePlaceholder bool, refDefLongEndLen int) string {
+func (t *Tokenizer) parseReferenceDefinition(content string, i int, startEndIndex int, refEndIndex int, groupName string, nameAttributeValue string, cursorWithinReferencePlaceholder bool, refDefLongEndLen int) string {
+	nameToRefNumber := t.nameToRefNumber[groupName]
+	refNumberToContent := t.refNumberToContent[groupName]
 	refNumber := t.refNumberCounter[groupName]
+
 	if nameAttributeValue != "" {
-		if _, ok := t.nameToRefNumber[nameAttributeValue]; ok {
+		if _, ok := nameToRefNumber[nameAttributeValue]; ok {
 			// Ref name already used before, so we use the number of this existing ref usage.
 			refNumber = nameToRefNumber[nameAttributeValue]
 		} else {

@@ -7,11 +7,6 @@ import (
 )
 
 func NewTokenizerWithMockWikipediaService() Tokenizer {
-	// Reset global maps for reference parsing
-	refNumberToContent = map[string]map[int]string{}
-	nameToRefNumber = map[string]map[string]int{}
-	refNumberCounter = map[string]int{}
-
 	return Tokenizer{
 		tokenMap:         map[string]Token{},
 		tokenCounter:     0,
@@ -19,6 +14,10 @@ func NewTokenizerWithMockWikipediaService() Tokenizer {
 		wikipediaService: wikipedia.NewMockWikipediaService(),
 
 		tokenizeContent: tokenizeContent,
+
+		refNumberToContent: map[string]map[int]string{},
+		nameToRefNumber:    map[string]map[string]int{},
+		refNumberCounter:   map[string]int{},
 	}
 }
 
